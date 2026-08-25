@@ -46,7 +46,7 @@ html[data-theme='dark'] {
   --color-bg-alt: #212F3F; /* kártyákhoz egy árnyalattal világosabb */
   --color-surface: #212F3F;
   --color-text: var(--offwhite);
-  --color-text-muted: var(--sagegray);
+  --color-text-muted: #9BB6B5; /* világosított sagegray — a sima #5E807F nem ad elég kontrasztot navy háttéren */
   --color-primary: var(--mint);
   --color-primary-contrast: var(--navy);
   --color-secondary: var(--sagegray);

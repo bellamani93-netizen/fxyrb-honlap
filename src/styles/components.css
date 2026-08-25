@@ -85,10 +85,10 @@
 }
 /* --- chevron márkajel (a logóból pixelre pontosan kivágott grafika, a szöveg magasságával egyező) --- */
 .chevron-svg {
-  height: 1em;
+  height: 0.72em;
   display: inline-flex;
   align-items: stretch;
-  vertical-align: -0.1em;
+  vertical-align: 0.02em;
   flex-shrink: 0;
 }
 .chevron-unit {
@@ -215,6 +215,7 @@
   border: none;
   padding: 0.65rem 1.25rem;
 }
+.newsletter-fyb .icon-fyb { color: var(--mint); }
 
 /* --- fejléc --- */
 .site-header {
@@ -265,6 +266,7 @@
 .site-footer {
   background-color: var(--navy);
   color: var(--offwhite);
+  padding-top: 1.75rem;
   padding-bottom: 1.5rem;
 }
 .site-footer a { color: var(--offwhite); text-decoration: none; }
@@ -305,29 +307,19 @@ html[data-theme='dark'] .logo-for-light { display: none; }
 }
 .hero-signature-wrap {
   position: absolute;
-  right: -1rem;
+  right: 1.25rem;
   bottom: -0.75rem;
-  width: 42%;
-  max-width: 170px;
-}
-.hero-signature-wrap::after {
-  content: '';
-  position: absolute;
-  left: 8%;
-  right: 8%;
-  bottom: -2px;
-  height: 40%;
-  background: radial-gradient(ellipse at center, rgba(26, 38, 52, 0.22) 0%, rgba(26, 38, 52, 0) 75%);
-  filter: blur(3px);
-  z-index: -1;
-}
-html[data-theme='dark'] .hero-signature-wrap::after {
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 75%);
+  width: 46.2%;
+  max-width: 187px;
 }
 .hero-signature {
   display: block;
   width: 100%;
   height: auto;
+  filter: drop-shadow(0 3px 4px rgba(26, 38, 52, 0.3));
+}
+html[data-theme='dark'] .hero-signature {
+  filter: drop-shadow(0 2px 5px rgba(248, 249, 250, 0.45));
 }
 .signature-for-dark { display: none; }
 .signature-for-light { display: block; }
@@ -337,5 +329,18 @@ html[data-theme='dark'] .signature-for-light { display: none; }
 .icon-fyb {
   width: 1.5rem;
   height: 1.5rem;
-  color: inherit;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+/* CSS mask-alapú, ténylegesen színezhető ikon (ld. Icon.tsx) — <img>-be töltött SVG
+   currentColor-ja nem öröklődne, ezért mask-image + background-color adja a színt. */
+.icon-mask {
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
 }

@@ -73,4 +73,24 @@ Marci jelezte, hogy az újrarajzolt (stroke-alapú, `strokeLinecap="butt"`) chev
 
 **Marci jóváhagyta ezt a nyíl-formát mint véglegeset** ("oké, ez jó nyílforma, mentsd el") — a Design jegyzet 4. pontja LEZÁRVA jelöléssel frissítve, a `public/images/chevron.png` mostantól a hivatalos, minden további fázisban átveendő chevron-grafika.
 
+## 2026.08.25. — Finomítások: aláírás, chevron-magasság, tartalom, kontraszt-hiba
+
+Marci egy hosszabb korrekciós kört küldött: aláírás pozíció/méret/árnyék, chevron-magasság az alcímeknél, lábléc-csík távolsága, a "kinek segítünk" kártyák tartalma, hírlevél-blokk mobil tördelése, és általános sötét módú kontraszt-ellenőrzés.
+
+**A legfontosabb, ezalatt felfedezett hiba: az ikonok feketén jelentek meg sötét módban.**
+- Ok: az ikonokat `<img src=".../ikon.svg">`-ként töltöttük be, az SVG-k belseje `fill/stroke: currentColor`-t használt — de egy `<img>`-be töltött SVG **nem** örökli a beágyazó oldal színét (a böngésző elszigetelt erőforrásként kezeli), a `currentColor` a feketére (kezdőérték) esik vissza. Világos módban ez véletlenül majdnem jó volt (navy szöveg ≈ fekete), sötét módban viszont nyilvánvalóan rossz (fekete ikon navy kártyán).
+- Pixel-mintavétellel (canvas `getImageData`) igazoltam a hibát, mielőtt javítottam volna.
+- **Javítás:** új `src/components/Icon.tsx` komponens — az ikont `mask-image` CSS-tulajdonságként tölti be, a tényleges színt `background-color: currentColor` adja. Ez a technika ténylegesen követi a CSS-kaszkádot. Minden korábbi `<img className="icon-fyb">` használatot lecseréltem erre (Home, Idopontfoglalas, MiniKurzus). A `ThemeToggle` saját, inline `<svg>`-je nem érintett (az sosem `<img>`-ként töltődött be, ott a `currentColor` mindig is helyesen működött).
+
+**Egyéb javítások:**
+- **Aláírás:** balrébb (jobbról `1.25rem`, nem `-1rem`) és 10%-kal nagyobb (46,2% / 187px, korábban 42% / 170px). Az elmosott radial-gradient "derengést" lecseréltem valódi `filter: drop-shadow(...)`-ra, ami az aláírás-grafika saját sziluettjéhez tapad — így ténylegesen a kép és az aláírás közé kerül (korábban a derengés lejjebb, a kép szín-határán túl, gyakorlatilag láthatatlanul helyezkedett el). Sötét módban a drop-shadow színe világos (törtfehér, "derengés"), világos módban sötét (navy, hagyományos árnyék).
+- **Chevron-magasság:** `1em` → `0.72em` — a teljes sorköz-doboz helyett a tényleges betűmagassággal egyezik az eyebrow-knál.
+- **Lábléc-csík távolsága:** a `.site-footer` `padding-top`-ot kapott, hogy a csík ne közvetlenül a szín-határnál kezdődjön.
+- **"Kinek segítünk" kártyák:** 1) ikon → `ikon_tanulas`, cím → "ülőmunkát végző férfiaknak"; 2) ikon → `ikon_villanykorte`, cím → "elhúzódó derékfájásra, porckorongsérvre"; 3) ikon → `ikon_torna`, cím → "akik szeretnék végre legyőzni".
+- **Hírlevél blokk:** `ikon_munkafuzet` ikon a cím elé, inline (nem flex-wrap) elrendezésben, hogy mobil nézetben az ikon a szöveg mellett maradjon, ne essen külön sorra; a "Derekas Levelekre" `white-space: nowrap`-pal mindig egy sorban marad.
+- **Ikonszín, mindenhol:** `.icon-fyb` mostantól mindig `var(--color-primary)` (teal világos / mint sötét módban), nem a szövegszínt örökli — a hírlevél-panel (mindig navy háttér) ikonjai külön szabállyal mindig mint színűek, függetlenül az oldal aktuális témájától.
+- **Sötét módú kontraszt-audit:** a `--color-text-muted` (leírások, dátumok, szerepkör-szövegek) a sima `#5E807F` sagegray-jel navy háttéren csak ~3,5:1 kontrasztot adott (WCAG AA alatt). Sötét módra felülírva `#9BB6B5`-re (~6,6:1 kontraszt). Az összes többi szövegszín (fő szöveg, gombok, badge-ek, footer `text-white-50`) átvizsgálva — azok megfelelő kontraszttal rendelkeztek, nem igényeltek módosítást.
+
+**Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).
+
 **Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).

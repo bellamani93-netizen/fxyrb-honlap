@@ -1,4 +1,5 @@
 import Chevron from '../components/Chevron'
+import Icon from '../components/Icon'
 
 const testimonials = [
   {
@@ -43,7 +44,7 @@ export default function Idopontfoglalas() {
             <div className="card-fyb" style={{ minHeight: 560 }}>
               <div className="d-flex flex-column align-items-center justify-content-center h-100 text-center py-5"
                    style={{ color: 'var(--color-text-muted)', minHeight: 500 }}>
-                <img src="/icons/ikon_naptar.svg" alt="" className="icon-fyb mb-3" style={{ width: '3rem', height: '3rem' }} />
+                <Icon src="/icons/ikon_naptar.svg" className="mb-3" style={{ width: '3rem', height: '3rem' }} />
                 <p className="mb-1 fw-bold" style={{ color: 'var(--color-text)' }}>Calendly-beágyazás helye</p>
                 <p className="small mb-0">élesben itt jelenik meg az időpontfoglaló widget</p>
               </div>

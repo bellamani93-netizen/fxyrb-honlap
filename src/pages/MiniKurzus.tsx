@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import Chevron from '../components/Chevron'
+import Icon from '../components/Icon'
 
 const videos = [
   { title: '1. miért fáj a derekad — a valódi ok', text: 'a leggyakoribb tévhitek és a tényleges háttér.' },
@@ -36,7 +37,7 @@ export default function MiniKurzus() {
 
         <div className="locked-card text-center">
           <div className="locked-header justify-content-center">
-            <img src="/icons/ikon_lakat.svg" alt="" className="icon-fyb" />
+            <Icon src="/icons/ikon_lakat.svg" />
             konzultációs időpontfoglaló
           </div>
           <p className="mb-3">nézd végig mind a 4 videót, és megnyílik az ingyenes konzultáció foglalása.</p>

@@ -1,21 +1,22 @@
 import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
 import Chevron from '../components/Chevron'
+import Icon from '../components/Icon'
 
 const helpCards = [
   {
-    icon: '/icons/ikon_torna.svg',
-    title: 'kizárólag ülőmunkát végzőknek',
+    icon: '/icons/ikon_tanulas.svg',
+    title: 'ülőmunkát végző férfiaknak',
     text: 'irodai, home office-os, sofőr — ha napi 6+ órát ülsz, ez a program neked szól.',
   },
   {
-    icon: '/icons/ikon_kerdoiv.svg',
-    title: 'ismétlődő, magyarázat nélküli derékfájásra',
+    icon: '/icons/ikon_villanykorte.svg',
+    title: 'elhúzódó derékfájásra, porckorongsérvre',
     text: 'nem tippeket adunk, hanem megmutatjuk az ok-okozati összefüggést: mi történik → miért fáj → mit tegyél.',
   },
   {
-    icon: '/icons/ikon_szintek.svg',
-    title: 'akik szeretnék végre kézben tartani',
+    icon: '/icons/ikon_torna.svg',
+    title: 'akik szeretnék végre legyőzni',
     text: 'saját tempóban haladó, 10+14 hetes program, ami tényleg beépül a mindennapjaidba.',
   },
 ]
@@ -77,7 +78,7 @@ export default function Home() {
             {helpCards.map((c) => (
               <div className="col-md-4" key={c.title}>
                 <div className="card-fyb card-fyb-hover h-100">
-                  <img src={c.icon} alt="" className="icon-fyb mb-3" style={{ width: '2.5rem', height: '2.5rem' }} />
+                  <Icon src={c.icon} className="mb-3" style={{ width: '2.5rem', height: '2.5rem' }} />
                   <h3 className="h5">{c.title}</h3>
                   <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>{c.text}</p>
                 </div>
@@ -144,7 +145,13 @@ export default function Home() {
           <div className="newsletter-fyb">
             <div className="row align-items-center gy-4">
               <div className="col-lg-7">
-                <h2 className="h3 mb-2">iratkozz fel a Derekas Levelekre</h2>
+                <h2 className="h3 mb-2">
+                  <Icon
+                    src="/icons/ikon_munkafuzet.svg"
+                    style={{ width: '1.1em', height: '1.1em', verticalAlign: '-0.15em', marginRight: '0.35em' }}
+                  />
+                  iratkozz fel a <span className="text-nowrap">Derekas Levelekre</span>
+                </h2>
                 <p className="mb-0 text-white-50">
                   heti egy e-mail: mit rontunk el nap mint nap a derekunkkal, és mit tegyünk helyette.
                 </p>
