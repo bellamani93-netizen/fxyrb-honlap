@@ -1,6 +1,7 @@
 export default function Footer() {
   return (
     <footer className="site-footer">
+      <div className="footer-chevron-strip" />
       <div className="container">
         <div className="row gy-4">
           <div className="col-md-4">
@@ -33,8 +34,6 @@ export default function Footer() {
           <span className="small text-white-50">© {new Date().getFullYear()} Fix Your Back</span>
         </div>
       </div>
-
-      <div className="footer-chevron-strip" />
     </footer>
   )
 }

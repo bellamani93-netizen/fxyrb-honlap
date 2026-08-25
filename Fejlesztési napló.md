@@ -49,4 +49,17 @@ Marci feltöltötte a `Design elemek` mappába a végleges hero-fotót (`kép.pn
 
 **Javított hiba fejlesztés közben:** a lefelé mutató chevron első nekifutásra felfelé mutatott (rossz forgatási irány, `rotate(90deg)` helyett `rotate(-90deg)` kellett).
 
+## 2026.08.25. — Finomító korrekciók a design-elemekhez
+
+Marci pontosította az előző kört: a logó ikonján belül a fehér elemek is navy-ra váltak (hibásan), a chevron-forma nem a logóéval egyezett, a lábléc-csík helye/formája nem volt jó, és hiányoztak a valódi ügyfél-visszajelzések.
+
+**Elvégzett javítások:**
+- **Logó ikon:** a navy-változat generáló szkriptjét pontosítottam — pixel-alapú régió-vizsgálattal (a 100×100 px-es ikon-négyzet határának meghatározásával) igazoltam, hogy az ikonon belül fehér részletek is vannak (pl. a sziluett kézfején, csuklópántján); mostantól **csak az ikonon belüli fekete** cserélődik navy-ra, a fehér marad, a szövegrésznél (ikonon kívül) továbbra is a törtfehér→navy csere történik.
+- **Chevron forma:** pixel-pontosan megvizsgáltam a logó "BACK«««" nyilait (oszloponkénti mintavétellel) — kiderült, hogy tömör kitöltésű, éles sarkú, balra mutató nyilak, nem lekerekített vonalas ikonok. A `Chevron` komponenst újraírtam: egyetlen nyíl-egység (`strokeLinecap="butt"`, `strokeLinejoin="miter"`), `double` prop-pal két szorosan egymás mellett álló egységgé bővíthető az eyebrow-khoz; a "hogyan segítünk" nyilai egyetlen (nem dupla) egységet használnak.
+- **Chevron pozíció:** minden eyebrow-nál a szöveg került előre, a (dupla) chevron utána — a logó "FIX YOUR BACK ‹‹‹‹" mintáját követve, nem pedig elé.
+- **Hero-fotó igazítás:** a hero szekció alsó paddingjét eltávolítottam, a fotó oszlopa `align-self-end`-et kapott — a fotó alja mostantól pixelre pontosan a szín-határhoz illeszkedik, a szöveg oszlop saját `pb-5`-öt kapott a légtérhez.
+- **Aláírás:** a drop-shadow helyett egy nagyon enyhe, elmosott radial-gradient "derengés" került alá (`::after` pszeudoelem). Sötét módban `invert(1)` szűrő helyett egy valódi türkiz (`#5FD3BC`) színű PNG-változatot generáltam (`signo_mint.png` → `signature-dark.png`), világos módban az eredeti navy marad (`signature-light.png`) — ugyanaz a data-theme-alapú kép-váltás, mint a logónál.
+- **Lábléc-csík:** a nyilas minta a lábléc-blokk aljáról a **tetejére** került (közvetlenül a navy háttér elejére, a tartalom fölé), és az új, logó-hű nyíl-formát használja.
+- **Valós visszajelzések:** a Google Térkép "FixYourBack Kft." adatlapján jelenleg **egyetlen valódi értékelés** szerepel (Tóth Barnabás, 5/5, "Hiánypótló!…", 2026.08.23 körül, tulajdonosi válasszal). A korábban kitalált (Anikó/Gábor/Zsófia) placeholder-szövegeket ezzel az egy valós véleménnyel váltottam ki a Főoldalon és az Időpontfoglalás oldalon — nem gyártottam hozzá további kitalált véleményeket, mivel több nem létezik.
+
 **Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).

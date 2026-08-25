@@ -27,19 +27,23 @@ const processSteps = [
 ]
 
 const testimonials = [
-  { name: 'Anikó, 42', role: 'irodai dolgozó', quote: 'Fél év után első alkalommal nem fájt reggel felkelni.', initials: 'A' },
-  { name: 'Gábor, 51', role: 'sofőr', quote: 'Végre megértettem, mit rontok el nap mint nap — nem csak gyakorlatokat kaptam.', initials: 'G' },
+  {
+    name: 'Tóth Barnabás',
+    role: 'Google-értékelés · 5/5',
+    quote: 'Hiánypótló! Sokkal több ehhez hasonló kezdeményezésnek kellene lenni. Remélem még sok derékfájósnak tudtok irányt mutatni a gyógyulás felé.',
+    initials: 'T',
+  },
 ]
 
 export default function Home() {
   return (
     <>
       {/* HERO */}
-      <section className="py-5" style={{ backgroundColor: 'var(--color-bg-alt)' }}>
-        <div className="container py-4">
+      <section className="pt-5" style={{ backgroundColor: 'var(--color-bg-alt)' }}>
+        <div className="container pt-4">
           <div className="row align-items-center gy-4">
-            <div className="col-lg-7">
-              <span className="eyebrow-fyb"><Chevron /> gerincbarát program ülőmunkásoknak</span>
+            <div className="col-lg-7 pb-5">
+              <span className="eyebrow-fyb">gerincbarát program ülőmunkásoknak <Chevron double /></span>
               <h1 className="display-5 mb-3">szüntesd meg a derékfájásod okát, ne csak a tünetét</h1>
               <p className="lead mb-4" style={{ color: 'var(--color-text-muted)' }}>
                 Szia, Bella Márton vagyok, gyógytornász. A HÁTrendben módszerrel megmutatom, miért fáj a derekad,
@@ -51,10 +55,13 @@ export default function Home() {
                 <Link to="/idopontfoglalas" className="btn-fyb btn-fyb-outline btn-fyb-lg">inkább időpontot foglalok</Link>
               </div>
             </div>
-            <div className="col-lg-5">
+            <div className="col-lg-5 align-self-end">
               <div className="hero-photo-wrap">
                 <img src="/images/hero.png" alt="Bella Márton, gyógytornász" className="hero-photo" />
-                <img src="/images/signature.png" alt="" className="hero-signature" />
+                <div className="hero-signature-wrap">
+                  <img src="/images/signature-light.png" alt="" className="hero-signature signature-for-light" />
+                  <img src="/images/signature-dark.png" alt="" className="hero-signature signature-for-dark" />
+                </div>
               </div>
             </div>
           </div>
@@ -64,7 +71,7 @@ export default function Home() {
       {/* KINEK SEGÍTÜNK */}
       <section className="py-5">
         <div className="container">
-          <span className="eyebrow-fyb"><Chevron /> kinek szól</span>
+          <span className="eyebrow-fyb">kinek szól <Chevron double /></span>
           <h2 className="mb-4">kinek segítünk</h2>
           <div className="row gy-4">
             {helpCards.map((c) => (
@@ -83,7 +90,7 @@ export default function Home() {
       {/* HOGYAN SEGÍTÜNK — folyamat */}
       <section className="py-5" style={{ backgroundColor: 'var(--color-bg-alt)' }}>
         <div className="container">
-          <span className="eyebrow-fyb"><Chevron /> a folyamat</span>
+          <span className="eyebrow-fyb">a folyamat <Chevron double /></span>
           <h2 className="mb-5">hogyan segítünk</h2>
           <div className="process-flow process-flow--vertical mx-auto" style={{ maxWidth: 480 }}>
             {processSteps.map((step, i) => (
@@ -109,11 +116,11 @@ export default function Home() {
       {/* VISSZAJELZÉSEK */}
       <section className="py-5">
         <div className="container">
-          <span className="eyebrow-fyb"><Chevron /> visszajelzések</span>
+          <span className="eyebrow-fyb">visszajelzések <Chevron double /></span>
           <h2 className="mb-4">nem csak mi mondjuk</h2>
-          <div className="row gy-4">
+          <div className="row gy-4 justify-content-center">
             {testimonials.map((t) => (
-              <div className="col-md-6" key={t.name}>
+              <div className="col-md-7" key={t.name}>
                 <div className="card-fyb testimonial-fyb h-100">
                   <div className="stars mb-2">★★★★★</div>
                   <p className="mb-3">„{t.quote}”</p>

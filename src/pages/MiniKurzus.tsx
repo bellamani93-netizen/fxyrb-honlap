@@ -12,7 +12,7 @@ export default function MiniKurzus() {
   return (
     <section className="py-5">
       <div className="container" style={{ maxWidth: 860 }}>
-        <span className="eyebrow-fyb"><Chevron /> mini-kurzus</span>
+        <span className="eyebrow-fyb">mini-kurzus <Chevron double /></span>
         <h1 className="mb-2">4 videós gyorsítósáv</h1>
         <p className="mb-5" style={{ color: 'var(--color-text-muted)' }}>
           nézd meg mind a négy videót — a végén egyenesen a konzultációs időpontfoglalóhoz jutsz.

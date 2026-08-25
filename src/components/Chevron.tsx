@@ -1,38 +1,32 @@
 type ChevronProps = {
   direction?: 'left' | 'right' | 'down'
+  /** két, szorosan egymás mellett álló nyíl — a logóban látható ismétlődő minta, pl. eyebrow-khoz */
+  double?: boolean
   className?: string
 }
 
-/** A márkajel kettős chevronja («), SVG-ként — magassága mindig a szülő szövegelem
- * betűméretével egyezik (1em), így pontosan illeszkedik a mellette álló szöveghez. */
-export default function Chevron({ direction = 'left', className = '' }: ChevronProps) {
+/** Egyetlen, tömör kitöltésű, éles sarkú nyíl-elem — pontosan a logó (original logo.png)
+ * "BACK«««" nyilainak geometriáját követi. Magassága mindig a szülő szöveg
+ * betűméretével egyezik (1em). */
+function Unit() {
+  return (
+    <svg className="chevron-unit" viewBox="0 0 13 20" aria-hidden="true" focusable="false">
+      <path d="M12 1 L1 10 L12 19" fill="none" stroke="currentColor" strokeWidth="5.6" strokeLinecap="butt" strokeLinejoin="miter" />
+    </svg>
+  )
+}
+
+export default function Chevron({ direction = 'left', double = false, className = '' }: ChevronProps) {
   const rotation =
     direction === 'right' ? 'scaleX(-1)' : direction === 'down' ? 'rotate(-90deg)' : undefined
 
   return (
-    <svg
-      className={`chevron-svg ${className}`}
-      viewBox="0 0 18 16"
+    <span
+      className={`chevron-svg ${double ? 'chevron-svg--double' : ''} ${className}`}
       style={rotation ? { transform: rotation } : undefined}
-      aria-hidden="true"
-      focusable="false"
     >
-      <path
-        d="M8 1 L1.5 8 L8 15"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M16 1 L9.5 8 L16 15"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+      <Unit />
+      {double && <Unit />}
+    </span>
   )
 }
