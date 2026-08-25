@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
+import Icon from './Icon'
 
 const navItems = [
   { to: '/', label: 'főoldal' },
   { to: '/blog', label: 'blog' },
   { to: '/mini-kurzus', label: 'mini-kurzus' },
-  { to: '/idopontfoglalas', label: 'időpontfoglalás' },
+  { to: '/idopontfoglalas', label: 'időpontfoglalás', locked: true },
 ]
 
 export default function Header() {
@@ -40,10 +41,13 @@ export default function Header() {
             <NavLink
               key={item.to}
               to={item.to}
-              className="nav-link-fyb"
+              className="nav-link-fyb d-flex align-items-center gap-1"
               onClick={() => setOpen(false)}
             >
               {item.label}
+              {item.locked && (
+                <Icon src="/icons/ikon_lakat.svg" style={{ width: '0.85em', height: '0.85em', opacity: 0.7 }} label="feltételes hozzáférés" />
+              )}
             </NavLink>
           ))}
           <span className="nav-link-fyb d-flex align-items-center gap-2" style={{ opacity: 0.5, cursor: 'not-allowed' }}>

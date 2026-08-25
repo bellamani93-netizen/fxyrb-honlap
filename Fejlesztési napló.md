@@ -102,6 +102,14 @@ Marci strukturális módosításokat kért a Főoldalon: hero-CTA egyszerűsít�
 - **Hírlevél doboz — elrendezés (rám bízott szerkesztői döntés):** az ikont kiemeltem a címsorból, és egy nagy (8rem), mint-árnyalatú körbe ("jelvény") helyeztem a szöveg jobb oldalára, `col-lg-8` (szöveg+form) / `col-lg-4` (ikon-jelvény) elrendezésben — asztali nézetben oldalt-oldalt, kisebb képernyőn a szöveg alá esik.
 - **Aláírás kontraszt világos módban:** a lágy `drop-shadow` nem adott elég vizuális súlyt a vékony penna-vonalaknak. Egy szoros, nagy-opacitású "kontúr" drop-shadow-t adtam hozzá a lágy, távolabbi árnyék mellé (`filter: drop-shadow(0 0 0.6px rgba(26,38,52,.85)) drop-shadow(0 3px 5px rgba(26,38,52,.35))`) — ez vizuálisan "megvastagítja" a vékony vonalakat, így jóval határozottabban látszik.
 
+## 2026.08.25. — "Hogyan segítünk" illusztrációk, feltételes időpontfoglaló-hozzáférés
+
+Marci két további strukturális elemet kért: ikon-illusztrációk a folyamat-lépésekhez, és egy zárolt/feltételes állapot bemutatása az Időpontfoglalás oldalon.
+
+- **"Hogyan segítünk" lépés-kártyák új elrendezése:** minden kártya bal oldalán egy nagy, halvány szám (`.process-step-number`, 2,5rem, 45% opacitás), jobb oldalon a tartalom: középre igazított, kör hátterű ikon-jelvény (`.process-step-icon-badge`, 4,5rem, ugyanaz a mint-tint minta, mint a hírlevél-jelvénynél) a cím fölött, alatta a leírás. Ikonok: 1. `ikon_video`, 2. `ikon_naptar`, 3. `ikon_szintek`.
+- **Fejléc — feltételes hozzáférés jelzése:** az "időpontfoglalás" nav-elem mellé (asztali és mobil menüben egyaránt) egy kis lakat-ikon került, jelezve, hogy ez az oldal feltételhez kötött (amíg a mini-kurzus nincs végigvéve).
+- **Időpontfoglalás oldal — zárolt állapot:** a teljes oldaltartalom (leírás, visszajelzés, Calendly-hely) `filter: blur(6px)`-fel el van homályosítva (`.locked-page-blur`), fölötte egy középre igazított, félig áttetsző, "frosted glass" hatású üzenet-doboz (`.locked-overlay-card`, `backdrop-filter: blur(16px)`) lakat-ikonnal, Marci pontos szövegével (két bekezdés, változtatás nélkül átvéve), és egy "oké, nézzük miről van szó" gombbal, ami a mini-kurzusra vezet tovább — mivel ez egy statikus UI terv (nincs valós felhasználói/befejezettségi állapot), ez a zárolt nézet mindig ez látszik, mint a feltételes állapot illusztrációja (ugyanaz a logika, mint a Mini-kurzus oldal meglévő `.locked-card`-jánál).
+
 **Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).
 
 **Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).

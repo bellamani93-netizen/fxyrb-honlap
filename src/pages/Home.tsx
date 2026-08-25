@@ -22,9 +22,9 @@ const helpCards = [
 ]
 
 const processSteps = [
-  { title: 'megnézed a 4 videós mini-kurzust', text: 'megérted, mi okozza a fájdalmad, és mit tud ellene tenni a HÁTrendben módszer.' },
-  { title: 'lefoglalod az ingyenes konzultációt', text: 'egy rövid hívás keretében megnézzük, illik-e hozzád a program.' },
-  { title: 'elindulsz a 10+14 hetes programon', text: 'személyre szabott gyakorlatok, heti dokumentáció, folyamatos visszajelzés.' },
+  { title: 'megnézed a 4 videós mini-kurzust', text: 'megérted, mi okozza a fájdalmad, és mit tud ellene tenni a HÁTrendben módszer.', icon: '/icons/ikon_video.svg' },
+  { title: 'lefoglalod az ingyenes konzultációt', text: 'egy rövid hívás keretében megnézzük, illik-e hozzád a program.', icon: '/icons/ikon_naptar.svg' },
+  { title: 'elindulsz a 10+14 hetes programon', text: 'személyre szabott gyakorlatok, heti dokumentáció, folyamatos visszajelzés.', icon: '/icons/ikon_szintek.svg' },
 ]
 
 const testimonials = [
@@ -96,10 +96,15 @@ export default function Home() {
             {processSteps.map((step, i) => (
               <Fragment key={step.title}>
                 <div className="process-step">
-                  <div className="card-fyb h-100">
-                    <div className="module-index mx-auto mb-3">{i + 1}</div>
-                    <h3 className="h6">{step.title}</h3>
-                    <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>{step.text}</p>
+                  <div className="card-fyb h-100 d-flex align-items-center gap-3">
+                    <div className="process-step-number">{i + 1}</div>
+                    <div className="flex-grow-1 text-center">
+                      <div className="process-step-icon-badge mx-auto mb-3">
+                        <Icon src={step.icon} />
+                      </div>
+                      <h3 className="h6">{step.title}</h3>
+                      <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>{step.text}</p>
+                    </div>
                   </div>
                 </div>
                 {i < processSteps.length - 1 && (

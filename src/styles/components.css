@@ -137,6 +137,34 @@
 }
 .process-flow--vertical .process-step { flex: 0 0 auto; width: 100%; }
 
+.process-step-number {
+  flex: 0 0 auto;
+  width: 2.75rem;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 2.5rem;
+  line-height: 1;
+  color: var(--color-primary);
+  opacity: 0.45;
+}
+.process-step-icon-badge {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  background-color: rgba(95, 211, 188, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.process-step-icon-badge .icon-fyb {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
 /* --- modul-/lecke-lista --- */
 .module-item {
   display: flex;
@@ -367,4 +395,47 @@ html[data-theme='dark'] .signature-for-light { display: none; }
   mask-position: center;
   -webkit-mask-size: contain;
   mask-size: contain;
+}
+
+/* --- feltételes hozzáférés: elhomályosított oldal + üzenet-doboz --- */
+.locked-page-wrap {
+  position: relative;
+}
+.locked-page-blur {
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+}
+.locked-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 10;
+}
+.locked-overlay-card {
+  max-width: 480px;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-card);
+  padding: 2rem;
+  box-shadow: var(--shadow-card-hover);
+  text-align: center;
+  color: var(--color-text);
+}
+.locked-overlay-card p {
+  text-align: left;
+  color: var(--color-text);
+}
+.locked-overlay-card .icon-fyb {
+  color: var(--color-primary);
+}
+html[data-theme='dark'] .locked-overlay-card {
+  background-color: rgba(26, 38, 52, 0.78);
+  border-color: rgba(255, 255, 255, 0.1);
 }
