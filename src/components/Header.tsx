@@ -1,0 +1,56 @@
+import { useState } from 'react'
+import { NavLink } from 'react-router-dom'
+import ThemeToggle from './ThemeToggle'
+
+const navItems = [
+  { to: '/', label: 'főoldal' },
+  { to: '/blog', label: 'blog' },
+  { to: '/mini-kurzus', label: 'mini-kurzus' },
+  { to: '/idopontfoglalas', label: 'időpontfoglalás' },
+]
+
+export default function Header() {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <header className="site-header">
+      <div className="container d-flex flex-wrap align-items-center justify-content-between py-3 gap-3">
+        <NavLink to="/" className="brand-logo order-lg-1" onClick={() => setOpen(false)}>
+          <span className="chevron-fyb">«</span>
+          FIX YOUR BACK
+        </NavLink>
+
+        <div className="d-flex align-items-center gap-2 order-lg-3">
+          <ThemeToggle />
+          <button
+            type="button"
+            className="btn-fyb btn-fyb-ghost d-lg-none"
+            aria-label="menü"
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+          >
+            ☰
+          </button>
+        </div>
+
+        <nav
+          className={`site-nav ${open ? 'd-flex' : 'd-none'} d-lg-flex flex-column flex-lg-row align-items-start align-items-lg-center gap-1 order-lg-2`}
+        >
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className="nav-link-fyb"
+              onClick={() => setOpen(false)}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+          <span className="nav-link-fyb d-flex align-items-center gap-2" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+            belépés <span className="badge-fyb">hamarosan</span>
+          </span>
+        </nav>
+      </div>
+    </header>
+  )
+}

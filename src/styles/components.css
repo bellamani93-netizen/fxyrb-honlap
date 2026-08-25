@@ -1,0 +1,269 @@
+/* Újrafelhasználandó UI-komponensek — Design jegyzet.md 5. pont */
+
+/* --- gombok (pirula alakú, kisbetűs felirat) --- */
+.btn-fyb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.5rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 500;
+  text-transform: lowercase;
+  border: 2px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-fyb:hover { transform: translateY(-1px); }
+
+.btn-fyb-primary {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+.btn-fyb-primary:hover { box-shadow: var(--shadow-card-hover); color: var(--color-primary-contrast); }
+
+.btn-fyb-highlight {
+  background-color: var(--lime);
+  color: var(--navy);
+}
+.btn-fyb-highlight:hover { box-shadow: var(--shadow-card-hover); color: var(--navy); }
+
+.btn-fyb-outline {
+  background-color: transparent;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.btn-fyb-outline:hover { background-color: var(--color-primary); color: var(--color-primary-contrast); }
+
+.btn-fyb-ghost {
+  background-color: transparent;
+  color: var(--color-text);
+}
+.btn-fyb-ghost:hover { background-color: var(--color-bg-alt); color: var(--color-text); }
+
+.btn-fyb-lg { padding: 0.9rem 2.25rem; font-size: 1.1rem; }
+
+/* --- kártya --- */
+.card-fyb {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 1.75rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-fyb.card-fyb-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* --- badge --- */
+.badge-fyb {
+  display: inline-block;
+  padding: 0.3rem 0.85rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--lime);
+  color: var(--navy);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* --- eyebrow --- */
+.eyebrow-fyb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-transform: lowercase;
+  font-weight: 500;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+.eyebrow-fyb .chevron-fyb { color: var(--color-primary); }
+
+/* --- chevron márkajel --- */
+.chevron-fyb {
+  display: inline-block;
+  line-height: 1;
+}
+.chevron-fyb.flip { transform: scaleX(-1); }
+
+/* --- folyamat-lépések --- */
+.process-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  flex-wrap: nowrap;
+}
+.process-step {
+  flex: 1 1 0;
+  text-align: center;
+}
+.process-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 1.5rem;
+  flex: 0 0 auto;
+}
+@media (max-width: 767.98px) {
+  .process-flow { flex-direction: column; }
+  .process-arrow { transform: rotate(90deg); }
+}
+
+/* --- modul-/lecke-lista --- */
+.module-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.module-item:last-child { border-bottom: none; }
+.module-item .module-index {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background-color: var(--color-bg-alt);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+/* --- lezárt tartalom-előnézet --- */
+.locked-card {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  color: var(--color-text-muted);
+}
+.locked-card .locked-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+/* --- testimonial --- */
+.testimonial-fyb .stars { color: var(--lime); letter-spacing: 0.1em; }
+.testimonial-fyb .avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+/* --- videó-kártya --- */
+.video-thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-card);
+  background-color: var(--color-bg-alt);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.play-btn {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+/* --- hírlevél panel --- */
+.newsletter-fyb {
+  background-color: var(--navy);
+  color: var(--offwhite);
+  border-radius: var(--radius-card);
+  padding: 2.5rem;
+}
+.newsletter-fyb .form-control {
+  border-radius: var(--radius-pill);
+  border: none;
+  padding: 0.65rem 1.25rem;
+}
+
+/* --- fejléc --- */
+.site-header {
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 1.1rem;
+}
+.nav-link-fyb {
+  color: var(--color-text);
+  text-transform: lowercase;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 0.5rem 0.9rem;
+}
+.nav-link-fyb:hover, .nav-link-fyb.active { color: var(--color-primary); }
+.site-nav {
+  width: 100%;
+}
+@media (min-width: 992px) {
+  .site-nav { width: auto; }
+}
+
+.theme-toggle-btn {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  border-radius: 50%;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- lábléc --- */
+.site-footer {
+  background-color: var(--navy);
+  color: var(--offwhite);
+  padding: 3rem 0 1.5rem;
+}
+.site-footer a { color: var(--offwhite); text-decoration: none; }
+.site-footer a:hover { color: var(--mint); }
+.footer-chevrons { color: var(--mint); letter-spacing: 0.15em; opacity: 0.6; }
+
+.icon-fyb {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: inherit;
+}
