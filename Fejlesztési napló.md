@@ -110,6 +110,11 @@ Marci két további strukturális elemet kért: ikon-illusztrációk a folyamat-
 - **Fejléc — feltételes hozzáférés jelzése:** az "időpontfoglalás" nav-elem mellé (asztali és mobil menüben egyaránt) egy kis lakat-ikon került, jelezve, hogy ez az oldal feltételhez kötött (amíg a mini-kurzus nincs végigvéve).
 - **Időpontfoglalás oldal — zárolt állapot:** a teljes oldaltartalom (leírás, visszajelzés, Calendly-hely) `filter: blur(6px)`-fel el van homályosítva (`.locked-page-blur`), fölötte egy középre igazított, félig áttetsző, "frosted glass" hatású üzenet-doboz (`.locked-overlay-card`, `backdrop-filter: blur(16px)`) lakat-ikonnal, Marci pontos szövegével (két bekezdés, változtatás nélkül átvéve), és egy "oké, nézzük miről van szó" gombbal, ami a mini-kurzusra vezet tovább — mivel ez egy statikus UI terv (nincs valós felhasználói/befejezettségi állapot), ez a zárolt nézet mindig ez látszik, mint a feltételes állapot illusztrációja (ugyanaz a logika, mint a Mini-kurzus oldal meglévő `.locked-card`-jánál).
 
-**Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).
+## 2026.08.25. — Ikon-jelvények nagyítása, valódi nyújtott számok
+
+Marci két finomítást kért: a kör hátterű ikonok legyenek nagyobbak (kevesebb üres szegély), és a "hogyan segítünk" számok ténylegesen nyúljanak a cím tetejétől a leírás aljáig (ne csak nagy legyen a betűméret).
+
+- **Ikon-jelvények:** `.process-step-icon-badge` ikonmérete 2,25rem → 3rem (a 4,5rem-es körön belül), `.newsletter-icon-badge` ikonmérete 4rem → 5,25rem (a 8rem-es körön belül) — így az ikon a kör nagyobb részét tölti ki, kevesebb üres tér marad körülötte.
+- **"Hogyan segítünk" számok — valódi nyújtás:** a korábbi megoldás csak nagy betűméretet használt egy `align-self: stretch` dobozban, ami nem adta vissza a kért, ténylegesen a cím tetejétől a szöveg aljáig nyúló arányt. Új megoldás: a szám **SVG `<text>` elemként** rajzolódik (`viewBox="0 0 40 100" preserveAspectRatio="none"`), a szám doboza pedig már csak a cím+leírás blokk mellett áll (az ikon-jelvény kikerült ebből a sorból, fölé került) — így a szám pontosan a cím tetejétől a leírás aljáig nyúlik, kártyánként automatikusan alkalmazkodva az eltérő szöveghosszhoz (JS-mérés nélkül, mert az SVG `preserveAspectRatio="none"` maga torzítja/nyújtja a glifet a rendelkezésre álló (keskeny, magas) téglalaphoz).
 
 **Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).

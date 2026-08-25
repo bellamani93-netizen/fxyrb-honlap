@@ -137,19 +137,20 @@
 }
 .process-flow--vertical .process-step { flex: 0 0 auto; width: 100%; }
 
+/* a szám SVG <text>-ként rajzolódik, preserveAspectRatio="none"-nal — ez
+   pontosan (és kártyánként eltérő szöveghosszhoz igazodva, JS nélkül) a
+   rendelkezésre álló magasságra nyújtja a számjegyet. */
 .process-step-number {
   flex: 0 0 auto;
-  width: 2.75rem;
+  width: 2.25rem;
   align-self: stretch;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 2.5rem;
-  line-height: 1;
   color: var(--color-primary);
   opacity: 0.45;
+}
+.process-step-number svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 .process-step-icon-badge {
   width: 4.5rem;
@@ -161,8 +162,8 @@
   justify-content: center;
 }
 .process-step-icon-badge .icon-fyb {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 3rem;
+  height: 3rem;
 }
 
 /* --- modul-/lecke-lista --- */
@@ -265,8 +266,8 @@
   justify-content: center;
 }
 .newsletter-icon-badge .icon-fyb {
-  width: 4rem;
-  height: 4rem;
+  width: 5.25rem;
+  height: 5.25rem;
 }
 
 /* --- fejléc --- */

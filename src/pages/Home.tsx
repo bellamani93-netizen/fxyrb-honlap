@@ -96,14 +96,20 @@ export default function Home() {
             {processSteps.map((step, i) => (
               <Fragment key={step.title}>
                 <div className="process-step">
-                  <div className="card-fyb h-100 d-flex align-items-center gap-3">
-                    <div className="process-step-number">{i + 1}</div>
-                    <div className="flex-grow-1 text-center">
-                      <div className="process-step-icon-badge mx-auto mb-3">
-                        <Icon src={step.icon} />
+                  <div className="card-fyb h-100">
+                    <div className="process-step-icon-badge mx-auto mb-3">
+                      <Icon src={step.icon} />
+                    </div>
+                    <div className="d-flex align-items-stretch gap-3">
+                      <div className="process-step-number">
+                        <svg viewBox="0 0 40 100" preserveAspectRatio="none" aria-hidden="true">
+                          <text x="20" y="88" textAnchor="middle" fontFamily="var(--font-heading)" fontWeight="700" fontSize="100" fill="currentColor">{i + 1}</text>
+                        </svg>
                       </div>
-                      <h3 className="h6">{step.title}</h3>
-                      <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>{step.text}</p>
+                      <div className="flex-grow-1 text-center">
+                        <h3 className="h6">{step.title}</h3>
+                        <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>{step.text}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
