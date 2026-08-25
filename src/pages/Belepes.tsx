@@ -12,7 +12,7 @@ export default function Belepes() {
     return (
       <section className="py-5">
         <div className="container text-center" style={{ maxWidth: 480 }}>
-          <div className="card-fyb">
+          <div className="card-fyb card-fyb-accent">
             <Icon src="/icons/ikon_fiok.svg" className="mb-3 mx-auto d-block" style={{ width: '3rem', height: '3rem' }} />
             <h1 className="h4 mb-2">{tab === 'login' ? 'sikeresen bejelentkeztél' : 'sikeres regisztráció'}</h1>
             <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>
@@ -30,7 +30,12 @@ export default function Belepes() {
       <div className="container" style={{ maxWidth: 480 }}>
         <div className="text-center mb-4">
           <span className="eyebrow-fyb justify-content-center">együttműködés <Chevron double /></span>
-          <h1 className="mb-0">belépés</h1>
+          <div className="d-flex align-items-center justify-content-center gap-3">
+            <div className="process-step-icon-badge">
+              <Icon src="/icons/ikon_fiok.svg" />
+            </div>
+            <h1 className="mb-0">belépés</h1>
+          </div>
         </div>
 
         <div className="d-flex justify-content-center mb-4">
@@ -44,7 +49,7 @@ export default function Belepes() {
           </div>
         </div>
 
-        <div className="card-fyb">
+        <div className="card-fyb card-fyb-accent">
           {tab === 'login' ? (
             <form className="d-flex flex-column gap-3" onSubmit={(e) => { e.preventDefault(); setSubmitted(true) }}>
               <div>
@@ -59,9 +64,6 @@ export default function Belepes() {
                 <a href="#" className="small" style={{ color: 'var(--color-primary)' }}>elfelejtett jelszó</a>
               </div>
               <button type="submit" className="btn-fyb btn-fyb-primary w-100">bejelentkezem</button>
-              <p className="small text-center mb-0" style={{ color: 'var(--color-text-muted)' }}>
-                gyógytornászként, értékesítőként vagy adminisztrátorként is itt jelentkezz be.
-              </p>
             </form>
           ) : (
             <form className="d-flex flex-column gap-3" onSubmit={(e) => { e.preventDefault(); setSubmitted(true) }}>
@@ -85,9 +87,6 @@ export default function Belepes() {
                 </label>
               </div>
               <button type="submit" className="btn-fyb btn-fyb-primary w-100">regisztrálok</button>
-              <p className="small text-center mb-0" style={{ color: 'var(--color-text-muted)' }}>
-                gyógytornászi, értékesítői vagy adminisztrátori fiókot a rendszergazda hoz létre.
-              </p>
             </form>
           )}
         </div>

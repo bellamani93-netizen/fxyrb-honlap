@@ -159,4 +159,10 @@ A specifikáció ehhez a ponthoz nem ad részleteket (nincs mező-lista, nincs l
 - A fejléc "belépés" navigáció-eleme (eddig statikus, "hamarosan" jelvényes, kattinthatatlan span) most valódi, működő link a `/belepes`-re.
 - Új CSS: `.auth-tabs`/`.auth-tab` (pirula fül-váltó), illetve a Bootstrap form-elemek (`.form-control`, `.form-check-input`) fókusz/checked állapotai a márka teal/mint színére hangolva (Bootstrap alapértelmezett kék helyett).
 
+## 2026.08.25. — Gyors korrekciók a Bejelentkezés oldalon
+
+- **Ikon-jelvény a cím mellett:** a "belépés" H1 mellé balra bekerült a kör hátterű `ikon_fiok` ikon-jelvény (ugyanaz a `.process-step-icon-badge` osztály, most nem a szöveg fölött, hanem mellette, egy sorban).
+- **Gomb alatti mikroszöveg törölve:** mindkét formnál (belépés/regisztráció) eltávolítottam a beküldő gomb alatti kiegészítő mondatot ("gyógytornászként... is itt jelentkezz be" / "...fiókot a rendszergazda hoz létre") — tisztább, egyszerűbb form.
+- **Sötét módú kártya-keret:** a form-kártya (és a beküldés utáni placeholder-üdvözlő kártya) új `.card-fyb-accent` osztályt kapott, ami sötét módban ugyanazt a türkiz keretet + enyhe derengést adja, mint a Főoldal folyamat-lépés kártyái — a CSS-szabály közösre lett véve (`.process-step .card-fyb, .card-fyb-accent`), így ez az osztály bármely más kártyán is újrahasznosítható lesz.
+
 **Következő lépés:** Egyedi videókiosztás + online tananyag (3. fázis).
