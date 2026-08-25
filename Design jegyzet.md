@@ -35,7 +35,10 @@ Fázis 1-ben véglegesített CSS-változó-konvenció (ajánlott a további fáz
 \- Forrás: Google Fonts, szabadon használható.
 
 4\. MÁRKAJEL  
-\- "FIX YOUR BACK" felirat \+ ismétlődő « / » (chevron) minta márkajelként — fejlécben, szekció-eyebrow-kban (pl. "a folyamat «"), töltésjelzőn, footer dísz-csíkban. A chevron ugyanaz az SVG-elem CSS-sel tükrözve (transform: scaleX(-1)) ad "»" irányt is, pl. balról jobbra futó folyamat-nyilakhoz — nem kell hozzá külön ikon.
+\- "FIX YOUR BACK" felirat \+ ismétlődő « / » (chevron) minta márkajelként — fejlécben, szekció-eyebrow-kban (pl. "a folyamat «"), töltésjelzőn, footer dísz-csíkban. A chevron ugyanaz az SVG-elem CSS-sel tükrözve (transform: scaleX(-1)) ad "»" irányt is, pl. balról jobbra futó folyamat-nyilakhoz — nem kell hozzá külön ikon.  
+\- **Pontosítva (2026.08.25.):** a chevron a kódban SVG-komponens (nem szöveges "«" karakter), magassága mindig `1em` — így pontosan a mellette álló szöveg magasságával egyezik. Iránya prop-pal állítható: alapértelmezett balra, `direction="right"` (scaleX tükrözés) és `direction="down"` (elforgatás) is elérhető, utóbbi pl. egy függőlegesen futó folyamat-lépéssornál.  
+\- **Logó (2026.08.25.):** a végleges logó-grafika (`Design elemek/original logo.png`) a "FIX YOUR BACK" feliratot törtfehér színnel tartalmazza, ezért csak sötét (navy) háttéren olvasható. Világos háttérhez egy második változat készült, amelyben a törtfehér és fekete elemek a fő sötétkék (navy, `#1A2634`) színre lettek cserélve, a mint/teal ikon-négyzet és a chevronok változatlanok maradtak. A fejlécben mindkét változat betöltve, CSS-sel (`data-theme` szerint) váltva jelenik meg; a lábléc (mindig navy háttér) csak a sötét-hátterű változatot használja.  
+\- **Footer dísz-csík (2026.08.25.):** a chevron-minta a lábléc alján teljes szélességben, ismétlődő mintaként fut végig (nem csak egy rövid "«««" jelzés).
 
 5\. ÚJRAFELHASZNÁLANDÓ KOMPONENSEK (Fázis 1-ben megépítve, a Design elemek / kódban is elérhető, további fázisok vegyék át)  
 \- Fejléc: bal felül logó (chevron-ikon \+ "FIX YOUR BACK" \+ mini chevron-pár), jobb felül sötét/világos mód váltó \+ hamburger mobilon.  
@@ -49,10 +52,12 @@ Fázis 1-ben véglegesített CSS-változó-konvenció (ajánlott a további fáz
 \- Testimonial-kártya (.testimonial): csillagos értékelés \+ idézet \+ monogramos avatar \+ név/szerepkör.  
 \- Videó-kártya (.video-card / .video-thumb / .play-btn): placeholder thumbnail \+ lejátszás-gomb.  
 \- Hírlevél/regisztrációs panel (.newsletter): sötét (navy) kártya, cím \+ leírás \+ form (e-mail, illetve szükség esetén név \+ e-mail) \+ mikroszöveg.  
+\- Hero-fotó \+ aláírás (.hero-photo-wrap — 2026.08.25., új): kivágott (átlátszó hátterű) portré-fotó, jobb alsó sarkában félig lelógó, enyhe drop-shadow-val ellátott aláírás-grafika. Sötét módban az aláírás invert(1) szűrővel jelenik meg, hogy navy háttéren is látható maradjon.  
 \- Body-chart (test-vázlat): világos módban valósághű bőrszínű ábrázolás, sötét módban röntgen-szerű, türkiz-árnyalatú csontváz-overlay. **Véglegesítve (2026.08.25.):** a "Design elemek / felvételi lap" mappában lévő kidolgozott elöl-hátul látványterv az alap referencia (nem az újratervezés), a jelenlegi lime/teal/navy palettához igazítva kell megvalósítani a 4. fázisban (Állapotfelmérő kérdőív + eredménylap).
 
 6\. VILÁGOS / SÖTÉT MÓD  
-Mindkét mód megépült és működik Fázis 1-ben (data-theme attribútum \+ localStorage-mentés). Minden további felületen ugyanezt a mechanizmust és színfelosztást kell követni.
+Mindkét mód megépült és működik Fázis 1-ben (data-theme attribútum \+ localStorage-mentés). Minden további felületen ugyanezt a mechanizmust és színfelosztást kell követni.  
+\- **Mód-váltó ikon (2026.08.25.):** emoji helyett egyszerű, vékony vonalas (stroke, currentColor) nap/hold SVG-ikon, az ikonkészlet stílusához igazítva.
 
 7\. IKONOK — LEZÁRVA (2026.08.06)  
 Forrás: a "Design elemek" mappában lévő 17 kézzel rajzolt SVG (9 vékony vonalas "eredeti" \+ 8 tömör kitöltésű "v4" ikon). Minden fázis-munkamenet ugyanebből a 17 fájlból dolgozzon. A kódban `stroke`/`fill` értékük `currentColor`-ra cserélve, hogy szövegszínt kövessék világos/sötét módban.

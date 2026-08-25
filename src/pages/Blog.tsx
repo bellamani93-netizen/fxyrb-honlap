@@ -1,3 +1,5 @@
+import Chevron from '../components/Chevron'
+
 const posts = [
   {
     title: 'miért fáj jobban a derekad ülés közben, mint álláskor?',
@@ -23,7 +25,7 @@ export default function Blog() {
   return (
     <section className="py-5">
       <div className="container">
-        <span className="eyebrow-fyb"><span className="chevron-fyb">«</span> blog</span>
+        <span className="eyebrow-fyb"><Chevron /> blog</span>
         <h1 className="mb-2">korábbi posztok és hírlevelek</h1>
         <p className="mb-5" style={{ color: 'var(--color-text-muted)' }}>
           válogatás a Facebook-posztjainkból és a Derekas Levelek hírlevél korábbi számaiból.

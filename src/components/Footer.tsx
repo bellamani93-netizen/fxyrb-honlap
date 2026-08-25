@@ -4,10 +4,7 @@ export default function Footer() {
       <div className="container">
         <div className="row gy-4">
           <div className="col-md-4">
-            <div className="brand-logo mb-2" style={{ color: 'var(--offwhite)' }}>
-              <span className="chevron-fyb">«</span>
-              FIX YOUR BACK
-            </div>
+            <img src="/images/logo-dark-bg.png" alt="Fix Your Back" className="brand-logo-img mb-2" />
             <p className="text-white-50 small mb-0">
               gerincbarát gyógytorna program — szakértő útmutatással, saját tempódban
             </p>
@@ -34,9 +31,10 @@ export default function Footer() {
 
         <div className="d-flex justify-content-between align-items-center mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
           <span className="small text-white-50">© {new Date().getFullYear()} Fix Your Back</span>
-          <span className="footer-chevrons">«««</span>
         </div>
       </div>
+
+      <div className="footer-chevron-strip" />
     </footer>
   )
 }

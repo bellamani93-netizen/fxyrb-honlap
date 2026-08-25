@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
+import Chevron from '../components/Chevron'
 
 const helpCards = [
   {
@@ -38,7 +39,7 @@ export default function Home() {
         <div className="container py-4">
           <div className="row align-items-center gy-4">
             <div className="col-lg-7">
-              <span className="eyebrow-fyb"><span className="chevron-fyb">«</span> gerincbarát program ülőmunkásoknak</span>
+              <span className="eyebrow-fyb"><Chevron /> gerincbarát program ülőmunkásoknak</span>
               <h1 className="display-5 mb-3">szüntesd meg a derékfájásod okát, ne csak a tünetét</h1>
               <p className="lead mb-4" style={{ color: 'var(--color-text-muted)' }}>
                 Szia, Bella Márton vagyok, gyógytornász. A HÁTrendben módszerrel megmutatom, miért fáj a derekad,
@@ -51,8 +52,9 @@ export default function Home() {
               </div>
             </div>
             <div className="col-lg-5">
-              <div className="card-fyb text-center py-5">
-                <span className="text-muted small">[ hero-illusztráció helye ]</span>
+              <div className="hero-photo-wrap">
+                <img src="/images/hero.png" alt="Bella Márton, gyógytornász" className="hero-photo" />
+                <img src="/images/signature.png" alt="" className="hero-signature" />
               </div>
             </div>
           </div>
@@ -62,7 +64,7 @@ export default function Home() {
       {/* KINEK SEGÍTÜNK */}
       <section className="py-5">
         <div className="container">
-          <span className="eyebrow-fyb"><span className="chevron-fyb">«</span> kinek szól</span>
+          <span className="eyebrow-fyb"><Chevron /> kinek szól</span>
           <h2 className="mb-4">kinek segítünk</h2>
           <div className="row gy-4">
             {helpCards.map((c) => (
@@ -81,9 +83,9 @@ export default function Home() {
       {/* HOGYAN SEGÍTÜNK — folyamat */}
       <section className="py-5" style={{ backgroundColor: 'var(--color-bg-alt)' }}>
         <div className="container">
-          <span className="eyebrow-fyb"><span className="chevron-fyb">«</span> a folyamat</span>
+          <span className="eyebrow-fyb"><Chevron /> a folyamat</span>
           <h2 className="mb-5">hogyan segítünk</h2>
-          <div className="process-flow">
+          <div className="process-flow process-flow--vertical mx-auto" style={{ maxWidth: 480 }}>
             {processSteps.map((step, i) => (
               <Fragment key={step.title}>
                 <div className="process-step">
@@ -95,7 +97,7 @@ export default function Home() {
                 </div>
                 {i < processSteps.length - 1 && (
                   <div className="process-arrow">
-                    <span className="chevron-fyb flip">»</span>
+                    <Chevron direction="down" />
                   </div>
                 )}
               </Fragment>
@@ -107,7 +109,7 @@ export default function Home() {
       {/* VISSZAJELZÉSEK */}
       <section className="py-5">
         <div className="container">
-          <span className="eyebrow-fyb"><span className="chevron-fyb">«</span> visszajelzések</span>
+          <span className="eyebrow-fyb"><Chevron /> visszajelzések</span>
           <h2 className="mb-4">nem csak mi mondjuk</h2>
           <div className="row gy-4">
             {testimonials.map((t) => (

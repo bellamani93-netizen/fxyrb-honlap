@@ -1,3 +1,5 @@
+import Chevron from '../components/Chevron'
+
 const testimonials = [
   { name: 'Anikó, 42', role: 'irodai dolgozó', quote: 'Fél év után első alkalommal nem fájt reggel felkelni.', initials: 'A' },
   { name: 'Gábor, 51', role: 'sofőr', quote: 'Végre megértettem, mit rontok el nap mint nap — nem csak gyakorlatokat kaptam.', initials: 'G' },
@@ -10,7 +12,7 @@ export default function Idopontfoglalas() {
       <div className="container">
         <div className="row gy-5">
           <div className="col-lg-5">
-            <span className="eyebrow-fyb"><span className="chevron-fyb">«</span> időpontfoglalás</span>
+            <span className="eyebrow-fyb"><Chevron /> időpontfoglalás</span>
             <h1 className="mb-3">foglalj egy ingyenes konzultációt</h1>
             <p className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
               egy 20 perces hívás keretében átbeszéljük a panaszod, és megmutatom, hogyan illeszkedne a HÁTrendben
