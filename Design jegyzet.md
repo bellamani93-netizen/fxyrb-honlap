@@ -1,5 +1,7 @@
 Design jegyzet — véglegesített (2026.08.25., Marci jóváhagyásával). Korábbi Google Drive ötletelés alapján, a Fejlesztési napló.md-ben rögzített döntésekkel kiegészítve.
 
+**Státusz (2026.08.25.):** a UI terv 1. fázisa (Főoldal + aloldalak: Blog, Mini-kurzus, Időpontfoglalás) — design, elrendezés, komponens-arányok — Marci jóváhagyásával **lezárva.** Az itt rögzített komponensek (gombok, kártya, badge, eyebrow+Chevron, folyamat-lépés szám+ikon-jelvény, testimonial, videó-kártya, hírlevél-panel, lezárt tartalom-előnézet kártya és teljes oldal szinten, fejléc/lábléc) a további fázisok kötelező kiindulópontja. A Főoldal szövegezése (címek, leírások) még nem végleges, ez a fázisindítást nem blokkolja.
+
 1\. MÁRKAHANG (fixyourback.hu és a "Derekas Levelek" hírlevél alapján)  
 \- Tegező, közvetlen, "konyhanyelven" magyarázó stílus, személyes hangvétel (Bella Márton szól az olvasóhoz/ÜF-hez, nem egy személytelen cég).  
 \- A cél mindig a megértetés, az ok-okozati összefüggés elmagyarázása — nem csak tipp vagy trükk. Az alkalmazáson belüli szövegek (leírások, oktatóanyag) ezt a logikát kövessék: mi történik → miért fáj → mit tegyél.  

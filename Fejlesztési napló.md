@@ -132,4 +132,12 @@ Marci jelezte: a szám magassága és a sötét mód jó, de a vonalvastagság n
 - **Ok:** a szám korábban egy kitöltött (fill), félkövér SVG `<text>` volt, amit `preserveAspectRatio="none"` aránytalanul (csak függőlegesen erősen) nyújtott. Egy kitöltött betűforma nem-egyenletes nyújtásakor a vízszintes vonalrészek vastagabbnak, a függőleges részek vékonyabbnak látszanak — ez adta az egyenetlen vonalvastagság-érzetet.
 - **Megoldás:** a három számjegyet (1, 2, 3 — csak ennyi kell, hardcode-olva `stepNumberPaths` tömbben) kézzel rajzolt, egyszerű monoline (egyvastagságú vonalú) SVG `<path>`-ként rajzolom `fill="none" stroke="currentColor"`-ral, `vector-effect="non-scaling-stroke"` mellett. A `non-scaling-stroke` biztosítja, hogy a vonal vastagsága a viewBox nem-egyenletes nyújtása (`preserveAspectRatio="none"`) ellenére is állandó pixel-vastagságú maradjon a kirajzolt alak minden pontján — a geometria (a szám alakja) nyúlik, a rávitt "tollvastagság" nem.
 
-**Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).
+## 2026.08.25. — 1. FÁZIS LEZÁRVA: Főoldal + aloldalak jóváhagyva
+
+**Marci jóváhagyása:** "a design rendben, elrendezések rendben, viszonyok rendben, ezeket rögzítsd. Szövegeken még változtatni fogunk később, de ezt a fázist most így menthetjük, léphetünk a következőre."
+
+Ezzel a Főoldal + aloldalak (Blog, Mini-kurzus, Időpontfoglalás) fázisa — design, elrendezés, komponens-arányok, szín/tipográfia-rendszer — **lezártnak minősül.** A fázis során létrejött minden reusable komponens (gombok, kártya, badge, eyebrow+Chevron, folyamat-lépések számmal+ikon-jelvénnyel, testimonial, videó-kártya, hírlevél-panel+ikon-jelvény, lezárt tartalom-előnézet — kártya és teljes oldal szinten is, fejléc/lábléc a logó két változatával és a footer dísz-csíkkal) mostantól a további fázisok kötelező kiindulópontja — új fázisban ugyanezeket kell újrahasznosítani, nem újratervezni.
+
+**Nyitva marad (Marci jelezte, hogy változik):** a jelenlegi szövegek (címek, leírások, mikroszövegek) egy része még nem végleges — ez NEM blokkolja a további fázisok indítását, csak azt jelenti, hogy a Főoldal szövegezésére még visszatérünk.
+
+**Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis) — a specifikáció "EGYÜTTMŰKÖDÉS OLDAL RÉSZEI" 1. pontja: "Bejelentkezés, Regisztráció (ÜF) / Bejelentkezés (GYT)".
