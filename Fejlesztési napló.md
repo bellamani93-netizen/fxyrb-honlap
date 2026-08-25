@@ -125,4 +125,11 @@ Marci jelezte: a számok bal-jobb szélei le voltak vágva, és a nyújtásnak n
 - **Nyújtás mértéke — ikon tetejétől a szöveg aljáig:** visszaállítottam a `.process-step-number`-t a kártya teljes tartalmi sorának (`d-flex align-items-stretch`) közvetlen testvérévé — az ikon-jelvény visszakerült a cím+leírás oszlop tetejére (a szám oldalára, nem fölé) —, így a szám ismét a teljes doboz-tartalom (ikon teteje → utolsó szövegsor alja) magasságára nyúlik, nem csak a cím+leíráséra.
 - **Sötét módú kártya-keret:** `html[data-theme='dark'] .process-step .card-fyb` — vékony, félig áttetsző türkiz (mint) keret (`rgba(95,211,188,.4)`) és köréje egy enyhe, elmosott derengés (`box-shadow` glow), hogy a kártyák jobban kiváljanak a navy háttérből.
 
+## 2026.08.25. — Számok: egyenletes vonalvastagság kézzel rajzolt stroke-glifekkel
+
+Marci jelezte: a szám magassága és a sötét mód jó, de a vonalvastagság nem egyenletes végig.
+
+- **Ok:** a szám korábban egy kitöltött (fill), félkövér SVG `<text>` volt, amit `preserveAspectRatio="none"` aránytalanul (csak függőlegesen erősen) nyújtott. Egy kitöltött betűforma nem-egyenletes nyújtásakor a vízszintes vonalrészek vastagabbnak, a függőleges részek vékonyabbnak látszanak — ez adta az egyenetlen vonalvastagság-érzetet.
+- **Megoldás:** a három számjegyet (1, 2, 3 — csak ennyi kell, hardcode-olva `stepNumberPaths` tömbben) kézzel rajzolt, egyszerű monoline (egyvastagságú vonalú) SVG `<path>`-ként rajzolom `fill="none" stroke="currentColor"`-ral, `vector-effect="non-scaling-stroke"` mellett. A `non-scaling-stroke` biztosítja, hogy a vonal vastagsága a viewBox nem-egyenletes nyújtása (`preserveAspectRatio="none"`) ellenére is állandó pixel-vastagságú maradjon a kirajzolt alak minden pontján — a geometria (a szám alakja) nyúlik, a rávitt "tollvastagság" nem.
+
 **Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).

@@ -27,6 +27,15 @@ const processSteps = [
   { title: 'elindulsz a 10+14 hetes programon', text: 'személyre szabott gyakorlatok, heti dokumentáció, folyamatos visszajelzés.', icon: '/icons/ikon_szintek.svg' },
 ]
 
+/* kézzel rajzolt, monoline (egyenletes vonalvastagságú) számjegy-vázlatok —
+   stroke-alapúak, hogy a nem-egyenletes (csak függőleges irányú) nyújtás
+   után is végig azonos maradjon a vonal vastagsága (non-scaling-stroke). */
+const stepNumberPaths = [
+  'M18 24 L32 8 L32 92',
+  'M14 22 C14 12 22 6 32 6 C44 6 50 14 50 24 C50 42 14 58 14 92 L50 92',
+  'M14 14 C18 8 26 6 32 6 C43 6 50 13 50 23 C50 32 43 38 34 40 C44 42 51 49 51 62 C51 76 43 92 30 92 C19 92 12 86 12 78',
+]
+
 const testimonials = [
   {
     name: 'Tóth Barnabás',
@@ -98,8 +107,16 @@ export default function Home() {
                 <div className="process-step">
                   <div className="card-fyb h-100 d-flex align-items-stretch gap-3">
                     <div className="process-step-number">
-                      <svg viewBox="0 0 80 100" preserveAspectRatio="none" aria-hidden="true">
-                        <text x="40" y="88" textAnchor="middle" fontFamily="var(--font-heading)" fontWeight="700" fontSize="100" fill="currentColor">{i + 1}</text>
+                      <svg viewBox="0 0 64 100" preserveAspectRatio="none" aria-hidden="true">
+                        <path
+                          d={stepNumberPaths[i]}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          vectorEffect="non-scaling-stroke"
+                        />
                       </svg>
                     </div>
                     <div className="flex-grow-1 text-center">
