@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import Chevron from '../components/Chevron'
 import Icon from '../components/Icon'
 
 type Tab = 'login' | 'register'
@@ -29,12 +28,11 @@ export default function Belepes() {
     <section className="py-5">
       <div className="container" style={{ maxWidth: 480 }}>
         <div className="text-center mb-4">
-          <span className="eyebrow-fyb justify-content-center">együttműködés <Chevron double /></span>
           <div className="d-flex align-items-center justify-content-center gap-3">
             <div className="process-step-icon-badge">
               <Icon src="/icons/ikon_fiok.svg" />
             </div>
-            <h1 className="mb-0">belépés</h1>
+            <h1 className="mb-0">fiók</h1>
           </div>
         </div>
 
