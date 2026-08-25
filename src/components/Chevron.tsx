@@ -5,15 +5,10 @@ type ChevronProps = {
   className?: string
 }
 
-/** Egyetlen, tömör kitöltésű, éles sarkú nyíl-elem — pontosan a logó (original logo.png)
- * "BACK«««" nyilainak geometriáját követi. Magassága mindig a szülő szöveg
- * betűméretével egyezik (1em). */
+/** A logóból (Design elemek/original logo.png) pixelre pontosan kivágott nyíl-grafika —
+ * nem újrarajzolt SVG, hanem maga a márkajel képe, hogy formája garantáltan egyezzen. */
 function Unit() {
-  return (
-    <svg className="chevron-unit" viewBox="0 0 13 20" aria-hidden="true" focusable="false">
-      <path d="M12 1 L1 10 L12 19" fill="none" stroke="currentColor" strokeWidth="5.6" strokeLinecap="butt" strokeLinejoin="miter" />
-    </svg>
-  )
+  return <img src="/images/chevron.png" alt="" className="chevron-unit" draggable={false} />
 }
 
 export default function Chevron({ direction = 'left', double = false, className = '' }: ChevronProps) {

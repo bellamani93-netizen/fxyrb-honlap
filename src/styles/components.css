@@ -83,22 +83,19 @@
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
 }
-/* --- chevron márkajel (a logó nyilainak geometriáját követő SVG, a szöveg magasságával egyező) --- */
+/* --- chevron márkajel (a logóból pixelre pontosan kivágott grafika, a szöveg magasságával egyező) --- */
 .chevron-svg {
   height: 1em;
   display: inline-flex;
   align-items: stretch;
   vertical-align: -0.1em;
   flex-shrink: 0;
-  color: currentColor;
 }
 .chevron-unit {
   height: 100%;
   width: auto;
   display: block;
-}
-.chevron-svg--double .chevron-unit:last-child {
-  margin-left: -0.05em;
+  -webkit-user-drag: none;
 }
 
 /* --- folyamat-lépések --- */
@@ -278,10 +275,9 @@
   width: 100%;
   height: 20px;
   margin-bottom: 2.5rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='20' viewBox='0 0 16 20'%3E%3Cpath d='M14 1 L2 10 L14 19' fill='none' stroke='%235FD3BC' stroke-width='5.6' stroke-linecap='butt' stroke-linejoin='miter'/%3E%3C/svg%3E");
+  background-image: url("/images/chevron.png");
   background-repeat: repeat-x;
-  background-size: 16px 20px;
-  opacity: 0.9;
+  background-size: 14.6px 20px;
 }
 
 /* --- logó: két változat, világos/sötét háttérhez --- */

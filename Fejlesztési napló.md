@@ -62,4 +62,13 @@ Marci pontosította az előző kört: a logó ikonján belül a fehér elemek is
 - **Lábléc-csík:** a nyilas minta a lábléc-blokk aljáról a **tetejére** került (közvetlenül a navy háttér elejére, a tartalom fölé), és az új, logó-hű nyíl-formát használja.
 - **Valós visszajelzések:** a Google Térkép "FixYourBack Kft." adatlapján jelenleg **egyetlen valódi értékelés** szerepel (Tóth Barnabás, 5/5, "Hiánypótló!…", 2026.08.23 körül, tulajdonosi válasszal). A korábban kitalált (Anikó/Gábor/Zsófia) placeholder-szövegeket ezzel az egy valós véleménnyel váltottam ki a Főoldalon és az Időpontfoglalás oldalon — nem gyártottam hozzá további kitalált véleményeket, mivel több nem létezik.
 
+## 2026.08.25. — Chevron: kivágott grafika az újrarajzolás helyett
+
+Marci jelezte, hogy az újrarajzolt (stroke-alapú, `strokeLinecap="butt"`) chevron sem egyezik pontosan a logóéval. Mivel már a második hand-crafted SVG-közelítés sem volt elég pontos, a megközelítést megváltoztattam: **nem rajzolom újra a nyilat, hanem magából a logóból vágom ki.**
+
+- Pixel-alapú vizsgálattal megkerestem a chevron-minta egy teljes, tiszta ismétlődési periódusát a logóban (`original logo.png`, x: 303–333, y: 55–102 régió), majd a tartalom alfa-csatornája alapján szorosra vágtam (`Image.getbbox()`) — az eredmény egy 30×41 px-es PNG, ami két példányban egymás mellé rakva varrat nélkül visszaadja a logó eredeti mintáját.
+- A `Chevron` komponens mostantól ezt a képet (`public/images/chevron.png`) jeleníti meg `<img>`-ként SVG-rajzolás helyett; irány (`direction="right"`/`"down"`) és dupla mód (`double`) továbbra is CSS-transzformmal és a kép ismétlésével működik.
+- A lábléc dísz-csíkja is erre a képre vált (korábban egy kézzel rajzolt SVG-mintát használt háttérképként).
+- Ezzel a chevron színe mindig a logó saját mint-színe (nem követi tovább a szöveg `currentColor`-ját) — ez apró eltérés a korábbi tervhez képest, de a forma most garantáltan pixel-pontosan egyezik a logóval, ami Marci kifejezett kérése volt.
+
 **Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).
