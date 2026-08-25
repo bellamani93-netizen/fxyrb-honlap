@@ -44,7 +44,7 @@ export default function Home() {
         <div className="container pt-4">
           <div className="row align-items-center gy-4">
             <div className="col-lg-7 pb-5">
-              <span className="eyebrow-fyb">gerincbarát program ülőmunkásoknak <Chevron double /></span>
+              <span className="eyebrow-fyb">ülőmunkát végző férfiaknak <Chevron double /></span>
               <h1 className="display-5 mb-3">szüntesd meg a derékfájásod okát, ne csak a tünetét</h1>
               <p className="lead mb-4" style={{ color: 'var(--color-text-muted)' }}>
                 Szia, Bella Márton vagyok, gyógytornász. A HÁTrendben módszerrel megmutatom, miért fáj a derekad,
@@ -52,8 +52,7 @@ export default function Home() {
                 kellene edzenem gyakorolnod.
               </p>
               <div className="d-flex flex-wrap gap-3">
-                <Link to="/mini-kurzus" className="btn-fyb btn-fyb-primary btn-fyb-lg">indítom a mini-kurzust</Link>
-                <Link to="/idopontfoglalas" className="btn-fyb btn-fyb-outline btn-fyb-lg">inkább időpontot foglalok</Link>
+                <Link to="/mini-kurzus" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow">gyorsítósáv</Link>
               </div>
             </div>
             <div className="col-lg-5 align-self-end">
@@ -139,28 +138,38 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ISMÉTLŐDŐ CTA */}
+      <section className="py-5">
+        <div className="container text-center" style={{ maxWidth: 560 }}>
+          <h2 className="h3 mb-3">készen állsz az első lépésre?</h2>
+          <p className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
+            nézd meg a 4 videós gyorsítósávot — pár perc alatt megérted, mi okozza a fájdalmad, és mit tehetsz ellene.
+          </p>
+          <Link to="/mini-kurzus" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow">gyorsítósáv</Link>
+        </div>
+      </section>
+
       {/* HÍRLEVÉL */}
       <section className="py-5">
         <div className="container">
           <div className="newsletter-fyb">
             <div className="row align-items-center gy-4">
-              <div className="col-lg-7">
-                <h2 className="h3 mb-2">
-                  <Icon
-                    src="/icons/ikon_munkafuzet.svg"
-                    style={{ width: '1.1em', height: '1.1em', verticalAlign: '-0.15em', marginRight: '0.35em' }}
-                  />
-                  iratkozz fel a <span className="text-nowrap">Derekas Levelekre</span>
-                </h2>
-                <p className="mb-0 text-white-50">
-                  heti egy e-mail: mit rontunk el nap mint nap a derekunkkal, és mit tegyünk helyette.
+              <div className="col-lg-8">
+                <h2 className="h3 mb-3">iratkozz fel a <span className="text-nowrap">Derekas Levelekre</span></h2>
+                <p className="mb-4 text-white-50">
+                  Nem nyomorít meg, de közben szeretnél legalább egy kis lépést tenni afelé, hogy ne legyen
+                  rosszabb? Akkor iratkozz fel a Derekas Levelekre. Ezek emailek általában hetente 1-2 alkalommal,
+                  amiben személyesen tanítalak.
                 </p>
-              </div>
-              <div className="col-lg-5">
-                <form className="d-flex gap-2" onSubmit={(e) => e.preventDefault()}>
+                <form className="d-flex flex-wrap gap-2" onSubmit={(e) => e.preventDefault()}>
                   <input type="email" className="form-control" placeholder="e-mail címed" aria-label="e-mail cím" />
                   <button type="submit" className="btn-fyb btn-fyb-highlight text-nowrap">feliratkozom</button>
                 </form>
+              </div>
+              <div className="col-lg-4 text-center">
+                <div className="newsletter-icon-badge mx-auto">
+                  <Icon src="/icons/ikon_munkafuzet.svg" />
+                </div>
               </div>
             </div>
           </div>

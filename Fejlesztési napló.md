@@ -91,6 +91,17 @@ Marci egy hosszabb korrekciós kört küldött: aláírás pozíció/méret/árn
 - **Ikonszín, mindenhol:** `.icon-fyb` mostantól mindig `var(--color-primary)` (teal világos / mint sötét módban), nem a szövegszínt örökli — a hírlevél-panel (mindig navy háttér) ikonjai külön szabállyal mindig mint színűek, függetlenül az oldal aktuális témájától.
 - **Sötét módú kontraszt-audit:** a `--color-text-muted` (leírások, dátumok, szerepkör-szövegek) a sima `#5E807F` sagegray-jel navy háttéren csak ~3,5:1 kontrasztot adott (WCAG AA alatt). Sötét módra felülírva `#9BB6B5`-re (~6,6:1 kontraszt). Az összes többi szövegszín (fő szöveg, gombok, badge-ek, footer `text-white-50`) átvizsgálva — azok megfelelő kontraszttal rendelkeztek, nem igényeltek módosítást.
 
+## 2026.08.25. — Strukturális változtatások a Főoldalon
+
+Marci strukturális módosításokat kért a Főoldalon: hero-CTA egyszerűsítés, ismétlődő CTA a visszajelzések után, hírlevél-doboz átírása, aláírás kontraszt-javítás.
+
+- **Hero eyebrow:** "gerincbarát program ülőmunkásoknak" → "ülőmunkát végző férfiaknak" (ugyanaz a szöveg, mint a "kinek segítünk" első kártyáján — tudatos ismétlés, nem hiba).
+- **Hero CTA:** a két gomb (indítom a mini-kurzust / inkább időpontot foglalok) helyett **egy** gomb: "gyorsítósáv", a mini-kurzusra mutat. Új `.btn-fyb-glow` modifier: hoverre a gomb kicsit megnő (`scale(1.06)`) és lime színű, pulzáló derengést kap (`@keyframes btn-glow-pulse`, `box-shadow` animáció).
+- **Új szakasz — ismétlődő CTA:** a visszajelzések rész alá bekerült egy rövid, önálló CTA-blokk ("készen állsz az első lépésre?" + szöveg + "gyorsítósáv" gomb, ugyanazzal a derengő stílussal), ami a mini-kurzusra vezet vissza — a hírlevél-doboz efölé kerül.
+- **Hírlevél doboz — új szöveg (Marci megfogalmazása, változtatás nélkül átvéve):** "Nem nyomorít meg, de közben szeretnél legalább egy kis lépést tenni afelé, hogy ne legyen rosszabb? Akkor iratkozz fel a Derekas Levelekre. Ezek emailek általában hetente 1-2 alkalommal, amiben személyesen tanítalak." A korábbi rövid egy-mondatos leírást ez váltja fel.
+- **Hírlevél doboz — elrendezés (rám bízott szerkesztői döntés):** az ikont kiemeltem a címsorból, és egy nagy (8rem), mint-árnyalatú körbe ("jelvény") helyeztem a szöveg jobb oldalára, `col-lg-8` (szöveg+form) / `col-lg-4` (ikon-jelvény) elrendezésben — asztali nézetben oldalt-oldalt, kisebb képernyőn a szöveg alá esik.
+- **Aláírás kontraszt világos módban:** a lágy `drop-shadow` nem adott elég vizuális súlyt a vékony penna-vonalaknak. Egy szoros, nagy-opacitású "kontúr" drop-shadow-t adtam hozzá a lágy, távolabbi árnyék mellé (`filter: drop-shadow(0 0 0.6px rgba(26,38,52,.85)) drop-shadow(0 3px 5px rgba(26,38,52,.35))`) — ez vizuálisan "megvastagítja" a vékony vonalakat, így jóval határozottabban látszik.
+
 **Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).
 
 **Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).

@@ -45,6 +45,17 @@
 
 .btn-fyb-lg { padding: 0.9rem 2.25rem; font-size: 1.1rem; }
 
+/* --- fő CTA gomb: hoverre kicsit megnő, deren dereng a háttere --- */
+@keyframes btn-glow-pulse {
+  0%, 100% { box-shadow: 0 0 16px 2px rgba(215, 232, 52, 0.45); }
+  50% { box-shadow: 0 0 34px 10px rgba(215, 232, 52, 0.7); }
+}
+.btn-fyb-glow:hover,
+.btn-fyb-glow:focus-visible {
+  transform: scale(1.06);
+  animation: btn-glow-pulse 1.6s ease-in-out infinite;
+}
+
 /* --- kártya --- */
 .card-fyb {
   background-color: var(--color-surface);
@@ -216,6 +227,19 @@
   padding: 0.65rem 1.25rem;
 }
 .newsletter-fyb .icon-fyb { color: var(--mint); }
+.newsletter-icon-badge {
+  width: 8rem;
+  height: 8rem;
+  border-radius: 50%;
+  background-color: rgba(95, 211, 188, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.newsletter-icon-badge .icon-fyb {
+  width: 4rem;
+  height: 4rem;
+}
 
 /* --- fejléc --- */
 .site-header {
@@ -316,7 +340,7 @@ html[data-theme='dark'] .logo-for-light { display: none; }
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 3px 4px rgba(26, 38, 52, 0.3));
+  filter: drop-shadow(0 0 0.6px rgba(26, 38, 52, 0.85)) drop-shadow(0 3px 5px rgba(26, 38, 52, 0.35));
 }
 html[data-theme='dark'] .hero-signature {
   filter: drop-shadow(0 2px 5px rgba(248, 249, 250, 0.45));
