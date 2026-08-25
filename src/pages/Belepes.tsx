@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Icon from '../components/Icon'
 
 type Tab = 'login' | 'register'
@@ -14,10 +15,10 @@ export default function Belepes() {
           <div className="card-fyb card-fyb-accent">
             <Icon src="/icons/ikon_fiok.svg" className="mb-3 mx-auto d-block" style={{ width: '3rem', height: '3rem' }} />
             <h1 className="h4 mb-2">{tab === 'login' ? 'sikeresen bejelentkeztél' : 'sikeres regisztráció'}</h1>
-            <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>
-              ez a felület a következő fázisban készül el — itt fogod majd elérni a gyakorlataidat, a checklistet
-              és a dokumentációdat.
+            <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>
+              a gyakorlataid már elérhetők — a checklist és a dokumentáció egy következő fázisban készül el.
             </p>
+            <Link to="/gyakorlatok" className="btn-fyb btn-fyb-primary">a gyakorlataimhoz</Link>
           </div>
         </div>
       </section>

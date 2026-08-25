@@ -72,3 +72,11 @@ Forrás: a "Design elemek" mappában lévő 17 kézzel rajzolt SVG (9 vékony vo
 
 8\. KORÁBBI (NEM VÉGLEGES) MOCKUPOK KEZELÉSE — döntés 2026.08.25.  
 A "Design elemek / webalkalmazás phone látvány" képek (Együttműködés oldal korai wireframe-jei: gyakorlás, eredmények, checklist folyamatok) narancssárga kiemelőszínt használnak, ami nem szerepel a lezárt palettában. Ezekből csak a képernyő-szerkezetet/folyamatot vesszük át referenciaként, a végleges vizuális megvalósítás mindig a jelen dokumentum lezárt palettáját (mint/teal/lime/borostyán) követi.
+
+9\. "APP" ELRENDEZÉS — EGYÜTTMŰKÖDÉS OLDAL (2026.08.25., 3. fázistól, új)  
+A `/belepes` utáni, bejelentkezett felületek (Gyakorlatok, és a további Együttműködés-pontok: checklist, munkafüzet, oktatóanyag, eredmények, állapotfelmérő, kérdések) **külön elrendezést** kapnak, elkülönítve a nyilvános marketing-oldal Header/Footer-jétől — Marci kifejezett döntése alapján.  
+\- `src/components/AppLayout.tsx` — `.app-shell` (asztali: oldalsáv+tartalom egymás mellett; mobil: `flex-direction: column`, a topbar felül, tartalom alatta — **fontos:** ha ez a szabály hiányzik, a topbar és a tartalom mobilon egymás mellé zsúfolódik).  
+\- Oldalsáv (`.app-sidebar`, asztali nézetben mindig látható, mobilon `position:fixed` csúszó fiók `.app-sidebar-backdrop`-pal): felül logó, alatta felhasználó-doboz (avatar-kör + "Szia, \[Név\]\!" + szerepkör — a márkahang-mikroszöveg mintát követve), navigáció (`.app-sidebar-link`, ikon \+ felirat; a még fel nem épült pontok `.is-locked` állapotban, lakat-ikonnal), alul "vissza a főoldalra" link \+ téma-váltó.  
+\- Mobil topbar (`.app-topbar`): logó \+ hamburger, ami az oldalsávat nyitja meg fiókként.  
+\- Ez a minta minden további Együttműködés-oldali fázisnál (checklist, dokumentáció, gamification, állapotfelmérő) átveendő — új oldalakat az `AppLayout` alá kell felvenni az App.tsx-ben, nem a nyilvános `Layout` alá.  
+\- **Szint-fülek (.level-tabs / .level-tab, Gyakorlatok oldal, új):** kör alakú fülek, állapot szerint színezve — lezárt \= pipa \+ elsődleges szín körvonal, aktuális \= kitöltött (elsődleges szín háttér \+ szám), zárolt \= lakat-ikon, tompított. Ez a minta más "12 szintes" vagy "több lépéses" nézethez is újrahasznosítható (pl. checklist szint-váltás).

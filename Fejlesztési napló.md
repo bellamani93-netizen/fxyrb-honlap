@@ -176,4 +176,20 @@ A specifikáció ehhez a ponthoz nem ad részleteket (nincs mező-lista, nincs l
 
 Ezzel a Bejelentkezés / Regisztráció felület (`/belepes` — fül-váltós elrendezés, szerepkör-független belépés, ÜF-regisztráció GDPR-elfogadóval, `.card-fyb-accent` sötét módú kiemeléssel, "fiók" cím) **lezártnak minősül.**
 
-**Következő lépés:** Egyedi videókiosztás + online tananyag (3. fázis).
+## 2026.08.25. — 3. fázis: Egyedi videókiosztás (ÜF "szintek" nézet), új app-elrendezés
+
+Marci "törölheted a memóriád, húzd be a githubról" kérésére frissen újraolvastam a repo teljes dokumentációját (Design jegyzet, Fejlesztési napló, specifikáció) — semmi nem tért el a leírtaktól, tiszta working tree, helyi állapot = origin/main.
+
+**Tisztázó kérdések és válaszok (1. alapszabály szerint, a spec ezen a ponton 3 külön részt ír le):**
+- **Fázis köre:** csak az ÜF "szintek" nézetét építjük meg ebben a körben (a GYT-oldali kiosztó felület és az általános oktatóanyag-lista későbbre marad).
+- **Elrendezés:** Marci döntése — mostantól **új, dedikált "app" elrendezés** az Együttműködés-oldal felületeinek, elkülönítve a nyilvános marketing-oldal Header/Footer-jétől (nem a korábban megkérdezettek közül a "marad a jelenlegi" opciót választotta).
+
+**Megvalósítás:**
+- Új `src/components/AppLayout.tsx`: oldalsávos elrendezés (asztali nézetben mindig látható bal oldalt, mobilon `position:fixed` csúszó fiók, backdroppal). Oldalsáv felül logó, alatta felhasználó-doboz ("Szia, Anna!" + "ügyfél" — a Design jegyzet 1. pontjában rögzített márkahang-mikroszöveg mintát követve), navigáció (gyakorlatok aktív, a spec többi Együttműködés-pontja — checklist, munkafüzet, oktatóanyag, eredményeim, állapotfelmérő, kérdéseim — lakat-ikonnal jelzett, még nem épült fel), alul "vissza a főoldalra" + téma-váltó.
+- Új `src/pages/Gyakorlatok.tsx` (`/gyakorlatok`): 12 kör alakú "szint"-fül (lezárt = pipa, aktuális = kitöltött szám, zárolt = lakat), alattuk a kiválasztott szint részletei — lezárt/aktuális szintnél videó-kártya + leírás + időszak + `.locked-card` placeholder a napi checklisthez (4. fázis); zárolt szintnél `.locked-card` a spec pontos feloldási feltételeivel (10 hetes együttműködés alatt: előző szint lezárása; utána: 2 hét + legalább 10 edzésnap).
+- A `/belepes` sikeres-állapot szövege frissítve, és egy "a gyakorlataimhoz" gomb köti össze a `/gyakorlatok` oldallal (életszerű, összefüggő demó-folyam).
+- Új CSS: `.app-shell`/`.app-sidebar`/`.app-topbar` (app-elrendezés), `.level-tabs`/`.level-tab` (kör alakú szint-fülek, állapot szerint színezve).
+
+**Javított hiba fejlesztés közben:** mobil nézetben az `.app-shell` alapértelmezett `flex-direction: row` miatt a topbar és a fő tartalom egymás MELLETT próbált elférni (összezsúfolva, a bal oldal üresen maradt) — `flex-direction: column` mobilon (és csak `min-width: 992px`-től `row`) javította.
+
+**Következő lépés:** GYT-oldali videó-kiosztó felület, vagy a következő fázis (Felvételi kérdőív + eredménylap), Marci döntése szerint.
