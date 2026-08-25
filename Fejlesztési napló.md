@@ -193,3 +193,17 @@ Marci "törölheted a memóriád, húzd be a githubról" kérésére frissen új
 **Javított hiba fejlesztés közben:** mobil nézetben az `.app-shell` alapértelmezett `flex-direction: row` miatt a topbar és a fő tartalom egymás MELLETT próbált elférni (összezsúfolva, a bal oldal üresen maradt) — `flex-direction: column` mobilon (és csak `min-width: 992px`-től `row`) javította.
 
 **Következő lépés:** GYT-oldali videó-kiosztó felület, vagy a következő fázis (Felvételi kérdőív + eredménylap), Marci döntése szerint.
+
+## 2026.08.25. — Korrekciók a Gyakorlatok oldalon és az app-elrendezésen
+
+Marci a friss `/gyakorlatok` nézetet lokálisan megnézte, és hét pontos korrekciót adott:
+
+- **Szint-választó: karikák → legördülő menü.** A 12 kör alakú fül helyett egy `.level-select` legördülő lett: a bezárt vezérlőn a kiválasztott szint jelvénye (szám vagy lakat) + "N. szint" felirat + nyíl látszik; kinyitva minden szint listázva — lezártaknál kiírt szám mint-keretben, az aktuálisnál kitöltött háttérrel kiemelve, a zároltaknál lakat-ikon, tompítva. Kattintásra bezárás + kiválasztás; kattintás a menün kívülre szintén bezár (`useEffect` + `mousedown` figyelő).
+- **"gyakorlatok" eyebrow törölve** a "szintjeid" cím fölül — Marci szerint felesleges volt.
+- **Redundáns "napi checklist" kártya eltávolítva** a szint-részletező kártyából — ez már külön navigációs pontként (lakattal, később épül) szerepel az oldalsávban, kétszer feltüntetni félrevezető volt.
+- **Gyakorlat-szerkezet pontosítva:** minden (fel nem zárolt) szintnél egy videó + utána mindig 3–4 db gyakorlat-blokk jelenik meg, mindegyiknek saját kódolt címe ("S01 háton fekve, alsó tartás" mintára) és saját leíró szövege — nem egyetlen összefoglaló cím+leírás páros, ahogy korábban volt.
+- **Mobil menü teljes szélesség:** az `.app-sidebar` mobil nézetben (`max-width: 991.98px`) most a teljes képernyőt kitölti nyitott állapotban (`inset: 0; width: 100%`) — korábban `inset: 0 25% 0 0` miatt 25%-nyi rés maradt jobbra, és az explicit `width: 260px` szabály felül is írta volna a rést amúgy is (a `width` explicit értéke erősebb, mint az `inset`-ből számított implicit szélesség — ezért a `width: 100%` felülírás is kellett, nem csak az `inset` módosítása).
+- **Oldalsáv ikonok nagyobbak:** `.app-sidebar-link .icon-fyb` 1.25rem → 1.5rem (láthatóbb navigáció).
+- **Mobil fejléc frissítve:** a topbar mostantól két sorban jelenik meg — felül logó + hamburger, alatta "Szia, [Név]!" üdvözlés (`.app-topbar-greeting`), hogy a menü kinyitása nélkül is látszódjon. A minta férfi ügyfeleknek készül, ezért a korábbi "Anna" placeholder-név "Péter"-re cserélve (asztali oldalsávban is), és az "ügyfél" alcím-felirat törölve mindkét helyről (topbar, oldalsáv) — Marci szerint felesleges volt.
+
+**CSS-változások:** `.level-tabs`/`.level-tab` (kör-fülek) törölve, helyettük `.level-select`/`.level-select-toggle`/`.level-select-menu`/`.level-select-item`/`.level-select-badge` (legördülő minta); `.app-topbar` két sorossá alakítva (`.app-topbar-row`, `.app-topbar-greeting`); `.app-sidebar-link .icon-fyb` mérete nőtt; mobil `.app-sidebar` `inset`+`width` javítva.

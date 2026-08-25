@@ -19,13 +19,16 @@ export default function AppLayout() {
   return (
     <div className="app-shell">
       <div className="app-topbar d-lg-none">
-        <Link to="/" className="brand-logo">
-          <img src="/images/logo-light-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-light" />
-          <img src="/images/logo-dark-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-dark" />
-        </Link>
-        <button type="button" className="btn-fyb btn-fyb-ghost" aria-label="menü" onClick={() => setOpen(true)}>
-          ☰
-        </button>
+        <div className="app-topbar-row">
+          <Link to="/" className="brand-logo">
+            <img src="/images/logo-light-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-light" />
+            <img src="/images/logo-dark-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-dark" />
+          </Link>
+          <button type="button" className="btn-fyb btn-fyb-ghost" aria-label="menü" onClick={() => setOpen(true)}>
+            ☰
+          </button>
+        </div>
+        <div className="app-topbar-greeting">Szia, Péter!</div>
       </div>
 
       {open && <div className="app-sidebar-backdrop d-lg-none" onClick={() => setOpen(false)} />}
@@ -42,11 +45,8 @@ export default function AppLayout() {
         </div>
 
         <div className="app-sidebar-user">
-          <div className="app-sidebar-avatar">A</div>
-          <div>
-            <div className="fw-bold">Szia, Anna!</div>
-            <div className="small" style={{ color: 'var(--color-text-muted)' }}>ügyfél</div>
-          </div>
+          <div className="app-sidebar-avatar">P</div>
+          <div className="fw-bold">Szia, Péter!</div>
         </div>
 
         <nav className="app-sidebar-nav">
@@ -55,7 +55,7 @@ export default function AppLayout() {
               <span key={item.label} className="app-sidebar-link is-locked">
                 <Icon src={item.icon} />
                 <span className="flex-grow-1">{item.label}</span>
-                <Icon src="/icons/ikon_lakat.svg" style={{ width: '0.85em', height: '0.85em' }} />
+                <Icon src="/icons/ikon_lakat.svg" style={{ width: '1em', height: '1em' }} />
               </span>
             ) : (
               <NavLink key={item.label} to={item.to ?? '/'} className="app-sidebar-link" onClick={() => setOpen(false)}>
