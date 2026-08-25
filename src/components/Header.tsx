@@ -50,9 +50,9 @@ export default function Header() {
               )}
             </NavLink>
           ))}
-          <span className="nav-link-fyb d-flex align-items-center gap-2" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
-            belépés <span className="badge-fyb">hamarosan</span>
-          </span>
+          <NavLink to="/belepes" className="nav-link-fyb" onClick={() => setOpen(false)}>
+            belépés
+          </NavLink>
         </nav>
       </div>
     </header>

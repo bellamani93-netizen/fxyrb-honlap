@@ -141,3 +141,22 @@ Ezzel a Főoldal + aloldalak (Blog, Mini-kurzus, Időpontfoglalás) fázisa — 
 **Nyitva marad (Marci jelezte, hogy változik):** a jelenlegi szövegek (címek, leírások, mikroszövegek) egy része még nem végleges — ez NEM blokkolja a további fázisok indítását, csak azt jelenti, hogy a Főoldal szövegezésére még visszatérünk.
 
 **Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis) — a specifikáció "EGYÜTTMŰKÖDÉS OLDAL RÉSZEI" 1. pontja: "Bejelentkezés, Regisztráció (ÜF) / Bejelentkezés (GYT)".
+
+## 2026.08.25. — 2. fázis: Bejelentkezés / Regisztráció felület
+
+A specifikáció ehhez a ponthoz nem ad részleteket (nincs mező-lista, nincs leírva a bejelentkezés utáni folyamat), ezért — az 1. alapszabály szerint — tisztázó kérdéseket tettem fel indulás előtt.
+
+**Tisztázó kérdések és válaszok:**
+- **Szerepkörök:** a specifikáció 4 szerepkört említ (ÜF, GYT, Sales, Admin), de csak az ÜF regisztráció+belépés / GYT belépés van priorizálva. Marci döntése: legyen mind a négy szerepkör lefedve — egyetlen, szerepkör-független bejelentkezési form (e-mail+jelszó) szolgálja ki mind a négyet (a szerepkört a backend dönti el), regisztráció csak ÜF-nek van (GYT/Sales/Admin fiókot a rendszergazda hoz létre).
+- **Oldalszerkezet:** egy oldal (`/belepes`), fül-váltással a Belépés és Regisztráció nézet között (nem külön URL-ek).
+- **Belépés/regisztráció utáni állapot:** mivel a valódi dashboard/checklist később készül el, a form beküldése után egy egyszerű, kártyás placeholder-üdvözlő jelenik meg ("sikeresen bejelentkeztél" / "sikeres regisztráció"), jelezve, hogy ez a felület a következő fázisokban épül tovább.
+
+**Megvalósítás:**
+- Új `/belepes` oldal (`src/pages/Belepes.tsx`): eyebrow+cím, pirula-alakú fül-váltó (`.auth-tabs`/`.auth-tab`, új komponens-osztály) Belépés/Regisztráció között, `card-fyb`-be ágyazott form.
+- Belépés form: e-mail, jelszó, "elfelejtett jelszó" link, "gyógytornászként, értékesítőként vagy adminisztrátorként is itt jelentkezz be" mikroszöveg (jelezve a szerepkör-független belépést).
+- Regisztráció form: teljes név, e-mail, jelszó, kötelező GDPR-elfogadó checkbox (a specifikáció "MIT NEM AKARUNK" szakaszának egészségügyi-adat-védelmi elvárása alapján), "gyógytornászi/értékesítői/adminisztrátori fiókot a rendszergazda hoz létre" mikroszöveg.
+- Beküldés után (mindkét form, valós backend nélkül, csak React state-tel) a placeholder-üdvözlő kártya jelenik meg.
+- A fejléc "belépés" navigáció-eleme (eddig statikus, "hamarosan" jelvényes, kattinthatatlan span) most valódi, működő link a `/belepes`-re.
+- Új CSS: `.auth-tabs`/`.auth-tab` (pirula fül-váltó), illetve a Bootstrap form-elemek (`.form-control`, `.form-check-input`) fókusz/checked állapotai a márka teal/mint színére hangolva (Bootstrap alapértelmezett kék helyett).
+
+**Következő lépés:** Egyedi videókiosztás + online tananyag (3. fázis).

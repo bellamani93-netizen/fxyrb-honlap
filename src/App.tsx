@@ -4,6 +4,7 @@ import Home from './pages/Home'
 import Blog from './pages/Blog'
 import MiniKurzus from './pages/MiniKurzus'
 import Idopontfoglalas from './pages/Idopontfoglalas'
+import Belepes from './pages/Belepes'
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
         <Route path="/blog" element={<Blog />} />
         <Route path="/mini-kurzus" element={<MiniKurzus />} />
         <Route path="/idopontfoglalas" element={<Idopontfoglalas />} />
+        <Route path="/belepes" element={<Belepes />} />
       </Route>
     </Routes>
   )
