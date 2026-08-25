@@ -170,4 +170,10 @@ A specifikáció ehhez a ponthoz nem ad részleteket (nincs mező-lista, nincs l
 - A cím "belépés" → "fiók" — mivel az oldal a belépést ÉS a regisztrációt is fedi, a "fiók" pontosabb, semlegesebb cím.
 - Az "együttműködés «" eyebrow-sor törölve (a Chevron import is eltávolítva a Belepes.tsx-ből, mivel már nem volt rá szükség).
 
+## 2026.08.25. — 2. FÁZIS LEZÁRVA: Bejelentkezés / Regisztráció jóváhagyva
+
+**Marci jóváhagyása:** "oké, mentsük."
+
+Ezzel a Bejelentkezés / Regisztráció felület (`/belepes` — fül-váltós elrendezés, szerepkör-független belépés, ÜF-regisztráció GDPR-elfogadóval, `.card-fyb-accent` sötét módú kiemeléssel, "fiók" cím) **lezártnak minősül.**
+
 **Következő lépés:** Egyedi videókiosztás + online tananyag (3. fázis).
