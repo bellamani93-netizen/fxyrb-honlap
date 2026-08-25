@@ -117,4 +117,12 @@ Marci két finomítást kért: a kör hátterű ikonok legyenek nagyobbak (keves
 - **Ikon-jelvények:** `.process-step-icon-badge` ikonmérete 2,25rem → 3rem (a 4,5rem-es körön belül), `.newsletter-icon-badge` ikonmérete 4rem → 5,25rem (a 8rem-es körön belül) — így az ikon a kör nagyobb részét tölti ki, kevesebb üres tér marad körülötte.
 - **"Hogyan segítünk" számok — valódi nyújtás:** a korábbi megoldás csak nagy betűméretet használt egy `align-self: stretch` dobozban, ami nem adta vissza a kért, ténylegesen a cím tetejétől a szöveg aljáig nyúló arányt. Új megoldás: a szám **SVG `<text>` elemként** rajzolódik (`viewBox="0 0 40 100" preserveAspectRatio="none"`), a szám doboza pedig már csak a cím+leírás blokk mellett áll (az ikon-jelvény kikerült ebből a sorból, fölé került) — így a szám pontosan a cím tetejétől a leírás aljáig nyúlik, kártyánként automatikusan alkalmazkodva az eltérő szöveghosszhoz (JS-mérés nélkül, mert az SVG `preserveAspectRatio="none"` maga torzítja/nyújtja a glifet a rendelkezésre álló (keskeny, magas) téglalaphoz).
 
+## 2026.08.25. — Szám-vágás javítása, teljes tartalom-magasságra nyújtás, sötét kártya-keret
+
+Marci jelezte: a számok bal-jobb szélei le voltak vágva, és a nyújtásnak nem a szöveg, hanem a teljes doboztartalom (ikon tetejétől a legalsó sor aljáig) magasságáig kellene tartania.
+
+- **Levágás oka és javítása:** a `viewBox="0 0 40 100"` túl keskeny volt a 100-as `fontSize`-hoz — az SVG alapértelmezetten levágja a viewBox-on túlnyúló tartalmat, így a számjegy szélei tényleg lemetszve jelentek meg. `viewBox="0 0 80 100"`-ra szélesítve (a szöveg `x="40"`-re középre igazítva) a teljes glif belefér a levágás előtt, a `preserveAspectRatio="none"` így már csak a kívánt (nem vágó) nyújtást végzi.
+- **Nyújtás mértéke — ikon tetejétől a szöveg aljáig:** visszaállítottam a `.process-step-number`-t a kártya teljes tartalmi sorának (`d-flex align-items-stretch`) közvetlen testvérévé — az ikon-jelvény visszakerült a cím+leírás oszlop tetejére (a szám oldalára, nem fölé) —, így a szám ismét a teljes doboz-tartalom (ikon teteje → utolsó szövegsor alja) magasságára nyúlik, nem csak a cím+leíráséra.
+- **Sötét módú kártya-keret:** `html[data-theme='dark'] .process-step .card-fyb` — vékony, félig áttetsző türkiz (mint) keret (`rgba(95,211,188,.4)`) és köréje egy enyhe, elmosott derengés (`box-shadow` glow), hogy a kártyák jobban kiváljanak a navy háttérből.
+
 **Következő lépés:** Bejelentkezés / Regisztráció felület (2. fázis).
