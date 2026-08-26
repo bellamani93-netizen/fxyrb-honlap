@@ -3,7 +3,14 @@ import { NavLink, Outlet, Link } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
 import Icon from './Icon'
 
-const navItems = [
+export type NavItem = {
+  to?: string
+  label: string
+  icon: string
+  locked?: boolean
+}
+
+const ufNavItems: NavItem[] = [
   { to: '/gyakorlatok', label: 'gyakorlatok', icon: '/icons/ikon_torna.svg' },
   { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
   { label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: true },
@@ -13,7 +20,12 @@ const navItems = [
   { label: 'kérdéseim', icon: '/icons/ikon_csengo.svg', locked: true },
 ]
 
-export default function AppLayout() {
+type AppLayoutProps = {
+  navItems?: NavItem[]
+  userName?: string
+}
+
+export default function AppLayout({ navItems = ufNavItems, userName = 'Péter' }: AppLayoutProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -28,7 +40,7 @@ export default function AppLayout() {
             ☰
           </button>
         </div>
-        <div className="app-topbar-greeting">Szia, Péter!</div>
+        <div className="app-topbar-greeting">Szia, {userName}!</div>
       </div>
 
       {open && <div className="app-sidebar-backdrop d-lg-none" onClick={() => setOpen(false)} />}
@@ -48,7 +60,7 @@ export default function AppLayout() {
           <div className="app-sidebar-avatar">
             <Icon src="/icons/ikon_fiok.svg" />
           </div>
-          <div className="fw-bold">Szia, Péter!</div>
+          <div className="fw-bold">Szia, {userName}!</div>
         </div>
 
         <nav className="app-sidebar-nav">

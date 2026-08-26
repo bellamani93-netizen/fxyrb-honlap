@@ -97,4 +97,16 @@ A `/belepes` utáni, bejelentkezett felületek (Gyakorlatok, és a további Egy�
   \- képek/videó-előnézetek alacsonyabb (szélesebb) képarányra állítása mobilon (`.app-main .video-thumb` — 2.2:1 a 16:9 helyett);  
   \- a mobil topbar paddingjének/résközeinek szűkítése.  
 \- **Ellenőrzés módja:** a fejlesztés során böngészőben, tényleges mobil (pl. 375×667, a legkisebb gyakori méret), tablet és asztali nézetben is meg kell nézni, hogy `document.documentElement.scrollHeight <= window.innerHeight` — vagyis nincs függőleges görgetés.  
-\- Ha egy modulnál a tartalom mennyisége miatt ez nem tartható (pl. hosszú lista, sok elem), azt Marcival előre egyeztetni kell — nem automatikus kivétel, hanem tudatos döntés.
+\- Ha egy modulnál a tartalom mennyisége miatt ez nem tartható (pl. hosszú lista, sok elem), azt Marcival előre egyeztetni kell — nem automatikus kivétel, hanem tudatos döntés.  
+\- **Egyeztetés alatt álló kivétel (2026.08.26.):** a GYT-oldali "következő 7 szint" tömeges videókiosztás (ld. 11. pont) mobilon görget (~990px tartalom 667px-es képernyőn) — ez egy adat-sűrű, staff-oldali feladat, nem ÜF-oldali gyors áttekintés. Ugyanennek az oldalnak az egy-szintes kiosztás nézete (kevesebb tartalom) továbbra is pontosan elfér görgetés nélkül.
+
+11\. GYT-OLDALI FELÜLET — VIDEÓKIOSZTÁS (2026.08.26., 3. fázis, GYT-oldal)  
+Az ÜF-oldali "szintjeid" nézet (9. pont) lezárása után épült a GYT (gyógytornász) oldali megfelelő — ugyanaz a feladat, a kiosztó fél szemszögéből.  
+\- **AppLayout általánosítva:** `navItems` és `userName` prop lett rajta (alapértelmezett: az ÜF-oldali lista + "Péter"), így ugyanaz a sidebar/topbar-váz szolgálja ki mind az ÜF-, mind a GYT-oldalt, csak más navigációs listával és felhasználónévvel. GYT placeholder-név: **"Judit"**.  
+\- **GYT navigáció** (a spec "Együttműködés oldal részei" listája alapján, ebben a körben csak az első aktív, a többi lakattal): videókiosztás, dokumentáció, munkafüzet, checklist, oktatóanyag, eredmények, állapotfelmérő, kérdések, kapacitás.  
+\- **Ügyfél-választó legördülő** az oldal címe ("videókiosztás") mellett jobbra — ugyanaz a `.level-select` vizuális/interakciós minta, amit a szint-választóhoz is használunk (nem vezettünk be külön dropdown-stílust).  
+\- **Két mintakliens, a spec két hozzáférési módjának bemutatására:**  
+  \- **"Péter"** — ugyanaz a személy, mint az ÜF-oldali demó-felhasználó (történet-folytonosság: az 1-5. szint videói meg is egyeznek a két oldalon). Nála a 10 hetes együttműködés lezárult, a GYT-nek egyszerre 7 szintet (6-12) kell sorrendben kiosztania: "következő 7 szint" panel, soronként egy videó-választó legördülővel, alul "kiosztás mentése" gomb (csak akkor aktív, ha mind a 7 szint ki van osztva).  
+  \- **"Kovács Gábor"** — a 10 hetes együttműködés közepén tartó kliens (csak 1-5. szint létezik nála): 1-2. már kiosztva, a 3. szint most kiosztásra vár (lime jelölés, ugyanaz a szín-nyelv, mint az ÜF oldal "aktuális szint" jelölésénél), 4-5. zárolt, a következő konzultációig.  
+\- **Videó-választó legördülő** (`VideoPickerRow`): a szint-választóéval azonos komponens-minta, ~25 mintavideóval (`V01`–`V25`, kódolt cím-formátum, az ÜF-oldali "S01..." gyakorlat-kódokkal analóg névadás).  
+\- Szint-állapot jelölés (pipa/lakat/lime kör, 80%-os ikon-kitöltés) a meglévő `.level-select-badge` osztályokból újrahasznosítva — nincs új szín/állapot-jelölés bevezetve.

@@ -232,3 +232,25 @@ Marci: az avatar-körben az ikon (előzőleg 1.4rem a 2.5rem-es körben, azaz 56
 - Avatar-ikon (`.app-sidebar-avatar .icon-fyb`) mérete 1.4rem → **2rem** (2.5rem-es kör 80%-a).
 - Konzisztencia kedvéért a szint-választó jelvényén (`.level-select-badge .icon-fyb`, 1.75rem-es kör) a lezárt szintek pipa-ikonja is 1rem → **1.4rem**-re nőtt, így most már mind a pipa, mind a (korábban már 80%-osra állított) lakat-ikon egységesen a szabályt követi.
 - A szabály rögzítve a Design jegyzet 7. pontjában (Ikonok), azzal a megjegyzéssel, hogy a már korábban jóváhagyott/lezárt Főoldal-elemek (pl. `.process-step-icon-badge`, ~67%) ettől eltérhetnek — új elemnél mindig a 80%-os szabályt kell követni.
+
+## 2026.08.26. — 3. fázis, GYT-oldal: Videókiosztás
+
+Az ÜF-oldali "szintjeid" nézet lezárása után Marci: "nézzük ugyanezt a feladatot a GYT oldaláról". Mivel a spec ezen a ponton 3 tisztázandó kérdést vetett fel (1. alapszabály), `AskUserQuestion`-t indítottam, a kérdés-ablakot Marci elutasította, de azonnal "igen"-t írt chatben — ezt úgy értelmeztem, hogy az összes kérdésnél az ajánlott (első) opcióval mehetek tovább:
+
+1. **Ügyfél-választó legyen** (nem feltételezünk egyetlen "már kiválasztott" klienst).
+2. **Ugyanaz az AppLayout-minta**, GYT-specifikus navigációval, ebben a körben csak a "videókiosztás" pont aktív.
+3. **Egyszerű lista/legördülő** a ~25 videóból, kategorizálás/szűrés nélkül.
+
+**Megvalósítás:**
+- `src/components/AppLayout.tsx` általánosítva: `navItems` és `userName` prop-ok lettek (alapértelmezetten az ÜF-oldali lista + "Péter"), így a komponens az ÜF és a GYT oldalon is újrahasználható séma/topbar/sidebar-vázat ad.
+- Új GYT navigáció (App.tsx-ben, `gytNavItems`): videókiosztás (aktív), dokumentáció, munkafüzet, checklist, oktatóanyag, eredmények, állapotfelmérő, kérdések, kapacitás (mind lakattal, a spec "Együttműködés oldal részei" listája alapján) — GYT-persona placeholder név: "Judit".
+- Új `src/pages/GytVideokiosztas.tsx` (`/gyt/videokiosztas`): fent az oldal cím mellett jobbra egy ügyfél-választó legördülő (ugyanaz a `.level-select` minta, amit a szint-választóhoz is használunk — újrahasznosítva, nem 3 külön stílust bevezetve).
+- **Két mintakliens, hogy mindkét, spec szerinti hozzáférési mód látszódjon:**
+  - **"Péter"** (ugyanaz a személy, mint az ÜF-oldali demó-felhasználó, hogy a két oldal története összeérjen): nála a 10 hetes együttműködés lezárult (1-5. szint már kiosztva, ugyanazokkal a videócímekkel, mint az ÜF oldalon látott "gerinc alapok, csípőnyitás..." sor) — most a GYT-nek **egyszerre 7 szintet** (6-12) kell kiosztania, sorrendben, egy "következő 7 szint" panelen, soronként egy videó-választó legördülővel; lent "kiosztás mentése" gomb, ami csak akkor aktív, ha mind a 7 ki van osztva.
+  - **"Kovács Gábor"** (új, a 10 hetes együttműködés közepén tartó kliens): nála csak 1-5. szint létezik, ebből 1-2. már kiosztva, a **3. szint most kiosztásra vár** (a legutóbbi konzultáció után), 4-5. még zárolt ("a 3. szint videójának kiosztása és a következő konzultáció után nyílik meg").
+- Videó-választó legördülő (`VideoPickerRow`): a szint-választóéval azonos vizuális/interakciós minta (gomb + legördülő lista + kattintás-a-lista-mellé-zár), 25 mintavideóval (`V01`–`V25`, kódolt cím-formátum, ugyanúgy, mint az ÜF-oldali "S01..." gyakorlat-kódok).
+- Szint-állapot jelölés (pipa/lakat/lime, 80%-os ikon-kitöltés) újrahasznosítva a már meglévő `.level-select-badge` osztályokból — nincs új CSS state-szín, csak a meglévő minta más kontextusban.
+
+**Fontos, Marcival egyeztetendő eltérés az "egy képernyő, görgetés nélkül" elvtől:** "Péter" (7-szintes tömeges kiosztás) nézete mobilon (375×667) görget (~990px magas tartalom) — ez egy admin/staff-oldali, adat-sűrű feladat, nem egy ÜF-oldali gyors áttekintés, ezért valószínűleg indokolt kivétel, de a Design jegyzet 10. pontja szerint ez nem automatikus, hanem egyeztetendő. "Kovács Gábor" (egy videó kiosztása) nézete változatlanul pontosan elfér görgetés nélkül (667=667px).
+
+**Következő lépés:** Marci visszajelzése a fenti felépítésről és a görgetés-kivételről; utána a checklist vagy a felvételi kérdőív/eredménylap fázis, Marci döntése szerint.
