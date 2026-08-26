@@ -342,3 +342,15 @@ Marci egy részletes átalakítási ötletet írt le a szint-listához, és kife
 **Tesztelve:** asztali (1280px) és mobil (375px), világos és sötét mód is — a 3 jelvényszín helyesen, megkülönböztethetően jelenik meg mindkét módban (világos módban ellenőrizve pixel-szinten: kiosztva `#EFF2F3`, kiosztásra vár `#D7E834`, még nem kiosztható `#E1E5E7`); a videó-kiválasztás asztalin és mobilon (kinyitva) egyaránt működik; a "utana" tömeges kiosztás (Péter) változatlan, nem érintett.
 
 **Nyitott pont, amit jeleztem Marcinak:** a "kozben" mód "javasolt: ..." szövege most csak tájékoztató, NEM kattintható gyorsgomb (ellentétben a "utana" tömeges nézet gombjával) — mert a leírt sor-tartalom két külön elemként ("javasolt: ..., válassz videót") sorolta fel őket. Ha ez kényelmetlen, könnyen visszaállítható egy kattintható változatra.
+
+## 2026.08.27. — Javaslat-gomb kattinthatóvá téve, egyenletes térköz, "más videó"
+
+Marci válasza az előző kör nyitott pontjára: igen, legyen kattintható a javaslat is, MINDENHOL (mindkét nézetben) legyen halvány lime háttere, hogy gombnak látsszon. Emellett két további finomítást kért: a sorokon belüli elemek legyenek egyenletesebben elosztva (azonos térköz mindenhol, nem egy nagy rés a jelvény előtt), és a "kozben" mód legördülőjének szövege "válassz videót" helyett "más videó" legyen (mivel már van egy elsődleges javaslat-gomb, a legördülő a másodlagos "vagy válassz mást" szerepet tölti be).
+
+**Megvalósítás:**
+- Új `.btn-fyb-suggested` CSS osztály: halvány, áttetsző lime háttér (`rgba(215, 232, 52, 0.18)`, hoverre erősebb) — alkalmazva mind a "kozben" mód `VideoPickerInline` javaslat-gombjára, mind a "utana" tömeges kiosztás már meglévő javaslat-gombjára (ami eddig `.btn-fyb-ghost`-ot használt, most egységesen ez).
+- `VideoPickerInline` javaslat-szövege `<span>`-ből kattintható `<button>`-né alakítva, `onAssign` hívással.
+- A legördülő placeholder-szövege "kozben" módban "válassz videót" → "más videó".
+- A sor-elrendezés egyszerűsítve: a korábbi "tartalom balra tömörítve (kis résekkel) + jelvény jobbra tolva (egy nagy réssel)" helyett most szint száma, kód/cím (vagy javaslat-gomb+legördülő), és a jelvény mind ugyanabban az egy szintű flex-sorban vannak, egységes `gap-3` térközzel — mivel a `detailContent` React-fragmentként (nem külön wrapper divként) ereszkedik bele a szülő flex-sorba, a benne lévő elemek (kód, cím, lábjegyzet, vagy javaslat-gomb+legördülő) automatikusan ugyanazt az egységes térközt kapják, mint a szint száma és a jelvény.
+
+**Tesztelve:** böngészőben (asztali 1280px, mobil 375px, világos + sötét mód) — a javaslat-gomb kattintásra azonnal alkalmazza magát mindkét nézetben, a halvány lime háttér látszik, a térközök egyenletesek, "más videó" felirat helyesen jelenik meg, a teljes javaslat-cím kifér asztalin/tableten, mobilon csak lenyitás után látszik a teljes szöveg (összecsukva csak "javasolt [kód]"). Nincs konzol-hiba egy friss lapon.

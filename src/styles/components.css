@@ -43,6 +43,13 @@
 }
 .btn-fyb-ghost:hover { background-color: var(--color-bg-alt); color: var(--color-text); }
 
+/* halvány lime hátterű gomb — jelzi, hogy a rendszer javaslata kattintható (2026.08.27.) */
+.btn-fyb-suggested {
+  background-color: rgba(215, 232, 52, 0.18);
+  color: var(--color-text);
+}
+.btn-fyb-suggested:hover { background-color: rgba(215, 232, 52, 0.32); }
+
 .btn-fyb-lg { padding: 0.9rem 2.25rem; font-size: 1.1rem; }
 
 /* --- fő CTA gomb: hoverre kicsit megnő, deren dereng a háttere --- */

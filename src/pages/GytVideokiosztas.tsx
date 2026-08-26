@@ -119,15 +119,23 @@ function VideoPickerInline({ suggested, onAssign }: { suggested?: string; onAssi
   }, [])
 
   return (
-    <div className="d-flex align-items-center gap-2 flex-wrap">
+    <>
       {suggested && (
-        <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-          javasolt: <strong style={{ color: 'var(--color-text)' }}>{suggested}</strong>
-        </span>
+        <button
+          type="button"
+          className="btn-fyb btn-fyb-suggested"
+          style={{ padding: '0.35rem 0.85rem', fontSize: '0.9rem', textTransform: 'none' }}
+          onClick={(e) => {
+            e.stopPropagation()
+            onAssign(suggested)
+          }}
+        >
+          javasolt: {suggested}
+        </button>
       )}
       <div className={`level-select ${pickerOpen ? 'is-open' : ''}`} ref={pickerRef} onClick={(e) => e.stopPropagation()}>
         <button type="button" className="level-select-toggle" onClick={() => setPickerOpen((o) => !o)}>
-          <span style={{ color: 'var(--color-text-muted)' }}>válassz videót</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>más videó</span>
           <span className="level-select-chevron">▾</span>
         </button>
 
@@ -150,7 +158,7 @@ function VideoPickerInline({ suggested, onAssign }: { suggested?: string; onAssi
           </ul>
         )}
       </div>
-    </div>
+    </>
   )
 }
 
@@ -185,12 +193,12 @@ function LevelRow({
 
   return (
     <div className="level-row">
-      {/* asztali/tablet: mindig egy sorban — szint, kód+cím (vagy választó), állapot */}
-      <div className="d-none d-lg-flex align-items-center gap-3 flex-fill">
+      {/* asztali/tablet: mindig egy sorban, azonos térközzel minden elem között — szint, kód+cím (vagy javaslat+választó), állapot */}
+      <div className="d-none d-lg-flex align-items-center gap-3 flex-wrap flex-fill">
         <span className="level-row-num">{level.num}. szint</span>
-        <span className="d-flex align-items-center gap-2 flex-wrap flex-fill">{detailContent}</span>
+        {detailContent}
+        <span className={`status-chip ${statusClass}`}>{statusLabel}</span>
       </div>
-      <span className={`status-chip ${statusClass} d-none d-lg-inline-block`}>{statusLabel}</span>
 
       {/* mobil: összecsukva csak szint + kód/javaslat + állapot-ikon; sorra kattintva lenyílik a részlet */}
       <div className="d-flex d-lg-none flex-column w-100">
@@ -252,7 +260,7 @@ function VideoPickerRow({
         </span>
         <div className="d-flex align-items-center gap-2 flex-wrap">
           {suggested && !assigned && (
-            <button type="button" className="btn-fyb btn-fyb-ghost" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', textTransform: 'none' }} onClick={() => onAssign(suggested)}>
+            <button type="button" className="btn-fyb btn-fyb-suggested" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', textTransform: 'none' }} onClick={() => onAssign(suggested)}>
               javasolt: {suggested}
             </button>
           )}
