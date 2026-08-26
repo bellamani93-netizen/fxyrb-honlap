@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Icon from '../components/Icon'
 import { EXERCISES, type ExerciseCode, type ClientVariables, suggestedSequence } from '../data/tornaSzintek'
 
@@ -11,7 +11,6 @@ type GytLevel = {
   state: LevelState
   video?: string
   note?: string
-  lockReason?: string
 }
 
 type Client = {
@@ -64,8 +63,8 @@ const clients: Client[] = [
       { num: 1, state: 'lezart', video: codeLabel('S03'), note: 'csak az első 2 gyakorlat ebből a szintből.' },
       { num: 2, state: 'lezart', video: codeLabel('A01') },
       { num: 3, state: 'nyitva' },
-      { num: 4, state: 'zarolt', lockReason: 'a 3. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
-      { num: 5, state: 'zarolt', lockReason: 'a 3. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
+      { num: 4, state: 'zarolt' },
+      { num: 5, state: 'zarolt' },
     ],
   },
   {
@@ -74,10 +73,10 @@ const clients: Client[] = [
     mode: 'kozben',
     levels: [
       { num: 1, state: 'nyitva' },
-      { num: 2, state: 'zarolt', lockReason: 'az 1. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
-      { num: 3, state: 'zarolt', lockReason: 'az 1. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
-      { num: 4, state: 'zarolt', lockReason: 'az 1. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
-      { num: 5, state: 'zarolt', lockReason: 'az 1. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
+      { num: 2, state: 'zarolt' },
+      { num: 3, state: 'zarolt' },
+      { num: 4, state: 'zarolt' },
+      { num: 5, state: 'zarolt' },
     ],
   },
 ]
@@ -87,6 +86,17 @@ function LevelDot({ state }: { state: LevelState }) {
     <span className={`level-select-badge level-select-badge--${state === 'nyitva' ? 'aktiv' : state}`}>
       {state === 'zarolt' && <Icon src="/icons/ikon_lakat.svg" />}
       {state === 'lezart' && <Icon src="/icons/ikon_pipa.svg" />}
+    </span>
+  )
+}
+
+function AssignmentDot({ done }: { done: boolean }) {
+  return (
+    <span
+      className="level-select-badge"
+      style={{ borderColor: done ? 'var(--color-primary)' : 'var(--color-border)', color: 'var(--color-primary)', opacity: done ? 1 : 0.45 }}
+    >
+      {done && <Icon src="/icons/ikon_pipa.svg" />}
     </span>
   )
 }
@@ -121,7 +131,10 @@ function VideoPickerRow({
   return (
     <div className="py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
       <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
-        <span className="fw-bold">{label}</span>
+        <span className="d-flex align-items-center gap-2 fw-bold">
+          <AssignmentDot done={!!assigned} />
+          {label}
+        </span>
         <div className="d-flex align-items-center gap-2 flex-wrap">
           {suggested && !assigned && (
             <button type="button" className="btn-fyb btn-fyb-ghost" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', textTransform: 'none' }} onClick={() => onAssign(suggested)}>
@@ -182,6 +195,15 @@ function VideoPickerRow({
   )
 }
 
+function TraitRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
+      <span className="small" style={{ color: 'var(--color-text-muted)' }}>{label}</span>
+      <div className="auth-tabs auth-tabs-sm flex-shrink-0">{children}</div>
+    </div>
+  )
+}
+
 function VariablesPanel({ variables, onChange }: { variables: ClientVariables; onChange: (v: ClientVariables) => void }) {
   return (
     <div className="card-fyb mb-3">
@@ -190,63 +212,52 @@ function VariablesPanel({ variables, onChange }: { variables: ClientVariables; o
         <strong>ügyfél jellemzői</strong>
         <span className="small" style={{ color: 'var(--color-text-muted)' }}>(ideiglenes — a felvételi kérdőívig kézzel állítva)</span>
       </div>
-      <div className="d-flex flex-wrap gap-4">
-        <div>
-          <div className="small mb-1" style={{ color: 'var(--color-text-muted)' }}>fájdalom helye</div>
-          <div className="auth-tabs auth-tabs-sm">
-            <button type="button" className={`auth-tab ${variables.painLocation === 'also' ? 'active' : ''}`} onClick={() => onChange({ ...variables, painLocation: 'also' })}>
-              alsó lumbális
-            </button>
-            <button type="button" className={`auth-tab ${variables.painLocation === 'felso' ? 'active' : ''}`} onClick={() => onChange({ ...variables, painLocation: 'felso' })}>
-              felső lumbális / háti
-            </button>
-          </div>
-        </div>
-        <div>
-          <div className="small mb-1" style={{ color: 'var(--color-text-muted)' }}>hason fekvés kivitelezhető</div>
-          <div className="auth-tabs auth-tabs-sm">
-            <button type="button" className={`auth-tab ${variables.proneOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, proneOk: true })}>
-              igen
-            </button>
-            <button type="button" className={`auth-tab ${!variables.proneOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, proneOk: false })}>
-              nem
-            </button>
-          </div>
-        </div>
-        <div>
-          <div className="small mb-1" style={{ color: 'var(--color-text-muted)' }}>váll feletti kartartás lehetséges</div>
-          <div className="auth-tabs auth-tabs-sm">
-            <button type="button" className={`auth-tab ${variables.shoulderOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, shoulderOk: true })}>
-              igen
-            </button>
-            <button type="button" className={`auth-tab ${!variables.shoulderOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, shoulderOk: false })}>
-              nem
-            </button>
-          </div>
-        </div>
-        <div>
-          <div className="small mb-1" style={{ color: 'var(--color-text-muted)' }}>térdfájdalom (négykézláb helyzetekhez)</div>
-          <div className="auth-tabs auth-tabs-sm">
-            <button type="button" className={`auth-tab ${variables.kneePain ? 'active' : ''}`} onClick={() => onChange({ ...variables, kneePain: true })}>
-              igen
-            </button>
-            <button type="button" className={`auth-tab ${!variables.kneePain ? 'active' : ''}`} onClick={() => onChange({ ...variables, kneePain: false })}>
-              nem
-            </button>
-          </div>
-        </div>
-        <div>
-          <div className="small mb-1" style={{ color: 'var(--color-text-muted)' }}>magas vérnyomás</div>
-          <div className="auth-tabs auth-tabs-sm">
-            <button type="button" className={`auth-tab ${variables.highBloodPressure ? 'active' : ''}`} onClick={() => onChange({ ...variables, highBloodPressure: true })}>
-              igen
-            </button>
-            <button type="button" className={`auth-tab ${!variables.highBloodPressure ? 'active' : ''}`} onClick={() => onChange({ ...variables, highBloodPressure: false })}>
-              nem
-            </button>
-          </div>
-        </div>
-      </div>
+
+      <TraitRow label="fájdalom helye">
+        <button type="button" className={`auth-tab ${variables.painLocation === 'also' ? 'active' : ''}`} onClick={() => onChange({ ...variables, painLocation: 'also' })}>
+          alsó lumbális
+        </button>
+        <button type="button" className={`auth-tab ${variables.painLocation === 'felso' ? 'active' : ''}`} onClick={() => onChange({ ...variables, painLocation: 'felso' })}>
+          felső lumbális / háti
+        </button>
+      </TraitRow>
+
+      <TraitRow label="hason fekvés kivitelezhető">
+        <button type="button" className={`auth-tab ${variables.proneOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, proneOk: true })}>
+          igen
+        </button>
+        <button type="button" className={`auth-tab ${!variables.proneOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, proneOk: false })}>
+          nem
+        </button>
+      </TraitRow>
+
+      <TraitRow label="váll feletti kartartás lehetséges">
+        <button type="button" className={`auth-tab ${variables.shoulderOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, shoulderOk: true })}>
+          igen
+        </button>
+        <button type="button" className={`auth-tab ${!variables.shoulderOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, shoulderOk: false })}>
+          nem
+        </button>
+      </TraitRow>
+
+      <TraitRow label="térdfájdalom (négykézláb helyzetekhez)">
+        <button type="button" className={`auth-tab ${variables.kneePain ? 'active' : ''}`} onClick={() => onChange({ ...variables, kneePain: true })}>
+          van
+        </button>
+        <button type="button" className={`auth-tab ${!variables.kneePain ? 'active' : ''}`} onClick={() => onChange({ ...variables, kneePain: false })}>
+          nincs
+        </button>
+      </TraitRow>
+
+      <TraitRow label="magas vérnyomás">
+        <button type="button" className={`auth-tab ${variables.highBloodPressure ? 'active' : ''}`} onClick={() => onChange({ ...variables, highBloodPressure: true })}>
+          van
+        </button>
+        <button type="button" className={`auth-tab ${!variables.highBloodPressure ? 'active' : ''}`} onClick={() => onChange({ ...variables, highBloodPressure: false })}>
+          nincs
+        </button>
+      </TraitRow>
+
       {variables.highBloodPressure && (
         <p className="small mb-0 mt-2" style={{ color: 'var(--color-text-muted)' }}>
           megjegyzés a checklist-fázishoz: magas vérnyomásnál a napi megtartás-idő maximuma 4 mp (a szokásos 10 mp helyett).
@@ -359,9 +370,12 @@ export default function GytVideokiosztas() {
                   .filter((l) => l.num !== openLevel?.num)
                   .map((l) => (
                     <div key={l.num} className="d-flex align-items-center justify-content-between gap-2 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                      <span className="small" style={{ color: 'var(--color-text-muted)' }}>{l.num}. szint</span>
-                      <span className="small text-end">
-                        {l.state === 'lezart' ? l.video : l.lockReason}
+                      <span className="d-flex align-items-center gap-2 small" style={{ color: l.state === 'lezart' ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+                        <LevelDot state={l.state} />
+                        {l.num}. szint
+                      </span>
+                      <span className="small text-end" style={{ color: l.state === 'lezart' ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+                        {l.state === 'lezart' ? l.video : 'még nem kiosztható'}
                         {l.note && <><br /><span className="fst-italic">{l.note}</span></>}
                       </span>
                     </div>
