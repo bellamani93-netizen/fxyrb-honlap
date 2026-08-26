@@ -98,7 +98,7 @@ A `/belepes` utáni, bejelentkezett felületek (Gyakorlatok, és a további Egy�
   \- a mobil topbar paddingjének/résközeinek szűkítése.  
 \- **Ellenőrzés módja:** a fejlesztés során böngészőben, tényleges mobil (pl. 375×667, a legkisebb gyakori méret), tablet és asztali nézetben is meg kell nézni, hogy `document.documentElement.scrollHeight <= window.innerHeight` — vagyis nincs függőleges görgetés.  
 \- Ha egy modulnál a tartalom mennyisége miatt ez nem tartható (pl. hosszú lista, sok elem), azt Marcival előre egyeztetni kell — nem automatikus kivétel, hanem tudatos döntés.  
-\- **Egyeztetés alatt álló kivétel (2026.08.26.):** a GYT-oldali "következő 7 szint" tömeges videókiosztás (ld. 11. pont) mobilon görget (~990px tartalom 667px-es képernyőn) — ez egy adat-sűrű, staff-oldali feladat, nem ÜF-oldali gyors áttekintés. Ugyanennek az oldalnak az egy-szintes kiosztás nézete (kevesebb tartalom) továbbra is pontosan elfér görgetés nélkül.
+\- **Jóváhagyott kivétel (Marci, 2026.08.26.):** a GYT-oldali "következő 7 szint" tömeges videókiosztás (ld. 11. pont) mobilon görget (~990px tartalom 667px-es képernyőn) — ez egy adat-sűrű, staff-oldali feladat, nem ÜF-oldali gyors áttekintés, ezért Marci jóváhagyta a görgetést itt. Ugyanennek az oldalnak az egy-szintes kiosztás nézete (kevesebb tartalom) továbbra is pontosan elfér görgetés nélkül.
 
 11\. GYT-OLDALI FELÜLET — VIDEÓKIOSZTÁS (2026.08.26., 3. fázis, GYT-oldal)  
 Az ÜF-oldali "szintjeid" nézet (9. pont) lezárása után épült a GYT (gyógytornász) oldali megfelelő — ugyanaz a feladat, a kiosztó fél szemszögéből.  

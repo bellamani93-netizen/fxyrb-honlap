@@ -254,3 +254,5 @@ Az ÜF-oldali "szintjeid" nézet lezárása után Marci: "nézzük ugyanezt a fe
 **Fontos, Marcival egyeztetendő eltérés az "egy képernyő, görgetés nélkül" elvtől:** "Péter" (7-szintes tömeges kiosztás) nézete mobilon (375×667) görget (~990px magas tartalom) — ez egy admin/staff-oldali, adat-sűrű feladat, nem egy ÜF-oldali gyors áttekintés, ezért valószínűleg indokolt kivétel, de a Design jegyzet 10. pontja szerint ez nem automatikus, hanem egyeztetendő. "Kovács Gábor" (egy videó kiosztása) nézete változatlanul pontosan elfér görgetés nélkül (667=667px).
 
 **Következő lépés:** Marci visszajelzése a fenti felépítésről és a görgetés-kivételről; utána a checklist vagy a felvételi kérdőív/eredménylap fázis, Marci döntése szerint.
+
+**Marci jóváhagyása (2026.08.26.):** "jóváhagyom" — a 7-szintes tömeges videókiosztás mobil görgetése elfogadott kivétel az "egy képernyő, görgetés nélkül" elv alól (staff-oldali, adat-sűrű feladatként indokolt).
