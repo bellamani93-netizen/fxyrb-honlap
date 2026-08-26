@@ -427,6 +427,14 @@ html[data-theme='dark'] .signature-for-light { display: none; }
   background-color: var(--color-primary);
   color: var(--color-primary-contrast);
 }
+.auth-tabs-sm {
+  padding: 0.15rem;
+  gap: 0.15rem;
+}
+.auth-tabs-sm .auth-tab {
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+}
 
 /* --- form-elemek márkaszínezése (Bootstrap alapértelmezett kék helyett) --- */
 .form-control:focus {

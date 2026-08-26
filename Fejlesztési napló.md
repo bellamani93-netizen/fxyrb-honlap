@@ -256,3 +256,23 @@ Az ÜF-oldali "szintjeid" nézet lezárása után Marci: "nézzük ugyanezt a fe
 **Következő lépés:** Marci visszajelzése a fenti felépítésről és a görgetés-kivételről; utána a checklist vagy a felvételi kérdőív/eredménylap fázis, Marci döntése szerint.
 
 **Marci jóváhagyása (2026.08.26.):** "jóváhagyom" — a 7-szintes tömeges videókiosztás mobil görgetése elfogadott kivétel az "egy képernyő, görgetés nélkül" elv alól (staff-oldali, adat-sűrű feladatként indokolt).
+
+## 2026.08.26. — Valós tartalom: "torna szintek.odt" + személyre szabási javaslat-motor
+
+Marci feltöltötte a `torna szintek.odt` fájlt, ezzel a szavaival "ez a program központja" — a mozgásprogram tényleges szakmai tartalma, ami mostantól minden korábbi kitalált placeholder-tartalmat felvált.
+
+**A dokumentum elolvasása** (`textutil -convert txt -stdout` macOS paranccsal, mert az .odt-t a Read tool nem tudja natívan): 20 megnevezett gyakorlat (S01–S13 "alap" + A01–A07 "alternatív"), mindegyiknél kiinduló helyzet(ek) A/B/C/D(...G) nehézségi változatokban + ismétlésszám + részletes kivitelezési utasítás. A dokumentum végén egy "Szintek sorrendje" táblázat: 3 befolyásoló tényező (fájdalom helye: alsó/felső; hason fekvés kivitelezhető-e; vállmobilitás) alapján 8 elméleti / gyakorlatban 6 egyedi, előre kódolt szint-sorrend (LOO, LON, LNO, LNN, HOO, HON — HNO≡LNO, HNN≡LNN). Egy negyedik tényezőt (térdfájdalom) is említ a dokumentum mint befolyásoló szempontot, de a sorrend-táblázat ezt nem kódolja — ezt jeleztem a Design jegyzetben, nem építettem bele találgatással.
+
+**Megvalósítás:**
+- Új `src/data/tornaSzintek.ts`: `EXERCISES` (20 kód → név + rövid leírás, csak kiinduló helyzet + ismétlésszám, a részletes kivitelezés nélkül — pontosan Marci kérése szerint), `SEQUENCES` (a 6 egyedi sorrend), `ClientVariables` típus, `suggestedSequence(variables)` — ez a "javaslat-motor", ami a 3 változóból visszaadja a javasolt, 12 vagy 13 elemű szint-sorrendet.
+- **ÜF-oldali "szintjeid" (`Gyakorlatok.tsx`) újraírva:** a korábbi, kitalált "4 gyakorlat/szint" szerkezet helyett most **1 valós, megnevezett gyakorlat/szint**, a LOO sorrend szerint (Péter = alsó lumbális, mindkét mozgás rendben — a dokumentum legegyenesebb, S01→S13 sorrendje). Emiatt a szintek száma 12-ről **13-ra nőtt** — ez pontosabb, mint a korábbi kitalált szám, mert a valós forrás szerint a teljes program 12 VAGY 13 szintből áll, a kliens adottságaitól függően.
+- **GYT-oldali videókiosztás (`GytVideokiosztas.tsx`) frissítve:** a videótár a kitalált 25 elemű "V01...V25" lista helyett a valós 20 kódolt gyakorlat; új **"ügyfél jellemzői" panel** (ideiglenes, kattintható pirula-váltókkal a 3 változóhoz); minden kiosztásra váró szintnél megjelenik egy **"javasolt: [kód+cím]" gyorsgomb**, ami egy kattintással beállítja a javaslat-motor által ajánlott gyakorlatot; a tömeges (10 hét utáni) kiosztásnál egy **"javasolt csomag alkalmazása"** gomb az összes hátralévő szintet egyszerre kitölti a javaslat szerint. Mindkét javaslat csak ajánlás, a GYT bármikor felülbírálhatja kézzel.
+- **Reaktivitás tesztelve:** Kovács Gábor váll-mobilitás változóját "nem"-ről "igen"-re állítva a 3. szint javaslata azonnal S05-re változott (HON→HOO sorrend-váltás), miközben az 1-2. szint már rögzített (történeti) adata nem változott — helyesen, csak a JÖVŐBELI javaslat reagál a változóváltásra.
+
+**Javított hiba fejlesztés közben:** a "javasolt: A02 Négykézláb A" gyorsgomb a `.btn-fyb` osztály örökölt `text-transform: lowercase` szabálya miatt "javasolt: a02 négykézláb a"-ként jelent meg — a gyakorlat-kódok (pl. "A02") kisbetűsítése félrevezető/olvashatatlan. Javítva explicit `text-transform: none` felülírással ezen a gombon.
+
+**FONTOS, later törlendő ideiglenes megoldás (Marci kifejezett kérése):** a GYT-oldali "ügyfél jellemzői" panel egy ideiglenes helyettesítője a jövőbeli felvételi kérdőívnek. Amint a felvételi kérdőív fázisa elkészül és a 3 (esetleg 4, ld. térdfájdalom) változót onnan tudjuk beolvasni, ezt a kézi beállító panelt törölni kell.
+
+**Nyitott kérdés a checklist-fázishoz:** a checklist spec-szövege "12 szint"-et ír, de a valós torna-szintek forrás szerint 12 VAGY 13 lehet a program hossza — ezt a checklist-fázis tervezésekor Marcival tisztázni kell.
+
+**Következő lépés:** Marci visszajelzése a fenti tartalmi frissítésről és a javaslat-motorról.

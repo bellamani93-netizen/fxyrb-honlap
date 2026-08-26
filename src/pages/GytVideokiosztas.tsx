@@ -1,33 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
+import { EXERCISES, type ExerciseCode, type ClientVariables, suggestedSequence } from '../data/tornaSzintek'
 
-const VIDEOS = [
-  'V01 Gerinc alapok',
-  'V02 Csípőnyitás',
-  'V03 Törzsstabilizáció I.',
-  'V04 Légzéstechnika munka közben',
-  'V05 Törzsstabilizáció II.',
-  'V06 Vállöv mobilizálás',
-  'V07 Csuklyásizom lazítás',
-  'V08 Mély hátizom aktiválás',
-  'V09 Medencei stabilizáció',
-  'V10 Combhajlító nyújtás',
-  'V11 Hátsó lánc erősítés',
-  'V12 Nyaki tartásjavítás',
-  'V13 Rekeszizom-légzés haladó',
-  'V14 Egyensúly és propriocepció',
-  'V15 Dinamikus bemelegítés',
-  'V16 Csípőfeszítő aktiválás',
-  'V17 Oldalsó törzsstabilizáció',
-  'V18 Gerincmobilizáló nyújtássor',
-  'V19 Terhelés alatti tartás',
-  'V20 Funkcionális emelés-technika',
-  'V21 Ülőmunka-ellensúlyozó sor',
-  'V22 Alsó háti erősítés',
-  'V23 Csípő-térd koordináció',
-  'V24 Teljes test bemelegítés',
-  'V25 Záró nyújtássor és relaxáció',
-]
+const VIDEOS = (Object.keys(EXERCISES) as ExerciseCode[]).map((code) => `${code} ${EXERCISES[code].name}`)
 
 type LevelState = 'lezart' | 'nyitva' | 'zarolt'
 
@@ -47,26 +22,36 @@ type Client = {
   bulkLevels?: { num: number; video: string | null }[]
 }
 
+const initialVariables: Record<string, ClientVariables> = {
+  peter: { painLocation: 'also', proneOk: true, shoulderOk: true },
+  gabor: { painLocation: 'felso', proneOk: true, shoulderOk: false },
+}
+
+function codeLabel(code: ExerciseCode) {
+  return `${code} ${EXERCISES[code].name}`
+}
+
 const clients: Client[] = [
   {
     id: 'peter',
     name: 'Péter',
     mode: 'utana',
     history: [
-      { num: 1, video: 'Gerinc alapok' },
-      { num: 2, video: 'Csípőnyitás' },
-      { num: 3, video: 'Törzsstabilizáció I.' },
-      { num: 4, video: 'Légzéstechnika munka közben' },
-      { num: 5, video: 'Törzsstabilizáció II.' },
+      { num: 1, video: codeLabel('S01') },
+      { num: 2, video: codeLabel('S02') },
+      { num: 3, video: codeLabel('S03') },
+      { num: 4, video: codeLabel('S04') },
+      { num: 5, video: codeLabel('S05') },
     ],
     bulkLevels: [
-      { num: 6, video: 'Vállöv mobilizálás' },
-      { num: 7, video: 'Mély hátizom aktiválás' },
+      { num: 6, video: codeLabel('S06') },
+      { num: 7, video: codeLabel('S07') },
       { num: 8, video: null },
       { num: 9, video: null },
       { num: 10, video: null },
       { num: 11, video: null },
       { num: 12, video: null },
+      { num: 13, video: null },
     ],
   },
   {
@@ -74,8 +59,8 @@ const clients: Client[] = [
     name: 'Kovács Gábor',
     mode: 'kozben',
     levels: [
-      { num: 1, state: 'lezart', video: 'Gerinc alapok' },
-      { num: 2, state: 'lezart', video: 'Csípőnyitás' },
+      { num: 1, state: 'lezart', video: codeLabel('S03') },
+      { num: 2, state: 'lezart', video: codeLabel('A01') },
       { num: 3, state: 'nyitva' },
       { num: 4, state: 'zarolt', lockReason: 'a 3. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
       { num: 5, state: 'zarolt', lockReason: 'a 3. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
@@ -92,7 +77,7 @@ function LevelDot({ state }: { state: LevelState }) {
   )
 }
 
-function VideoPickerRow({ label, assigned, onAssign }: { label: string; assigned: string | null; onAssign: (video: string) => void }) {
+function VideoPickerRow({ label, assigned, suggested, onAssign }: { label: string; assigned: string | null; suggested?: string; onAssign: (video: string) => void }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -107,32 +92,86 @@ function VideoPickerRow({ label, assigned, onAssign }: { label: string; assigned
   return (
     <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
       <span className="fw-bold">{label}</span>
-      <div className={`level-select ${open ? 'is-open' : ''}`} ref={ref}>
-        <button type="button" className="level-select-toggle" onClick={() => setOpen((o) => !o)}>
-          <span style={{ color: assigned ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
-            {assigned ?? 'válassz videót'}
-          </span>
-          <span className="level-select-chevron">▾</span>
-        </button>
-
-        {open && (
-          <ul className="level-select-menu">
-            {VIDEOS.map((v) => (
-              <li key={v}>
-                <button
-                  type="button"
-                  className={`level-select-item ${assigned === v ? 'is-selected' : ''}`}
-                  onClick={() => {
-                    onAssign(v)
-                    setOpen(false)
-                  }}
-                >
-                  <span>{v}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+      <div className="d-flex align-items-center gap-2 flex-wrap">
+        {suggested && !assigned && (
+          <button type="button" className="btn-fyb btn-fyb-ghost" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', textTransform: 'none' }} onClick={() => onAssign(suggested)}>
+            javasolt: {suggested}
+          </button>
         )}
+        <div className={`level-select ${open ? 'is-open' : ''}`} ref={ref}>
+          <button type="button" className="level-select-toggle" onClick={() => setOpen((o) => !o)}>
+            <span style={{ color: assigned ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+              {assigned ?? 'válassz videót'}
+            </span>
+            <span className="level-select-chevron">▾</span>
+          </button>
+
+          {open && (
+            <ul className="level-select-menu">
+              {VIDEOS.map((v) => (
+                <li key={v}>
+                  <button
+                    type="button"
+                    className={`level-select-item ${assigned === v ? 'is-selected' : ''}`}
+                    onClick={() => {
+                      onAssign(v)
+                      setOpen(false)
+                    }}
+                  >
+                    <span>{v}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function VariablesPanel({ variables, onChange }: { variables: ClientVariables; onChange: (v: ClientVariables) => void }) {
+  return (
+    <div className="card-fyb mb-3">
+      <div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
+        <Icon src="/icons/ikon_beallitasok.svg" />
+        <strong>ügyfél jellemzői</strong>
+        <span className="small" style={{ color: 'var(--color-text-muted)' }}>(ideiglenes — a felvételi kérdőívig kézzel állítva)</span>
+      </div>
+      <div className="d-flex flex-wrap gap-4">
+        <div>
+          <div className="small mb-1" style={{ color: 'var(--color-text-muted)' }}>fájdalom helye</div>
+          <div className="auth-tabs auth-tabs-sm">
+            <button type="button" className={`auth-tab ${variables.painLocation === 'also' ? 'active' : ''}`} onClick={() => onChange({ ...variables, painLocation: 'also' })}>
+              alsó lumbális
+            </button>
+            <button type="button" className={`auth-tab ${variables.painLocation === 'felso' ? 'active' : ''}`} onClick={() => onChange({ ...variables, painLocation: 'felso' })}>
+              felső lumbális / háti
+            </button>
+          </div>
+        </div>
+        <div>
+          <div className="small mb-1" style={{ color: 'var(--color-text-muted)' }}>hason fekvés kivitelezhető</div>
+          <div className="auth-tabs auth-tabs-sm">
+            <button type="button" className={`auth-tab ${variables.proneOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, proneOk: true })}>
+              igen
+            </button>
+            <button type="button" className={`auth-tab ${!variables.proneOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, proneOk: false })}>
+              nem
+            </button>
+          </div>
+        </div>
+        <div>
+          <div className="small mb-1" style={{ color: 'var(--color-text-muted)' }}>váll feletti kartartás lehetséges</div>
+          <div className="auth-tabs auth-tabs-sm">
+            <button type="button" className={`auth-tab ${variables.shoulderOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, shoulderOk: true })}>
+              igen
+            </button>
+            <button type="button" className={`auth-tab ${!variables.shoulderOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, shoulderOk: false })}>
+              nem
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -143,6 +182,10 @@ export default function GytVideokiosztas() {
   const [clientPickerOpen, setClientPickerOpen] = useState(false)
   const clientRef = useRef<HTMLDivElement>(null)
   const client = clients.find((c) => c.id === clientId)!
+
+  const [variables, setVariables] = useState(initialVariables)
+  const clientVariables = variables[clientId]
+  const suggested = suggestedSequence(clientVariables)
 
   const [levels, setLevels] = useState(() => clients.find((c) => c.id === 'gabor')!.levels!)
   const [bulk, setBulk] = useState(() => clients.find((c) => c.id === 'peter')!.bulkLevels!)
@@ -156,6 +199,7 @@ export default function GytVideokiosztas() {
   }, [])
 
   const openLevel = levels.find((l) => l.state === 'nyitva')
+  const suggestedForOpenLevel = openLevel ? codeLabel(suggested[openLevel.num - 1]) : undefined
 
   return (
     <section className="py-3 py-lg-5">
@@ -190,6 +234,8 @@ export default function GytVideokiosztas() {
           </div>
         </div>
 
+        <VariablesPanel variables={clientVariables} onChange={(v) => setVariables((prev) => ({ ...prev, [clientId]: v }))} />
+
         {client.mode === 'kozben' && (
           <>
             <div className="d-flex flex-wrap gap-2 mb-3">
@@ -211,6 +257,7 @@ export default function GytVideokiosztas() {
                 <VideoPickerRow
                   label={`${openLevel.num}. szint videója`}
                   assigned={openLevel.video ?? null}
+                  suggested={suggestedForOpenLevel}
                   onAssign={(video) =>
                     setLevels((prev) => prev.map((l) => (l.num === openLevel.num ? { ...l, video, state: 'lezart' as LevelState } : l)))
                   }
@@ -238,7 +285,7 @@ export default function GytVideokiosztas() {
                 <Icon src="/icons/ikon_naptar.svg" />
                 az együttműködés lezárult
               </div>
-              <p className="mb-0">Állítsd össze a következő 7 szint videóit sorrendben. A hozzáférés automatikusan nyílik meg, ha a szint kezdete óta eltelt 2 hét ÉS legalább 10 edzésnap volt.</p>
+              <p className="mb-0">Állítsd össze a következő szintek videóit sorrendben. A hozzáférés automatikusan nyílik meg, ha a szint kezdete óta eltelt 2 hét ÉS legalább 10 edzésnap volt.</p>
             </div>
 
             <div className="d-flex flex-wrap gap-2 mb-3">
@@ -252,11 +299,19 @@ export default function GytVideokiosztas() {
 
             <div className="card-fyb card-fyb-accent">
               <div className="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-                <h2 className="h5 mb-0">következő 7 szint</h2>
+                <h2 className="h5 mb-0">következő {bulk.length} szint</h2>
                 <span className="small" style={{ color: 'var(--color-text-muted)' }}>
                   {bulk.filter((b) => b.video).length} / {bulk.length} kiosztva
                 </span>
               </div>
+
+              <button
+                type="button"
+                className="btn-fyb btn-fyb-ghost mb-2"
+                onClick={() => setBulk((prev) => prev.map((b) => ({ ...b, video: codeLabel(suggested[b.num - 1]) })))}
+              >
+                javasolt csomag alkalmazása (felülírja a jelenlegi kiosztást)
+              </button>
 
               <div className="d-flex flex-column">
                 {bulk.map((b) => (

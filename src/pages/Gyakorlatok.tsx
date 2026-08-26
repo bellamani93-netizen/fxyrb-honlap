@@ -1,55 +1,44 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
+import { EXERCISES, SEQUENCES } from '../data/tornaSzintek'
 
 type LevelState = 'lezart' | 'aktiv' | 'zarolt'
 
 type Level = {
   num: number
   state: LevelState
-  exercises?: string[]
+  code?: string
   period?: string
   lockReason?: string
 }
 
-const levels: Level[] = [
-  {
-    num: 1,
-    state: 'lezart',
-    period: '2026.05.05. – 2026.05.19.',
-    exercises: ['S01 Háton fekvés, alsó karpozíciók', 'S02 Ülő gerinctartás', 'S03 Hasi légzés fekvésben', 'S04 Vállöv lazítás állásban'],
-  },
-  {
-    num: 2,
-    state: 'lezart',
-    period: '2026.05.19. – 2026.06.02.',
-    exercises: ['S01 Térdelő csípőhajlító nyújtás', 'S02 Pillangó-ülés combközelítő nyújtás', 'S03 Fekvő csípőhajlító nyújtás', 'S04 Dinamikus csípőkör állásban'],
-  },
-  {
-    num: 3,
-    state: 'lezart',
-    period: '2026.06.02. – 2026.06.16.',
-    exercises: ['S01 Hasonfekvő törzsemelés', 'S02 Négykézláb ellentétes végtag emelés', 'S03 Oldalfekvő csípőemelés', 'S04 Híd-tartás lábemeléssel'],
-  },
-  {
-    num: 4,
-    state: 'lezart',
-    period: '2026.06.16. – 2026.06.30.',
-    exercises: ['S01 Ülő rekeszizom-légzés', 'S02 Bordaközi nyújtás karral', 'S03 Légzésvezérelt derékforgatás', 'S04 Mellkasnyitó nyújtás ajtókeretben'],
-  },
-  {
-    num: 5,
-    state: 'aktiv',
-    period: '2026.06.30. – jelenleg is tart',
-    exercises: ['S01 Plank alapváltozat', 'S02 Oldalsó plank térdtámasszal', 'S03 Híd egy lábbal', 'S04 Négykézláb dinamikus törzsrotáció'],
-  },
-  { num: 6, state: 'zarolt', lockReason: 'a jelenlegi (5.) szint lezárása után nyílik meg — a következő videót a gyógytornászod választja ki a 6. konzultáción.' },
-  { num: 7, state: 'zarolt', lockReason: 'a 10 hetes együttműködés lezárása után nyílik meg, ha a szint kezdete óta eltelt 2 hét ÉS legalább 10 edzésnapod volt.' },
-  { num: 8, state: 'zarolt', lockReason: 'a 10 hetes együttműködés lezárása után nyílik meg, ha a szint kezdete óta eltelt 2 hét ÉS legalább 10 edzésnapod volt.' },
-  { num: 9, state: 'zarolt', lockReason: 'a 10 hetes együttműködés lezárása után nyílik meg, ha a szint kezdete óta eltelt 2 hét ÉS legalább 10 edzésnapod volt.' },
-  { num: 10, state: 'zarolt', lockReason: 'a 10 hetes együttműködés lezárása után nyílik meg, ha a szint kezdete óta eltelt 2 hét ÉS legalább 10 edzésnapod volt.' },
-  { num: 11, state: 'zarolt', lockReason: 'a 10 hetes együttműködés lezárása után nyílik meg, ha a szint kezdete óta eltelt 2 hét ÉS legalább 10 edzésnapod volt.' },
-  { num: 12, state: 'zarolt', lockReason: 'a 10 hetes együttműködés lezárása után nyílik meg, ha a szint kezdete óta eltelt 2 hét ÉS legalább 10 edzésnapod volt.' },
+// Péter (ÜF-oldali demó-felhasználó) sorrendje: LOO — alsó lumbális fájdalom,
+// hason fekvés OK, váll mobilitás OK. Ez a "torna szintek.odt"-ben rögzített
+// legegyszerűbb, egyenes sorrend (S01→S13). Más ügyfélnél más sorrend adódna
+// (ld. src/data/tornaSzintek.ts).
+const sequence = SEQUENCES.LOO
+
+const periods = [
+  '2026.05.05. – 2026.05.19.',
+  '2026.05.19. – 2026.06.02.',
+  '2026.06.02. – 2026.06.16.',
+  '2026.06.16. – 2026.06.30.',
+  '2026.06.30. – jelenleg is tart',
 ]
+
+const levels: Level[] = sequence.map((code, i) => {
+  const num = i + 1
+  if (num <= 4) return { num, state: 'lezart', code, period: periods[i] }
+  if (num === 5) return { num, state: 'aktiv', code, period: periods[i] }
+  return {
+    num,
+    state: 'zarolt',
+    lockReason:
+      num === 6
+        ? 'a jelenlegi (5.) szint lezárása után nyílik meg — a következő videót a gyógytornászod választja ki a 6. konzultáción.'
+        : 'a 10 hetes együttműködés lezárása után nyílik meg, ha a szint kezdete óta eltelt 2 hét ÉS legalább 10 edzésnapod volt.',
+  }
+})
 
 function LevelBadge({ level }: { level: Level }) {
   return (
@@ -65,6 +54,7 @@ export default function Gyakorlatok() {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
   const level = levels.find((l) => l.num === selected)!
+  const exercise = level.code ? EXERCISES[level.code as keyof typeof EXERCISES] : undefined
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -131,11 +121,8 @@ export default function Gyakorlatok() {
               </div>
               <p className="small mb-2" style={{ color: 'var(--color-text-muted)' }}>{level.period}</p>
 
-              <div className="d-flex flex-column gap-1">
-                {level.exercises!.map((ex) => (
-                  <h3 key={ex} className="h6 mb-0">{ex}</h3>
-                ))}
-              </div>
+              <h3 className="h6 mb-1">{level.code} {exercise!.name}</h3>
+              <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>{exercise!.desc}</p>
             </>
           )}
         </div>
