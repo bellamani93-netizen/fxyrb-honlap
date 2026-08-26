@@ -165,39 +165,90 @@ function VideoPickerInline({ suggested, onAssign }: { suggested?: string; onAssi
 function LevelRow({
   level,
   suggested,
+  editable,
   onAssign,
 }: {
   level: GytLevel
   suggested?: string
+  editable?: boolean
   onAssign?: (video: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [correcting, setCorrecting] = useState(false)
   const statusLabel = level.state === 'lezart' ? 'kiosztva' : level.state === 'nyitva' ? 'kiosztásra vár' : 'még nem kiosztható'
   const statusClass = level.state === 'lezart' ? 'status-chip--done' : level.state === 'nyitva' ? 'status-chip--pending' : 'status-chip--locked'
   const assigned = level.video ? splitLabel(level.video) : null
   const suggestedParsed = suggested ? splitLabel(suggested) : null
+  const isDoneDisplay = level.state === 'lezart' && assigned && !correcting
+  const showCorrectButton = level.state === 'lezart' && editable && !!onAssign && !correcting
 
-  const detailContent = (
+  const noteSuffix = level.note ? <span className="fst-italic small" style={{ color: 'var(--color-text-muted)' }}> ({level.note})</span> : null
+
+  // Mobilon (és a "kiosztva" eset kódját/címét NEM külön oszlopba rendező, folyó szövegű megjelenítéshez) egyben.
+  const flowContent = (
     <>
-      {level.state === 'lezart' && assigned && (
+      {isDoneDisplay && (
         <>
-          <span className="fw-bold">{assigned.code}</span>
-          <span style={{ color: 'var(--color-text-muted)' }}>{assigned.title}</span>
-          {level.note && <span className="fst-italic small" style={{ color: 'var(--color-text-muted)' }}>({level.note})</span>}
+          <span className="fw-bold">{assigned!.code}</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>{assigned!.title}</span>
+          {noteSuffix}
         </>
+      )}
+      {level.state === 'lezart' && correcting && onAssign && (
+        <VideoPickerInline
+          onAssign={(video) => {
+            onAssign(video)
+            setCorrecting(false)
+          }}
+        />
       )}
       {level.state === 'zarolt' && <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
       {level.state === 'nyitva' && onAssign && <VideoPickerInline suggested={suggested} onAssign={onAssign} />}
     </>
   )
 
+  const correctButton = showCorrectButton && (
+    <button
+      type="button"
+      className="btn-fyb btn-fyb-danger"
+      style={{ padding: '0.3rem 0.75rem', fontSize: '0.75rem' }}
+      onClick={(e) => {
+        e.stopPropagation()
+        setCorrecting(true)
+      }}
+    >
+      javítás
+    </button>
+  )
+
   return (
     <div className="level-row">
-      {/* asztali/tablet: mindig egy sorban, azonos térközzel minden elem között — szint, kód+cím (vagy javaslat+választó), állapot */}
-      <div className="d-none d-lg-flex align-items-center gap-3 flex-wrap flex-fill">
-        <span className="level-row-num">{level.num}. szint</span>
-        {detailContent}
-        <span className={`status-chip ${statusClass}`}>{statusLabel}</span>
+      {/* asztali/tablet: valódi rács — a szintek, kódok, címek és jelvények oszloponként egymás alatt */}
+      <div className="level-row-grid">
+        <span className="level-row-num" style={{ gridColumn: 1 }}>
+          {level.num}. szint
+        </span>
+
+        {isDoneDisplay ? (
+          <>
+            <span style={{ gridColumn: 2 }} className="fw-bold">
+              {assigned!.code}
+            </span>
+            <span style={{ gridColumn: 3, color: 'var(--color-text-muted)' }}>
+              {assigned!.title}
+              {noteSuffix}
+            </span>
+          </>
+        ) : (
+          <div style={{ gridColumn: '2 / span 2' }} className="d-flex align-items-center gap-2 flex-wrap">
+            {flowContent}
+          </div>
+        )}
+
+        <span style={{ gridColumn: 4 }} className="d-flex align-items-center gap-2">
+          <span className={`status-chip ${statusClass}`}>{statusLabel}</span>
+          {correctButton}
+        </span>
       </div>
 
       {/* mobil: összecsukva csak szint + kód/javaslat + állapot-ikon; sorra kattintva lenyílik a részlet */}
@@ -215,8 +266,11 @@ function LevelRow({
 
         {expanded && (
           <div className="d-flex flex-column align-items-start gap-2 mt-2 pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
-            {detailContent}
-            <span className={`status-chip ${statusClass}`}>{statusLabel}</span>
+            {flowContent}
+            <span className="d-flex align-items-center gap-2">
+              <span className={`status-chip ${statusClass}`}>{statusLabel}</span>
+              {correctButton}
+            </span>
           </div>
         )}
       </div>
@@ -339,7 +393,7 @@ function VariablesPanel({ variables, onChange }: { variables: ClientVariables; o
         onClick={() => setExpanded((e) => !e)}
       >
         <Icon src="/icons/ikon_beallitasok.svg" />
-        <strong>ügyfél jellemzői</strong>
+        <strong>limitációk</strong>
         <span className="small" style={{ color: 'var(--color-text-muted)' }}>(ideiglenes — a felvételi kérdőívig kézzel állítva, egyszer az elején)</span>
         <span className="level-select-chevron ms-auto" style={{ transform: expanded ? 'rotate(180deg)' : 'none' }}>▾</span>
       </button>
@@ -467,22 +521,35 @@ export default function GytVideokiosztas() {
 
         <VariablesPanel variables={clientVariables} onChange={(v) => setVariables((prev) => ({ ...prev, [clientId]: v }))} />
 
-        {client.mode === 'kozben' && (
-          <div className="card-fyb card-fyb-accent">
-            {levels.map((l) => (
-              <LevelRow
-                key={l.num}
-                level={l}
-                suggested={l.state === 'nyitva' && suggested[l.num - 1] ? codeLabel(suggested[l.num - 1]) : undefined}
-                onAssign={
-                  l.state === 'nyitva'
-                    ? (video) => setLevels((prev) => prev.map((x) => (x.num === l.num ? { ...x, video, state: 'lezart' as LevelState } : x)))
-                    : undefined
-                }
-              />
-            ))}
-          </div>
-        )}
+        {client.mode === 'kozben' && (() => {
+          // A GYT csak a 2 legutóbb kiosztott szintet javíthatja utólag — a korábbiakat nem,
+          // hogy ne lehessen véletlenül az egész előzményt átírni.
+          const editableNums = new Set(
+            levels
+              .filter((l) => l.state === 'lezart')
+              .slice(-2)
+              .map((l) => l.num)
+          )
+          return (
+            <div className="card-fyb card-fyb-accent">
+              {levels.map((l) => (
+                <LevelRow
+                  key={l.num}
+                  level={l}
+                  suggested={l.state === 'nyitva' && suggested[l.num - 1] ? codeLabel(suggested[l.num - 1]) : undefined}
+                  editable={editableNums.has(l.num)}
+                  onAssign={
+                    l.state === 'nyitva'
+                      ? (video) => setLevels((prev) => prev.map((x) => (x.num === l.num ? { ...x, video, state: 'lezart' as LevelState } : x)))
+                      : editableNums.has(l.num)
+                        ? (video) => setLevels((prev) => prev.map((x) => (x.num === l.num ? { ...x, video } : x)))
+                        : undefined
+                  }
+                />
+              ))}
+            </div>
+          )
+        })()}
 
         {client.mode === 'utana' && (
           <>
