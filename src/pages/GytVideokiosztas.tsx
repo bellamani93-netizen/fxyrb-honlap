@@ -26,6 +26,7 @@ type Client = {
 const initialVariables: Record<string, ClientVariables> = {
   peter: { painLocation: 'also', proneOk: true, shoulderOk: true, kneePain: false, highBloodPressure: false },
   gabor: { painLocation: 'felso', proneOk: true, shoulderOk: false, kneePain: false, highBloodPressure: false },
+  daniel: { painLocation: 'also', proneOk: true, shoulderOk: true, kneePain: false, highBloodPressure: false },
 }
 
 function codeLabel(code: ExerciseCode) {
@@ -65,6 +66,18 @@ const clients: Client[] = [
       { num: 3, state: 'nyitva' },
       { num: 4, state: 'zarolt', lockReason: 'a 3. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
       { num: 5, state: 'zarolt', lockReason: 'a 3. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
+    ],
+  },
+  {
+    id: 'daniel',
+    name: 'Varga Dániel',
+    mode: 'kozben',
+    levels: [
+      { num: 1, state: 'nyitva' },
+      { num: 2, state: 'zarolt', lockReason: 'az 1. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
+      { num: 3, state: 'zarolt', lockReason: 'az 1. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
+      { num: 4, state: 'zarolt', lockReason: 'az 1. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
+      { num: 5, state: 'zarolt', lockReason: 'az 1. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
     ],
   },
 ]
@@ -253,7 +266,15 @@ export default function GytVideokiosztas() {
   const clientVariables = variables[clientId]
   const suggested = suggestedSequence(clientVariables)
 
-  const [levels, setLevels] = useState(() => clients.find((c) => c.id === 'gabor')!.levels!)
+  const [levelsByClient, setLevelsByClient] = useState(() => {
+    const map: Record<string, GytLevel[]> = {}
+    for (const c of clients) if (c.levels) map[c.id] = c.levels
+    return map
+  })
+  const levels = levelsByClient[clientId] ?? []
+  const setLevels = (updater: (prev: GytLevel[]) => GytLevel[]) =>
+    setLevelsByClient((prev) => ({ ...prev, [clientId]: updater(prev[clientId]) }))
+
   const [bulk, setBulk] = useState(() => clients.find((c) => c.id === 'peter')!.bulkLevels!)
 
   useEffect(() => {

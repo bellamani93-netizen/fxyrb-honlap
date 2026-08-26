@@ -299,3 +299,11 @@ Marci válaszul a térdfájdalom-szűrés nyitott kérdésére ("nincs helyettes
 **Fontos korlát, amit a Design jegyzetben is rögzítettem:** ez egy szabad szöveges jelölő, NEM automatizált részleges-kiosztás logika — a rendszer nem tudja, hogy egy adott videón belül ténylegesen mely gyakorlatok tartoznak az "első 2"-be, mert az adatmodell (`EXERCISES`) egy videót egyetlen kóddal + egy összefoglaló leírással kezel, nem gyakorlat-szintű bontásban (A/B/C/D-variánsok). A GYT szabadon ír bele bármit, a rendszer csak megjeleníti.
 
 **Következő lépés:** Marci visszajelzése; utána checklist vagy felvételi kérdőív fázis.
+
+## 2026.08.27. — Új demó-kliens: az együttműködés legeleje
+
+Marci meg akarta nézni a GYT-oldali videókiosztást az együttműködés legelejéről, ahol még az 1. szint sincs kiosztva. A meglévő 2 mintakliens egyike sem mutatta ezt: Kovács Gábor már a 3. szintnél tart, Péter már túl van az egész 10 hetes szakaszon.
+
+**Megvalósítás:** új harmadik mintakliens, **"Varga Dániel"** — "kozben" módban, mind az 5 szintje: az 1. szint "kiosztásra vár" (semmi nincs még kiválasztva), a 2-5. szint zárolt ("az 1. szint videójának kiosztása és a következő konzultáció után nyílik meg").
+
+**Refaktor útközben:** a `levels` állapot korábban egyetlen, statikusan Kovács Gábor adataival feltöltött `useState` volt — ez csak addig működött hibátlanul, amíg egyetlen "kozben" módú kliens volt. A második "kozben" kliens (Dániel) hozzáadásával ez ütközött volna (mindkét klienshez ugyanaz az egy állapot tartozott volna). Javítva: `levelsByClient` egy kliens-azonosító szerint kulcsolt map lett, minden klienshez saját, egymástól független állapottal — böngészőben tesztelve, hogy Dániel és Gábor közötti váltás valóban nem keveri össze a két kliens adatait.
