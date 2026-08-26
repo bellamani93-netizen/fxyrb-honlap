@@ -253,14 +253,12 @@ function LevelRow({
 
       {/* mobil: összecsukva csak szint + kód/javaslat + állapot-ikon; sorra kattintva lenyílik a részlet */}
       <div className="d-flex d-lg-none flex-column w-100">
-        <div className="d-flex align-items-center justify-content-between gap-2" role="button" tabIndex={0} onClick={() => setExpanded((e) => !e)} style={{ cursor: 'pointer' }}>
-          <span className="d-flex align-items-center gap-2">
-            <span className="level-row-num">{level.num}. szint</span>
-            {assigned && <span className="small fw-bold">{assigned.code}</span>}
-            {!assigned && level.state === 'nyitva' && suggestedParsed && (
-              <span className="small fw-bold">javasolt {suggestedParsed.code}</span>
-            )}
-          </span>
+        <div className="d-flex align-items-center gap-2" role="button" tabIndex={0} onClick={() => setExpanded((e) => !e)} style={{ cursor: 'pointer' }}>
+          <span className="level-row-num">{level.num}. szint</span>
+          {assigned && <span className="small fw-bold">{assigned.code}</span>}
+          {!assigned && level.state === 'nyitva' && suggestedParsed && (
+            <span className="small fw-bold">javasolt {suggestedParsed.code}</span>
+          )}
           <LevelDot state={level.state} />
         </div>
 

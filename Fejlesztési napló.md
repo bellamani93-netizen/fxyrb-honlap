@@ -366,3 +366,13 @@ Marci visszajelzése az előző körre: az egyenletes térköz (flex + gap) még
 - "ügyfél jellemzői" → "limitációk" a panel címében.
 
 **Tesztelve:** böngészőben (asztali 1280px, mobil 375px, világos + sötét mód) — az oszlopok pontosan igazodnak minden sorban; a "javítás" gomb csak a 2 legutóbbi lezárt szinten jelenik meg, egy 3. kiosztás után az 1. szintről el is tűnik (élesben kipróbálva: Gábornál 1-2. szint kiosztva → mindkettőn javítás; 3. szint is kiosztva → csak 2-3. szinten javítás, az 1.-en már nem); a javítás gombra kattintva a legördülőből választott új videó azonnal frissíti a sort, a lábjegyzet megmarad; mobilon lenyitva ugyanez működik. Nincs konzol-hiba egy friss lapon.
+
+## 2026.08.27. — Mobil finomítások: legördülő túlnyúlás, indokolatlan térköz
+
+Marci két mobil-specifikus hibát jelzett: (1) a "más videó" legördülő menü kilóg balra a kártyából (nem fér bele a keretbe); (2) az összecsukott sorban az "1. szint" + kód szorosan egymás mellett van, utána egy indokolatlan méretű üres térköz, majd jobb szélen a pipa-ikon.
+
+**Ok és javítás — legördülő túlnyúlás:** a `.level-select-menu` alapból jobbról-kinőve nyílik (`right:0; left:auto`), ami a lap-fejléces dropdownoknál (ügyfél-választó a jobb felső sarokban) helyes, mert azok jellemzően a sor jobb szélén ülnek. A `VideoPickerInline` viszont a szint-sorok BAL oldalán jelenik meg — jobbról-kinövő menüvel ez keskeny mobil-kártyán balra túlnyúlik. Javítva egy mobil-specifikus felülírással: `@media (max-width: 991.98px) { .level-row .level-select-menu { left: 0; right: auto; } }` — csak a szint-sorokba ágyazott legördülőket érinti, a lap-fejléces dropdownokat nem.
+
+**Ok és javítás — indokolatlan térköz:** az összecsukott mobil sor korábban `justify-content: space-between`-t használt egy bal oldali szöveg-csoport és egy jobbra tolt `LevelDot` között — ez pont azt a fajta "nagy rés a jelvény előtt" hibát reprodukálta, amit az asztali nézetnél már egyszer kijavítottunk, csak itt a mobil összecsukott fejlécben maradt bent. Javítva: a `justify-content: space-between` eltávolítva, a szint száma, a kód/javaslat és az ikon most egy közös, egységes `gap-2` térközű sorban vannak.
+
+**Tesztelve:** mobil (375px), Kovács Gábor kliensnél — a "3. szint" kinyitva, "más videó" legördülő megnyitva: a menü teljes egészében a kártyán belül marad (`left: 32px, right: 288px` egy 375px széles nézetben). Az "1. szint" javítás-legördülője is ugyanígy ellenőrizve. Az összecsukott sorok most szorosan, egyenletes térközzel jelenítik meg a szint számát, kódját és az ikont, nincs több üres rés középen. Nincs konzol-hiba egy friss lapon.
