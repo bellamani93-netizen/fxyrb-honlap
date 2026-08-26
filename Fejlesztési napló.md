@@ -289,3 +289,13 @@ Marci két új befolyásoló tényezőt adott a "torna szintek" logikához:
 **Javított/megelőzött hiba fejlesztés közben:** mivel a térdfájdalom-szűrés miatt a javasolt sorrend rövidebb is lehet a névleges 12/13-nál, a pozíció-alapú indexelés (`suggested[szintszám - 1]`) `undefined`-et adhat vissza egy hosszabb tömeges kiosztásnál (pl. 13 szintes panel egy 10 elemre szűrt sorrenddel). Ez leellenőrizve, védve: a "javasolt csomag alkalmazása" gomb csak azokat a szint-slotokat tölti ki, amikhez ténylegesen van javaslat, a többit érintetlenül hagyja — böngészőben tesztelve (Péter hason-fekvés=nem + térdfájdalom=igen kombinációval, ami LNN sorrendre vált és 2 szintet szűr ki), nincs hiba, a "6/8 kiosztva" állapot helyesen jelenik meg, a 2 fennmaradó slot üresen marad kézi kiválasztásra várva.
 
 **Nyitott kérdés (megismételve, még mindig nyitott):** a checklist spec-szövege "12 szint"-et ír, a valós forrás szerint 12 VAGY 13 (most akár még kevesebb is, térdfájdalom-szűrés esetén) — ezt a checklist-fázis tervezésekor Marcival tisztázni kell.
+
+## 2026.08.27. — Videó-lábjegyzet (részleges szint-kiosztás jelzésére)
+
+Marci válaszul a térdfájdalom-szűrés nyitott kérdésére ("nincs helyettesítő gyakorlat"): "ez csak javaslat. lehetséges, hogy egy szintet (ami kb. átlagosan 4 gyakorlatból áll) azt 2 felé osztva adunk oda az ÜF-nek. Ilyenkor lábjegyzetet írunk a videóhoz: pl. 'csak az első 2 gyakorlat ebből a szintből'."
+
+**Megvalósítás:** minden GYT-oldali videó-kiosztáshoz (`VideoPickerRow`) opcionálisan hozzáadható egy szabad szöveges lábjegyzet. Alapból egy kompakt "+ lábjegyzet hozzáadása" link jelenik meg egy kiosztott sor alatt, ami kattintásra egy kis szövegmezővé nyílik — ezzel a lábjegyzet nélküli (a többség) sorok kompaktak maradnak. A lábjegyzet megjelenik: (1) a GYT-oldali visszanézhető szint-listában a videó címe alatt dőlt betűvel, (2) az ÜF-oldali szint-kártyán ("Megjegyzés a gyógytornászodtól: ..."). Demó-adatként Kovács Gábor 1. szintjéhez és Péter aktuális (5.) szintjéhez is került egy-egy lábjegyzet ("csak az első 2 gyakorlat ebből a szintből"), hogy a koncepció mindkét oldalon látható legyen.
+
+**Fontos korlát, amit a Design jegyzetben is rögzítettem:** ez egy szabad szöveges jelölő, NEM automatizált részleges-kiosztás logika — a rendszer nem tudja, hogy egy adott videón belül ténylegesen mely gyakorlatok tartoznak az "első 2"-be, mert az adatmodell (`EXERCISES`) egy videót egyetlen kóddal + egy összefoglaló leírással kezel, nem gyakorlat-szintű bontásban (A/B/C/D-variánsok). A GYT szabadon ír bele bármit, a rendszer csak megjeleníti.
+
+**Következő lépés:** Marci visszajelzése; utána checklist vagy felvételi kérdőív fázis.

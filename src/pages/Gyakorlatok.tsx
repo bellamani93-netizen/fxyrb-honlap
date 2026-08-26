@@ -10,6 +10,8 @@ type Level = {
   code?: string
   period?: string
   lockReason?: string
+  /** GYT-től kapott, opcionális megjegyzés az adott szinthez (pl. részleges kiosztás jelzése). */
+  note?: string
 }
 
 // Péter (ÜF-oldali demó-felhasználó) sorrendje: LOO — alsó lumbális fájdalom,
@@ -29,7 +31,7 @@ const periods = [
 const levels: Level[] = sequence.map((code, i) => {
   const num = i + 1
   if (num <= 4) return { num, state: 'lezart', code, period: periods[i] }
-  if (num === 5) return { num, state: 'aktiv', code, period: periods[i] }
+  if (num === 5) return { num, state: 'aktiv', code, period: periods[i], note: 'csak az első 2 gyakorlat ebből a szintből.' }
   return {
     num,
     state: 'zarolt',
@@ -123,6 +125,11 @@ export default function Gyakorlatok() {
 
               <h3 className="h6 mb-1">{level.code} {exercise!.name}</h3>
               <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>{exercise!.desc}</p>
+              {level.note && (
+                <p className="small fst-italic mt-2 mb-0" style={{ color: 'var(--color-text-muted)' }}>
+                  Megjegyzés a gyógytornászodtól: {level.note}
+                </p>
+              )}
             </>
           )}
         </div>

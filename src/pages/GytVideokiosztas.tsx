@@ -10,6 +10,7 @@ type GytLevel = {
   num: number
   state: LevelState
   video?: string
+  note?: string
   lockReason?: string
 }
 
@@ -19,7 +20,7 @@ type Client = {
   mode: 'kozben' | 'utana'
   levels?: GytLevel[]
   history?: { num: number; video: string }[]
-  bulkLevels?: { num: number; video: string | null }[]
+  bulkLevels?: { num: number; video: string | null; note?: string }[]
 }
 
 const initialVariables: Record<string, ClientVariables> = {
@@ -59,7 +60,7 @@ const clients: Client[] = [
     name: 'Kovács Gábor',
     mode: 'kozben',
     levels: [
-      { num: 1, state: 'lezart', video: codeLabel('S03') },
+      { num: 1, state: 'lezart', video: codeLabel('S03'), note: 'csak az első 2 gyakorlat ebből a szintből.' },
       { num: 2, state: 'lezart', video: codeLabel('A01') },
       { num: 3, state: 'nyitva' },
       { num: 4, state: 'zarolt', lockReason: 'a 3. szint videójának kiosztása és a következő konzultáció után nyílik meg.' },
@@ -77,8 +78,23 @@ function LevelDot({ state }: { state: LevelState }) {
   )
 }
 
-function VideoPickerRow({ label, assigned, suggested, onAssign }: { label: string; assigned: string | null; suggested?: string; onAssign: (video: string) => void }) {
+function VideoPickerRow({
+  label,
+  assigned,
+  note,
+  suggested,
+  onAssign,
+  onNoteChange,
+}: {
+  label: string
+  assigned: string | null
+  note?: string
+  suggested?: string
+  onAssign: (video: string) => void
+  onNoteChange?: (note: string) => void
+}) {
   const [open, setOpen] = useState(false)
+  const [showNoteInput, setShowNoteInput] = useState(!!note)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -90,42 +106,65 @@ function VideoPickerRow({ label, assigned, suggested, onAssign }: { label: strin
   }, [])
 
   return (
-    <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-      <span className="fw-bold">{label}</span>
-      <div className="d-flex align-items-center gap-2 flex-wrap">
-        {suggested && !assigned && (
-          <button type="button" className="btn-fyb btn-fyb-ghost" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', textTransform: 'none' }} onClick={() => onAssign(suggested)}>
-            javasolt: {suggested}
-          </button>
-        )}
-        <div className={`level-select ${open ? 'is-open' : ''}`} ref={ref}>
-          <button type="button" className="level-select-toggle" onClick={() => setOpen((o) => !o)}>
-            <span style={{ color: assigned ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
-              {assigned ?? 'válassz videót'}
-            </span>
-            <span className="level-select-chevron">▾</span>
-          </button>
-
-          {open && (
-            <ul className="level-select-menu">
-              {VIDEOS.map((v) => (
-                <li key={v}>
-                  <button
-                    type="button"
-                    className={`level-select-item ${assigned === v ? 'is-selected' : ''}`}
-                    onClick={() => {
-                      onAssign(v)
-                      setOpen(false)
-                    }}
-                  >
-                    <span>{v}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+    <div className="py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
+      <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+        <span className="fw-bold">{label}</span>
+        <div className="d-flex align-items-center gap-2 flex-wrap">
+          {suggested && !assigned && (
+            <button type="button" className="btn-fyb btn-fyb-ghost" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', textTransform: 'none' }} onClick={() => onAssign(suggested)}>
+              javasolt: {suggested}
+            </button>
           )}
+          <div className={`level-select ${open ? 'is-open' : ''}`} ref={ref}>
+            <button type="button" className="level-select-toggle" onClick={() => setOpen((o) => !o)}>
+              <span style={{ color: assigned ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+                {assigned ?? 'válassz videót'}
+              </span>
+              <span className="level-select-chevron">▾</span>
+            </button>
+
+            {open && (
+              <ul className="level-select-menu">
+                {VIDEOS.map((v) => (
+                  <li key={v}>
+                    <button
+                      type="button"
+                      className={`level-select-item ${assigned === v ? 'is-selected' : ''}`}
+                      onClick={() => {
+                        onAssign(v)
+                        setOpen(false)
+                      }}
+                    >
+                      <span>{v}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
+
+      {assigned && onNoteChange && (
+        showNoteInput ? (
+          <input
+            type="text"
+            className="form-control form-control-sm mt-2"
+            placeholder="lábjegyzet a videóhoz (opcionális) — pl. „csak az első 2 gyakorlat ebből a szintből”"
+            value={note ?? ''}
+            onChange={(e) => onNoteChange(e.target.value)}
+          />
+        ) : (
+          <button
+            type="button"
+            className="btn-fyb btn-fyb-ghost mt-2"
+            style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem' }}
+            onClick={() => setShowNoteInput(true)}
+          >
+            + lábjegyzet hozzáadása
+          </button>
+        )
+      )}
     </div>
   )
 }
@@ -285,10 +324,12 @@ export default function GytVideokiosztas() {
                 <VideoPickerRow
                   label={`${openLevel.num}. szint videója`}
                   assigned={openLevel.video ?? null}
+                  note={openLevel.note}
                   suggested={suggestedForOpenLevel}
                   onAssign={(video) =>
                     setLevels((prev) => prev.map((l) => (l.num === openLevel.num ? { ...l, video, state: 'lezart' as LevelState } : l)))
                   }
+                  onNoteChange={(note) => setLevels((prev) => prev.map((l) => (l.num === openLevel.num ? { ...l, note } : l)))}
                 />
               )}
 
@@ -298,7 +339,10 @@ export default function GytVideokiosztas() {
                   .map((l) => (
                     <div key={l.num} className="d-flex align-items-center justify-content-between gap-2 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
                       <span className="small" style={{ color: 'var(--color-text-muted)' }}>{l.num}. szint</span>
-                      <span className="small">{l.state === 'lezart' ? l.video : l.lockReason}</span>
+                      <span className="small text-end">
+                        {l.state === 'lezart' ? l.video : l.lockReason}
+                        {l.note && <><br /><span className="fst-italic">{l.note}</span></>}
+                      </span>
                     </div>
                   ))}
               </div>
@@ -354,7 +398,9 @@ export default function GytVideokiosztas() {
                     key={b.num}
                     label={`${b.num}. szint`}
                     assigned={b.video}
+                    note={b.note}
                     onAssign={(video) => setBulk((prev) => prev.map((x) => (x.num === b.num ? { ...x, video } : x)))}
+                    onNoteChange={(note) => setBulk((prev) => prev.map((x) => (x.num === b.num ? { ...x, note } : x)))}
                   />
                 ))}
               </div>
