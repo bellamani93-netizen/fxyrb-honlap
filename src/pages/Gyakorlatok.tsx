@@ -81,7 +81,8 @@ const levels: Level[] = [
 function LevelBadge({ level }: { level: Level }) {
   return (
     <span className={`level-select-badge level-select-badge--${level.state}`}>
-      {level.state === 'zarolt' ? <Icon src="/icons/ikon_lakat.svg" /> : level.num}
+      {level.state === 'zarolt' && <Icon src="/icons/ikon_lakat.svg" />}
+      {level.state === 'lezart' && <Icon src="/icons/ikon_pipa.svg" />}
     </span>
   )
 }

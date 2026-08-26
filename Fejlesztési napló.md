@@ -207,3 +207,11 @@ Marci a friss `/gyakorlatok` nézetet lokálisan megnézte, és hét pontos korr
 - **Mobil fejléc frissítve:** a topbar mostantól két sorban jelenik meg — felül logó + hamburger, alatta "Szia, [Név]!" üdvözlés (`.app-topbar-greeting`), hogy a menü kinyitása nélkül is látszódjon. A minta férfi ügyfeleknek készül, ezért a korábbi "Anna" placeholder-név "Péter"-re cserélve (asztali oldalsávban is), és az "ügyfél" alcím-felirat törölve mindkét helyről (topbar, oldalsáv) — Marci szerint felesleges volt.
 
 **CSS-változások:** `.level-tabs`/`.level-tab` (kör-fülek) törölve, helyettük `.level-select`/`.level-select-toggle`/`.level-select-menu`/`.level-select-item`/`.level-select-badge` (legördülő minta); `.app-topbar` két sorossá alakítva (`.app-topbar-row`, `.app-topbar-greeting`); `.app-sidebar-link .icon-fyb` mérete nőtt; mobil `.app-sidebar` `inset`+`width` javítva.
+
+## 2026.08.26. — A legördülő szint-jelvények korrekciója
+
+Marci a legördülőben lévő kör-jelvényeken kért pontosítást:
+
+- **Lezárt szinteknél szám helyett pipa.** A szám amúgy is ott áll mellette szövegként ("N. szint"), így a körben felesleges volt megismételni — helyette egy új, a többi kézzel rajzolt ikonhoz illő vonalrajz-stílusú pipa-ikon került (`public/icons/ikon_pipa.svg`, azonos technikai paraméterekkel, mint pl. az `ikon_lakat.svg`: 21.7×21.7-es viewBox, `stroke="currentColor"`, `stroke-width 0.6`, kerekített végek — így a meglévő `Icon.tsx` mask-technikával színezhető, ugyanúgy, mint a többi ikon).
+- **Aktuális szintnél nincs ikon, csak szín.** A kitöltött jelvény immár nem az elsődleges (teal) márkaszínt, hanem a `--lime` sárgát viseli (ugyanaz, mint az "AKTUÁLIS SZINT" pill háttere) — se szám, se pipa nincs benne, önmagában a szín jelzi az aktuális szintet.
+- **Zárolt szinteknél a lakat-ikon a kör 80%-át tölti ki** (1.4rem az 1.75rem átmérőjű jelvényen belül) — korábban csak kb. az 50%-át, most jóval hangsúlyosabb.

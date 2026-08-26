@@ -710,8 +710,8 @@ html[data-theme='dark'] .locked-overlay-card {
   color: var(--color-text-muted);
 }
 .level-select-badge .icon-fyb {
-  width: 0.9rem;
-  height: 0.9rem;
+  width: 1rem;
+  height: 1rem;
   color: currentColor;
 }
 .level-select-badge--lezart {
@@ -719,10 +719,13 @@ html[data-theme='dark'] .locked-overlay-card {
   border-color: var(--color-primary);
 }
 .level-select-badge--aktiv {
-  color: var(--color-primary-contrast);
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
+  background-color: var(--lime);
+  border-color: var(--lime);
 }
 .level-select-badge--zarolt {
   opacity: 0.6;
+}
+.level-select-badge--zarolt .icon-fyb {
+  width: 1.4rem;
+  height: 1.4rem;
 }
