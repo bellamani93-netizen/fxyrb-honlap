@@ -45,7 +45,9 @@ export default function AppLayout() {
         </div>
 
         <div className="app-sidebar-user">
-          <div className="app-sidebar-avatar">P</div>
+          <div className="app-sidebar-avatar">
+            <Icon src="/icons/ikon_fiok.svg" />
+          </div>
           <div className="fw-bold">Szia, Péter!</div>
         </div>
 
