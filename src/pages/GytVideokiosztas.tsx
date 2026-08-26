@@ -205,14 +205,24 @@ function TraitRow({ label, children }: { label: string; children: ReactNode }) {
 }
 
 function VariablesPanel({ variables, onChange }: { variables: ClientVariables; onChange: (v: ClientVariables) => void }) {
+  const [expanded, setExpanded] = useState(false)
+
   return (
     <div className="card-fyb mb-3">
-      <div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
+      <button
+        type="button"
+        className="d-flex align-items-center gap-2 flex-wrap w-100 text-start"
+        style={{ background: 'none', border: 'none', padding: 0, marginBottom: expanded ? '0.5rem' : 0 }}
+        onClick={() => setExpanded((e) => !e)}
+      >
         <Icon src="/icons/ikon_beallitasok.svg" />
         <strong>ügyfél jellemzői</strong>
-        <span className="small" style={{ color: 'var(--color-text-muted)' }}>(ideiglenes — a felvételi kérdőívig kézzel állítva)</span>
-      </div>
+        <span className="small" style={{ color: 'var(--color-text-muted)' }}>(ideiglenes — a felvételi kérdőívig kézzel állítva, egyszer az elején)</span>
+        <span className="level-select-chevron ms-auto" style={{ transform: expanded ? 'rotate(180deg)' : 'none' }}>▾</span>
+      </button>
 
+      {expanded && (
+        <>
       <TraitRow label="fájdalom helye">
         <button type="button" className={`auth-tab ${variables.painLocation === 'also' ? 'active' : ''}`} onClick={() => onChange({ ...variables, painLocation: 'also' })}>
           alsó lumbális
@@ -262,6 +272,8 @@ function VariablesPanel({ variables, onChange }: { variables: ClientVariables; o
         <p className="small mb-0 mt-2" style={{ color: 'var(--color-text-muted)' }}>
           megjegyzés a checklist-fázishoz: magas vérnyomásnál a napi megtartás-idő maximuma 4 mp (a szokásos 10 mp helyett).
         </p>
+      )}
+        </>
       )}
     </div>
   )

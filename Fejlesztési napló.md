@@ -317,3 +317,13 @@ Marci három pontos korrekciót adott a GYT-oldali videókiosztásra:
 - **Kiosztott vs. még nem kiosztható szintek grafikus megkülönböztetése.** Új `AssignmentDot` segédkomponens a `VideoPickerRow`-ban: kiosztott sornál kitöltött, pipa-ikonos, teal jelvény; nem kiosztott sornál üres, tompított szürke jelvény (`.level-select-badge` alapokon, mint a szint-választó legördülőknél). A "kozben" mód visszanézhető listájában a meglévő `LevelDot`-ot használtuk ugyanerre. **A zárolt szintek szövege egyszerűsítve:** a korábbi, konzultáció-idejét is részletező mondat helyett most csak "még nem kiosztható" — a részletes indoklás (2 hét + 10 edzésnap) az ÜF-oldalon marad, ahol tényleg releváns a magyarázat, a GYT-nek elég a rövid infó. Emiatt a `lockReason` mező is törölve lett a GYT-oldali adatmodellből (holt adat volt, sehol nem jelent volna meg többé).
 
 Böngészőben tesztelve (asztali és mobil nézet is): a panel minden sora egyenletesen rendezett, a "van/nincs" feliratok helyesen jelennek meg, a kiosztott/nem kiosztott jelvények vizuálisan jól elkülönülnek (teal+pipa vs. szürke+üres, 45%-os opacitással), nincs konzol-hiba.
+
+## 2026.08.27. — "Ügyfél jellemzői" panel alapból csukva
+
+Marci: "kerüljük a véletlen átállítást menet közben. Egyszer kell rögzíteni az együttműködés elején, utána már nem módosítjuk."
+
+**Megvalósítás:** a `VariablesPanel` fejléce (fogaskerék + "ügyfél jellemzői" + leírás + nyíl-ikon) most egy kattintható gomb, ami nyitja/csukja a panelt (`expanded` state, alapból `false`). Csukott állapotban csak a fejléc látszik, a pirula-váltók (5 tényező) nem — így nem lehet véletlenül hozzáérni menet közbeni böngészéskor. Nyitáshoz a fejléc bármely részére (szöveg vagy ikon) rá lehet kattintani, nem kell pontosan a fogaskerekét eltalálni.
+
+**Mellékes találat fejlesztés közben:** a böngésző konzolján egy `[vite] Failed to reload ... 500` hibaüzenet jelent meg egy korábbi, menet közbeni (még be nem fejezett) JSX-fragment miatt — ez azonban a szerkesztés befejezése után NEM reprodukálódott friss lapon/újraindított dev szerveren (`npm run build` is hibátlanul lefutott közben), tehát csak egy elavult, a böngésző-fül konzol-pufferében megragadt üzenet volt, nem valós hiba. Tanulság: ha HMR-hiba jelenik meg tesztelés közben, mindig friss fülön/újratöltéssel kell megerősíteni, mielőtt valós hibaként kezelnénk.
+
+**Ellenőrizve:** böngészőben (asztali + mobil), a panel alapból csukva nyílik meg minden oldalbetöltéskor, kattintásra helyesen nyílik/csukódik, a nyíl-ikon elfordul, nincs konzol-hiba egy friss lapon.
