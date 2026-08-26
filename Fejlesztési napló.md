@@ -224,3 +224,11 @@ Marci négy pontos korrekciót/elvet adott:
 - **Gyakorlat-címek leírás nélkül.** A gyakorlatoknál végül nem lesz külön leíró szöveg — csak a videó száma és címe egy sorban (pl. "S01 Háton fekvés, alsó karpozíciók"). Az `Exercise { code, desc }` típus egyszerű `string[]`-re egyszerűsödött, a leíró bekezdések törölve.
 - **A legördülő a cím mellé, jobbra került — telefonon is egy sorban.** Új `.app-page-header` (flex, `justify-content: space-between`, `flex-wrap: nowrap`) fogja össze a "szintjeid" címet és a szint-választót; a cím `.app-page-title` osztályt kapott (mobilon kisebb betűméret + `white-space: nowrap` + ellipsis, hogy garantáltan elférjen a legördülő mellett, ne törjön két sorba).
 - **Új, elsődleges elrendezési szempont rögzítve minden Együttműködés-oldali modulra:** a nézet tartalma férjen el egyetlen képernyőn, görgetés nélkül — monitoron, tableten és telefonon is (részletek: Design jegyzet 10. pont). Ennek a Gyakorlatok oldalon való első alkalmazásaként: a legördülő cím mellé kerülése, a leírás-szöveg elhagyása, a mobil topbar paddingjének szűkítése, a kártya-padding és a videó-előnézet képarányának mobil-specifikus csökkentése (`.app-main .card-fyb`, `.app-main .video-thumb`). Ellenőrzés böngészőben: `document.documentElement.scrollHeight <= window.innerHeight` 375×667-es (legkisebb gyakori mobil) nézetben is igaz — a tartalom kényelmesen elfér, még marad is szabad hely.
+
+## 2026.08.26. — Új általános szabály: kör+ikon = 80%
+
+Marci: az avatar-körben az ikon (előzőleg 1.4rem a 2.5rem-es körben, azaz 56%) töltse ki a kör 80%-át — és **ez legyen az általános szabály minden jövőbeli kör+ikon kombinációra.**
+
+- Avatar-ikon (`.app-sidebar-avatar .icon-fyb`) mérete 1.4rem → **2rem** (2.5rem-es kör 80%-a).
+- Konzisztencia kedvéért a szint-választó jelvényén (`.level-select-badge .icon-fyb`, 1.75rem-es kör) a lezárt szintek pipa-ikonja is 1rem → **1.4rem**-re nőtt, így most már mind a pipa, mind a (korábban már 80%-osra állított) lakat-ikon egységesen a szabályt követi.
+- A szabály rögzítve a Design jegyzet 7. pontjában (Ikonok), azzal a megjegyzéssel, hogy a már korábban jóváhagyott/lezárt Főoldal-elemek (pl. `.process-step-icon-badge`, ~67%) ettől eltérhetnek — új elemnél mindig a 80%-os szabályt kell követni.

@@ -563,8 +563,8 @@ html[data-theme='dark'] .locked-overlay-card {
   font-weight: 700;
 }
 .app-sidebar-avatar .icon-fyb {
-  width: 1.4rem;
-  height: 1.4rem;
+  width: 2rem;
+  height: 2rem;
   color: currentColor;
 }
 .app-sidebar-nav {
@@ -720,8 +720,8 @@ html[data-theme='dark'] .locked-overlay-card {
   color: var(--color-text-muted);
 }
 .level-select-badge .icon-fyb {
-  width: 1rem;
-  height: 1rem;
+  width: 1.4rem;
+  height: 1.4rem;
   color: currentColor;
 }
 .level-select-badge--lezart {
@@ -734,10 +734,6 @@ html[data-theme='dark'] .locked-overlay-card {
 }
 .level-select-badge--zarolt {
   opacity: 0.6;
-}
-.level-select-badge--zarolt .icon-fyb {
-  width: 1.4rem;
-  height: 1.4rem;
 }
 
 /* --- app-oldal fejléc: cím + jobbra igazított vezérlő egy sorban, telefonon is
