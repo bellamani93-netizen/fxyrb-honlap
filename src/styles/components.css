@@ -776,3 +776,52 @@ html[data-theme='dark'] .locked-overlay-card {
     aspect-ratio: 2.2 / 1;
   }
 }
+
+/* --- állapot-jelvény (GYT videókiosztás, szint-lista sorai — 2026.08.27.) ---
+   Ugyanaz a pirula-forma, mint a .badge-fyb, 3 szín-variánssal. */
+.status-chip {
+  display: inline-block;
+  padding: 0.3rem 0.85rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.status-chip--done {
+  background-color: var(--color-bg-alt);
+  color: var(--color-text-muted);
+}
+.status-chip--pending {
+  background-color: var(--lime);
+  color: var(--navy);
+}
+.status-chip--locked {
+  background-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+/* --- szint-sor (GYT videókiosztás, egységes, sorrendi lista — 2026.08.27.) --- */
+.level-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.level-row-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+.level-row-num {
+  font-weight: 700;
+  flex-shrink: 0;
+  white-space: nowrap;
+}

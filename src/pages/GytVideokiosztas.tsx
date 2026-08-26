@@ -101,6 +101,121 @@ function AssignmentDot({ done }: { done: boolean }) {
   )
 }
 
+function splitLabel(label: string) {
+  const idx = label.indexOf(' ')
+  return { code: label.slice(0, idx), title: label.slice(idx + 1) }
+}
+
+function VideoPickerInline({ suggested, onAssign }: { suggested?: string; onAssign: (video: string) => void }) {
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setPickerOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  return (
+    <div className="d-flex align-items-center gap-2 flex-wrap">
+      {suggested && (
+        <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+          javasolt: <strong style={{ color: 'var(--color-text)' }}>{suggested}</strong>
+        </span>
+      )}
+      <div className={`level-select ${pickerOpen ? 'is-open' : ''}`} ref={pickerRef} onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="level-select-toggle" onClick={() => setPickerOpen((o) => !o)}>
+          <span style={{ color: 'var(--color-text-muted)' }}>válassz videót</span>
+          <span className="level-select-chevron">▾</span>
+        </button>
+
+        {pickerOpen && (
+          <ul className="level-select-menu">
+            {VIDEOS.map((v) => (
+              <li key={v}>
+                <button
+                  type="button"
+                  className="level-select-item"
+                  onClick={() => {
+                    onAssign(v)
+                    setPickerOpen(false)
+                  }}
+                >
+                  <span>{v}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function LevelRow({
+  level,
+  suggested,
+  onAssign,
+}: {
+  level: GytLevel
+  suggested?: string
+  onAssign?: (video: string) => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const statusLabel = level.state === 'lezart' ? 'kiosztva' : level.state === 'nyitva' ? 'kiosztásra vár' : 'még nem kiosztható'
+  const statusClass = level.state === 'lezart' ? 'status-chip--done' : level.state === 'nyitva' ? 'status-chip--pending' : 'status-chip--locked'
+  const assigned = level.video ? splitLabel(level.video) : null
+  const suggestedParsed = suggested ? splitLabel(suggested) : null
+
+  const detailContent = (
+    <>
+      {level.state === 'lezart' && assigned && (
+        <>
+          <span className="fw-bold">{assigned.code}</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>{assigned.title}</span>
+          {level.note && <span className="fst-italic small" style={{ color: 'var(--color-text-muted)' }}>({level.note})</span>}
+        </>
+      )}
+      {level.state === 'zarolt' && <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
+      {level.state === 'nyitva' && onAssign && <VideoPickerInline suggested={suggested} onAssign={onAssign} />}
+    </>
+  )
+
+  return (
+    <div className="level-row">
+      {/* asztali/tablet: mindig egy sorban — szint, kód+cím (vagy választó), állapot */}
+      <div className="d-none d-lg-flex align-items-center gap-3 flex-fill">
+        <span className="level-row-num">{level.num}. szint</span>
+        <span className="d-flex align-items-center gap-2 flex-wrap flex-fill">{detailContent}</span>
+      </div>
+      <span className={`status-chip ${statusClass} d-none d-lg-inline-block`}>{statusLabel}</span>
+
+      {/* mobil: összecsukva csak szint + kód/javaslat + állapot-ikon; sorra kattintva lenyílik a részlet */}
+      <div className="d-flex d-lg-none flex-column w-100">
+        <div className="d-flex align-items-center justify-content-between gap-2" role="button" tabIndex={0} onClick={() => setExpanded((e) => !e)} style={{ cursor: 'pointer' }}>
+          <span className="d-flex align-items-center gap-2">
+            <span className="level-row-num">{level.num}. szint</span>
+            {assigned && <span className="small fw-bold">{assigned.code}</span>}
+            {!assigned && level.state === 'nyitva' && suggestedParsed && (
+              <span className="small fw-bold">javasolt {suggestedParsed.code}</span>
+            )}
+          </span>
+          <LevelDot state={level.state} />
+        </div>
+
+        {expanded && (
+          <div className="d-flex flex-column align-items-start gap-2 mt-2 pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
+            {detailContent}
+            <span className={`status-chip ${statusClass}`}>{statusLabel}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function VideoPickerRow({
   label,
   assigned,
@@ -308,9 +423,6 @@ export default function GytVideokiosztas() {
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
 
-  const openLevel = levels.find((l) => l.state === 'nyitva')
-  const suggestedCodeForOpenLevel = openLevel ? suggested[openLevel.num - 1] : undefined
-  const suggestedForOpenLevel = suggestedCodeForOpenLevel ? codeLabel(suggestedCodeForOpenLevel) : undefined
 
   return (
     <section className="py-3 py-lg-5">
@@ -348,53 +460,20 @@ export default function GytVideokiosztas() {
         <VariablesPanel variables={clientVariables} onChange={(v) => setVariables((prev) => ({ ...prev, [clientId]: v }))} />
 
         {client.mode === 'kozben' && (
-          <>
-            <div className="d-flex flex-wrap gap-2 mb-3">
-              {levels.map((l) => (
-                <div key={l.num} className="d-flex align-items-center gap-1">
-                  <LevelDot state={l.state} />
-                  <span className="small" style={{ color: 'var(--color-text-muted)' }}>{l.num}.</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="card-fyb card-fyb-accent">
-              <div className="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-                <h2 className="h5 mb-0">{openLevel ? `${openLevel.num}. szint` : 'nincs kiosztásra váró szint'}</h2>
-                {openLevel && <span className="badge-fyb">kiosztásra vár</span>}
-              </div>
-
-              {openLevel && (
-                <VideoPickerRow
-                  label={`${openLevel.num}. szint videója`}
-                  assigned={openLevel.video ?? null}
-                  note={openLevel.note}
-                  suggested={suggestedForOpenLevel}
-                  onAssign={(video) =>
-                    setLevels((prev) => prev.map((l) => (l.num === openLevel.num ? { ...l, video, state: 'lezart' as LevelState } : l)))
-                  }
-                  onNoteChange={(note) => setLevels((prev) => prev.map((l) => (l.num === openLevel.num ? { ...l, note } : l)))}
-                />
-              )}
-
-              <div className="d-flex flex-column mt-2">
-                {levels
-                  .filter((l) => l.num !== openLevel?.num)
-                  .map((l) => (
-                    <div key={l.num} className="d-flex align-items-center justify-content-between gap-2 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                      <span className="d-flex align-items-center gap-2 small" style={{ color: l.state === 'lezart' ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
-                        <LevelDot state={l.state} />
-                        {l.num}. szint
-                      </span>
-                      <span className="small text-end" style={{ color: l.state === 'lezart' ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
-                        {l.state === 'lezart' ? l.video : 'még nem kiosztható'}
-                        {l.note && <><br /><span className="fst-italic">{l.note}</span></>}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </>
+          <div className="card-fyb card-fyb-accent">
+            {levels.map((l) => (
+              <LevelRow
+                key={l.num}
+                level={l}
+                suggested={l.state === 'nyitva' && suggested[l.num - 1] ? codeLabel(suggested[l.num - 1]) : undefined}
+                onAssign={
+                  l.state === 'nyitva'
+                    ? (video) => setLevels((prev) => prev.map((x) => (x.num === l.num ? { ...x, video, state: 'lezart' as LevelState } : x)))
+                    : undefined
+                }
+              />
+            ))}
+          </div>
         )}
 
         {client.mode === 'utana' && (
