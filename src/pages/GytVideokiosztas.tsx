@@ -23,8 +23,8 @@ type Client = {
 }
 
 const initialVariables: Record<string, ClientVariables> = {
-  peter: { painLocation: 'also', proneOk: true, shoulderOk: true },
-  gabor: { painLocation: 'felso', proneOk: true, shoulderOk: false },
+  peter: { painLocation: 'also', proneOk: true, shoulderOk: true, kneePain: false, highBloodPressure: false },
+  gabor: { painLocation: 'felso', proneOk: true, shoulderOk: false, kneePain: false, highBloodPressure: false },
 }
 
 function codeLabel(code: ExerciseCode) {
@@ -172,7 +172,34 @@ function VariablesPanel({ variables, onChange }: { variables: ClientVariables; o
             </button>
           </div>
         </div>
+        <div>
+          <div className="small mb-1" style={{ color: 'var(--color-text-muted)' }}>térdfájdalom (négykézláb helyzetekhez)</div>
+          <div className="auth-tabs auth-tabs-sm">
+            <button type="button" className={`auth-tab ${variables.kneePain ? 'active' : ''}`} onClick={() => onChange({ ...variables, kneePain: true })}>
+              igen
+            </button>
+            <button type="button" className={`auth-tab ${!variables.kneePain ? 'active' : ''}`} onClick={() => onChange({ ...variables, kneePain: false })}>
+              nem
+            </button>
+          </div>
+        </div>
+        <div>
+          <div className="small mb-1" style={{ color: 'var(--color-text-muted)' }}>magas vérnyomás</div>
+          <div className="auth-tabs auth-tabs-sm">
+            <button type="button" className={`auth-tab ${variables.highBloodPressure ? 'active' : ''}`} onClick={() => onChange({ ...variables, highBloodPressure: true })}>
+              igen
+            </button>
+            <button type="button" className={`auth-tab ${!variables.highBloodPressure ? 'active' : ''}`} onClick={() => onChange({ ...variables, highBloodPressure: false })}>
+              nem
+            </button>
+          </div>
+        </div>
       </div>
+      {variables.highBloodPressure && (
+        <p className="small mb-0 mt-2" style={{ color: 'var(--color-text-muted)' }}>
+          megjegyzés a checklist-fázishoz: magas vérnyomásnál a napi megtartás-idő maximuma 4 mp (a szokásos 10 mp helyett).
+        </p>
+      )}
     </div>
   )
 }
@@ -199,7 +226,8 @@ export default function GytVideokiosztas() {
   }, [])
 
   const openLevel = levels.find((l) => l.state === 'nyitva')
-  const suggestedForOpenLevel = openLevel ? codeLabel(suggested[openLevel.num - 1]) : undefined
+  const suggestedCodeForOpenLevel = openLevel ? suggested[openLevel.num - 1] : undefined
+  const suggestedForOpenLevel = suggestedCodeForOpenLevel ? codeLabel(suggestedCodeForOpenLevel) : undefined
 
   return (
     <section className="py-3 py-lg-5">
@@ -308,7 +336,14 @@ export default function GytVideokiosztas() {
               <button
                 type="button"
                 className="btn-fyb btn-fyb-ghost mb-2"
-                onClick={() => setBulk((prev) => prev.map((b) => ({ ...b, video: codeLabel(suggested[b.num - 1]) })))}
+                onClick={() =>
+                  setBulk((prev) =>
+                    prev.map((b) => {
+                      const code = suggested[b.num - 1]
+                      return code ? { ...b, video: codeLabel(code) } : b
+                    })
+                  )
+                }
               >
                 javasolt csomag alkalmazása (felülírja a jelenlegi kiosztást)
               </button>

@@ -52,6 +52,10 @@ export type ClientVariables = {
   proneOk: boolean
   /** Vállmobilitás: váll feletti kartartás lehetséges-e. */
   shoulderOk: boolean
+  /** Térdfájdalom — rá tud-e térdelni (négykézláb helyzetekhez). Ha igen, a négykézláb gyakorlatok kimaradnak. */
+  kneePain: boolean
+  /** Magas vérnyomás — a checklist "megtartás" paraméterének max. értékét korlátozza, ld. maxHoldSeconds(). */
+  highBloodPressure: boolean
 }
 
 export function sequenceKey(v: ClientVariables): SequenceKey {
@@ -65,7 +69,29 @@ export function sequenceKey(v: ClientVariables): SequenceKey {
   return key as SequenceKey
 }
 
-/** Javasolt szint-sorrend a négy (jelenleg három beállítható) befolyásoló tényező alapján. Csak javaslat — a GYT felülbírálhatja. */
+/** Négykézláb helyzetű gyakorlatok — térdfájdalom esetén ezeket nem csináljuk (Marci, 2026.08.27.). */
+const QUADRUPED_CODES: ExerciseCode[] = ['A02', 'A03']
+
+/**
+ * Javasolt szint-sorrend a befolyásoló tényezők alapján. Csak javaslat — a GYT felülbírálhatja.
+ * Térdfájdalom esetén a négykézláb gyakorlatok (A02, A03) kiszűrve — a dokumentum nem ad helyettesítő
+ * gyakorlatot ezekre, ezért egyszerűen kimaradnak, a sorrend ennyivel rövidebb lesz.
+ */
 export function suggestedSequence(v: ClientVariables): ExerciseCode[] {
-  return SEQUENCES[sequenceKey(v)]
+  const seq = SEQUENCES[sequenceKey(v)]
+  if (!v.kneePain) return seq
+  return seq.filter((code) => !QUADRUPED_CODES.includes(code))
+}
+
+// --- Checklist-fázishoz (később építendő) — a "Megtartás" paraméter szabálya. ---
+// Forrás: Projekt specifikáció.md "Mért paraméterek" + Marci megerősítése (2026.08.27.):
+// "10 x 3s, kétnaponta 1s-el tovább, maximum 10s-ig... ha a magas vérnyomás be van kattintva,
+// akkor 4s a maximum." Itt csak eltároljuk/dokumentáljuk — a checklist UI-ban lesz felhasználva.
+export const HOLD_START_SECONDS = 3
+export const HOLD_STEP_SECONDS = 1
+export const HOLD_STEP_DAYS = 2
+
+/** A "megtartás" (statikus tartás, mp) paraméter felső korlátja — magas vérnyomásnál alacsonyabb. */
+export function maxHoldSeconds(v: Pick<ClientVariables, 'highBloodPressure'>): number {
+  return v.highBloodPressure ? 4 : 10
 }

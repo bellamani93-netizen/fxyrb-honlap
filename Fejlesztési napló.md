@@ -276,3 +276,16 @@ Marci feltöltötte a `torna szintek.odt` fájlt, ezzel a szavaival "ez a progra
 **Nyitott kérdés a checklist-fázishoz:** a checklist spec-szövege "12 szint"-et ír, de a valós torna-szintek forrás szerint 12 VAGY 13 lehet a program hossza — ezt a checklist-fázis tervezésekor Marcival tisztázni kell.
 
 **Következő lépés:** Marci visszajelzése a fenti tartalmi frissítésről és a javaslat-motorról.
+
+## 2026.08.27. — Térdfájdalom és magas vérnyomás faktor
+
+Marci két új befolyásoló tényezőt adott a "torna szintek" logikához:
+
+- **Térdfájdalom:** "ha térdfájdalom van, akkor a 4kézláb gyakorlatokat nem csináljuk." Megvalósítás: a `suggestedSequence()` (`src/data/tornaSzintek.ts`) most kiszűri A02-t (Négykézláb A) és A03-at (Négykézláb B), ha `kneePain: true`. A forrásdokumentum nem ad helyettesítő gyakorlatot ezekre, ezért a legegyszerűbb, feltételezés nélküli megoldást választottam: a szűrt gyakorlatok egyszerűen kimaradnak, a sorrend ennyivel rövidebb. Ezt a Design jegyzetben jeleztem mint saját egyszerűsítést, nem a dokumentum explicit szabályát — ha Marci helyettesítő gyakorlatot szán ide, azt pontosítani kell.
+- **Magas vérnyomás:** nem a szint-sorrendet, hanem a jövőbeli checklist "megtartás" (statikus tartás, mp) paraméterét korlátozza — ez valójában már a Projekt specifikáció "Mért paraméterek" pontjában is szerepelt ("3 mp-ről indul, kétnaponta +1 mp, max 10 mp; magas vérnyomás esetén max 4 mp"), Marci most csak megerősítette és összekötötte a kliens-változó modellel. Elmentve kódba is: `HOLD_START_SECONDS`, `HOLD_STEP_SECONDS`, `HOLD_STEP_DAYS`, `maxHoldSeconds()` (`src/data/tornaSzintek.ts`) — a checklist-fázisban készen áll a felhasználásra, most nincs UI-hatása azon túl, hogy a GYT-oldali panelen egy emlékeztető szöveg jelenik meg, ha be van kapcsolva.
+
+**Megvalósítás:** `ClientVariables` bővült `kneePain` és `highBloodPressure` mezőkkel; a GYT-oldali "ügyfél jellemzői" panel 2 új pirula-váltóval bővült (5 tényező összesen).
+
+**Javított/megelőzött hiba fejlesztés közben:** mivel a térdfájdalom-szűrés miatt a javasolt sorrend rövidebb is lehet a névleges 12/13-nál, a pozíció-alapú indexelés (`suggested[szintszám - 1]`) `undefined`-et adhat vissza egy hosszabb tömeges kiosztásnál (pl. 13 szintes panel egy 10 elemre szűrt sorrenddel). Ez leellenőrizve, védve: a "javasolt csomag alkalmazása" gomb csak azokat a szint-slotokat tölti ki, amikhez ténylegesen van javaslat, a többit érintetlenül hagyja — böngészőben tesztelve (Péter hason-fekvés=nem + térdfájdalom=igen kombinációval, ami LNN sorrendre vált és 2 szintet szűr ki), nincs hiba, a "6/8 kiosztva" állapot helyesen jelenik meg, a 2 fennmaradó slot üresen marad kézi kiválasztásra várva.
+
+**Nyitott kérdés (megismételve, még mindig nyitott):** a checklist spec-szövege "12 szint"-et ír, a valós forrás szerint 12 VAGY 13 (most akár még kevesebb is, térdfájdalom-szűrés esetén) — ezt a checklist-fázis tervezésekor Marcival tisztázni kell.
