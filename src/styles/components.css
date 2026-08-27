@@ -961,3 +961,29 @@ html[data-theme='dark'] .locked-overlay-card {
   max-width: 24rem;
   width: 100%;
 }
+
+/* --- SALES ügyféllista: valódi rács, hogy az azonos oszlopok (név, email,
+   kezdés, gyógytornász, befizetett) minden sorban pontosan egymás alá
+   kerüljenek — nem csak egyenletes térköz egy flex-sorban (2026.08.27.) --- */
+.sales-row-grid {
+  display: none;
+}
+@media (min-width: 992px) {
+  .sales-row-grid {
+    display: grid;
+    grid-template-columns: 9rem 11rem 9rem 8rem 6rem;
+    align-items: center;
+    column-gap: 0.75rem;
+  }
+}
+.sales-row-grid-mobile {
+  display: grid;
+  grid-template-columns: 1fr 8rem 4rem;
+  align-items: center;
+  column-gap: 0.5rem;
+}
+@media (min-width: 992px) {
+  .sales-row-grid-mobile {
+    display: none;
+  }
+}

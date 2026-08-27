@@ -270,19 +270,19 @@ export default function SalesHozzarendeles() {
         <div className="card-fyb">
           {/* asztali/tablet fejléc */}
           <div
-            className="d-none d-lg-flex align-items-center gap-2 pb-2 mb-1 small fw-bold text-uppercase"
+            className="sales-row-grid pb-2 mb-1 small fw-bold text-uppercase"
             style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
           >
-            <span style={{ minWidth: '9rem' }}>név</span>
-            <span style={{ minWidth: '11rem' }}>email</span>
-            <span style={{ minWidth: '9rem' }}>kezdés</span>
-            <span style={{ minWidth: '8rem' }}>gyógytornász</span>
+            <span>név</span>
+            <span>email</span>
+            <span>kezdés</span>
+            <span>gyógytornász</span>
             <span>befizetett</span>
           </div>
 
           {/* mobil fejléc — kevesebb oszlop, mert a név+dátum egy blokkba van vonva */}
           <div
-            className="d-flex d-lg-none align-items-center justify-content-between gap-2 pb-2 mb-1 small fw-bold text-uppercase"
+            className="sales-row-grid-mobile pb-2 mb-1 small fw-bold text-uppercase"
             style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
           >
             <span>ügyfél</span>
@@ -295,25 +295,27 @@ export default function SalesHozzarendeles() {
           ) : (
             filtered.map((c) => (
               <div key={c.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                {/* asztali/tablet sor */}
-                <div className="d-none d-lg-flex align-items-center gap-2 flex-wrap py-2">
-                  <span className="fw-bold" style={{ minWidth: '9rem' }}>{c.name}</span>
-                  <span className="small" style={{ color: 'var(--color-text-muted)', minWidth: '11rem' }}>{c.email}</span>
-                  <span className="small" style={{ minWidth: '9rem' }}>{formatStart(c.startTime)}</span>
-                  <span className="small" style={{ minWidth: '8rem', color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+                {/* asztali/tablet sor — valódi rács, hogy az oszlopok minden sorban egymás alá kerüljenek */}
+                <div className="sales-row-grid py-2">
+                  <span className="fw-bold">{c.name}</span>
+                  <span className="small" style={{ color: 'var(--color-text-muted)' }}>{c.email}</span>
+                  <span className="small">{formatStart(c.startTime)}</span>
+                  <span className="small" style={{ color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
                     {c.assignedGyt ?? '—'}
                   </span>
-                  <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
-                  {!c.paid && <DeleteButton onClick={() => setPendingAction({ type: 'delete', client: c })} />}
+                  <span className="d-flex align-items-center gap-2">
+                    <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
+                    {!c.paid && <DeleteButton onClick={() => setPendingAction({ type: 'delete', client: c })} />}
+                  </span>
                 </div>
 
                 {/* mobil sor — név+dátum egy blokkban, mellette a gyógytornász, mellette a pipálható négyzet */}
-                <div className="d-flex d-lg-none align-items-center justify-content-between gap-2 py-2">
+                <div className="sales-row-grid-mobile py-2">
                   <span style={{ minWidth: 0 }}>
                     <span className="fw-bold d-block">{c.name}</span>
                     <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>{formatStart(c.startTime)}</span>
                   </span>
-                  <span className="small text-end" style={{ color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+                  <span className="small" style={{ color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
                     {c.assignedGyt ?? '—'}
                   </span>
                   <span className="d-flex align-items-center gap-2">
@@ -329,7 +331,7 @@ export default function SalesHozzarendeles() {
         {pendingAction && pendingAction.type === 'unpay' && (
           <ConfirmDialog
             message="Tényleg nem fizetett be?"
-            confirmLabel="igen, nem fizetett be"
+            confirmLabel="tényleg nem"
             onCancel={() => setPendingAction(null)}
             onConfirm={() => {
               setPaid(pendingAction.client.id, false)
