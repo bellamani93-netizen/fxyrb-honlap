@@ -70,6 +70,14 @@ function ConfirmDialog({ message, onConfirm, onCancel }: { message: string; onCo
   )
 }
 
+function formatStart(value: string) {
+  if (!value) return '—'
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return value
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}. ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 type FormState = {
   name: string
   email: string
@@ -87,10 +95,6 @@ export default function SalesHozzarendeles() {
   const [form, setForm] = useState<FormState>(emptyForm)
   const [error, setError] = useState('')
   const [unpayTargetId, setUnpayTargetId] = useState<string | null>(null)
-
-  function assign(id: string, gyt: string) {
-    setClients((prev) => prev.map((c) => (c.id === id ? { ...c, assignedGyt: gyt } : c)))
-  }
 
   function setPaid(id: string, paid: boolean) {
     setClients((prev) => prev.map((c) => (c.id === id ? { ...c, paid } : c)))
@@ -231,6 +235,17 @@ export default function SalesHozzarendeles() {
         />
 
         <div className="card-fyb">
+          <div
+            className="d-none d-lg-flex align-items-center gap-3 pb-2 mb-1 small fw-bold text-uppercase"
+            style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
+          >
+            <span style={{ minWidth: '9rem' }}>név</span>
+            <span style={{ minWidth: '11rem' }}>email</span>
+            <span style={{ minWidth: '9rem' }}>kezdés</span>
+            <span style={{ minWidth: '8rem' }}>gyógytornász</span>
+            <span>befizetett</span>
+          </div>
+
           {filtered.length === 0 ? (
             <p className="mb-0 text-center" style={{ color: 'var(--color-text-muted)' }}>nincs találat</p>
           ) : (
@@ -239,7 +254,10 @@ export default function SalesHozzarendeles() {
                 <div className="d-flex align-items-center gap-3 flex-wrap">
                   <span className="fw-bold" style={{ minWidth: '9rem' }}>{c.name}</span>
                   <span className="small" style={{ color: 'var(--color-text-muted)', minWidth: '11rem' }}>{c.email}</span>
-                  <GytPicker assigned={c.assignedGyt} onAssign={(gyt) => assign(c.id, gyt)} />
+                  <span className="small" style={{ minWidth: '9rem' }}>{formatStart(c.startTime)}</span>
+                  <span className="small" style={{ minWidth: '8rem', color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+                    {c.assignedGyt ?? '—'}
+                  </span>
                   <SwitchToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} label="befizetve" />
                 </div>
               </div>

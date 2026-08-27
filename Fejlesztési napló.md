@@ -552,3 +552,15 @@ Marci visszajelzése: a beviteli doboz (az űrlap) jó, de a lista alatta legyen
 **Tervezési döntés, dokumentálva:** ez a szabály csak a LISTA sorainak kapcsolóira vonatkozik (már mentett/létező ügyfelek), NEM az "új ügyfél felvétele" űrlap kapcsolójára — ott még csak egy be nem küldött piszkozat-értéket állítunk, nincs mit "visszavonni".
 
 **Tesztelve böngészőben:** asztali (1280px) és mobil (375px) — a lista sorai most 4 elemesek, jelvények nélkül; egy fizetett ügyfél (Péter) kapcsolójának kikapcsolására felugrik "Tényleg nem fizetett be?"; "mégse" gombra a kapcsoló változatlanul BE marad; újra próbálva "igen, nem fizetett be"-re a kapcsoló ténylegesen KI-ra vált; egy nem fizetett ügyfél (Tóth Eszter) bekapcsolása azonnali, felugró ablak nélkül. Konzol-hiba nincs, `npm run build` hibamentes.
+
+## 2026.08.27. — SALES lista: fejléc-sor, kezdő dátum, GYT már nem módosítható a listán
+
+Marci három pontosítást kért: a listán ne lehessen többé módosítani a hozzárendelt gyógytornászt (az csak az "új ügyfél felvétele" űrlapon dől el); szerepeljen a kezdő dátum is a listában; a lista tetején legyen egy fejléc-sor, ami megnevezi az oszlopokat (Név, Email, Kezdés, Gyógytornász, Befizetett).
+
+**Megvalósítás:**
+- A lista soraiban a `GytPicker` (kattintható legördülő) egyszerű, nem interaktív szövegre cserélve — kiosztott gyógytornász esetén annak neve, egyébként "—" (halványabb színnel). A `GytPicker` komponens megmaradt, mert az űrlap gyógytornász-mezője továbbra is ezt használja.
+- Új `formatStart()` segédfüggvény: a `datetime-local` nyers értéket ("2026-09-01T10:00") magyaros, pontokkal tagolt formátumra alakítja ("2026.09.01. 10:00").
+- Új fejléc-sor a lista tetején (`d-none d-lg-flex` — csak asztali/tablet nézetben jelenik meg, mert mobilon a sorok tördelődnek/wrap-elnek, ahol egy fix oszlop-fejléc félrevezető lenne): "név / email / kezdés / gyógytornász / befizetett" — **kisbetűvel**, a projekt egységes, kisbetűs feliratozási konvenciója szerint (Marci üzenetében a szavak nagybetűvel szerepeltek, de ez a chat-beli írásmód, nem UI-előírás — a `Design jegyzet.md` szerint minden felirat kisbetűs a márkahangban).
+- A lista minden sora most 5 oszlopot mutat: név, e-mail, kezdés (formázott dátum), gyógytornász (sima szöveg), kapcsoló (befizetve) — a korábbi `.status-chip`-ek már a múlt körben törölve lettek.
+
+**Tesztelve böngészőben:** asztali (1280px) — a fejléc-sor helyesen felirat­ozza az oszlopokat, a dátumok "ÉÉÉÉ.HH.NN. óó:pp" formában jelennek meg, a gyógytornász-oszlop nem kattintható (nincs `.level-select` a sorban); mobil (375px) — a fejléc-sor helyesen rejtve van, a sorok minden adatot tartalmaznak, olvashatóan tördelve. Konzol-hiba nincs, `npm run build` hibamentes.
