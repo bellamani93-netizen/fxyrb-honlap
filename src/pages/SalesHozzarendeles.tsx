@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import Icon from '../components/Icon'
 import { GYT_STAFF, initialSalesClients, type SalesClient } from '../data/salesClients'
 
 function GytPicker({ assigned, onAssign }: { assigned: string | null; onAssign: (gyt: string) => void }) {
@@ -56,8 +57,8 @@ function SwitchToggle({ checked, onChange, label }: { checked: boolean; onChange
   )
 }
 
-// telefonos nézetben a csúszka-kapcsoló helyett egy klasszikus pipálható négyzet —
-// ugyanaz a "befizetve" állapot, ugyanaz a megerősítés-logika, csak kompaktabb vezérlő
+// a lista "befizetve" mezője klasszikus pipálható négyzet (nem csúszka-kapcsoló) —
+// az űrlap saját "befizetett" mezője továbbra is a SwitchToggle-t használja
 function CheckboxToggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <input
@@ -71,17 +72,15 @@ function CheckboxToggle({ checked, onChange }: { checked: boolean; onChange: (v:
   )
 }
 
-// ideiglenes szöveges "kuka" ikon — a projekt hivatalos ikonkészletében (Design elemek,
-// 17 kézzel rajzolt SVG) nincs kuka-ikon; ha készül hozzá márkaikon, ezt kell lecserélni
 function DeleteButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label="ügyfél törlése"
-      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-danger)', fontSize: '1.1rem', lineHeight: 1, padding: 0 }}
+      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}
     >
-      🗑
+      <Icon src="/icons/ikon_kuka.svg" style={{ width: '1.15rem', height: '1.15rem', color: 'var(--color-danger)' }} />
     </button>
   )
 }
@@ -304,7 +303,7 @@ export default function SalesHozzarendeles() {
                   <span className="small" style={{ minWidth: '8rem', color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
                     {c.assignedGyt ?? '—'}
                   </span>
-                  <SwitchToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} label="befizetve" />
+                  <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
                   {!c.paid && <DeleteButton onClick={() => setPendingAction({ type: 'delete', client: c })} />}
                 </div>
 
