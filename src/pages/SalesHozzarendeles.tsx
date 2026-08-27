@@ -56,6 +56,20 @@ function SwitchToggle({ checked, onChange, label }: { checked: boolean; onChange
   )
 }
 
+function ConfirmDialog({ message, onConfirm, onCancel }: { message: string; onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div className="modal-backdrop-fyb" onClick={onCancel}>
+      <div className="modal-fyb card-fyb" onClick={(e) => e.stopPropagation()}>
+        <p className="mb-3">{message}</p>
+        <div className="d-flex justify-content-end gap-2">
+          <button type="button" className="btn-fyb btn-fyb-ghost" onClick={onCancel}>mégse</button>
+          <button type="button" className="btn-fyb btn-fyb-danger" onClick={onConfirm}>igen, nem fizetett be</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 type FormState = {
   name: string
   email: string
@@ -72,13 +86,25 @@ export default function SalesHozzarendeles() {
   const [search, setSearch] = useState('')
   const [form, setForm] = useState<FormState>(emptyForm)
   const [error, setError] = useState('')
+  const [unpayTargetId, setUnpayTargetId] = useState<string | null>(null)
 
   function assign(id: string, gyt: string) {
     setClients((prev) => prev.map((c) => (c.id === id ? { ...c, assignedGyt: gyt } : c)))
   }
 
-  function togglePaid(id: string, paid: boolean) {
+  function setPaid(id: string, paid: boolean) {
     setClients((prev) => prev.map((c) => (c.id === id ? { ...c, paid } : c)))
+  }
+
+  // a "befizetve" kapcsoló kikapcsolása visszavonhatatlan hatásúnak tűnhet (a GYT
+  // naptárából eltűnik az időpont), ezért csak megerősítés után lehet visszakapcsolni;
+  // bekapcsolni (nem fizetettről fizetettre) megerősítés nélkül lehet.
+  function handleTogglePaid(client: SalesClient, next: boolean) {
+    if (client.paid && !next) {
+      setUnpayTargetId(client.id)
+      return
+    }
+    setPaid(client.id, next)
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -210,25 +236,27 @@ export default function SalesHozzarendeles() {
           ) : (
             filtered.map((c) => (
               <div key={c.id} className="py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
-                  <span className="d-flex align-items-center gap-2 flex-wrap">
-                    <span className="fw-bold">{c.name}</span>
-                    <span className={`status-chip ${c.assignedGyt ? 'status-chip--done' : 'status-chip--pending'}`}>
-                      {c.assignedGyt ? 'hozzárendelve' : 'vár hozzárendelésre'}
-                    </span>
-                    <span className={`status-chip ${c.paid ? 'status-chip--done' : 'status-chip--pending'}`}>
-                      {c.paid ? 'befizetve' : 'fizetésre vár'}
-                    </span>
-                  </span>
-                  <span className="d-flex align-items-center gap-3">
-                    <SwitchToggle checked={c.paid} onChange={(paid) => togglePaid(c.id, paid)} label="fizetve" />
-                    <GytPicker assigned={c.assignedGyt} onAssign={(gyt) => assign(c.id, gyt)} />
-                  </span>
+                <div className="d-flex align-items-center gap-3 flex-wrap">
+                  <span className="fw-bold" style={{ minWidth: '9rem' }}>{c.name}</span>
+                  <span className="small" style={{ color: 'var(--color-text-muted)', minWidth: '11rem' }}>{c.email}</span>
+                  <GytPicker assigned={c.assignedGyt} onAssign={(gyt) => assign(c.id, gyt)} />
+                  <SwitchToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} label="befizetve" />
                 </div>
               </div>
             ))
           )}
         </div>
+
+        {unpayTargetId && (
+          <ConfirmDialog
+            message="Tényleg nem fizetett be?"
+            onCancel={() => setUnpayTargetId(null)}
+            onConfirm={() => {
+              setPaid(unpayTargetId, false)
+              setUnpayTargetId(null)
+            }}
+          />
+        )}
       </div>
     </section>
   )

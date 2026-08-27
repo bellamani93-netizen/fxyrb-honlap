@@ -540,3 +540,15 @@ Marci pontosította a SALES oldal felépítését: legyen egy beviteli űrlap ez
 - **A meglévő lista soraiban** a `SwitchToggle` a "fizetve" állapot utólagos módosítására is használható (nem csak az űrlapon, új ügyfél felvételekor), és egy második `.status-chip` jelzi a fizetési állapotot a hozzárendelési állapot mellett.
 
 **Tesztelve böngészőben:** asztali (1280px) és mobil (375px) — új ügyfél (Szabó Rita) felvétele gyógytornász nélkül helyes hibaüzenetet ad; gyógytornász kiválasztása (Nagy Réka) után a beküldés sikeres, az űrlap ürül, az új sor megjelenik a listában "hozzárendelve"/"fizetésre vár" jelvényekkel; a lista soraiban a fizetve-kapcsoló átváltása azonnal frissíti a jelvényt. Konzol-hiba nincs, `npm run build` hibamentes.
+
+## 2026.08.27. — SALES lista egyszerűsítve, "befizetve" kapcsoló megerősítéssel
+
+Marci visszajelzése: a beviteli doboz (az űrlap) jó, de a lista alatta legyen egyszerűbb — soronként csak név, e-mail, gyógytornász, kapcsoló szerepeljen (a két állapot-jelvény törlendő). Emellett új szabály: a "befizetve" kapcsolót be lehet kapcsolni szabadon, de KIkapcsolni csak megerősítés után ("Tényleg nem fizetett be?" felugró ablakkal).
+
+**Megvalósítás — lista egyszerűsítés:** `SalesHozzarendeles.tsx` lista-soraiból törölve mindkét `.status-chip` (hozzárendelés-állapot, fizetés-állapot) — helyettük egyetlen, 4 elemű flex-sor: név (fw-bold, fix min-szélesség az igazításhoz) → e-mail (halvány, kisebb szöveg) → `GytPicker` legördülő → `SwitchToggle`. A hozzárendelésre várók lista tetejére sorolása (rendezési szabály) megmaradt, csak vizuálisan nincs többé jelvény hozzá — a "válassz gyógytornászt" placeholder-szöveg és a lista-pozíció önmagában jelzi az állapotot.
+
+**Megvalósítás — megerősítő ablak:** új, helyben definiált `ConfirmDialog` komponens (`.modal-backdrop-fyb` + `.modal-fyb card-fyb` — ez az első modális ablak a projektben). A kapcsoló `onChange`-e helyett egy `handleTogglePaid(client, next)` függvény fut: ha a kliens jelenleg fizetett (`paid: true`) ÉS a felhasználó ki akarja kapcsolni (`next: false`), a tényleges állapotváltás helyett megnyílik a megerősítő ablak (`unpayTargetId` state); "mégse" bezárja változtatás nélkül, "igen, nem fizetett be" végrehajtja a kikapcsolást és bezárja az ablakot. **Bekapcsolásnál (nem fizetettről fizetettre) nincs megerősítés** — csak a "már fizetett" állapot visszavonása igényel rákérdezést.
+
+**Tervezési döntés, dokumentálva:** ez a szabály csak a LISTA sorainak kapcsolóira vonatkozik (már mentett/létező ügyfelek), NEM az "új ügyfél felvétele" űrlap kapcsolójára — ott még csak egy be nem küldött piszkozat-értéket állítunk, nincs mit "visszavonni".
+
+**Tesztelve böngészőben:** asztali (1280px) és mobil (375px) — a lista sorai most 4 elemesek, jelvények nélkül; egy fizetett ügyfél (Péter) kapcsolójának kikapcsolására felugrik "Tényleg nem fizetett be?"; "mégse" gombra a kapcsoló változatlanul BE marad; újra próbálva "igen, nem fizetett be"-re a kapcsoló ténylegesen KI-ra vált; egy nem fizetett ügyfél (Tóth Eszter) bekapcsolása azonnali, felugró ablak nélkül. Konzol-hiba nincs, `npm run build` hibamentes.

@@ -940,3 +940,19 @@ html[data-theme='dark'] .locked-overlay-card {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+/* --- megerősítő ablak (pl. SALES-oldal "tényleg nem fizetett be?", 2026.08.27.) --- */
+.modal-backdrop-fyb {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(26, 38, 52, 0.6);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-fyb {
+  max-width: 24rem;
+  width: 100%;
+}
