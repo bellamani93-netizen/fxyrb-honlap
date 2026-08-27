@@ -79,6 +79,11 @@
   padding: 1.75rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+/* sötét módban egy finom navy árnyék nem ad látható határt egy már sötét
+   háttéren — itt explicit szegély adja a kártya-elhatárolást (2026.08.27.) */
+html[data-theme='dark'] .card-fyb {
+  border: 1px solid var(--color-border);
+}
 .card-fyb.card-fyb-hover:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-card-hover);
@@ -441,6 +446,10 @@ html[data-theme='dark'] .signature-for-light { display: none; }
 .auth-tab.active {
   background-color: var(--color-primary);
   color: var(--color-primary-contrast);
+}
+.auth-tab:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 .auth-tabs-sm {
   padding: 0.15rem;

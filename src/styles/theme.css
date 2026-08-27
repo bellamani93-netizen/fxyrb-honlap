@@ -43,14 +43,20 @@
 
 html[data-theme='dark'] {
   --color-bg: var(--navy);
-  --color-bg-alt: #212F3F; /* kártyákhoz egy árnyalattal világosabb */
+  /* Világos módban egy kis árnyalat-különbség is jól látszik, sötétben nem —
+     ezért itt (2026.08.27., kontraszt-átvizsgálás) egyértelműen lépcsőzetes
+     "emelkedő" skála: bg < surface < bg-alt < border, minden lépés jól
+     megkülönböztethető a szomszédjától. Korábban --color-bg-alt és
+     --color-surface színe MEGEGYEZETT, ezért minden rájuk épülő elem
+     (jelvény-háttér, pirula-sáv stb.) láthatatlan volt kártyán belül. */
+  --color-bg-alt: #2C3E52;
   --color-surface: #212F3F;
   --color-text: var(--offwhite);
   --color-text-muted: #9BB6B5; /* világosított sagegray — a sima #5E807F nem ad elég kontrasztot navy háttéren */
   --color-primary: var(--mint);
   --color-primary-contrast: var(--navy);
   --color-secondary: var(--sagegray);
-  --color-border: #2E3D4F;
+  --color-border: #44586F;
   --color-highlight-bg: transparent;
   --color-highlight-text: var(--lime);
 }

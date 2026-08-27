@@ -381,7 +381,17 @@ function TraitRow({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-function VariablesPanel({ variables, onChange }: { variables: ClientVariables; onChange: (v: ClientVariables) => void }) {
+function VariablesPanel({
+  variables,
+  onChange,
+  locked,
+  onLockedChange,
+}: {
+  variables: ClientVariables
+  onChange: (v: ClientVariables) => void
+  locked: boolean
+  onLockedChange: (locked: boolean) => void
+}) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -390,7 +400,12 @@ function VariablesPanel({ variables, onChange }: { variables: ClientVariables; o
         type="button"
         className="d-flex align-items-center gap-2 flex-wrap w-100 text-start"
         style={{ background: 'none', border: 'none', padding: 0, marginBottom: expanded ? '0.5rem' : 0 }}
-        onClick={() => setExpanded((e) => !e)}
+        onClick={() => {
+          const next = !expanded
+          setExpanded(next)
+          // becsukáskor, ha még nem volt mentve, automatikusan mentse
+          if (!next && !locked) onLockedChange(true)
+        }}
       >
         <Icon src="/icons/ikon_beallitasok.svg" />
         <strong>limitációk</strong>
@@ -401,46 +416,46 @@ function VariablesPanel({ variables, onChange }: { variables: ClientVariables; o
       {expanded && (
         <>
       <TraitRow label="fájdalom helye">
-        <button type="button" className={`auth-tab ${variables.painLocation === 'also' ? 'active' : ''}`} onClick={() => onChange({ ...variables, painLocation: 'also' })}>
+        <button type="button" disabled={locked} className={`auth-tab ${variables.painLocation === 'also' ? 'active' : ''}`} onClick={() => onChange({ ...variables, painLocation: 'also' })}>
           alsó lumbális
         </button>
-        <button type="button" className={`auth-tab ${variables.painLocation === 'felso' ? 'active' : ''}`} onClick={() => onChange({ ...variables, painLocation: 'felso' })}>
+        <button type="button" disabled={locked} className={`auth-tab ${variables.painLocation === 'felso' ? 'active' : ''}`} onClick={() => onChange({ ...variables, painLocation: 'felso' })}>
           felső lumbális / háti
         </button>
       </TraitRow>
 
       <TraitRow label="hason fekvés kivitelezhető">
-        <button type="button" className={`auth-tab ${variables.proneOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, proneOk: true })}>
+        <button type="button" disabled={locked} className={`auth-tab ${variables.proneOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, proneOk: true })}>
           igen
         </button>
-        <button type="button" className={`auth-tab ${!variables.proneOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, proneOk: false })}>
+        <button type="button" disabled={locked} className={`auth-tab ${!variables.proneOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, proneOk: false })}>
           nem
         </button>
       </TraitRow>
 
       <TraitRow label="váll feletti kartartás lehetséges">
-        <button type="button" className={`auth-tab ${variables.shoulderOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, shoulderOk: true })}>
+        <button type="button" disabled={locked} className={`auth-tab ${variables.shoulderOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, shoulderOk: true })}>
           igen
         </button>
-        <button type="button" className={`auth-tab ${!variables.shoulderOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, shoulderOk: false })}>
+        <button type="button" disabled={locked} className={`auth-tab ${!variables.shoulderOk ? 'active' : ''}`} onClick={() => onChange({ ...variables, shoulderOk: false })}>
           nem
         </button>
       </TraitRow>
 
       <TraitRow label="térdfájdalom (négykézláb helyzetekhez)">
-        <button type="button" className={`auth-tab ${variables.kneePain ? 'active' : ''}`} onClick={() => onChange({ ...variables, kneePain: true })}>
+        <button type="button" disabled={locked} className={`auth-tab ${variables.kneePain ? 'active' : ''}`} onClick={() => onChange({ ...variables, kneePain: true })}>
           van
         </button>
-        <button type="button" className={`auth-tab ${!variables.kneePain ? 'active' : ''}`} onClick={() => onChange({ ...variables, kneePain: false })}>
+        <button type="button" disabled={locked} className={`auth-tab ${!variables.kneePain ? 'active' : ''}`} onClick={() => onChange({ ...variables, kneePain: false })}>
           nincs
         </button>
       </TraitRow>
 
       <TraitRow label="magas vérnyomás">
-        <button type="button" className={`auth-tab ${variables.highBloodPressure ? 'active' : ''}`} onClick={() => onChange({ ...variables, highBloodPressure: true })}>
+        <button type="button" disabled={locked} className={`auth-tab ${variables.highBloodPressure ? 'active' : ''}`} onClick={() => onChange({ ...variables, highBloodPressure: true })}>
           van
         </button>
-        <button type="button" className={`auth-tab ${!variables.highBloodPressure ? 'active' : ''}`} onClick={() => onChange({ ...variables, highBloodPressure: false })}>
+        <button type="button" disabled={locked} className={`auth-tab ${!variables.highBloodPressure ? 'active' : ''}`} onClick={() => onChange({ ...variables, highBloodPressure: false })}>
           nincs
         </button>
       </TraitRow>
@@ -450,6 +465,17 @@ function VariablesPanel({ variables, onChange }: { variables: ClientVariables; o
           megjegyzés a checklist-fázishoz: magas vérnyomásnál a napi megtartás-idő maximuma 4 mp (a szokásos 10 mp helyett).
         </p>
       )}
+
+      <div className="d-flex justify-content-end mt-3">
+        <button
+          type="button"
+          className={`btn-fyb ${locked ? 'btn-fyb-outline' : 'btn-fyb-primary'}`}
+          style={{ padding: '0.5rem 1.25rem' }}
+          onClick={() => onLockedChange(!locked)}
+        >
+          {locked ? 'módosítás' : 'mentés'}
+        </button>
+      </div>
         </>
       )}
     </div>
@@ -465,6 +491,16 @@ export default function GytVideokiosztas() {
   const [variables, setVariables] = useState(initialVariables)
   const clientVariables = variables[clientId]
   const suggested = suggestedSequence(clientVariables)
+
+  // A limitációk alapból "mentett" (rögzített) állapotban indulnak minden klienshez —
+  // ezek már korábban felvett adatok, nem üres űrlapok. Módosításhoz elő kell hívni.
+  const [variablesLockedByClient, setVariablesLockedByClient] = useState(() => {
+    const map: Record<string, boolean> = {}
+    for (const c of clients) map[c.id] = true
+    return map
+  })
+  const variablesLocked = variablesLockedByClient[clientId]
+  const setVariablesLocked = (locked: boolean) => setVariablesLockedByClient((prev) => ({ ...prev, [clientId]: locked }))
 
   const [levelsByClient, setLevelsByClient] = useState(() => {
     const map: Record<string, GytLevel[]> = {}
@@ -519,7 +555,12 @@ export default function GytVideokiosztas() {
           </div>
         </div>
 
-        <VariablesPanel variables={clientVariables} onChange={(v) => setVariables((prev) => ({ ...prev, [clientId]: v }))} />
+        <VariablesPanel
+          variables={clientVariables}
+          onChange={(v) => setVariables((prev) => ({ ...prev, [clientId]: v }))}
+          locked={variablesLocked}
+          onLockedChange={setVariablesLocked}
+        />
 
         {client.mode === 'kozben' && (() => {
           // A GYT csak a 2 legutóbb kiosztott szintet javíthatja utólag — a korábbiakat nem,
