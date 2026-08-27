@@ -1040,3 +1040,17 @@ html[data-theme='dark'] .sales-delete-icon {
   text-transform: lowercase;
   white-space: nowrap;
 }
+
+/* --- GYT: "válassz ügyfelet" figyelmeztető sáv (2026.08.27.) --- */
+.select-client-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1.1rem;
+  border-radius: var(--radius-card);
+  background-color: rgba(201, 154, 46, 0.15);
+  border: 1px solid var(--color-warning);
+  color: var(--color-text);
+  font-weight: 700;
+}
+.select-client-notice .icon-fyb { color: var(--color-warning); }

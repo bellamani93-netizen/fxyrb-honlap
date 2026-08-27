@@ -1,10 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { clients, setSelectedClientId } from '../data/gytClients'
+import Icon from '../components/Icon'
+import { clients, getSelectedClientId, setSelectedClientId } from '../data/gytClients'
 
 export default function GytUgyfelek() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  // ha nincs kiválasztott ügyfél (első belépés, vagy egy másik almenüről
+  // idekerülve, mert még nem volt kiválasztás), erre hívjuk fel a figyelmet —
+  // ez a jelzés csak az induló állapotot mutatja, egy választás után eltűnik
+  const [noSelection] = useState(() => getSelectedClientId() === null)
 
   function choose(id: string) {
     setSelectedClientId(id)
@@ -19,6 +24,14 @@ export default function GytUgyfelek() {
         <div className="app-page-header mb-3">
           <h1 className="app-page-title mb-0">ügyfeleim</h1>
         </div>
+
+        {noSelection && (
+          <div className="select-client-notice mb-3">
+            <Icon src="/icons/ikon_csengo.svg" style={{ width: '1.4rem', height: '1.4rem', flexShrink: 0 }} />
+            <span>kivel dolgozunk? válassz ügyfelet a listából!</span>
+          </div>
+        )}
+
         <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>
           válaszd ki, melyik ügyféllel szeretnél most dolgozni — a további almenük (videókiosztás, dokumentáció stb.) innentől erre az ügyfélre vonatkoznak.
         </p>

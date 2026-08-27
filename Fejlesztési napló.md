@@ -724,3 +724,17 @@ Marci visszajelzése: ha adminként (Értékes Eszter nevében) új ügyfelet ve
 - Nincs megerősítő ablak az új ügyfél felvételéhez — a létrehozás normál felhasználónál sem igényel rákérdezést, ezért admin-nézetben sem indokolt, csak a jelző címke hiányzott.
 
 **Tesztelve böngészőben:** admin-nézetben (Értékes Eszter nevében) új ügyfél felvétele után a listában megjelenik a piros "admin által felvéve" címke a sor alatt, mind mobil (375px), mind az adat szintjén (a rács mindkét — asztali és mobil — variánsa egyaránt kirenderel); egy VALÓDI (nem-admin) Értékes Eszter-belépéssel felvett új ügyfélnél nem jelenik meg semmilyen címke. Konzol-hiba nincs, `npm run build` hibamentes.
+
+## 2026.08.27. — GYT: kötelező ügyfél-választás, fallback törölve
+
+Marci jelezte: ha a GYT még nem választott ki ügyfelet (ez az alapállapot), és mégis egy másik almenüre (pl. videókiosztás) kattint, a rendszer csendben egy alapértelmezett ügyféllel dolgozik tovább — ehelyett vagy irányítsa át automatikusan az "ügyfeleim" oldalra, vagy jelenjen meg egy "kivel dolgozunk? válassz ügyfelet!" felugró ablak (OK gombbal az ügyfeleim fülre, vagy X-szel bezárva). Megkérdezte a véleményemet.
+
+**Ajánlásom, amit Marci elfogadott:** az automatikus átirányítás jobb, mint egy modal — eggyel kevesebb kattintás (nincs külön "OK" a modalon), és nincs vele az a bizonytalanság, hogy mi történik, ha valaki a modalt X-szel, választás nélkül zárja be. Az átirányított oldalon egy rövid üzenet jelzi, miért került oda a felhasználó, hogy az átirányítás ne legyen zavaróan "néma".
+
+**Megvalósítás:**
+- `src/data/gytClients.ts`: `getSelectedClientId()` visszatérési típusa `string` → `string | null`. A korábbi "nincs mentett érték esetén az első ügyfélre esik vissza" fallback törölve — ez csak dev-kényelemből származott, nem tervezett viselkedés volt. `null`, ha nincs `localStorage`-érték, VAGY ha a mentett id már nem létező ügyfélre mutat.
+- `src/pages/GytVideokiosztas.tsx`: a komponens kettévált — a külső `GytVideokiosztas` csak a `clientId`-t olvassa és `useEffect`-ben átirányít az "ügyfeleim" oldalra (`navigate('/gyt/ugyfelek', { replace: true })`), ha `null`; a tényleges, sok saját state-et/hookot használó tartalom egy `GytVideokiosztasInner({ clientId: string })` komponensbe került, ami csak érvényes `clientId` esetén mountol. Ez elkerüli a feltételes hook-hívás problémáját (React hook-szabályok).
+- `src/pages/GytUgyfelek.tsx`: ha nincs érvényes kiválasztás, egy `.select-client-notice` sáv jelenik meg a lista fölött (csengő-ikon + "kivel dolgozunk? válassz ügyfelet a listából!" szöveg, borostyánsárga `--color-warning` kerettel/háttérrel) — ugyanígy megjelenik akkor is, ha valaki közvetlenül az "ügyfeleim" menüpontra kattint először, nem csak átirányításkor, mert az ok mindkét esetben azonos. Egy választás után a sáv véglegesen eltűnik.
+- Új CSS: `.select-client-notice` (`src/styles/components.css`).
+
+**Tesztelve böngészőben:** kiválasztott ügyfél nélkül (`fyb-gyt-client` törölve) a `/gyt/videokiosztas` közvetlen megnyitása azonnal a `/gyt/ugyfelek`-re irányít, a figyelmeztető sávval; ügyfél kiválasztása után a videókiosztás oldal a választott ügyféllel töltődik be, a sáv pedig utána sem az "ügyfeleim", sem semmilyen más oldalon nem jelenik meg újra; admin-nézetben (kolléga nevében, kiválasztott ügyfél nélkül) az átirányítás és a figyelmeztető sáv az admin-banner mellett is helyesen, egyszerre jelenik meg. Konzol-hiba nincs, `npm run build` hibamentes.

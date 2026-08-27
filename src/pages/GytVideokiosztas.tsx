@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { EXERCISES, type ExerciseCode, type ClientVariables, suggestedSequence } from '../data/tornaSzintek'
 import { clients, codeLabel, initialVariables, getSelectedClientId, type GytLevel, type LevelState } from '../data/gytClients'
@@ -422,8 +423,21 @@ function VariablesPanel({
   )
 }
 
+// ha még nincs (érvényesen) kiválasztott ügyfél, ne a fallback első ügyféllel
+// dolgozzunk — irányítsuk a GYT-et az "ügyfeleim" oldalra, ott válasszon
 export default function GytVideokiosztas() {
+  const navigate = useNavigate()
   const [clientId] = useState(getSelectedClientId)
+
+  useEffect(() => {
+    if (!clientId) navigate('/gyt/ugyfelek', { replace: true })
+  }, [clientId, navigate])
+
+  if (!clientId) return null
+  return <GytVideokiosztasInner clientId={clientId} />
+}
+
+function GytVideokiosztasInner({ clientId }: { clientId: string }) {
   const client = clients.find((c) => c.id === clientId)!
 
   const [variables, setVariables] = useState(initialVariables)

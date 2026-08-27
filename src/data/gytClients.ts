@@ -79,8 +79,13 @@ export const initialVariables: Record<string, ClientVariables> = {
 
 const SELECTED_CLIENT_KEY = 'fyb-gyt-client'
 
-export function getSelectedClientId(): string {
-  return localStorage.getItem(SELECTED_CLIENT_KEY) ?? clients[0].id
+// null = nincs (érvényesen) kiválasztott ügyfél — a hívónak ilyenkor az
+// "ügyfeleim" oldalra kell irányítania, NEM szabad automatikusan az első
+// ügyfélre esni (ld. Design jegyzet 15. pont korábbi fallback-je, amit ez a
+// pontosítás vált fel: a fallback csak dev-kényelem volt, nem tervezett UX)
+export function getSelectedClientId(): string | null {
+  const id = localStorage.getItem(SELECTED_CLIENT_KEY)
+  return id && clients.some((c) => c.id === id) ? id : null
 }
 
 export function setSelectedClientId(id: string) {
