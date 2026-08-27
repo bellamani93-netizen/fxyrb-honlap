@@ -1013,3 +1013,30 @@ html[data-theme='dark'] .locked-overlay-card {
 html[data-theme='dark'] .sales-delete-icon {
   color: #FF4FA3;
 }
+
+/* --- ADMIN: "belépés a kolléga nevében" sáv + "admin által módosítva" címke
+   (2026.08.27., 4. fázis) --- */
+.admin-view-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.65rem 1.25rem;
+  background-color: rgba(193, 91, 74, 0.15);
+  border-bottom: 2px solid var(--color-danger);
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+.admin-modified-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-danger);
+  color: var(--offwhite);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: lowercase;
+  white-space: nowrap;
+}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Icon from '../components/Icon'
 import { EXERCISES, type ExerciseCode, type ClientVariables, suggestedSequence } from '../data/tornaSzintek'
 import { clients, codeLabel, initialVariables, getSelectedClientId, type GytLevel, type LevelState } from '../data/gytClients'
+import { useAdminEditGuard, AdminModifiedBadge } from '../hooks/useAdminEditGuard'
 
 const VIDEOS = (Object.keys(EXERCISES) as ExerciseCode[]).map((code) => `${code} ${EXERCISES[code].name}`)
 
@@ -91,11 +92,13 @@ function LevelRow({
   suggested,
   editable,
   onAssign,
+  modified,
 }: {
   level: GytLevel
   suggested?: string
   editable?: boolean
   onAssign?: (video: string) => void
+  modified?: boolean
 }) {
   const [expanded, setExpanded] = useState(false)
   const [correcting, setCorrecting] = useState(false)
@@ -175,6 +178,12 @@ function LevelRow({
           </span>
           {correctButton}
         </span>
+
+        {modified && (
+          <span style={{ gridColumn: '1 / -1' }}>
+            <AdminModifiedBadge />
+          </span>
+        )}
       </div>
 
       {/* mobil: összecsukva — szint az elején, ikon a végén, a kód/javaslat középen, arányosan elosztva ("sorkizárt") */}
@@ -195,6 +204,7 @@ function LevelRow({
               <span className={`status-chip ${statusClass}`}>{statusLabel}</span>
               {correctButton}
             </span>
+            {modified && <AdminModifiedBadge />}
           </div>
         )}
       </div>
@@ -209,6 +219,7 @@ function VideoPickerRow({
   suggested,
   onAssign,
   onNoteChange,
+  modified,
 }: {
   label: string
   assigned: string | null
@@ -216,6 +227,7 @@ function VideoPickerRow({
   suggested?: string
   onAssign: (video: string) => void
   onNoteChange?: (note: string) => void
+  modified?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [showNoteInput, setShowNoteInput] = useState(!!note)
@@ -235,6 +247,7 @@ function VideoPickerRow({
         <span className="d-flex align-items-center gap-2 fw-bold">
           <AssignmentDot done={!!assigned} />
           {label}
+          {modified && <AdminModifiedBadge />}
         </span>
         <div className="d-flex align-items-center gap-2 flex-wrap">
           {suggested && !assigned && (
@@ -310,11 +323,13 @@ function VariablesPanel({
   onChange,
   locked,
   onLockedChange,
+  modified,
 }: {
   variables: ClientVariables
   onChange: (v: ClientVariables) => void
   locked: boolean
   onLockedChange: (locked: boolean) => void
+  modified?: boolean
 }) {
   const [expanded, setExpanded] = useState(false)
 
@@ -334,6 +349,7 @@ function VariablesPanel({
         <Icon src="/icons/ikon_beallitasok.svg" />
         <strong>limitációk</strong>
         <span className="small" style={{ color: 'var(--color-text-muted)' }}>(ideiglenes — a felvételi kérdőívig kézzel állítva, egyszer az elején)</span>
+        {modified && <AdminModifiedBadge />}
         <span className="level-select-chevron ms-auto" style={{ transform: expanded ? 'rotate(180deg)' : 'none' }}>▾</span>
       </button>
 
@@ -435,6 +451,8 @@ export default function GytVideokiosztas() {
 
   const [bulk, setBulk] = useState(() => clients.find((c) => c.id === 'peter')!.bulkLevels!)
 
+  const { guard: adminGuard, isModified, modal: adminModal } = useAdminEditGuard('gyt')
+
   return (
     <section className="py-3 py-lg-5">
       <div className="container-fluid" style={{ maxWidth: 900 }}>
@@ -445,9 +463,10 @@ export default function GytVideokiosztas() {
 
         <VariablesPanel
           variables={clientVariables}
-          onChange={(v) => setVariables((prev) => ({ ...prev, [clientId]: v }))}
+          onChange={(v) => adminGuard('limitaciok', () => setVariables((prev) => ({ ...prev, [clientId]: v })))}
           locked={variablesLocked}
           onLockedChange={setVariablesLocked}
+          modified={isModified('limitaciok')}
         />
 
         {client.mode === 'kozben' && (() => {
@@ -467,11 +486,12 @@ export default function GytVideokiosztas() {
                   level={l}
                   suggested={l.state === 'nyitva' && suggested[l.num - 1] ? codeLabel(suggested[l.num - 1]) : undefined}
                   editable={editableNums.has(l.num)}
+                  modified={isModified(`level-${l.num}`)}
                   onAssign={
                     l.state === 'nyitva'
-                      ? (video) => setLevels((prev) => prev.map((x) => (x.num === l.num ? { ...x, video, state: 'lezart' as LevelState } : x)))
+                      ? (video) => adminGuard(`level-${l.num}`, () => setLevels((prev) => prev.map((x) => (x.num === l.num ? { ...x, video, state: 'lezart' as LevelState } : x))))
                       : editableNums.has(l.num)
-                        ? (video) => setLevels((prev) => prev.map((x) => (x.num === l.num ? { ...x, video } : x)))
+                        ? (video) => adminGuard(`level-${l.num}`, () => setLevels((prev) => prev.map((x) => (x.num === l.num ? { ...x, video } : x))))
                         : undefined
                   }
                 />
@@ -511,11 +531,15 @@ export default function GytVideokiosztas() {
                 type="button"
                 className="btn-fyb btn-fyb-ghost mb-2"
                 onClick={() =>
-                  setBulk((prev) =>
-                    prev.map((b) => {
-                      const code = suggested[b.num - 1]
-                      return code ? { ...b, video: codeLabel(code) } : b
-                    })
+                  adminGuard(
+                    bulk.map((b) => `bulk-${b.num}`),
+                    () =>
+                      setBulk((prev) =>
+                        prev.map((b) => {
+                          const code = suggested[b.num - 1]
+                          return code ? { ...b, video: codeLabel(code) } : b
+                        })
+                      )
                   )
                 }
               >
@@ -529,8 +553,9 @@ export default function GytVideokiosztas() {
                     label={`${b.num}. szint`}
                     assigned={b.video}
                     note={b.note}
-                    onAssign={(video) => setBulk((prev) => prev.map((x) => (x.num === b.num ? { ...x, video } : x)))}
-                    onNoteChange={(note) => setBulk((prev) => prev.map((x) => (x.num === b.num ? { ...x, note } : x)))}
+                    modified={isModified(`bulk-${b.num}`)}
+                    onAssign={(video) => adminGuard(`bulk-${b.num}`, () => setBulk((prev) => prev.map((x) => (x.num === b.num ? { ...x, video } : x))))}
+                    onNoteChange={(note) => adminGuard(`bulk-${b.num}`, () => setBulk((prev) => prev.map((x) => (x.num === b.num ? { ...x, note } : x))))}
                   />
                 ))}
               </div>
@@ -541,6 +566,8 @@ export default function GytVideokiosztas() {
             </div>
           </>
         )}
+
+        {adminModal}
       </div>
     </section>
   )

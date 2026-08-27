@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { NavLink, Outlet, Link } from 'react-router-dom'
+import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
 import Icon from './Icon'
+import { getAdminView, setAdminView } from '../hooks/useAdminEditGuard'
 
 export type NavItem = {
   to?: string
@@ -28,6 +29,12 @@ type AppLayoutProps = {
 
 function sessionName(role: 'ugyfel' | 'gyt' | 'sales' | 'admin' | undefined, fallback: string): string {
   if (!role) return fallback
+  // ha az admin épp egy kolléga nevében néz egy GYT/SALES oldalt, a köszöntés
+  // is az Ő nevét mutassa — pontosan azt kell látnia, amit a kolléga is látna
+  if (role === 'gyt' || role === 'sales') {
+    const view = getAdminView()
+    if (view && view.role === role) return view.name
+  }
   try {
     const raw = localStorage.getItem('fyb-session')
     if (!raw) return fallback
@@ -39,8 +46,16 @@ function sessionName(role: 'ugyfel' | 'gyt' | 'sales' | 'admin' | undefined, fal
 }
 
 export default function AppLayout({ navItems = ufNavItems, userName = 'Péter', role }: AppLayoutProps) {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const displayName = sessionName(role, userName)
+  const adminView = (role === 'gyt' || role === 'sales') ? getAdminView() : null
+  const isAdminImpersonating = !!adminView && adminView.role === role
+
+  function exitAdminView() {
+    setAdminView(null)
+    navigate('/admin/munkatarsak')
+  }
 
   return (
     <div className="app-shell">
@@ -102,6 +117,7 @@ export default function AppLayout({ navItems = ufNavItems, userName = 'Péter', 
               setOpen(false)
               localStorage.removeItem('fyb-session')
               localStorage.removeItem('fyb-gyt-client')
+              setAdminView(null)
             }}
           >
             <Icon src="/icons/ikon_vissza.svg" />
@@ -115,6 +131,14 @@ export default function AppLayout({ navItems = ufNavItems, userName = 'Péter', 
       </aside>
 
       <main className="app-main">
+        {isAdminImpersonating && (
+          <div className="admin-view-banner">
+            <span>admin nézet — éppen <strong>{adminView!.name}</strong> felületét látod</span>
+            <button type="button" className="btn-fyb btn-fyb-outline" style={{ padding: '0.3rem 0.9rem', fontSize: '0.8rem' }} onClick={exitAdminView}>
+              kilépés az admin nézetből
+            </button>
+          </div>
+        )}
         <Outlet />
       </main>
     </div>

@@ -17,7 +17,7 @@ const ROLE_PATH: Record<Role, string> = {
   ugyfel: '/gyakorlatok',
   gyt: '/gyt/ugyfelek',
   sales: '/sales/hozzarendeles',
-  admin: '/admin/attekintes',
+  admin: '/admin/munkatarsak',
 }
 
 export default function Belepes() {

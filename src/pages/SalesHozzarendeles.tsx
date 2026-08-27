@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { GYT_STAFF, initialSalesClients, type SalesClient } from '../data/salesClients'
+import { useAdminEditGuard, AdminModifiedBadge } from '../hooks/useAdminEditGuard'
 
 function GytPicker({ assigned, onAssign }: { assigned: string | null; onAssign: (gyt: string) => void }) {
   const [open, setOpen] = useState(false)
@@ -144,6 +145,7 @@ export default function SalesHozzarendeles() {
   const [form, setForm] = useState<FormState>(emptyForm)
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [sort, setSort] = useState<SortState>(null)
+  const { active: adminActive, guard: adminGuard, isModified, modal: adminModal } = useAdminEditGuard('sales')
 
   function toggleSort(key: SortKey) {
     setSort((prev) => {
@@ -165,6 +167,13 @@ export default function SalesHozzarendeles() {
   // naptárából eltűnik az időpont), ezért csak megerősítés után lehet visszakapcsolni;
   // bekapcsolni (nem fizetettről fizetettre) megerősítés nélkül lehet.
   function handleTogglePaid(client: SalesClient, next: boolean) {
+    // admin-nézetben minden fizetés-váltás az egységes "biztosan módosítod?"
+    // ablakon megy át (a domain-specifikus "Tényleg nem fizetett be?" ablak
+    // helyett), és a sor piros "admin által módosítva" címkét kap
+    if (adminActive) {
+      adminGuard(`paid-${client.id}`, () => setPaid(client.id, next))
+      return
+    }
     if (client.paid && !next) {
       setPendingAction({ type: 'unpay', client })
       return
@@ -363,6 +372,12 @@ export default function SalesHozzarendeles() {
                     {!c.paid && <DeleteButton onClick={() => setPendingAction({ type: 'delete', client: c })} />}
                   </span>
                 </div>
+
+                {isModified(`paid-${c.id}`) && (
+                  <div className="pb-2" style={{ paddingLeft: '0.1rem' }}>
+                    <AdminModifiedBadge />
+                  </div>
+                )}
               </div>
             ))
           )}
@@ -391,6 +406,8 @@ export default function SalesHozzarendeles() {
             }}
           />
         )}
+
+        {adminModal}
       </div>
     </section>
   )
