@@ -71,6 +71,8 @@ export function useAdminEditGuard(role: 'gyt' | 'sales') {
   return { active, guard, isModified, modal }
 }
 
-export function AdminModifiedBadge() {
-  return <span className="admin-modified-badge">admin által módosítva</span>
+// label opcionálisan felülírható — pl. új elem admin általi LÉTREHOZÁSÁnál
+// "admin által felvéve" a pontosabb, nem "módosítva" (nincs mit felülírni)
+export function AdminModifiedBadge({ label = 'admin által módosítva' }: { label?: string } = {}) {
+  return <span className="admin-modified-badge">{label}</span>
 }

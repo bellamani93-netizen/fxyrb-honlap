@@ -145,6 +145,7 @@ export default function SalesHozzarendeles() {
   const [form, setForm] = useState<FormState>(emptyForm)
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [sort, setSort] = useState<SortState>(null)
+  const [adminAddedIds, setAdminAddedIds] = useState<Set<string>>(new Set())
   const { active: adminActive, guard: adminGuard, isModified, modal: adminModal } = useAdminEditGuard('sales')
 
   function toggleSort(key: SortKey) {
@@ -186,10 +187,11 @@ export default function SalesHozzarendeles() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!formValid) return
+    const id = `${Date.now()}`
     setClients((prev) => [
       ...prev,
       {
-        id: `${Date.now()}`,
+        id,
         name: form.name.trim(),
         email: form.email.trim(),
         phone: form.phone.trim(),
@@ -198,6 +200,7 @@ export default function SalesHozzarendeles() {
         paid: form.paid,
       },
     ])
+    if (adminActive) setAdminAddedIds((prev) => new Set(prev).add(id))
     setForm(emptyForm)
   }
 
@@ -373,9 +376,10 @@ export default function SalesHozzarendeles() {
                   </span>
                 </div>
 
-                {isModified(`paid-${c.id}`) && (
-                  <div className="pb-2" style={{ paddingLeft: '0.1rem' }}>
-                    <AdminModifiedBadge />
+                {(adminAddedIds.has(c.id) || isModified(`paid-${c.id}`)) && (
+                  <div className="pb-2 d-flex flex-wrap gap-2" style={{ paddingLeft: '0.1rem' }}>
+                    {adminAddedIds.has(c.id) && <AdminModifiedBadge label="admin által felvéve" />}
+                    {isModified(`paid-${c.id}`) && <AdminModifiedBadge />}
                   </div>
                 )}
               </div>

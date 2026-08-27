@@ -709,3 +709,18 @@ A feladatkör körvonalazása után (ld. előző bejegyzés) két tisztázó ké
 **Tesztelési tanulság:** a `localStorage` az origin összes lapja között megosztott — teszt közben beállított admin-nézet/session átszivárgott a felhasználó saját, hosszan nyitva tartott lapjára is; a teszt végén explicit `localStorage.removeItem(...)`-mel kellett törölni az admin-view/session/kliens kulcsokat minden érintett lapon.
 
 Ezzel a **4. fázis (ADMIN — munkatárs-felvétel, kolléga nevében belépés) lezárva.** A statisztikák feladatkör Marci döntése szerint továbbra is későbbi fázisra vár, a nav-menüben lakattal jelölve.
+
+## 2026.08.27. — Javítás: admin által felvett új SALES-ügyfél is jelölve
+
+Marci visszajelzése: ha adminként (Értékes Eszter nevében) új ügyfelet vesz fel a SALES oldalon, ahhoz nem került semmilyen "admin csinálta" jelzés — a többi admin-funkció (megerősítő ablak + piros címke a meglévő elemeken) helyesen működött.
+
+**Ok:** a `useAdminEditGuard` eredetileg csak MEGLÉVŐ adat módosítására volt bekötve (ld. előző bejegyzés) — egy teljesen új ügyfél felvétele nem ezen az útvonalon megy, ezért nem kapott jelzést.
+
+**Tisztázó kérdés és válasz:** milyen szövegű címke kerüljön az új ügyfél mellé — Marci választása: **"admin által felvéve"** (nem az általános "admin által módosítva", mert ez létrehozás, nem egy meglévő érték felülírása).
+
+**Megvalósítás:**
+- `AdminModifiedBadge` (`useAdminEditGuard.tsx`) mostantól opcionális `label` propot fogad, alapértelmezetten "admin által módosítva".
+- `SalesHozzarendeles.tsx`: új `adminAddedIds` (`Set<string>`) állapot — `handleSubmit`-ben, ha `adminActive`, az újonnan létrehozott ügyfél id-je bekerül ide. A lista soraiban a piros címke-sor mostantól mindkét feltételt figyeli (`adminAddedIds.has(id)` VAGY a meglévő `isModified('paid-...')`), és a megfelelő szövegű címkét (vagy akár mindkettőt egymás mellett) jeleníti meg.
+- Nincs megerősítő ablak az új ügyfél felvételéhez — a létrehozás normál felhasználónál sem igényel rákérdezést, ezért admin-nézetben sem indokolt, csak a jelző címke hiányzott.
+
+**Tesztelve böngészőben:** admin-nézetben (Értékes Eszter nevében) új ügyfél felvétele után a listában megjelenik a piros "admin által felvéve" címke a sor alatt, mind mobil (375px), mind az adat szintjén (a rács mindkét — asztali és mobil — variánsa egyaránt kirenderel); egy VALÓDI (nem-admin) Értékes Eszter-belépéssel felvett új ügyfélnél nem jelenik meg semmilyen címke. Konzol-hiba nincs, `npm run build` hibamentes.
