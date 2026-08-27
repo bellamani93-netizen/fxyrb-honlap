@@ -276,8 +276,8 @@ export default function SalesHozzarendeles() {
             <span>név</span>
             <span>email</span>
             <span>kezdés</span>
-            <span>gyógytornász</span>
-            <span>befizetett</span>
+            <span>gyt</span>
+            <span>fizetve</span>
           </div>
 
           {/* mobil fejléc — kevesebb oszlop, mert a név+dátum egy blokkba van vonva */}
@@ -286,8 +286,8 @@ export default function SalesHozzarendeles() {
             style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
           >
             <span>ügyfél</span>
-            <span>gyógytornász</span>
-            <span>befizetett</span>
+            <span>gyt</span>
+            <span>fizetve</span>
           </div>
 
           {filtered.length === 0 ? (

@@ -602,3 +602,9 @@ Marci két utolsó pontosítást kért: az azonos típusú elemek (ugyanaz az os
 **Megvalósítás — rövidebb gomb:** a "Tényleg nem fizetett be?" ablak megerősítő gombjának szövege `"igen, nem fizetett be"` → `"tényleg nem"`-re rövidítve (a törlés-megerősítés "igen, törlöm" szövege változatlan maradt, azt Marci nem érintette).
 
 **Tesztelve böngészőben:** asztali (1280px) — JS-méréssel minden sor 5 oszlopa pixelpontosan azonos x-pozícióban kezdődik (`[355,511,699,855,995]` minden sorban). Mobil (375px) — a 3 oszlop szintén pixelpontosan illeszkedik minden sorban (`[34,173,277]`), a fejléc-címkék már nem lógnak egymásba; a megerősítő ablak gombja "tényleg nem" szöveggel jelenik meg. Konzol-hiba nincs, `npm run build` hibamentes.
+
+## 2026.08.27. — Lista fejléc-szövegek rövidítve
+
+Marci kérése: a lista fejléc-sorában "gyógytornász" → "gyt", "befizetett" → "fizetve". Csak a lista OSZLOP-FEJLÉCEIT érinti (asztali és mobil fejléc-sor egyaránt) — az "új ügyfél felvétele" ŰRLAP mezőcímkéi ("gyógytornász", "befizetett") változatlanul a teljes szót használják, mivel a Marci kérése kifejezetten "címsor"-ra (a lista fejléc-sorára) vonatkozott, nem az űrlapra.
+
+**Tesztelve böngészőben:** asztali és mobil nézetben egyaránt a lista fejléce most "gyt" és "fizetve" feliratot mutat, az adat-oszlopok (a teljes gyógytornász-nevek, pl. "Kollé Gábor") változatlanul, a korábban rögzített fix oszlopszélességben jelennek meg — a rövidebb fejléc-szöveg nem okoz újabb illesztési problémát (csak ürül a hely a fejléc-cellában, ami harmlessen). Az űrlap mezőcímkéi nem változtak. Konzol-hiba nincs, `npm run build` hibamentes.
