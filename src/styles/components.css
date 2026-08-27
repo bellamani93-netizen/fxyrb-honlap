@@ -980,10 +980,19 @@ html[data-theme='dark'] .locked-overlay-card {
   display: grid;
   grid-template-columns: 1fr 8rem 4rem;
   align-items: center;
-  column-gap: 0.5rem;
+  column-gap: 0.35rem;
 }
 @media (min-width: 992px) {
   .sales-row-grid-mobile {
     display: none;
   }
+}
+
+.sales-delete-icon {
+  color: var(--color-danger);
+}
+/* sötét módban élénkebb pirosra vált a jobb kontraszt miatt — a semleges
+   --color-danger navy háttéren nem elég feltűnő (2026.08.27.) */
+html[data-theme='dark'] .sales-delete-icon {
+  color: #FF5C4D;
 }

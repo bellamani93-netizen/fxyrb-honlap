@@ -80,7 +80,7 @@ function DeleteButton({ onClick }: { onClick: () => void }) {
       aria-label="ügyfél törlése"
       style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}
     >
-      <Icon src="/icons/ikon_kuka.svg" style={{ width: '1.15rem', height: '1.15rem', color: 'var(--color-danger)' }} />
+      <Icon src="/icons/ikon_kuka.svg" className="sales-delete-icon" style={{ width: '1.15rem', height: '1.15rem' }} />
     </button>
   )
 }
@@ -303,7 +303,7 @@ export default function SalesHozzarendeles() {
                   <span className="small" style={{ color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
                     {c.assignedGyt ?? '—'}
                   </span>
-                  <span className="d-flex align-items-center gap-2">
+                  <span className="d-flex align-items-center gap-3">
                     <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
                     {!c.paid && <DeleteButton onClick={() => setPendingAction({ type: 'delete', client: c })} />}
                   </span>
@@ -318,7 +318,7 @@ export default function SalesHozzarendeles() {
                   <span className="small" style={{ color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
                     {c.assignedGyt ?? '—'}
                   </span>
-                  <span className="d-flex align-items-center gap-2">
+                  <span className="d-flex align-items-center gap-3">
                     <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
                     {!c.paid && <DeleteButton onClick={() => setPendingAction({ type: 'delete', client: c })} />}
                   </span>

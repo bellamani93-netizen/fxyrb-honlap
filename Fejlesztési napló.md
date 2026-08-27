@@ -608,3 +608,14 @@ Marci két utolsó pontosítást kért: az azonos típusú elemek (ugyanaz az os
 Marci kérése: a lista fejléc-sorában "gyógytornász" → "gyt", "befizetett" → "fizetve". Csak a lista OSZLOP-FEJLÉCEIT érinti (asztali és mobil fejléc-sor egyaránt) — az "új ügyfél felvétele" ŰRLAP mezőcímkéi ("gyógytornász", "befizetett") változatlanul a teljes szót használják, mivel a Marci kérése kifejezetten "címsor"-ra (a lista fejléc-sorára) vonatkozott, nem az űrlapra.
 
 **Tesztelve böngészőben:** asztali és mobil nézetben egyaránt a lista fejléce most "gyt" és "fizetve" feliratot mutat, az adat-oszlopok (a teljes gyógytornász-nevek, pl. "Kollé Gábor") változatlanul, a korábban rögzített fix oszlopszélességben jelennek meg — a rövidebb fejléc-szöveg nem okoz újabb illesztési problémát (csak ürül a hely a fejléc-cellában, ami harmlessen). Az űrlap mezőcímkéi nem változtak. Konzol-hiba nincs, `npm run build` hibamentes.
+
+## 2026.08.27. — Finomhangolt térközök, élénkpiros kuka-ikon sötét módban
+
+Marci három apró finomítást kért: a checkbox és a kuka-ikon között legyen nagyobb tér; a mobil "ügyfél" és "gyt" oszlop között legyen kisebb; a kuka-ikon sötét módban legyen élénkpiros a jobb kontraszt miatt (a semleges `--color-danger` navy háttéren nem elég feltűnő).
+
+**Megvalósítás:**
+- A checkbox+kuka-ikon közös cellájának belső `gap-2` (0.5rem) → `gap-3` (1rem)-re nőtt, mind az asztali, mind a mobil sorban.
+- A mobil rács (`.sales-row-grid-mobile`) `column-gap`-je `0.5rem` → `0.35rem`-re csökkent — ez az "ügyfél" és "gyt" oszlop közti teret (és vele együtt a "gyt"–"fizetve" közöttit is, mivel egy CSS Grid `column-gap`-je minden oszlopközre egyformán vonatkozik) szűkíti.
+- **Kuka-ikon színezése CSS-re költöztetve:** korábban a `DeleteButton` inline `style`-jában volt a `color: var(--color-danger)`, ami — mivel az inline stílus mindig felülírja a külső CSS-t, függetlenül a szelektor specifikusságától — lehetetlenné tette volna egy `html[data-theme='dark'] .sales-delete-icon`-szerű felülírást. Megoldás: a szín kikerült egy új `.sales-delete-icon` CSS-osztályba (`color: var(--color-danger)` alapból), amit a `html[data-theme='dark'] .sales-delete-icon` szabály `#FF5C4D`-re (élénkpiros) módosít. **Ez a buktató (inline style nem írható felül külső, akár attribútum-szelektoros CSS-szabállyal sem) minden további "sötét módban más szín" jellegű igénynél felmerülhet** — a színt mindig CSS-osztályba kell tenni, sosem inline style-ba, ha várhatóan lesz rá mód/állapot-alapú felülírás.
+
+**Tesztelve böngészőben:** JS-méréssel a checkbox–kuka gap 16px (korábban 8px), a mobil "ügyfél"–"gyt" oszlopköz 5.6px (korábban 8px); sötét módban a kuka-ikon számított színe `rgb(255, 92, 77)` (#FF5C4D), világos módban változatlanul a semleges `--color-danger` (#C15B4A). Konzol-hiba nincs, `npm run build` hibamentes.
