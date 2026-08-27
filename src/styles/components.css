@@ -17,6 +17,11 @@
   text-decoration: none;
 }
 .btn-fyb:hover { transform: translateY(-1px); }
+.btn-fyb:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-fyb:disabled:hover { transform: none; box-shadow: none; }
 
 .btn-fyb-primary {
   background-color: var(--color-primary);

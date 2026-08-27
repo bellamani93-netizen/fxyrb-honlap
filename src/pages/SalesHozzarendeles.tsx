@@ -56,14 +56,44 @@ function SwitchToggle({ checked, onChange, label }: { checked: boolean; onChange
   )
 }
 
-function ConfirmDialog({ message, onConfirm, onCancel }: { message: string; onConfirm: () => void; onCancel: () => void }) {
+// telefonos nézetben a csúszka-kapcsoló helyett egy klasszikus pipálható négyzet —
+// ugyanaz a "befizetve" állapot, ugyanaz a megerősítés-logika, csak kompaktabb vezérlő
+function CheckboxToggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <input
+      type="checkbox"
+      className="form-check-input"
+      style={{ width: '1.4rem', height: '1.4rem', cursor: 'pointer', flexShrink: 0 }}
+      checked={checked}
+      onChange={(e) => onChange(e.target.checked)}
+      aria-label="befizetve"
+    />
+  )
+}
+
+// ideiglenes szöveges "kuka" ikon — a projekt hivatalos ikonkészletében (Design elemek,
+// 17 kézzel rajzolt SVG) nincs kuka-ikon; ha készül hozzá márkaikon, ezt kell lecserélni
+function DeleteButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="ügyfél törlése"
+      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-danger)', fontSize: '1.1rem', lineHeight: 1, padding: 0 }}
+    >
+      🗑
+    </button>
+  )
+}
+
+function ConfirmDialog({ message, confirmLabel, onConfirm, onCancel }: { message: string; confirmLabel: string; onConfirm: () => void; onCancel: () => void }) {
   return (
     <div className="modal-backdrop-fyb" onClick={onCancel}>
       <div className="modal-fyb card-fyb" onClick={(e) => e.stopPropagation()}>
         <p className="mb-3">{message}</p>
         <div className="d-flex justify-content-end gap-2">
           <button type="button" className="btn-fyb btn-fyb-ghost" onClick={onCancel}>mégse</button>
-          <button type="button" className="btn-fyb btn-fyb-danger" onClick={onConfirm}>igen, nem fizetett be</button>
+          <button type="button" className="btn-fyb btn-fyb-danger" onClick={onConfirm}>{confirmLabel}</button>
         </div>
       </div>
     </div>
@@ -89,35 +119,38 @@ type FormState = {
 
 const emptyForm: FormState = { name: '', email: '', phone: '', startTime: '', gyt: null, paid: false }
 
+type PendingAction = { type: 'unpay' | 'delete'; client: SalesClient }
+
 export default function SalesHozzarendeles() {
   const [clients, setClients] = useState<SalesClient[]>(initialSalesClients)
   const [search, setSearch] = useState('')
   const [form, setForm] = useState<FormState>(emptyForm)
-  const [error, setError] = useState('')
-  const [unpayTargetId, setUnpayTargetId] = useState<string | null>(null)
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
 
   function setPaid(id: string, paid: boolean) {
     setClients((prev) => prev.map((c) => (c.id === id ? { ...c, paid } : c)))
   }
 
-  // a "befizetve" kapcsoló kikapcsolása visszavonhatatlan hatásúnak tűnhet (a GYT
+  function deleteClient(id: string) {
+    setClients((prev) => prev.filter((c) => c.id !== id))
+  }
+
+  // a "befizetve" kapcsoló/négyzet kikapcsolása visszavonhatatlan hatásúnak tűnhet (a GYT
   // naptárából eltűnik az időpont), ezért csak megerősítés után lehet visszakapcsolni;
   // bekapcsolni (nem fizetettről fizetettre) megerősítés nélkül lehet.
   function handleTogglePaid(client: SalesClient, next: boolean) {
     if (client.paid && !next) {
-      setUnpayTargetId(client.id)
+      setPendingAction({ type: 'unpay', client })
       return
     }
     setPaid(client.id, next)
   }
 
+  const formValid = Boolean(form.name.trim() && form.email.trim() && form.phone.trim() && form.startTime && form.gyt)
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.gyt) {
-      setError('válassz gyógytornászt az ügyfélhez')
-      return
-    }
-    setError('')
+    if (!formValid) return
     setClients((prev) => [
       ...prev,
       {
@@ -211,11 +244,12 @@ export default function SalesHozzarendeles() {
               </div>
             </div>
 
-            {error && (
-              <p className="small mb-0 mt-3" style={{ color: 'var(--color-danger)' }}>{error}</p>
+            <button type="submit" className="btn-fyb btn-fyb-primary mt-3" disabled={!formValid}>ügyfél felvétele</button>
+            {!formValid && (
+              <p className="small mb-0 mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                a gombhoz minden mezőt ki kell tölteni (a "befizetett" kivételével).
+              </p>
             )}
-
-            <button type="submit" className="btn-fyb btn-fyb-primary mt-3">ügyfél felvétele</button>
           </form>
         </div>
 
@@ -235,8 +269,9 @@ export default function SalesHozzarendeles() {
         />
 
         <div className="card-fyb">
+          {/* asztali/tablet fejléc */}
           <div
-            className="d-none d-lg-flex align-items-center gap-3 pb-2 mb-1 small fw-bold text-uppercase"
+            className="d-none d-lg-flex align-items-center gap-2 pb-2 mb-1 small fw-bold text-uppercase"
             style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
           >
             <span style={{ minWidth: '9rem' }}>név</span>
@@ -246,12 +281,23 @@ export default function SalesHozzarendeles() {
             <span>befizetett</span>
           </div>
 
+          {/* mobil fejléc — kevesebb oszlop, mert a név+dátum egy blokkba van vonva */}
+          <div
+            className="d-flex d-lg-none align-items-center justify-content-between gap-2 pb-2 mb-1 small fw-bold text-uppercase"
+            style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
+          >
+            <span>ügyfél</span>
+            <span>gyógytornász</span>
+            <span>befizetett</span>
+          </div>
+
           {filtered.length === 0 ? (
             <p className="mb-0 text-center" style={{ color: 'var(--color-text-muted)' }}>nincs találat</p>
           ) : (
             filtered.map((c) => (
-              <div key={c.id} className="py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <div className="d-flex align-items-center gap-3 flex-wrap">
+              <div key={c.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                {/* asztali/tablet sor */}
+                <div className="d-none d-lg-flex align-items-center gap-2 flex-wrap py-2">
                   <span className="fw-bold" style={{ minWidth: '9rem' }}>{c.name}</span>
                   <span className="small" style={{ color: 'var(--color-text-muted)', minWidth: '11rem' }}>{c.email}</span>
                   <span className="small" style={{ minWidth: '9rem' }}>{formatStart(c.startTime)}</span>
@@ -259,19 +305,48 @@ export default function SalesHozzarendeles() {
                     {c.assignedGyt ?? '—'}
                   </span>
                   <SwitchToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} label="befizetve" />
+                  {!c.paid && <DeleteButton onClick={() => setPendingAction({ type: 'delete', client: c })} />}
+                </div>
+
+                {/* mobil sor — név+dátum egy blokkban, mellette a gyógytornász, mellette a pipálható négyzet */}
+                <div className="d-flex d-lg-none align-items-center justify-content-between gap-2 py-2">
+                  <span style={{ minWidth: 0 }}>
+                    <span className="fw-bold d-block">{c.name}</span>
+                    <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>{formatStart(c.startTime)}</span>
+                  </span>
+                  <span className="small text-end" style={{ color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+                    {c.assignedGyt ?? '—'}
+                  </span>
+                  <span className="d-flex align-items-center gap-2">
+                    <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
+                    {!c.paid && <DeleteButton onClick={() => setPendingAction({ type: 'delete', client: c })} />}
+                  </span>
                 </div>
               </div>
             ))
           )}
         </div>
 
-        {unpayTargetId && (
+        {pendingAction && pendingAction.type === 'unpay' && (
           <ConfirmDialog
             message="Tényleg nem fizetett be?"
-            onCancel={() => setUnpayTargetId(null)}
+            confirmLabel="igen, nem fizetett be"
+            onCancel={() => setPendingAction(null)}
             onConfirm={() => {
-              setPaid(unpayTargetId, false)
-              setUnpayTargetId(null)
+              setPaid(pendingAction.client.id, false)
+              setPendingAction(null)
+            }}
+          />
+        )}
+
+        {pendingAction && pendingAction.type === 'delete' && (
+          <ConfirmDialog
+            message={`biztosan törölni szeretnéd "${pendingAction.client.name}" ügyfelet a rendszerből?`}
+            confirmLabel="igen, törlöm"
+            onCancel={() => setPendingAction(null)}
+            onConfirm={() => {
+              deleteClient(pendingAction.client.id)
+              setPendingAction(null)
             }}
           />
         )}
