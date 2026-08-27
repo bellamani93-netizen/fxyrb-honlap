@@ -514,3 +514,17 @@ Marci kérése: készítsük el az ADMIN oldalát. A specifikáció szerint az A
 **Mellékes megfigyelés (nem hiba, csak visszaigazolás):** az "Admin Anna" hosszabb név, mint a korábbi tesztnevek — a mobil fejléc középső oszlopán a korábban (a "Szia, [név]!" középre-igazítás körében) bevezetett `white-space: nowrap; overflow: hidden; text-overflow: ellipsis` szabály itt élesben is helyesen működött, "Szia, Admin A…"-ra vágva a szöveget túlcsordulás/tördelés helyett.
 
 **Tesztelve böngészőben:** `admin@admin.hu` bejelentkezés → egyenesen az "áttekintés" placeholder oldalra navigál, asztali és mobil nézetben egyaránt helyesen; "kijelentkezés" a session-t törli. Konzol-hiba nincs, `npm run build` hibamentes.
+
+## 2026.08.27. — SALES oldal belseje: ügyfél–GYT hozzárendelés
+
+Marci kérése: dolgozzuk ki a SALES oldal (eddig "hamarosan" placeholder) tényleges tartalmát — a specifikáció szerinti fő SALES-funkciót, az ÜF-ek GYT-hez rendelését.
+
+**Adatmodell:** új `src/data/salesClients.ts` — `GYT_STAFF` (3 fős demó gyógytornász-lista: Kollé Gábor, Nagy Réka, Tóth Bence — ez a projekt első helye, ahol több GYT is szerepel, eddig csak egy GYT-teszt-fiók volt) és `initialSalesClients` (5 demó ügyfél: a 3, GYT-oldalon már ismert kliens — Péter, Kovács Gábor, Varga Dániel — mind "Kollé Gábor"-hoz rendelve, a történet-folytonosság kedvéért; plusz 2 ÚJ, még hozzárendelés nélküli demó-ügyfél — Tóth Eszter, Balogh Máté —, hogy legyen mit ténylegesen elvégeznie a SALES-nek).
+
+**Megvalósítás (`SalesHozzarendeles.tsx`):**
+- Fejléc alatt egy mondat mutatja, hány ügyfél vár még hozzárendelésre (`0` esetén más szöveg: "minden ügyfélhez tartozik gyógytornász").
+- Keresőmező (a GYT "ügyfeleim" mintájával azonos: `max-width: 16rem`, valós idejű névszűrés, "nincs találat" üres állapot).
+- Minden ügyfél egy sorban: név + `.status-chip` (`--pending` "vár hozzárendelésre" / `--done` "hozzárendelve"), jobb oldalt egy `GytPicker` legördülő (a `.level-select`/`.level-select-toggle`/`.level-select-menu` osztályok újrahasznosításával, a `VideoPickerRow` GYT-oldali mintájára) a GYT kiválasztásához/módosításához.
+- **A hozzárendelésre váró ügyfelek a lista tetejére rendezve** — ez a SALES napi prioritása, nem az eredeti (adatbeviteli) sorrend.
+
+**Tesztelve böngészőben:** asztali (1280px) és mobil (375px) nézetben is — a legördülő helyesen felsorolja mindhárom GYT-t; egy GYT kiválasztása azonnal frissíti a sort ("hozzárendelve" jelvényre vált, a névre a kiválasztott GYT kerül, a fejléc alatti számláló csökken, a sor a lista végére kerül a következő renderkor); keresés "péter"-re csak Pétert mutatja. Konzol-hiba nincs, `npm run build` hibamentes.
