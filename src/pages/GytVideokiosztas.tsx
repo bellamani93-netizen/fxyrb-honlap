@@ -399,7 +399,7 @@ function VariablesPanel({
       <button
         type="button"
         className="d-flex align-items-center gap-2 flex-wrap w-100 text-start"
-        style={{ background: 'none', border: 'none', padding: 0, marginBottom: expanded ? '0.5rem' : 0 }}
+        style={{ background: 'none', border: 'none', padding: 0, marginBottom: expanded ? '0.5rem' : 0, color: 'var(--color-text)' }}
         onClick={() => {
           const next = !expanded
           setExpanded(next)

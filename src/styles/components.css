@@ -80,9 +80,10 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 /* sötét módban egy finom navy árnyék nem ad látható határt egy már sötét
-   háttéren — itt explicit szegély adja a kártya-elhatárolást (2026.08.27.) */
+   háttéren — itt explicit szegély adja a kártya-elhatárolást (2026.08.27.,
+   vastagítva 2026.08.27. második kör: Marci "vastagabb dobozhatár"-t kért). */
 html[data-theme='dark'] .card-fyb {
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
 }
 .card-fyb.card-fyb-hover:hover {
   transform: translateY(-3px);
@@ -187,8 +188,25 @@ html[data-theme='dark'] .card-fyb {
 }
 html[data-theme='dark'] .process-step .card-fyb,
 html[data-theme='dark'] .card-fyb-accent {
-  border: 1px solid rgba(95, 211, 188, 0.4);
-  box-shadow: 0 0 28px 4px rgba(95, 211, 188, 0.14), var(--shadow-card);
+  /* vastagabb szegély, erősebb derengés (2026.08.27., második kör) */
+  border: 2px solid rgba(95, 211, 188, 0.55);
+  box-shadow: 0 0 40px 8px rgba(95, 211, 188, 0.24), var(--shadow-card);
+}
+/* sötét mód, második kontraszt-kör (2026.08.27.) — Marci: a dobozhatárok
+   vonala legyen vastagabb, a sötétkék hátterű gombok/dobozok (legördülők,
+   oldalsáv, felső sáv) jobban különüljenek el az alap háttértől. */
+html[data-theme='dark'] .level-select-toggle,
+html[data-theme='dark'] .level-select-menu {
+  border-width: 2px;
+}
+html[data-theme='dark'] .locked-card {
+  border-width: 3px;
+}
+html[data-theme='dark'] .app-sidebar {
+  border-right-width: 2px;
+}
+html[data-theme='dark'] .app-topbar {
+  border-bottom-width: 2px;
 }
 
 /* --- modul-/lecke-lista --- */

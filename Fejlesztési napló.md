@@ -423,3 +423,19 @@ Marci kérte, hogy legyen két konkrét, kipróbálható teszt-fiók a Belépés
 - `App.tsx`: a két `AppLayout`-routecsoport (ÜF, GYT) mostantól `role="ugyfel"`, ill. `role="gyt"` propot is kap.
 
 **Tesztelve böngészőben:** `peldabela@peldabela.hu` → "sikeresen bejelentkeztél, Példa Béla" → gyakorlatok oldal, sidebar "Szia, Példa Béla!"; `kollega@kollega.hu` → "sikeresen bejelentkeztél, Kollé Gábor" → videókiosztás oldal, sidebar "Szia, Kollé Gábor!"; ismeretlen e-mail → piros hibaüzenet, marad a form. `npm run build` hibamentes.
+
+## 2026.08.27. — Belépés után egyenesen a felület, sötét mód második korrekciós kör
+
+Marci két dolgot kért: (1) a bejelentkezés/regisztráció utáni köztes "sikeresen bejelentkeztél" doboz (gombbal) felesleges — a belépés egyenesen a webapp-felületet nyissa meg; (2) sötét módban a "limitációk" felirat legyen fehér, és további kontraszt-korrekció kell: vastagabb dobozhatár-vonalak, erősebb derengés a kiemelt (accent) kártyák mögött, és a sötétkék hátterű gombok/dobozok (pl. legördülők) jobban váljanak el az alap háttértől.
+
+**Megvalósítás — köztes doboz eltávolítása:** `Belepes.tsx`-ben a `session`/sikeres-képernyő state és JSX törölve; `handleLogin`/`handleRegister` most `useNavigate()`-tel közvetlenül a szerepkörnek megfelelő útvonalra navigál (`/gyakorlatok` ill. `/gyt/videokiosztas`), a `fyb-session` mentése után. A `ROLE_TARGET` szöveges objektum egyszerű `ROLE_PATH` útvonal-térképre cserélve, mivel a köztes szöveg/gomb-címke már nem kell.
+
+**Megvalósítás — "limitációk" fehér szöveg:** a hiba oka: a panel fejléce egy natív `<button>`, aminek nincs explicit `color`-a — a böngésző alapértelmezett UA-stílusa (fekete) érvényesült a rajta belüli `<strong>`-re és ikonra is, mert a `<button>` elem NEM örökli automatikusan a szülő szövegszínét (ellentétben a legtöbb más elemmel), ha nincs `.btn`/`.btn-fyb` osztálya, ami ezt expliciten beállítaná. JS-sel (`getComputedStyle`) megerősítve: a felirat tényleges színe `rgb(0,0,0)` volt, világos módban ez véletlenül belesimult, sötét módban viszont láthatatlanná vált a navy háttéren. Javítás: a fejléc-gombra explicit `color: 'var(--color-text)'` inline stílus — a `<strong>` és az ikon (currentColor-alapú maszk) is ebből örököl. Átvizsgálva a többi natív, osztály nélküli `<button>`-t is (`background:'none'; border:'none'` minta) — ez volt az egyetlen ilyen előfordulás a kódbázisban.
+
+**Megvalósítás — sötét mód, második kontraszt-kör:**
+- `theme.css`: `--color-surface` (`#212F3F` → `#263A50`), `--color-bg-alt` (`#2C3E52` → `#33475F`), `--color-border` (`#44586F` → `#5A7592`) — a lépcsőzetes skála (bg < surface < bg-alt < border) lépésközei nagyobbra nyitva, hogy a felületi (surface) hátterű elemek (pl. legördülők) jobban elváljanak az alap navy háttértől.
+- `.card-fyb` sötét módú szegélye 1px → 2px.
+- `.card-fyb-accent` / `.process-step .card-fyb` sötét módú szegélye 1px → 2px, a derengő `box-shadow` blur/opacitása 28px/0.14 → 40px/0.24-re erősítve.
+- Új sötét-mód szabályok: `.level-select-toggle`/`.level-select-menu` szegélye 2px, `.locked-card` szaggatott szegélye 3px, `.app-sidebar` jobb szegélye és `.app-topbar` alsó szegélye 2px.
+
+**Tesztelve böngészőben:** mindkét teszt-fiókkal bejelentkezve a form közvetlenül a megfelelő app-felületre navigál, köztes doboz nélkül. Sötét módban a "limitációk" felirat számítva `rgb(248, 249, 250)` (offwhite) — JS-mérésekkel megerősítve. A kártyák, legördülők, oldalsáv és felső sáv szegélyei vizuálisan és JS-méréssel is vastagabbak/láthatóbbak; a `.card-fyb-accent` derengés JS-mérve `40px 8px rgba(95,211,188,0.24)`. `npm run build` hibamentes.

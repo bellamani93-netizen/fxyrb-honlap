@@ -48,15 +48,18 @@ html[data-theme='dark'] {
      "emelkedő" skála: bg < surface < bg-alt < border, minden lépés jól
      megkülönböztethető a szomszédjától. Korábban --color-bg-alt és
      --color-surface színe MEGEGYEZETT, ezért minden rájuk épülő elem
-     (jelvény-háttér, pirula-sáv stb.) láthatatlan volt kártyán belül. */
-  --color-bg-alt: #2C3E52;
-  --color-surface: #212F3F;
+     (jelvény-háttér, pirula-sáv stb.) láthatatlan volt kártyán belül.
+     Marci további visszajelzése (2026.08.27., második kör) alapján a lépések
+     köze itt még jobban kinyitva — a felületi (surface) hátterű gombok/dobozok
+     (pl. legördülők) korábban túl közel voltak az alap háttérhez. */
+  --color-bg-alt: #33475F;
+  --color-surface: #263A50;
   --color-text: var(--offwhite);
   --color-text-muted: #9BB6B5; /* világosított sagegray — a sima #5E807F nem ad elég kontrasztot navy háttéren */
   --color-primary: var(--mint);
   --color-primary-contrast: var(--navy);
   --color-secondary: var(--sagegray);
-  --color-border: #44586F;
+  --color-border: #5A7592;
   --color-highlight-bg: transparent;
   --color-highlight-text: var(--lime);
 }

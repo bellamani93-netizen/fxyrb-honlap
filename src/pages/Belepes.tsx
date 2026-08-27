@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 
 type Tab = 'login' | 'register'
@@ -11,42 +11,16 @@ const TEST_ACCOUNTS: Record<string, Session> = {
   'kollega@kollega.hu': { name: 'Kollé Gábor', role: 'gyt' },
 }
 
-const ROLE_TARGET: Record<Role, { path: string; label: string; text: string }> = {
-  ugyfel: {
-    path: '/gyakorlatok',
-    label: 'a gyakorlataimhoz',
-    text: 'a gyakorlataid már elérhetők — a checklist és a dokumentáció egy következő fázisban készül el.',
-  },
-  gyt: {
-    path: '/gyt/videokiosztas',
-    label: 'a videókiosztáshoz',
-    text: 'az ügyfeleid kiosztásra váró szintjei már elérhetők.',
-  },
+const ROLE_PATH: Record<Role, string> = {
+  ugyfel: '/gyakorlatok',
+  gyt: '/gyt/videokiosztas',
 }
 
 export default function Belepes() {
+  const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('login')
-  const [session, setSession] = useState<Session | null>(null)
   const [loginEmail, setLoginEmail] = useState('')
   const [error, setError] = useState('')
-
-  if (session) {
-    const target = ROLE_TARGET[session.role]
-    return (
-      <section className="py-5">
-        <div className="container text-center" style={{ maxWidth: 480 }}>
-          <div className="card-fyb card-fyb-accent">
-            <Icon src="/icons/ikon_fiok.svg" className="mb-3 mx-auto d-block" style={{ width: '3rem', height: '3rem' }} />
-            <h1 className="h4 mb-2">
-              {tab === 'login' ? `sikeresen bejelentkeztél, ${session.name}` : `sikeres regisztráció, ${session.name}`}
-            </h1>
-            <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>{target.text}</p>
-            <Link to={target.path} className="btn-fyb btn-fyb-primary">{target.label}</Link>
-          </div>
-        </div>
-      </section>
-    )
-  }
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -55,9 +29,8 @@ export default function Belepes() {
       setError('ismeretlen teszt-fiók — próbáld: peldabela@peldabela.hu (ügyfél) vagy kollega@kollega.hu (gyógytornász)')
       return
     }
-    setError('')
     localStorage.setItem('fyb-session', JSON.stringify(match))
-    setSession(match)
+    navigate(ROLE_PATH[match.role])
   }
 
   function handleRegister(e: React.FormEvent) {
@@ -66,7 +39,7 @@ export default function Belepes() {
     const name = (form.elements.namedItem('reg-name') as HTMLInputElement).value.trim() || 'új ügyfél'
     const newSession: Session = { name, role: 'ugyfel' }
     localStorage.setItem('fyb-session', JSON.stringify(newSession))
-    setSession(newSession)
+    navigate(ROLE_PATH.ugyfel)
   }
 
   return (
