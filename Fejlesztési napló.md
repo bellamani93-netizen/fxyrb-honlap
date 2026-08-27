@@ -465,3 +465,13 @@ Marci visszajelzése: a videókiosztás fejlécében lévő "[Név] · váltás"
 - `GytUgyfelek.tsx`: új `search` state + `<input type="search">` a lista fölött; a `clients` tömb `.filter()`-rel szűrve (kisbetűsített, ékezet-érzékeny substring-egyezés a névre). Nulla találat esetén "nincs találat" üzenet a lista helyén.
 
 **Tesztelve böngészőben:** "gáb" beírására csak Kovács Gábor marad a listán; értelmetlen keresésre ("xyz") "nincs találat" jelenik meg; a videókiosztás fejlécében az ügyfél neve (pl. "Péter") változatlanul látszik, de gomb/kattintás nélkül. Egy régi (sok korábbi HMR-frissítést átélt) böngészőfülön hamis "useNavigate is not defined" konzolhiba jelent meg — friss fülön megismételve nem reprodukálódott, tehát a megszokott stale HMR-gyorsítótár-hiba volt, nem valós kódhiba. `npm run build` hibamentes.
+
+## 2026.08.27. — Rövidebb kereső, "kijelentkezés" az oldalsáv alján
+
+Marci két apró korrekciót kért: az "ügyfeleim" keresőmező legyen rövidebb (eddig a teljes tartalom-szélességet kitöltötte); az oldalsáv alján lévő, eddig "vissza a főoldalra" feliratú link neve legyen "kijelentkezés".
+
+**Megvalósítás:**
+- `GytUgyfelek.tsx`: a keresőmező `max-width: 16rem`-re korlátozva (a `form-control` alapból teljes szélességű lenne).
+- `AppLayout.tsx` (közös komponens, ÜF és GYT oldalsávra egyaránt hat): a link felirata "kijelentkezés"-re változott. Mivel ez a felirat már valódi kijelentkezést sugall, a kattintás nemcsak a főoldalra navigál, hanem törli a munkamenet-állapotot is (`localStorage` `fyb-session` és `fyb-gyt-client` kulcsok) — így egy következő belépés/oldal-látogatás nem az előző (bejelentkezett vagy kiválasztott) személy adataival indul, hanem az alapértelmezett/választás előtti állapottal.
+
+**Tesztelve böngészőben:** a keresőmező szélessége JS-mérve pontosan 256px (16rem); "kijelentkezés"-re kattintva a `fyb-session` és `fyb-gyt-client` kulcsok törlődnek, és az oldal a főoldalra navigál. `npm run build` hibamentes.

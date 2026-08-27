@@ -95,9 +95,17 @@ export default function AppLayout({ navItems = ufNavItems, userName = 'Péter', 
         </nav>
 
         <div className="app-sidebar-bottom">
-          <Link to="/" className="app-sidebar-link" onClick={() => setOpen(false)}>
+          <Link
+            to="/"
+            className="app-sidebar-link"
+            onClick={() => {
+              setOpen(false)
+              localStorage.removeItem('fyb-session')
+              localStorage.removeItem('fyb-gyt-client')
+            }}
+          >
             <Icon src="/icons/ikon_vissza.svg" />
-            <span className="flex-grow-1">vissza a főoldalra</span>
+            <span className="flex-grow-1">kijelentkezés</span>
           </Link>
           <div className="d-flex align-items-center justify-content-between px-3 py-2">
             <span className="small" style={{ color: 'var(--color-text-muted)' }}>megjelenés</span>

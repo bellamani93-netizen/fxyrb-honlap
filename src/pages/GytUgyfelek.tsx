@@ -26,6 +26,7 @@ export default function GytUgyfelek() {
         <input
           type="search"
           className="form-control mb-3"
+          style={{ maxWidth: '16rem' }}
           placeholder="keresés név szerint…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
