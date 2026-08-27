@@ -23,10 +23,10 @@ const ufNavItems: NavItem[] = [
 type AppLayoutProps = {
   navItems?: NavItem[]
   userName?: string
-  role?: 'ugyfel' | 'gyt'
+  role?: 'ugyfel' | 'gyt' | 'sales'
 }
 
-function sessionName(role: 'ugyfel' | 'gyt' | undefined, fallback: string): string {
+function sessionName(role: 'ugyfel' | 'gyt' | 'sales' | undefined, fallback: string): string {
   if (!role) return fallback
   try {
     const raw = localStorage.getItem('fyb-session')

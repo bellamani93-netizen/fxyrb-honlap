@@ -486,3 +486,17 @@ Marci két korrekciót kért: (1) bejelentkezve (az app-felületen belül) a Fix
 - `components.css`: `.app-topbar-row` flex+space-between helyett 3 oszlopos rács (`grid-template-columns: 1fr auto 1fr`) — a logó és a hamburger-gomb egyenlő "1fr" oszlopokban van, a köztük lévő auto-szélességű oszlopban a köszöntés így optikailag középre kerül. **Buktató:** először `minmax(0, 1fr)`-rel próbáltam matematikailag PONTOSAN egyenlő oszlopszélességet kikényszeríteni — ez azonban a logó (két soros "FIX YOUR BACK" felirat) természetes szélessége alá szorította a logó oszlopát 375px-es mobil nézetben, és a logó képe rálógott a köszöntés szövegére. Visszaállítva sima `1fr auto 1fr`-re (a fr-oszlopok implicit tartalom-alapú minimumával) — ez nem matematikailag pixelpontos közép (JS-méréssel ~12px eltérés egy 335px széles sorban, kb. 3,6%), de nincs átfedés, és a szem számára gyakorlatilag középen van.
 
 **Tesztelve böngészőben:** mobil (375px) nézetben a logóra kattintva nem történik semmi (a `<div>`-nek nincs `href`-je); "Szia, Judit!" jól láthatóan, átfedés nélkül a logó és a hamburger között ül; asztali (1280px) nézetben a fejléc-sor egyáltalán nem jelenik meg (`d-lg-none`), a köszöntés csak az oldalsávban látszik, ahogy eddig is. Konzol-hiba nincs, `npm run build` hibamentes.
+
+## 2026.08.27. — SALES belépési oldal (3. szerepkör)
+
+Marci kérése: hozzuk létre a SALES (értékesítő) belépési oldalát. A `Projket specifikáció.md` szerint a SALES feladata: "az ÜF-et GYT-hez rendeli" — ez a projekt 3. szerepköre az ÜF és a GYT mellett.
+
+**Egyeztetés Marcival (AskUserQuestion):** ebben a körben csak a belépési pont és egy helykitöltő kezdőlap készül el (a "hamarosan" mintát követve, mint a GYT lakatos, még nem kész almenüinél) — a tényleges ÜF→GYT hozzárendelő lista egy következő körben készül.
+
+**Megvalósítás:**
+- Új teszt-fiók: **`ertekes@ertekes.hu`** → Értékes Eszter, `role: 'sales'` — a `Belepes.tsx` `TEST_ACCOUNTS`/`ROLE_PATH` bővítve, a hibaüzenet és a form alatti tájékoztató szöveg is frissítve mindhárom teszt-fiókkal.
+- `AppLayout.tsx`: a `role` prop típusa `'ugyfel' | 'gyt'` → `'ugyfel' | 'gyt' | 'sales'`-re bővítve (a `sessionName()` segédfüggvénnyel együtt), hogy a session-alapú névfelismerés a SALES-re is működjön.
+- Új oldal, `SalesHozzarendeles.tsx` (`/sales/hozzarendeles`) — egyetlen `.locked-card` "hamarosan" üzenettel (ugyanaz a vizuális minta, mint a GYT-oldal "az együttműködés lezárult" dobozánál), amíg a tényleges hozzárendelő funkció el nem készül.
+- `App.tsx`: új route-csoport (`AppLayout navItems={salesNavItems} userName="Eszter" role="sales"`), a `salesNavItems` egyelőre egyetlen aktív menüpontot tartalmaz ("hozzárendelés", `ikon_plusz.svg`) — a spec egyelőre nem sorol fel több SALES-specifikus almenüt, ezért nem találtunk ki továbbiakat.
+
+**Tesztelve böngészőben:** `ertekes@ertekes.hu` bejelentkezés → egyenesen a "ügyfél–GYT hozzárendelés" placeholder oldalra navigál, mobil fejlécben "Szia, Értékes Eszter!" középen, asztali nézetben az oldalsávban ugyanez, egyetlen "hozzárendelés" menüponttal; "kijelentkezés" a session-t helyesen törli. Konzol-hiba nincs, `npm run build` hibamentes.

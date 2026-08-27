@@ -3,17 +3,19 @@ import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 
 type Tab = 'login' | 'register'
-type Role = 'ugyfel' | 'gyt'
+type Role = 'ugyfel' | 'gyt' | 'sales'
 type Session = { name: string; role: Role }
 
 const TEST_ACCOUNTS: Record<string, Session> = {
   'peldabela@peldabela.hu': { name: 'Példa Béla', role: 'ugyfel' },
   'kollega@kollega.hu': { name: 'Kollé Gábor', role: 'gyt' },
+  'ertekes@ertekes.hu': { name: 'Értékes Eszter', role: 'sales' },
 }
 
 const ROLE_PATH: Record<Role, string> = {
   ugyfel: '/gyakorlatok',
   gyt: '/gyt/ugyfelek',
+  sales: '/sales/hozzarendeles',
 }
 
 export default function Belepes() {
@@ -26,7 +28,7 @@ export default function Belepes() {
     e.preventDefault()
     const match = TEST_ACCOUNTS[loginEmail.trim().toLowerCase()]
     if (!match) {
-      setError('ismeretlen teszt-fiók — próbáld: peldabela@peldabela.hu (ügyfél) vagy kollega@kollega.hu (gyógytornász)')
+      setError('ismeretlen teszt-fiók — próbáld: peldabela@peldabela.hu (ügyfél), kollega@kollega.hu (gyógytornász) vagy ertekes@ertekes.hu (értékesítő)')
       return
     }
     localStorage.setItem('fyb-session', JSON.stringify(match))
@@ -88,7 +90,7 @@ export default function Belepes() {
                 <p className="small mb-0" style={{ color: 'var(--color-danger)' }}>{error}</p>
               )}
               <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>
-                teszt-fiókok: <strong>peldabela@peldabela.hu</strong> (ügyfél) · <strong>kollega@kollega.hu</strong> (gyógytornász) — a jelszó tetszőleges
+                teszt-fiókok: <strong>peldabela@peldabela.hu</strong> (ügyfél) · <strong>kollega@kollega.hu</strong> (gyógytornász) · <strong>ertekes@ertekes.hu</strong> (értékesítő) — a jelszó tetszőleges
               </p>
               <div className="text-end">
                 <a href="#" className="small" style={{ color: 'var(--color-primary)' }}>elfelejtett jelszó</a>
