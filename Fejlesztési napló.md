@@ -500,3 +500,17 @@ Marci kérése: hozzuk létre a SALES (értékesítő) belépési oldalát. A `P
 - `App.tsx`: új route-csoport (`AppLayout navItems={salesNavItems} userName="Eszter" role="sales"`), a `salesNavItems` egyelőre egyetlen aktív menüpontot tartalmaz ("hozzárendelés", `ikon_plusz.svg`) — a spec egyelőre nem sorol fel több SALES-specifikus almenüt, ezért nem találtunk ki továbbiakat.
 
 **Tesztelve böngészőben:** `ertekes@ertekes.hu` bejelentkezés → egyenesen a "ügyfél–GYT hozzárendelés" placeholder oldalra navigál, mobil fejlécben "Szia, Értékes Eszter!" középen, asztali nézetben az oldalsávban ugyanez, egyetlen "hozzárendelés" menüponttal; "kijelentkezés" a session-t helyesen törli. Konzol-hiba nincs, `npm run build` hibamentes.
+
+## 2026.08.27. — ADMIN belépési oldal (4. szerepkör)
+
+Marci kérése: készítsük el az ADMIN oldalát. A specifikáció szerint az ADMIN "mindent lát" — a projekt negyedik (és egyben utolsó) szerepköre az ÜF, GYT és SALES mellett. Ugyanazt a mintát követtem, mint a SALES-nél: teszt-belépés + helykitöltő kezdőlap, a tényleges "mindent látó" áttekintő funkció (összes ügyfél/GYT/SALES egy nézetben) egy következő körre halasztva — nem kellett újra megkérdezni, mivel ez már az előző körben egyeztetett, bevált minta.
+
+**Megvalósítás:**
+- Új teszt-fiók: **`admin@admin.hu`** → Admin Anna, `role: 'admin'` → `/admin/attekintes`. `Belepes.tsx` `TEST_ACCOUNTS`/`ROLE_PATH`/hibaüzenet/tájékoztató szöveg mind a 4 teszt-fiókkal bővítve.
+- `AppLayout.tsx` `role` típusa `'ugyfel' | 'gyt' | 'sales'` → `+ 'admin'`.
+- Új oldal, `AdminAttekintes.tsx` (`/admin/attekintes`) — ugyanaz a `.locked-card` "hamarosan" minta, mint a SALES placeholder oldalánál.
+- `App.tsx`: új route-csoport (`AppLayout navItems={adminNavItems} userName="Anna" role="admin"`), `adminNavItems` egyelőre egyetlen aktív menüponttal ("áttekintés", újrahasznosítva az `ikon_kezdolap.svg`-t, mint a GYT "ügyfeleim" menüpontjánál).
+
+**Mellékes megfigyelés (nem hiba, csak visszaigazolás):** az "Admin Anna" hosszabb név, mint a korábbi tesztnevek — a mobil fejléc középső oszlopán a korábban (a "Szia, [név]!" középre-igazítás körében) bevezetett `white-space: nowrap; overflow: hidden; text-overflow: ellipsis` szabály itt élesben is helyesen működött, "Szia, Admin A…"-ra vágva a szöveget túlcsordulás/tördelés helyett.
+
+**Tesztelve böngészőben:** `admin@admin.hu` bejelentkezés → egyenesen az "áttekintés" placeholder oldalra navigál, asztali és mobil nézetben egyaránt helyesen; "kijelentkezés" a session-t törli. Konzol-hiba nincs, `npm run build` hibamentes.

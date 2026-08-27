@@ -10,6 +10,7 @@ import Gyakorlatok from './pages/Gyakorlatok'
 import GytUgyfelek from './pages/GytUgyfelek'
 import GytVideokiosztas from './pages/GytVideokiosztas'
 import SalesHozzarendeles from './pages/SalesHozzarendeles'
+import AdminAttekintes from './pages/AdminAttekintes'
 
 const gytNavItems: NavItem[] = [
   { to: '/gyt/ugyfelek', label: 'ügyfeleim', icon: '/icons/ikon_kezdolap.svg' },
@@ -26,6 +27,10 @@ const gytNavItems: NavItem[] = [
 
 const salesNavItems: NavItem[] = [
   { to: '/sales/hozzarendeles', label: 'hozzárendelés', icon: '/icons/ikon_plusz.svg' },
+]
+
+const adminNavItems: NavItem[] = [
+  { to: '/admin/attekintes', label: 'áttekintés', icon: '/icons/ikon_kezdolap.svg' },
 ]
 
 export default function App() {
@@ -47,6 +52,9 @@ export default function App() {
       </Route>
       <Route element={<AppLayout navItems={salesNavItems} userName="Eszter" role="sales" />}>
         <Route path="/sales/hozzarendeles" element={<SalesHozzarendeles />} />
+      </Route>
+      <Route element={<AppLayout navItems={adminNavItems} userName="Anna" role="admin" />}>
+        <Route path="/admin/attekintes" element={<AdminAttekintes />} />
       </Route>
     </Routes>
   )
