@@ -651,3 +651,17 @@ Marci egy újabb, pontosabb képernyőképpel jelezte: az előző javítás nem 
 - **Szín — egységesen élénkpiros, mindkét módban:** a korábbi, csak sötét módú felülírás törölve; a `.sales-delete-icon` mostantól MINDIG `#FF3B30` (nem csak sötét módban), mivel Marci visszajelzése szerint világos módban sem volt elég feltűnő a semleges `--color-danger`.
 
 **Tesztelve böngészőben:** asztali (1280px) — JS-méréssel a checkbox és a kuka közötti táv 131px, a kuka a kártya jobb szélétől 30px-re helyezkedik el, minden sor "fizetve" oszlopának JOBB széle pixelpontosan egyezik (`1171px` mind az 5 sorban), függetlenül attól, hogy az adott sorban van-e ténylegesen kuka-ikon. Mobil (375px) — a 3 oszlop (`[34,127,261]`) minden sorban pontosan egyezik, nincs többé szöveg-átfedés. Világos ÉS sötét módban egyaránt a kuka-ikon számított színe `rgb(255, 59, 48)`. Konzol-hiba nincs, `npm run build` hibamentes.
+
+## 2026.08.27. — Kuka-ikon sötét módban rózsaszín, rendezhető lista
+
+Marci két új kérést fogalmazott meg: a kuka-ikon sötét módban legyen rózsaszín (nem piros); a lista mindig a legfrissebben hozzáadott ügyfelet mutassa legfelül alapból, DE legyen rendezhető is név, dátum és gyógytornász szerint.
+
+**Megvalósítás — rózsaszín sötét módban:** a már meglévő `.sales-delete-icon` osztályhoz (ami mindkét módban `#FF3B30`-at adott) hozzáadva egy `html[data-theme='dark'] .sales-delete-icon { color: #FF4FA3; }` felülírás — világos módban változatlanul piros, sötétben rózsaszín.
+
+**Megvalósítás — alapértelmezett rendezés + kézi rendezés:**
+- A korábbi "hozzárendelésre várók előre" automatikus rendezés törölve, helyette: rendezés hiányában a lista a `clients` tömb hozzáadási sorrendjének MEGFORDÍTÁSÁT mutatja (`[...bySearch].reverse()`) — mivel új ügyfél mindig a tömb VÉGÉRE kerül (`setClients(prev => [...prev, new])`), a megfordítás a legutóbb hozzáadottat teszi elsővé.
+- Új `sort` állapot (`{ key: 'name'|'date'|'gyt', dir: 'asc'|'desc' } | null`) és egy 3-állapotú `toggleSort()`: első kattintásra `asc`, másodikra `dir` váltás `desc`-re, harmadikra vissza `null`-ra (alapértelmezett, "legfrissebb elöl" nézet).
+- Új `SortButton` komponens: a "név"/"kezdés"/"gyt" fejléc-feliratok mostantól kattintható gombok (▲/▼ jelzéssel az aktív oszlopnál), NEM natív inheritance-re hagyatkozva a színnél/betűstílusnál — a korábbi buktató (natív `<button>` nem örökli a szülő szövegstílusát) miatt a gomb explicit megkapja ugyanazokat az osztályokat/inline színt, amit a sima `<span>` fejléc-cellák is használnak.
+- **Mobil nézet:** csak "ügyfél" (→ név szerint rendez) és "gyt" fejléc kattintható — nincs külön "kezdés" fejléc-cella mobilon (a dátum a névvel egy blokkban jelenik meg), ezért a dátum szerinti rendezéshez asztali nézetben kell rákattintani a "kezdés" fejlécre; a rendezési állapot közös (React state), ezért utána mobilon nézve is érvényben marad.
+
+**Tesztelve böngészőben:** "név" gombra kattintva ABC-sorrendbe rendez (▲), újra kattintva fordítva (▼), harmadszor visszaáll az alapértelmezett "legfrissebb elöl" nézetre; "kezdés" időrendi sorrendbe rendez helyesen; "gyt" gyógytornász neve szerint (üres/nincs-hozzárendelve elöl, mert az üres string ábécében a legelső); új ügyfél (Zsolnai Zita) felvétele után alapértelmezett nézetben a lista tetején jelenik meg. Világos módban a kuka-ikon pirosan (`rgb(255, 59, 48)`), sötét módban rózsaszínűen (`rgb(255, 79, 163)`) jelenik meg. Konzol-hiba nincs, `npm run build` hibamentes.

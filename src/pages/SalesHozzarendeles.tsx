@@ -99,6 +99,24 @@ function ConfirmDialog({ message, confirmLabel, onConfirm, onCancel }: { message
   )
 }
 
+type SortKey = 'name' | 'date' | 'gyt'
+type SortState = { key: SortKey; dir: 'asc' | 'desc' } | null
+
+function SortButton({ label, sortKey, current, onClick }: { label: string; sortKey: SortKey; current: SortState; onClick: (key: SortKey) => void }) {
+  const active = current?.key === sortKey
+  return (
+    <button
+      type="button"
+      className="small fw-bold text-uppercase"
+      onClick={() => onClick(sortKey)}
+      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-muted)' }}
+    >
+      {label}
+      {active ? (current!.dir === 'asc' ? ' ▲' : ' ▼') : ''}
+    </button>
+  )
+}
+
 function formatStart(value: string) {
   if (!value) return '—'
   const d = new Date(value)
@@ -125,6 +143,15 @@ export default function SalesHozzarendeles() {
   const [search, setSearch] = useState('')
   const [form, setForm] = useState<FormState>(emptyForm)
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
+  const [sort, setSort] = useState<SortState>(null)
+
+  function toggleSort(key: SortKey) {
+    setSort((prev) => {
+      if (!prev || prev.key !== key) return { key, dir: 'asc' }
+      if (prev.dir === 'asc') return { key, dir: 'desc' }
+      return null
+    })
+  }
 
   function setPaid(id: string, paid: boolean) {
     setClients((prev) => prev.map((c) => (c.id === id ? { ...c, paid } : c)))
@@ -167,10 +194,19 @@ export default function SalesHozzarendeles() {
 
   const pendingCount = clients.filter((c) => !c.assignedGyt).length
 
-  const filtered = clients
-    .filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase()))
-    // a hozzárendelésre váró ügyfelek kerüljenek előre, hogy a SALES elsőként azokat lássa, akikkel teendő van
-    .sort((a, b) => Number(!!a.assignedGyt) - Number(!!b.assignedGyt))
+  const bySearch = clients.filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase()))
+
+  const filtered = sort
+    ? [...bySearch].sort((a, b) => {
+        let cmp = 0
+        if (sort.key === 'name') cmp = a.name.localeCompare(b.name, 'hu')
+        else if (sort.key === 'date') cmp = a.startTime.localeCompare(b.startTime)
+        else cmp = (a.assignedGyt ?? '').localeCompare(b.assignedGyt ?? '', 'hu')
+        return sort.dir === 'asc' ? cmp : -cmp
+      })
+    // rendezés nélkül a legfrissebben hozzáadott ügyfél legyen a lista tetején
+    // (a clients tömb hozzáadási sorrendben bővül, ezért ez egyszerű megfordítás)
+    : [...bySearch].reverse()
 
   return (
     <section className="py-3 py-lg-5">
@@ -273,21 +309,24 @@ export default function SalesHozzarendeles() {
             className="sales-row-grid pb-2 mb-1 small fw-bold text-uppercase"
             style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
           >
-            <span>név</span>
+            <SortButton label="név" sortKey="name" current={sort} onClick={toggleSort} />
             <span>email</span>
-            <span>kezdés</span>
-            <span>gyt</span>
+            <SortButton label="kezdés" sortKey="date" current={sort} onClick={toggleSort} />
+            <SortButton label="gyt" sortKey="gyt" current={sort} onClick={toggleSort} />
             <span>fizetve</span>
             <span />
           </div>
 
-          {/* mobil fejléc — kevesebb oszlop, mert a név+dátum egy blokkba van vonva */}
+          {/* mobil fejléc — kevesebb oszlop, mert a név+dátum egy blokkba van vonva.
+             A dátum szerinti rendezés itt nincs külön gombhoz kötve (nincs saját
+             "kezdés" fejléc-cellája), de a rendezési állapot megosztott, ezért ha
+             asztali nézetben aktiválva volt, mobilon is érvényben marad. */}
           <div
             className="sales-row-grid-mobile pb-2 mb-1 small fw-bold text-uppercase"
             style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
           >
-            <span>ügyfél</span>
-            <span>gyt</span>
+            <SortButton label="ügyfél" sortKey="name" current={sort} onClick={toggleSort} />
+            <SortButton label="gyt" sortKey="gyt" current={sort} onClick={toggleSort} />
             <span>fizetve</span>
           </div>
 

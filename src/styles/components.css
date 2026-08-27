@@ -1009,3 +1009,7 @@ html[data-theme='dark'] .locked-overlay-card {
 .sales-delete-icon {
   color: #FF3B30;
 }
+/* sötét módban rózsaszín (2026.08.27., 4. kör, Marci kérésére) */
+html[data-theme='dark'] .sales-delete-icon {
+  color: #FF4FA3;
+}
