@@ -560,14 +560,25 @@ html[data-theme='dark'] .locked-overlay-card {
   background-color: var(--color-bg);
   border-bottom: 1px solid var(--color-border);
 }
+/* 3-oszlopos rács (logó / köszöntés / hamburger), a két szélső oszlop egyenlő
+   szélességű — így a köszöntés optikailag valóban középre kerül, függetlenül
+   a logó és a hamburger-gomb eltérő szélességétől (2026.08.27.) */
 .app-topbar-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
+}
+.app-topbar-row > button {
+  justify-self: end;
 }
 .app-topbar-greeting {
   font-family: var(--font-heading);
   font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .app-sidebar {
   width: 260px;

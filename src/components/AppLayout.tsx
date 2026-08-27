@@ -46,25 +46,25 @@ export default function AppLayout({ navItems = ufNavItems, userName = 'Péter', 
     <div className="app-shell">
       <div className="app-topbar d-lg-none">
         <div className="app-topbar-row">
-          <Link to="/" className="brand-logo">
+          <div className="brand-logo">
             <img src="/images/logo-light-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-light" />
             <img src="/images/logo-dark-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-dark" />
-          </Link>
+          </div>
+          <div className="app-topbar-greeting">Szia, {displayName}!</div>
           <button type="button" className="btn-fyb btn-fyb-ghost" aria-label="menü" onClick={() => setOpen(true)}>
             ☰
           </button>
         </div>
-        <div className="app-topbar-greeting">Szia, {displayName}!</div>
       </div>
 
       {open && <div className="app-sidebar-backdrop d-lg-none" onClick={() => setOpen(false)} />}
 
       <aside className={`app-sidebar ${open ? 'open' : ''}`}>
         <div className="app-sidebar-top">
-          <Link to="/" className="brand-logo" onClick={() => setOpen(false)}>
+          <div className="brand-logo">
             <img src="/images/logo-light-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-light" />
             <img src="/images/logo-dark-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-dark" />
-          </Link>
+          </div>
           <button type="button" className="app-sidebar-close d-lg-none" aria-label="menü bezárása" onClick={() => setOpen(false)}>
             ✕
           </button>
