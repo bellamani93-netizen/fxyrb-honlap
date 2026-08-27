@@ -245,15 +245,17 @@ function LevelRow({
           </div>
         )}
 
-        <span style={{ gridColumn: 4 }} className="d-flex align-items-center gap-2">
-          <span className={`status-chip ${statusClass}`}>{statusLabel}</span>
+        <span style={{ gridColumn: 4, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span className={`status-chip ${statusClass}`} style={correctButton ? undefined : { flex: 1, textAlign: 'center' }}>
+            {statusLabel}
+          </span>
           {correctButton}
         </span>
       </div>
 
-      {/* mobil: összecsukva csak szint + kód/javaslat + állapot-ikon; sorra kattintva lenyílik a részlet */}
+      {/* mobil: összecsukva — szint az elején, ikon a végén, a kód/javaslat középen, arányosan elosztva ("sorkizárt") */}
       <div className="d-flex d-lg-none flex-column w-100">
-        <div className="d-flex align-items-center gap-2" role="button" tabIndex={0} onClick={() => setExpanded((e) => !e)} style={{ cursor: 'pointer' }}>
+        <div className="d-flex align-items-center justify-content-between gap-2" role="button" tabIndex={0} onClick={() => setExpanded((e) => !e)} style={{ cursor: 'pointer' }}>
           <span className="level-row-num">{level.num}. szint</span>
           {assigned && <span className="small fw-bold">{assigned.code}</span>}
           {!assigned && level.state === 'nyitva' && suggestedParsed && (
