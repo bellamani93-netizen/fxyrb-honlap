@@ -992,7 +992,9 @@ html[data-theme='dark'] .locked-overlay-card {
   color: var(--color-danger);
 }
 /* sötét módban élénkebb pirosra vált a jobb kontraszt miatt — a semleges
-   --color-danger navy háttéren nem elég feltűnő (2026.08.27.) */
+   --color-danger navy háttéren nem elég feltűnő; egy első, finomabb
+   próbálkozás (#FF5C4D) még mindig nem tűnt elég élénknek, ezért itt
+   egy határozottan telített, tiszta piros (2026.08.27., 2. kör) */
 html[data-theme='dark'] .sales-delete-icon {
-  color: #FF5C4D;
+  color: #FF3B30;
 }
