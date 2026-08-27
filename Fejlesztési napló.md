@@ -630,3 +630,13 @@ Marci visszajelzése: a kuka-ikon sötét módban továbbra is túl sötétnek t
 - A sötét módú szín `#FF5C4D` (halványabb korall-piros) → `#FF3B30`-ra (határozottan telített, tiszta piros) cserélve.
 
 **Tesztelve böngészőben (friss lapon, mind a `seed`, mind egy teljesen új fülön, mert a `localStorage`-alapú `fyb-theme` megosztott az origin összes fülén):** sötét módban a kuka-ikon számított háttérszíne `rgb(255, 59, 48)`, a checkbox–kuka gap `24px` — mindkettő JS-méréssel megerősítve mind asztali (1280px), mind mobil (375px) nézetben. Vizuálisan is egyértelműen nagyobb, élénkebb piros ikon látszik minden képernyőméreten. Konzol-hiba nincs egy friss lapon (a `seed` fülön megjelenő "useNavigate is not defined" hiba a lap hosszú HMR-előzménye miatti, korábban is dokumentált gyorsítótár-artifact volt, friss fülön nem reprodukálódott). `npm run build` hibamentes.
+
+## 2026.08.27. — A "befizetve" oszlop két térköze felcserélve
+
+Marci egy képernyőképpel jelölte meg a problémát: a "fizetve" oszlopon belül két térköz van — (1) a checkbox és a kuka-ikon között, (2) a kuka-ikon és az oszlop jobb szélé között —, és ezek fordítva voltak jók: a (2) trailing tér volt nagyobb (mert az oszlop fix szélessége, `6rem`/asztali és `4rem`/mobil, bőven meghaladta a tényleges tartalom szélességét), a (1) checkbox–kuka gap pedig ehhez képest kisebbnek látszott, annak ellenére, hogy az előző körben kifejezetten megnöveltem.
+
+**Ok:** az oszlop fix rács-szélessége (asztali `6rem`=96px, mobil `4rem`=64px) jóval szélesebb volt, mint amennyit a checkbox+gap+kuka ténylegesen elfoglal (~67px) — a maradék hely a cellán belül, a tartalom UTÁN, kihasználatlan trailing térként jelentkezett (mivel a grid-cella tartalma alapból balra igazodik).
+
+**Javítás:** az oszlop szélessége `6rem`/`4rem` → egységesen `4.5rem`-re csökkentve (mindkét nézetben), ami szorosan a tényleges tartalomhoz igazodik. Ezzel a checkbox–kuka gap (`1.5rem`/24px, változatlan) most a DOMINÁNS, jól látható térköz, a kuka és az oszlop jobb széle közötti trailing tér pedig minimálisra (`~4.8px`) csökkent — pontosan a kért felcserélés.
+
+**Tesztelve böngészőben:** JS-méréssel mindkét nézetben (asztali 1280px, mobil 375px) `gap1 (checkbox→kuka) = 24px`, `gap2 (kuka→cella vége) = 4.8px` — a két érték szerepe felcserélődött a korábbihoz képest. Nincs sortördelés/túlcsordulás az új, szűkebb oszlopszélesség mellett. Konzol-hiba nincs, `npm run build` hibamentes.
