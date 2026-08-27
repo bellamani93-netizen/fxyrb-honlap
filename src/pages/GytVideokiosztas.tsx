@@ -1,85 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { EXERCISES, type ExerciseCode, type ClientVariables, suggestedSequence } from '../data/tornaSzintek'
+import { clients, codeLabel, initialVariables, getSelectedClientId, type GytLevel, type LevelState } from '../data/gytClients'
 
 const VIDEOS = (Object.keys(EXERCISES) as ExerciseCode[]).map((code) => `${code} ${EXERCISES[code].name}`)
-
-type LevelState = 'lezart' | 'nyitva' | 'zarolt'
-
-type GytLevel = {
-  num: number
-  state: LevelState
-  video?: string
-  note?: string
-}
-
-type Client = {
-  id: string
-  name: string
-  mode: 'kozben' | 'utana'
-  levels?: GytLevel[]
-  history?: { num: number; video: string }[]
-  bulkLevels?: { num: number; video: string | null; note?: string }[]
-}
-
-const initialVariables: Record<string, ClientVariables> = {
-  peter: { painLocation: 'also', proneOk: true, shoulderOk: true, kneePain: false, highBloodPressure: false },
-  gabor: { painLocation: 'felso', proneOk: true, shoulderOk: false, kneePain: false, highBloodPressure: false },
-  daniel: { painLocation: 'also', proneOk: true, shoulderOk: true, kneePain: false, highBloodPressure: false },
-}
-
-function codeLabel(code: ExerciseCode) {
-  return `${code} ${EXERCISES[code].name}`
-}
-
-const clients: Client[] = [
-  {
-    id: 'peter',
-    name: 'Péter',
-    mode: 'utana',
-    history: [
-      { num: 1, video: codeLabel('S01') },
-      { num: 2, video: codeLabel('S02') },
-      { num: 3, video: codeLabel('S03') },
-      { num: 4, video: codeLabel('S04') },
-      { num: 5, video: codeLabel('S05') },
-    ],
-    bulkLevels: [
-      { num: 6, video: codeLabel('S06') },
-      { num: 7, video: codeLabel('S07') },
-      { num: 8, video: null },
-      { num: 9, video: null },
-      { num: 10, video: null },
-      { num: 11, video: null },
-      { num: 12, video: null },
-      { num: 13, video: null },
-    ],
-  },
-  {
-    id: 'gabor',
-    name: 'Kovács Gábor',
-    mode: 'kozben',
-    levels: [
-      { num: 1, state: 'lezart', video: codeLabel('S03'), note: 'csak az első 2 gyakorlat ebből a szintből.' },
-      { num: 2, state: 'lezart', video: codeLabel('A01') },
-      { num: 3, state: 'nyitva' },
-      { num: 4, state: 'zarolt' },
-      { num: 5, state: 'zarolt' },
-    ],
-  },
-  {
-    id: 'daniel',
-    name: 'Varga Dániel',
-    mode: 'kozben',
-    levels: [
-      { num: 1, state: 'nyitva' },
-      { num: 2, state: 'zarolt' },
-      { num: 3, state: 'zarolt' },
-      { num: 4, state: 'zarolt' },
-      { num: 5, state: 'zarolt' },
-    ],
-  },
-]
 
 function LevelDot({ state }: { state: LevelState }) {
   return (
@@ -483,9 +408,8 @@ function VariablesPanel({
 }
 
 export default function GytVideokiosztas() {
-  const [clientId, setClientId] = useState('peter')
-  const [clientPickerOpen, setClientPickerOpen] = useState(false)
-  const clientRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
+  const [clientId] = useState(getSelectedClientId)
   const client = clients.find((c) => c.id === clientId)!
 
   const [variables, setVariables] = useState(initialVariables)
@@ -513,46 +437,16 @@ export default function GytVideokiosztas() {
 
   const [bulk, setBulk] = useState(() => clients.find((c) => c.id === 'peter')!.bulkLevels!)
 
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      if (clientRef.current && !clientRef.current.contains(e.target as Node)) setClientPickerOpen(false)
-    }
-    document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
-  }, [])
-
-
   return (
     <section className="py-3 py-lg-5">
       <div className="container-fluid" style={{ maxWidth: 900 }}>
         <div className="app-page-header mb-3">
           <h1 className="app-page-title mb-0">videókiosztás</h1>
 
-          <div className={`level-select ${clientPickerOpen ? 'is-open' : ''}`} ref={clientRef}>
-            <button type="button" className="level-select-toggle" onClick={() => setClientPickerOpen((o) => !o)}>
-              <span>{client.name}</span>
-              <span className="level-select-chevron">▾</span>
-            </button>
-
-            {clientPickerOpen && (
-              <ul className="level-select-menu">
-                {clients.map((c) => (
-                  <li key={c.id}>
-                    <button
-                      type="button"
-                      className={`level-select-item ${c.id === clientId ? 'is-selected' : ''}`}
-                      onClick={() => {
-                        setClientId(c.id)
-                        setClientPickerOpen(false)
-                      }}
-                    >
-                      <span>{c.name}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          <button type="button" className="level-select-toggle" onClick={() => navigate('/gyt/ugyfelek')}>
+            <span>{client.name}</span>
+            <span className="small" style={{ color: 'var(--color-text-muted)' }}>· váltás</span>
+          </button>
         </div>
 
         <VariablesPanel

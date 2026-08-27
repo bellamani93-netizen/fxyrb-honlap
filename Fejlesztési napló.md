@@ -439,3 +439,19 @@ Marci két dolgot kért: (1) a bejelentkezés/regisztráció utáni köztes "sik
 - Új sötét-mód szabályok: `.level-select-toggle`/`.level-select-menu` szegélye 2px, `.locked-card` szaggatott szegélye 3px, `.app-sidebar` jobb szegélye és `.app-topbar` alsó szegélye 2px.
 
 **Tesztelve böngészőben:** mindkét teszt-fiókkal bejelentkezve a form közvetlenül a megfelelő app-felületre navigál, köztes doboz nélkül. Sötét módban a "limitációk" felirat számítva `rgb(248, 249, 250)` (offwhite) — JS-mérésekkel megerősítve. A kártyák, legördülők, oldalsáv és felső sáv szegélyei vizuálisan és JS-méréssel is vastagabbak/láthatóbbak; a `.card-fyb-accent` derengés JS-mérve `40px 8px rgba(95,211,188,0.24)`. `npm run build` hibamentes.
+
+## 2026.08.27. — GYT-oldal: ügyfél-választás első lépésként, minden almenü ehhez igazodik
+
+Marci kérése: a GYT felületén az ELSŐ lépés legyen az ügyfél kiválasztása, és minden további almenü (videókiosztás, dokumentáció stb.) már a kiválasztott ügyféllel foglalkozzon — ne a videókiosztás oldal saját, beágyazott legördülőjével lehessen csak ügyfelet váltani.
+
+**Egyeztetés Marcival (AskUserQuestion):** (1) az ügyfél-választó önálló menüpont + kezdőlap legyen, a sidebar-ból bármikor elérhető maradjon (nem egyszeri, bejelentkezés utáni kapu) — így napközben, kijelentkezés nélkül lehet ügyfelet váltani; (2) a választó-listán soronként csak a név szerepeljen, állapot-összegzés nélkül.
+
+**Megvalósítás:**
+- **Adat-kiszervezés:** a korábban a `GytVideokiosztas.tsx`-be zárt `clients` tömb, `Client`/`GytLevel`/`LevelState` típusok, `codeLabel()` és `initialVariables` átkerültek egy önálló, megosztott modulba (`src/data/gytClients.ts`) — így más GYT-oldali oldal (most az új ügyfél-lista, később a dokumentáció/munkafüzet stb.) is hivatkozhat ugyanarra az ügyfél-adatra, egy forrásból.
+- **Kiválasztott ügyfél megosztása:** `getSelectedClientId()`/`setSelectedClientId()` — `localStorage` (`fyb-gyt-client` kulcs), ugyanaz a perzisztencia-minta, mint a `fyb-theme`/`fyb-session`-nél. Hiányzó/érvénytelen kulcs esetén az első kliensre (`clients[0].id`) esik vissza — így egy közvetlen URL-lel érkező, még nem választott GYT sem kap üres/hibás állapotot.
+- **Új oldal — `GytUgyfelek.tsx` (`/gyt/ugyfelek`):** egyszerű, kattintható névlista (`.card-fyb` + `.module-item` minta újrahasznosítva, kezdőbetű-jelvénnyel) — kattintásra elmenti a választást és a videókiosztás oldalra navigál. Ez lett az ÚJ landolóoldal GYT-bejelentkezés után (`Belepes.tsx` `ROLE_PATH.gyt`: `/gyt/videokiosztas` → `/gyt/ugyfelek`), ÉS egy önálló, mindig elérhető sidebar-menüpont (`ügyfeleim`, első helyen, `ikon_kezdolap.svg`) — nem egyszeri kapu, bármikor visszaléphet ide a GYT másik ügyfelet választani.
+- **`GytVideokiosztas.tsx` egyszerűsítve:** a korábbi, oldalon belüli ügyfél-választó legördülő (saját state, kattintás-kívülre-zárás logika) törölve; a `clientId` most `getSelectedClientId()`-ból inicializálódik (a komponens minden új mountnál — pl. "ügyfeleim"-ből visszanavigálva — újraolvassa). A fejlécben az ügyfél neve helyette egy kattintható "[Név] · váltás" gomb, ami az `/gyt/ugyfelek` listára navigál vissza.
+
+**Buktató, amit menet közben találtunk:** a `VariablesPanel` típusaihoz szükséges `ClientVariables` importot a kiszervezés közben véletlenül eltávolítottam (a `codeLabel`/`initialVariables` importja mellett) — `tsc` build hibát adott (`Cannot find name 'ClientVariables'`), egy hiányzó import visszapótlásával azonnal javítva.
+
+**Tesztelve böngészőben:** GYT-belépés után egyenesen az "ügyfeleim" lista jelenik meg (nem a videókiosztás); Kovács Gábor kiválasztása a "kozben" módú listáját tölti be helyesen; "· váltás" gombbal vissza az ügyfél-listára; Péter kiválasztása a "utana" módú tömeges kiosztást tölti be helyesen; `localStorage` törlése + közvetlen `/gyt/videokiosztas` URL-lel érkezés az első ügyfélre (Péter) esik vissza hiba nélkül. Konzol-hiba nincs, `npm run build` hibamentes.
