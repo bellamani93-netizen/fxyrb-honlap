@@ -1,13 +1,17 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { clients, setSelectedClientId } from '../data/gytClients'
 
 export default function GytUgyfelek() {
   const navigate = useNavigate()
+  const [search, setSearch] = useState('')
 
   function choose(id: string) {
     setSelectedClientId(id)
     navigate('/gyt/videokiosztas')
   }
+
+  const filtered = clients.filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase()))
 
   return (
     <section className="py-3 py-lg-5">
@@ -19,20 +23,32 @@ export default function GytUgyfelek() {
           válaszd ki, melyik ügyféllel szeretnél most dolgozni — a további almenük (videókiosztás, dokumentáció stb.) innentől erre az ügyfélre vonatkoznak.
         </p>
 
+        <input
+          type="search"
+          className="form-control mb-3"
+          placeholder="keresés név szerint…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
         <div className="card-fyb">
-          {clients.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className="module-item d-flex align-items-center w-100 text-start"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}
-              onClick={() => choose(c.id)}
-            >
-              <span className="module-index">{c.name.charAt(0)}</span>
-              <span className="flex-grow-1 fw-bold">{c.name}</span>
-              <span style={{ color: 'var(--color-text-muted)' }}>›</span>
-            </button>
-          ))}
+          {filtered.length === 0 ? (
+            <p className="mb-0 text-center" style={{ color: 'var(--color-text-muted)' }}>nincs találat</p>
+          ) : (
+            filtered.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className="module-item d-flex align-items-center w-100 text-start"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}
+                onClick={() => choose(c.id)}
+              >
+                <span className="module-index">{c.name.charAt(0)}</span>
+                <span className="flex-grow-1 fw-bold">{c.name}</span>
+                <span style={{ color: 'var(--color-text-muted)' }}>›</span>
+              </button>
+            ))
+          )}
         </div>
       </div>
     </section>

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { EXERCISES, type ExerciseCode, type ClientVariables, suggestedSequence } from '../data/tornaSzintek'
 import { clients, codeLabel, initialVariables, getSelectedClientId, type GytLevel, type LevelState } from '../data/gytClients'
@@ -408,7 +407,6 @@ function VariablesPanel({
 }
 
 export default function GytVideokiosztas() {
-  const navigate = useNavigate()
   const [clientId] = useState(getSelectedClientId)
   const client = clients.find((c) => c.id === clientId)!
 
@@ -442,11 +440,7 @@ export default function GytVideokiosztas() {
       <div className="container-fluid" style={{ maxWidth: 900 }}>
         <div className="app-page-header mb-3">
           <h1 className="app-page-title mb-0">videókiosztás</h1>
-
-          <button type="button" className="level-select-toggle" onClick={() => navigate('/gyt/ugyfelek')}>
-            <span>{client.name}</span>
-            <span className="small" style={{ color: 'var(--color-text-muted)' }}>· váltás</span>
-          </button>
+          <span className="fw-bold">{client.name}</span>
         </div>
 
         <VariablesPanel

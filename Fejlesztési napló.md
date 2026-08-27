@@ -455,3 +455,13 @@ Marci kérése: a GYT felületén az ELSŐ lépés legyen az ügyfél kiválaszt
 **Buktató, amit menet közben találtunk:** a `VariablesPanel` típusaihoz szükséges `ClientVariables` importot a kiszervezés közben véletlenül eltávolítottam (a `codeLabel`/`initialVariables` importja mellett) — `tsc` build hibát adott (`Cannot find name 'ClientVariables'`), egy hiányzó import visszapótlásával azonnal javítva.
 
 **Tesztelve böngészőben:** GYT-belépés után egyenesen az "ügyfeleim" lista jelenik meg (nem a videókiosztás); Kovács Gábor kiválasztása a "kozben" módú listáját tölti be helyesen; "· váltás" gombbal vissza az ügyfél-listára; Péter kiválasztása a "utana" módú tömeges kiosztást tölti be helyesen; `localStorage` törlése + közvetlen `/gyt/videokiosztas` URL-lel érkezés az első ügyfélre (Péter) esik vissza hiba nélkül. Konzol-hiba nincs, `npm run build` hibamentes.
+
+## 2026.08.27. — "váltás" gomb törölve, keresőmező az "ügyfeleim" oldalon
+
+Marci visszajelzése: a videókiosztás fejlécében lévő "[Név] · váltás" gomb felesleges (a sidebar "ügyfeleim" menüpontja már biztosítja az ügyfél-váltást), és az "ügyfeleim" listán legyen kereső, hogy sok ügyfél esetén gyorsan rá lehessen szűrni egy névre.
+
+**Megvalósítás:**
+- `GytVideokiosztas.tsx`: a fejlécbeli kattintható "[Név] · váltás" gomb egyszerű, nem interaktív `<span className="fw-bold">` feliratra cserélve — az ügyfél neve továbbra is látszik (kontextus, kivel dolgozik éppen a GYT), de navigáció/kattintás nélkül. Az ezzel feleslegessé vált `useNavigate` import/hívás törölve.
+- `GytUgyfelek.tsx`: új `search` state + `<input type="search">` a lista fölött; a `clients` tömb `.filter()`-rel szűrve (kisbetűsített, ékezet-érzékeny substring-egyezés a névre). Nulla találat esetén "nincs találat" üzenet a lista helyén.
+
+**Tesztelve böngészőben:** "gáb" beírására csak Kovács Gábor marad a listán; értelmetlen keresésre ("xyz") "nincs találat" jelenik meg; a videókiosztás fejlécében az ügyfél neve (pl. "Péter") változatlanul látszik, de gomb/kattintás nélkül. Egy régi (sok korábbi HMR-frissítést átélt) böngészőfülön hamis "useNavigate is not defined" konzolhiba jelent meg — friss fülön megismételve nem reprodukálódott, tehát a megszokott stale HMR-gyorsítótár-hiba volt, nem valós kódhiba. `npm run build` hibamentes.
