@@ -23,10 +23,24 @@ const ufNavItems: NavItem[] = [
 type AppLayoutProps = {
   navItems?: NavItem[]
   userName?: string
+  role?: 'ugyfel' | 'gyt'
 }
 
-export default function AppLayout({ navItems = ufNavItems, userName = 'Péter' }: AppLayoutProps) {
+function sessionName(role: 'ugyfel' | 'gyt' | undefined, fallback: string): string {
+  if (!role) return fallback
+  try {
+    const raw = localStorage.getItem('fyb-session')
+    if (!raw) return fallback
+    const session = JSON.parse(raw) as { name?: string; role?: string }
+    return session.role === role && session.name ? session.name : fallback
+  } catch {
+    return fallback
+  }
+}
+
+export default function AppLayout({ navItems = ufNavItems, userName = 'Péter', role }: AppLayoutProps) {
   const [open, setOpen] = useState(false)
+  const displayName = sessionName(role, userName)
 
   return (
     <div className="app-shell">
@@ -40,7 +54,7 @@ export default function AppLayout({ navItems = ufNavItems, userName = 'Péter' }
             ☰
           </button>
         </div>
-        <div className="app-topbar-greeting">Szia, {userName}!</div>
+        <div className="app-topbar-greeting">Szia, {displayName}!</div>
       </div>
 
       {open && <div className="app-sidebar-backdrop d-lg-none" onClick={() => setOpen(false)} />}
@@ -60,7 +74,7 @@ export default function AppLayout({ navItems = ufNavItems, userName = 'Péter' }
           <div className="app-sidebar-avatar">
             <Icon src="/icons/ikon_fiok.svg" />
           </div>
-          <div className="fw-bold">Szia, {userName}!</div>
+          <div className="fw-bold">Szia, {displayName}!</div>
         </div>
 
         <nav className="app-sidebar-nav">

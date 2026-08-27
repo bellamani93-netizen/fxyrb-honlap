@@ -409,3 +409,17 @@ Marci visszajelzése: a GYT-videókiosztás oldal kiosztásai/elrendezései mind
 - Új szabály: `html[data-theme='dark'] .card-fyb { border: 1px solid var(--color-border); }` — sötét módban a sima kártyák `box-shadow`-ja önmagában nem ad látható elhatárolást egy már sötét oldalháttéren, ezért explicit szegélyt kaptak.
 
 **Tesztelve (regressziós ellenőrzéssel, mivel a token-javítás globális):** böngészőben, friss lapokon, sötét módban (`localStorage.setItem('fyb-theme','dark')` + navigálás, mert a közvetlen `data-theme` attribútum-állítás felülíródik az induló szkript által) — a GYT-videókiosztás oldal minden státusz-jelvénye, gombja, doboz-határa és az "auth-tab" pirula-váltói most jól láthatóak mindkét ("kozben" és "utana") módban, asztali és mobil nézetben egyaránt. Regressziós spot-check a Főoldalon (hero, "kinek segítünk" kártyák, folyamat-lépések, "nem csak mi mondjuk" idézet-kártya, CTA-gomb) és a Bejelentkezés oldalon (form-kártya, mezők, fül-váltó) — mindkettő rendben, nincs vizuális törés a token-változástól. `npm run build` hibamentes.
+
+## 2026.08.27. — Valódi teszt-belépési lehetőség (ÜF + GYT)
+
+Marci kérte, hogy legyen két konkrét, kipróbálható teszt-fiók a Belépés oldalon: **Példa Béla** (`peldabela@peldabela.hu`) mint teszt-ügyfél, és **Kollé Gábor** (`kollega@kollega.hu`) mint teszt-gyógytornász — mindkettő úgy, hogy a megfelelő szerepkör felületére navigáljon be.
+
+**Ok, hogy eddig ez nem működött:** a Belépés (`Belepes.tsx`) form eddig tisztán UI-vázlat volt — bármilyen e-mail/jelszó megadásával "sikeresen bejelentkeztél" üzenetet mutatott, és mindig ugyanoda (`/gyakorlatok`) irányított; a beviteli mezők nem is voltak kontrollált React state-hez kötve. Mivel a projektnek nincs adatbázisa/valódi hitelesítése (UI-terv, nem működő rendszer), két konkrét, kódba égetett teszt-fiókkal old­ottuk meg a szerepkör-alapú útvonalválasztást.
+
+**Megvalósítás:**
+- `Belepes.tsx`: `TEST_ACCOUNTS` map (e-mail → `{name, role}`) a két megadott fiókkal. Bejelentkezéskor a beírt e-mail (kisbetűsítve, space nélkül) ezekhez van illesztve; egyezés esetén a session (`{name, role}`) `localStorage`-be kerül (`fyb-session` kulcs, ugyanaz a minta, mint a `fyb-theme`-nél), és a sikeres-képernyő a szerepkörnek megfelelő szöveggel/linkkel jelenik meg (ÜF → "a gyakorlataimhoz" / `/gyakorlatok`, GYT → "a videókiosztáshoz" / `/gyt/videokiosztas`). Nem egyező e-mailnél piros hibaszöveg jelenik meg, és a form a helyén marad. A form alján egy tájékoztató sor mutatja mindkét teszt-fiók e-mail címét (a jelszó bármi lehet, nincs valódi ellenőrzés).
+- Regisztrációnál (mivel csak ÜF regisztrálhat, GYT-fiókot nem itt hoznak létre) a megadott név kerül a session-be, `role: 'ugyfel'`-lel.
+- `AppLayout.tsx`: új `role` prop (`'ugyfel' | 'gyt'`); mountoláskor beolvassa a `fyb-session`-t, és ha a session szerepköre egyezik a layout szerepkörével, a session nevét mutatja a topbar/sidebar köszöntésben ("Szia, ...!") — egyébként a korábbi statikus alapértelmezés (`Péter`/`Judit`) marad, hogy a bejelentkezés kihagyásával (közvetlen URL-lel) történő böngészés is működjön, ahogy eddig.
+- `App.tsx`: a két `AppLayout`-routecsoport (ÜF, GYT) mostantól `role="ugyfel"`, ill. `role="gyt"` propot is kap.
+
+**Tesztelve böngészőben:** `peldabela@peldabela.hu` → "sikeresen bejelentkeztél, Példa Béla" → gyakorlatok oldal, sidebar "Szia, Példa Béla!"; `kollega@kollega.hu` → "sikeresen bejelentkeztél, Kollé Gábor" → videókiosztás oldal, sidebar "Szia, Kollé Gábor!"; ismeretlen e-mail → piros hibaüzenet, marad a form. `npm run build` hibamentes.

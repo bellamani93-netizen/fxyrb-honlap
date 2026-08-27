@@ -31,10 +31,10 @@ export default function App() {
         <Route path="/idopontfoglalas" element={<Idopontfoglalas />} />
         <Route path="/belepes" element={<Belepes />} />
       </Route>
-      <Route element={<AppLayout />}>
+      <Route element={<AppLayout role="ugyfel" />}>
         <Route path="/gyakorlatok" element={<Gyakorlatok />} />
       </Route>
-      <Route element={<AppLayout navItems={gytNavItems} userName="Judit" />}>
+      <Route element={<AppLayout navItems={gytNavItems} userName="Judit" role="gyt" />}>
         <Route path="/gyt/videokiosztas" element={<GytVideokiosztas />} />
       </Route>
     </Routes>
