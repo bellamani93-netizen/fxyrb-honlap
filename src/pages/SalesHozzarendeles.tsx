@@ -80,7 +80,7 @@ function DeleteButton({ onClick }: { onClick: () => void }) {
       aria-label="ügyfél törlése"
       style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}
     >
-      <Icon src="/icons/ikon_kuka.svg" className="sales-delete-icon" style={{ width: '1.3rem', height: '1.3rem' }} />
+      <Icon src="/icons/ikon_kuka.svg" className="sales-delete-icon" style={{ width: '1.4rem', height: '1.4rem' }} />
     </button>
   )
 }
@@ -278,6 +278,7 @@ export default function SalesHozzarendeles() {
             <span>kezdés</span>
             <span>gyt</span>
             <span>fizetve</span>
+            <span />
           </div>
 
           {/* mobil fejléc — kevesebb oszlop, mert a név+dátum egy blokkba van vonva */}
@@ -303,8 +304,8 @@ export default function SalesHozzarendeles() {
                   <span className="small" style={{ color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
                     {c.assignedGyt ?? '—'}
                   </span>
-                  <span className="d-flex align-items-center gap-4">
-                    <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
+                  <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
+                  <span className="sales-delete-cell">
                     {!c.paid && <DeleteButton onClick={() => setPendingAction({ type: 'delete', client: c })} />}
                   </span>
                 </div>
@@ -318,7 +319,7 @@ export default function SalesHozzarendeles() {
                   <span className="small" style={{ color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
                     {c.assignedGyt ?? '—'}
                   </span>
-                  <span className="d-flex align-items-center gap-4">
+                  <span className="sales-action-cell">
                     <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
                     {!c.paid && <DeleteButton onClick={() => setPendingAction({ type: 'delete', client: c })} />}
                   </span>

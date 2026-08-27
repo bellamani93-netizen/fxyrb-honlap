@@ -971,30 +971,41 @@ html[data-theme='dark'] .locked-overlay-card {
 @media (min-width: 992px) {
   .sales-row-grid {
     display: grid;
-    grid-template-columns: 9rem 11rem 9rem 8rem 4.5rem;
+    /* 6. oszlop: a kuka-ikon, mindig a sor legvégén (jobbra igazítva a saját
+       oszlopában), a checkbox-tól függetlenül, külön rács-oszlopban
+       (2026.08.27., 3. kör: Marci "a kuka legyen a sor legvégén" kérésére) */
+    grid-template-columns: 9rem 11rem 9rem 8rem 3rem 1fr;
     align-items: center;
     column-gap: 0.75rem;
   }
 }
 .sales-row-grid-mobile {
   display: grid;
-  grid-template-columns: 1fr 8rem 4.5rem;
+  /* csak 3 oszlop (nem 6, mint asztalin) — 2 db 1fr oszlop egymás mellett
+     egyenlő arányban osztaná a helyet, ami a keskeny "ügyfél" oszlopot
+     (név+dátum) túlságosan összenyomná; itt a checkbox+kuka egy közös,
+     fix szélességű utolsó oszlopban van, belső flex-lyel a végekre tolva */
+  grid-template-columns: 1fr 8rem 5rem;
   align-items: center;
   column-gap: 0.35rem;
+}
+.sales-row-grid-mobile .sales-action-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 @media (min-width: 992px) {
   .sales-row-grid-mobile {
     display: none;
   }
 }
-
-.sales-delete-icon {
-  color: var(--color-danger);
+.sales-delete-cell {
+  justify-self: end;
 }
-/* sötét módban élénkebb pirosra vált a jobb kontraszt miatt — a semleges
-   --color-danger navy háttéren nem elég feltűnő; egy első, finomabb
-   próbálkozás (#FF5C4D) még mindig nem tűnt elég élénknek, ezért itt
-   egy határozottan telített, tiszta piros (2026.08.27., 2. kör) */
-html[data-theme='dark'] .sales-delete-icon {
+
+/* élénk, jól látható piros — mindkét módban azonos, nem csak sötétben
+   (2026.08.27., 3. kör: az előző, csak sötét módú árnyalat sem volt elég
+   feltűnő) */
+.sales-delete-icon {
   color: #FF3B30;
 }
