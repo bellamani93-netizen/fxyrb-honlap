@@ -109,7 +109,7 @@ function SortButton({ label, sortKey, current, onClick }: { label: string; sortK
       type="button"
       className="small fw-bold text-uppercase"
       onClick={() => onClick(sortKey)}
-      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-muted)' }}
+      style={{ background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', color: 'var(--color-text-muted)', textAlign: 'left', justifySelf: 'start' }}
     >
       {label}
       {active ? (current!.dir === 'asc' ? ' ▲' : ' ▼') : ''}
@@ -309,7 +309,7 @@ export default function SalesHozzarendeles() {
             className="sales-row-grid pb-2 mb-1 small fw-bold text-uppercase"
             style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
           >
-            <SortButton label="név" sortKey="name" current={sort} onClick={toggleSort} />
+            <SortButton label="ügyfél" sortKey="name" current={sort} onClick={toggleSort} />
             <span>email</span>
             <SortButton label="kezdés" sortKey="date" current={sort} onClick={toggleSort} />
             <SortButton label="gyt" sortKey="gyt" current={sort} onClick={toggleSort} />
