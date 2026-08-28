@@ -1,5 +1,3 @@
-import { initialColleagues } from './colleagues'
-
 export type SalesClient = {
   id: string
   name: string
@@ -9,11 +7,6 @@ export type SalesClient = {
   assignedGyt: string | null
   paid: boolean
 }
-
-// a GYT-roszter innentől a közös munkatárs-listából (colleagues.ts) származik,
-// hogy az admin "munkatársak" oldala és a SALES gyógytornász-választója
-// ugyanabból az egy forrásból dolgozzon
-export const GYT_STAFF = initialColleagues.filter((c) => c.role === 'gyt').map((c) => c.name)
 
 export const initialSalesClients: SalesClient[] = [
   {

@@ -1,50 +1,20 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import Icon from '../components/Icon'
-import { GYT_STAFF, initialSalesClients, type SalesClient } from '../data/salesClients'
+import { initialSalesClients, type SalesClient } from '../data/salesClients'
 import { useAdminEditGuard, AdminModifiedBadge } from '../hooks/useAdminEditGuard'
-
-function GytPicker({ assigned, onAssign }: { assigned: string | null; onAssign: (gyt: string) => void }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
-  }, [])
-
-  return (
-    <div className={`level-select ${open ? 'is-open' : ''}`} ref={ref}>
-      <button type="button" className="level-select-toggle" onClick={() => setOpen((o) => !o)}>
-        <span style={{ color: assigned ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
-          {assigned ?? 'válassz gyógytornászt'}
-        </span>
-        <span className="level-select-chevron">▾</span>
-      </button>
-
-      {open && (
-        <ul className="level-select-menu">
-          {GYT_STAFF.map((g) => (
-            <li key={g}>
-              <button
-                type="button"
-                className={`level-select-item ${assigned === g ? 'is-selected' : ''}`}
-                onClick={() => {
-                  onAssign(g)
-                  setOpen(false)
-                }}
-              >
-                <span>{g}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  )
-}
+import {
+  GYT_COLLEAGUES,
+  addDays,
+  formatDateOnly,
+  getBaseDaySlots,
+  getMondayOf,
+  parseISODateLocal,
+  initialSalesCalls,
+  type SalesCall,
+  type TimeSlot,
+} from '../data/calendarData'
+import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
+import GytBookingModal, { type PickedSlot } from '../components/GytBookingModal'
 
 function SwitchToggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
@@ -130,23 +100,86 @@ type FormState = {
   name: string
   email: string
   phone: string
-  startTime: string
-  gyt: string | null
+  gytId: string | null
+  startTime: string // csak a naptár-modalból tölthető ki, ld. lent
   paid: boolean
 }
 
-const emptyForm: FormState = { name: '', email: '', phone: '', startTime: '', gyt: null, paid: false }
+const emptyForm: FormState = { name: '', email: '', phone: '', gytId: null, startTime: '', paid: false }
 
 type PendingAction = { type: 'unpay' | 'delete'; client: SalesClient }
 
+type Tab = 'hozzarendeles' | 'sajat' | 'gyt'
+type BookingModalTarget = { mode: 'form' } | { mode: 'call'; call: SalesCall }
+
+// a naptár-integráció (2026.08.28.) ideiglenes, munkamenet-szintű "foglalás"
+// rétege: kulcs = `${gytId}__${dateISO}__${hour}`, érték = a foglaláshoz
+// tartozó címke (pl. "Hajdú Zsófia 1") — ez ÍRJA FELÜL a calendarData.ts
+// determinisztikus alap-adatát, amikor egy sales kolléga a felületen ténylegesen
+// lefoglal egy szabad sávot; a saját naptár ÉS az "új ügyfél felvétele" űrlap
+// UGYANEZT az egy réteget és UGYANAZT a GytBookingModal-t használja, hogy ne
+// legyen két, egymástól független módja ugyanannak a foglalási műveletnek
+function bookingKey(gytId: string, dateISO: string, hour: number) {
+  return `${gytId}__${dateISO}__${hour}`
+}
+
 export default function SalesHozzarendeles() {
   const [clients, setClients] = useState<SalesClient[]>(initialSalesClients)
+  const [salesCalls, setSalesCalls] = useState<SalesCall[]>(initialSalesCalls)
   const [search, setSearch] = useState('')
   const [form, setForm] = useState<FormState>(emptyForm)
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [sort, setSort] = useState<SortState>(null)
   const [adminAddedIds, setAdminAddedIds] = useState<Set<string>>(new Set())
   const { active: adminActive, guard: adminGuard, isModified, modal: adminModal } = useAdminEditGuard('sales')
+
+  const [tab, setTab] = useState<Tab>('hozzarendeles')
+  const [bookings, setBookings] = useState<Record<string, string>>({})
+  const [bookingModal, setBookingModal] = useState<BookingModalTarget | null>(null)
+  // az űrlapból választott, de MÉG BE NEM KÜLDÖTT foglalás — csak a tényleges
+  // "ügyfél felvétele" gombnyomáskor válik valódi (naptárban is látszó)
+  // foglalássá, hogy egy félbehagyott/törölt űrlap ne foglaljon le hiába egy sávot
+  const [pendingFormSlot, setPendingFormSlot] = useState<{ gytId: string; dateISO: string; hour: number } | null>(null)
+  const [calSelectedGyt, setCalSelectedGyt] = useState<string | null>(null) // null = összesített nézet
+  const [weekOffset, setWeekOffset] = useState<0 | 1>(0)
+
+  const [today] = useState(() => new Date())
+  const weekStart = addDays(getMondayOf(today), weekOffset * 7)
+
+  function isBooked(gytId: string, dateISO: string, hour: number) {
+    return Boolean(bookings[bookingKey(gytId, dateISO, hour)])
+  }
+
+  function getEffectiveSlot(gytId: string, dateISO: string, hour: number): TimeSlot {
+    const override = bookings[bookingKey(gytId, dateISO, hour)]
+    if (override) return { hour, status: 'foglalt', label: override }
+    return getBaseDaySlots(gytId, parseISODateLocal(dateISO), today).find((s) => s.hour === hour) ?? { hour }
+  }
+
+  // a saját naptárból (Calendly-hívás) nyitott foglalási modal megerősítésekor
+  // AZONNAL létrejön a foglalás + az ügyfél (minden adat már megvan Calendly-ből);
+  // az űrlapból nyitott modal csak a form mezőit tölti ki, a tényleges foglalás
+  // a form beküldésekor jön létre (ld. handleSubmit)
+  function handleBookingConfirm(slot: PickedSlot) {
+    if (bookingModal?.mode === 'call') {
+      const call = bookingModal.call
+      const startTime = `${slot.dateISO}T${String(slot.hour).padStart(2, '0')}:00`
+      setBookings((prev) => ({ ...prev, [bookingKey(slot.gytId, slot.dateISO, slot.hour)]: `${call.name} 1` }))
+      const newId = `${Date.now()}`
+      setClients((prev) => [
+        ...prev,
+        { id: newId, name: call.name, email: call.email, phone: call.phone, startTime, assignedGyt: slot.gytName, paid: false },
+      ])
+      if (adminActive) setAdminAddedIds((prev) => new Set(prev).add(newId))
+      setSalesCalls((prev) =>
+        prev.map((c) => (c.id === call.id ? { ...c, status: 'hozzarendelve', assignedGyt: slot.gytName, assignedStart: startTime } : c))
+      )
+    } else {
+      setForm((prev) => ({ ...prev, gytId: slot.gytId, startTime: `${slot.dateISO}T${String(slot.hour).padStart(2, '0')}:00` }))
+      setPendingFormSlot({ gytId: slot.gytId, dateISO: slot.dateISO, hour: slot.hour })
+    }
+    setBookingModal(null)
+  }
 
   function toggleSort(key: SortKey) {
     setSort((prev) => {
@@ -182,11 +215,12 @@ export default function SalesHozzarendeles() {
     setPaid(client.id, next)
   }
 
-  const formValid = Boolean(form.name.trim() && form.email.trim() && form.phone.trim() && form.startTime && form.gyt)
+  const formGytName = GYT_COLLEAGUES.find((g) => g.id === form.gytId)?.name ?? null
+  const formValid = Boolean(form.name.trim() && form.email.trim() && form.phone.trim() && form.startTime && form.gytId)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!formValid) return
+    if (!formValid || !pendingFormSlot) return
     const id = `${Date.now()}`
     setClients((prev) => [
       ...prev,
@@ -196,12 +230,17 @@ export default function SalesHozzarendeles() {
         email: form.email.trim(),
         phone: form.phone.trim(),
         startTime: form.startTime,
-        assignedGyt: form.gyt,
+        assignedGyt: formGytName,
         paid: form.paid,
       },
     ])
+    setBookings((prev) => ({
+      ...prev,
+      [bookingKey(pendingFormSlot.gytId, pendingFormSlot.dateISO, pendingFormSlot.hour)]: `${form.name.trim()} 1`,
+    }))
     if (adminActive) setAdminAddedIds((prev) => new Set(prev).add(id))
     setForm(emptyForm)
+    setPendingFormSlot(null)
   }
 
   const pendingCount = clients.filter((c) => !c.assignedGyt).length
@@ -227,6 +266,20 @@ export default function SalesHozzarendeles() {
           <h1 className="app-page-title mb-0">ügyfél–GYT hozzárendelés</h1>
         </div>
 
+        <div className="auth-tabs mb-4">
+          <button type="button" className={`auth-tab ${tab === 'hozzarendeles' ? 'active' : ''}`} onClick={() => setTab('hozzarendeles')}>
+            hozzárendelés
+          </button>
+          <button type="button" className={`auth-tab ${tab === 'sajat' ? 'active' : ''}`} onClick={() => setTab('sajat')}>
+            saját naptár
+          </button>
+          <button type="button" className={`auth-tab ${tab === 'gyt' ? 'active' : ''}`} onClick={() => setTab('gyt')}>
+            gyt naptárak
+          </button>
+        </div>
+
+        {tab === 'hozzarendeles' && (
+        <>
         <div className="card-fyb card-fyb-accent mb-4">
           <h2 className="h5 mb-3">új ügyfél felvétele</h2>
           <form onSubmit={handleSubmit}>
@@ -267,20 +320,26 @@ export default function SalesHozzarendeles() {
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />
               </div>
-              <div className="col-12 col-md-6">
-                <label className="form-label small fw-bold" htmlFor="sales-start">kezdő időpont</label>
-                <input
-                  id="sales-start"
-                  type="datetime-local"
-                  className="form-control"
-                  required
-                  value={form.startTime}
-                  onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                />
-              </div>
-              <div className="col-12 col-md-6">
-                <span className="form-label small fw-bold d-block">gyógytornász</span>
-                <GytPicker assigned={form.gyt} onAssign={(gyt) => setForm({ ...form, gyt })} />
+              <div className="col-12">
+                <span className="form-label small fw-bold d-block">gyógytornász és időpont</span>
+                {form.gytId && form.startTime ? (
+                  <div className="d-flex align-items-center flex-wrap gap-2">
+                    <span className="fw-bold">{formGytName}</span>
+                    <span className="small" style={{ color: 'var(--color-text-muted)' }}>{formatStart(form.startTime)}</span>
+                    <button
+                      type="button"
+                      className="btn-fyb btn-fyb-ghost"
+                      style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem' }}
+                      onClick={() => setBookingModal({ mode: 'form' })}
+                    >
+                      módosítás
+                    </button>
+                  </div>
+                ) : (
+                  <button type="button" className="btn-fyb btn-fyb-outline" onClick={() => setBookingModal({ mode: 'form' })}>
+                    időpont választása a naptárból
+                  </button>
+                )}
               </div>
               <div className="col-12 col-md-6">
                 <span className="form-label small fw-bold d-block">befizetett</span>
@@ -386,6 +445,118 @@ export default function SalesHozzarendeles() {
             ))
           )}
         </div>
+        </>
+        )}
+
+        {tab === 'sajat' && (
+          <div className="card-fyb">
+            <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>
+              a Calendly-foglalásokból érkező sales-hívások — a Calendly már megadja az ügyfél nevét, e-mailjét és telefonszámát, ezt egy kattintással viheted át a gyógytornász naptárába.
+            </p>
+
+            <div
+              className="call-row-grid pb-2 mb-1 small fw-bold text-uppercase"
+              style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
+            >
+              <span>ügyfél</span>
+              <span>elérhetőség</span>
+              <span>hívás időpontja</span>
+              <span>állapot</span>
+            </div>
+
+            {salesCalls.map((call) => (
+              <div key={call.id} className="py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <div className="call-row-grid">
+                  <span className="fw-bold">{call.name}</span>
+                  <span className="small" style={{ color: 'var(--color-text-muted)' }}>{call.email} · {call.phone}</span>
+                  <span className="small">{formatStart(call.callTime)}</span>
+                  {call.status === 'hozzarendelve' ? (
+                    <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+                      hozzárendelve: {call.assignedGyt}, {formatStart(call.assignedStart ?? '')}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn-fyb btn-fyb-primary"
+                      style={{ padding: '0.35rem 0.9rem', fontSize: '0.8rem', justifySelf: 'start' }}
+                      onClick={() => setBookingModal({ mode: 'call', call })}
+                    >
+                      GYT-időpont foglalása
+                    </button>
+                  )}
+                </div>
+
+                <div className="d-lg-none">
+                  <span className="fw-bold d-block">{call.name}</span>
+                  <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>{call.email} · {call.phone}</span>
+                  <span className="small d-block mb-2" style={{ color: 'var(--color-text-muted)' }}>hívás: {formatStart(call.callTime)}</span>
+                  {call.status === 'hozzarendelve' ? (
+                    <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+                      hozzárendelve: {call.assignedGyt}, {formatStart(call.assignedStart ?? '')}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn-fyb btn-fyb-primary"
+                      style={{ padding: '0.35rem 0.9rem', fontSize: '0.8rem' }}
+                      onClick={() => setBookingModal({ mode: 'call', call })}
+                    >
+                      GYT-időpont foglalása
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab === 'gyt' && (
+          <div className="card-fyb">
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <div className="auth-tabs" style={{ flexWrap: 'wrap' }}>
+                <button type="button" className={`auth-tab ${calSelectedGyt === null ? 'active' : ''}`} onClick={() => setCalSelectedGyt(null)}>
+                  összes
+                </button>
+                {GYT_COLLEAGUES.map((g) => (
+                  <button
+                    key={g.id}
+                    type="button"
+                    className={`auth-tab ${calSelectedGyt === g.id ? 'active' : ''}`}
+                    onClick={() => setCalSelectedGyt(g.id)}
+                  >
+                    {g.name}
+                  </button>
+                ))}
+              </div>
+
+              <div className="d-flex align-items-center gap-2">
+                <button type="button" className="btn-fyb btn-fyb-ghost" disabled={weekOffset === 0} onClick={() => setWeekOffset(0)}>
+                  ‹ ez a hét
+                </button>
+                <span className="small fw-bold">
+                  {formatDateOnly(weekStart)} – {formatDateOnly(addDays(weekStart, 6))}
+                </span>
+                <button type="button" className="btn-fyb btn-fyb-ghost" disabled={weekOffset === 1} onClick={() => setWeekOffset(1)}>
+                  következő hét ›
+                </button>
+              </div>
+            </div>
+
+            {/* ez a fül csak KAPACITÁS-áttekintő — nincs kattintható szabad sáv itt,
+               a tényleges foglalás mindig a "saját naptár" hívás-kártyáról vagy
+               az "új ügyfél felvétele" űrlapról indul (ugyanazzal a modallal) */}
+            <GytWeeklyCalendar
+              weekStart={weekStart}
+              today={today}
+              gytList={GYT_COLLEAGUES}
+              selectedGytId={calSelectedGyt}
+              getSlot={getEffectiveSlot}
+            />
+            <p className="small mt-3 mb-0" style={{ color: 'var(--color-text-muted)' }}>
+              ez a nézet csak áttekintő — időpontot a "saját naptár" fülön egy hívásnál, vagy az "új ügyfél felvétele" űrlapon lehet lefoglalni.
+            </p>
+          </div>
+        )}
 
         {pendingAction && pendingAction.type === 'unpay' && (
           <ConfirmDialog
@@ -408,6 +579,24 @@ export default function SalesHozzarendeles() {
               deleteClient(pendingAction.client.id)
               setPendingAction(null)
             }}
+          />
+        )}
+
+        {bookingModal && (
+          <GytBookingModal
+            gytOptions={GYT_COLLEAGUES}
+            today={today}
+            isBooked={isBooked}
+            preselectedGytId={calSelectedGyt}
+            clientPreview={
+              bookingModal.mode === 'call'
+                ? { name: bookingModal.call.name, email: bookingModal.call.email, phone: bookingModal.call.phone }
+                : form.name.trim()
+                  ? { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() }
+                  : undefined
+            }
+            onConfirm={handleBookingConfirm}
+            onCancel={() => setBookingModal(null)}
           />
         )}
 
