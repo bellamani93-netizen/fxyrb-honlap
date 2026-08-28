@@ -4,7 +4,7 @@ import { initialColleagues, type Colleague, type ColleagueRole } from '../data/c
 import { setAdminView } from '../hooks/useAdminEditGuard'
 
 const ROLE_LABEL: Record<ColleagueRole, string> = { gyt: 'gyógytornász', sales: 'értékesítő' }
-const ROLE_PATH: Record<ColleagueRole, string> = { gyt: '/gyt/ugyfelek', sales: '/sales/hozzarendeles' }
+const ROLE_PATH: Record<ColleagueRole, string> = { gyt: '/gyt/ugyfelek', sales: '/sales/hivasaim' }
 
 type FormState = { name: string; email: string; role: ColleagueRole }
 const emptyForm: FormState = { name: '', email: '', role: 'gyt' }

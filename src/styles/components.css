@@ -1064,7 +1064,10 @@ html[data-theme='dark'] .sales-delete-icon {
 @media (min-width: 992px) {
   .call-row-grid {
     display: grid;
-    grid-template-columns: 9rem 14rem 8rem 1fr;
+    /* email és telefon külön oszlopban (2026.08.28., 2. kör) — a telefon
+       önálló, kattintható tel: link, hogy telefonon egy érintéssel indítsa
+       a hívást, ne kelljen kimásolni egy összevont "email · telefon" szövegből */
+    grid-template-columns: 8rem 12rem 8rem 8rem 1fr;
     align-items: center;
     column-gap: 0.75rem;
   }
@@ -1077,10 +1080,13 @@ html[data-theme='dark'] .sales-delete-icon {
 /* mind a 7 nap mindig egyszerre látszik, mobilon is (Marci kifejezett kérése,
    a Google Calendar mobil heti nézete alapján) — a hét-oszlopok keskeny
    minmax-floor-je (2.2rem) miatt a rács szűk (375px) telefonon is befér
-   vízszintes görgetés nélkül; az órajelző oszlop is emiatt keskenyebb (2.2rem) */
+   vízszintes görgetés nélkül; az órajelző oszlop is emiatt keskenyebb (2.2rem).
+   Hétvégi (Szo/V) oszlopok feleakkora szélesek (2026.08.28., Marci kérésére —
+   oda valószínűleg úgysem terveznek időpontot), a hét-nap oszlopok kapják a
+   fennmaradó helyet (1fr vs. 0.5fr). */
 .gyt-cal-grid {
   display: grid;
-  grid-template-columns: 2.2rem repeat(7, minmax(2.2rem, 1fr));
+  grid-template-columns: 2.2rem repeat(5, minmax(2.2rem, 1fr)) repeat(2, minmax(1.1rem, 0.5fr));
   grid-auto-rows: minmax(1.9rem, auto);
 }
 .gyt-cal-corner {

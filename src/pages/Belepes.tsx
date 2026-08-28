@@ -16,7 +16,7 @@ const TEST_ACCOUNTS: Record<string, Session> = {
 const ROLE_PATH: Record<Role, string> = {
   ugyfel: '/gyakorlatok',
   gyt: '/gyt/ugyfelek',
-  sales: '/sales/hozzarendeles',
+  sales: '/sales/hivasaim',
   admin: '/admin/munkatarsak',
 }
 

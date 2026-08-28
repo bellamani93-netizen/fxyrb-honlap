@@ -4,7 +4,8 @@ import { initialColleagues } from './colleagues'
 // ez a "torna szintek" videó-adatmodelltől (tornaSzintek.ts) teljesen
 // független, önálló demo-adatforrás: a naptár-integráció más réteg
 // (időbeosztás/kapacitás), nem a gyakorlat-kiosztás rendszere.
-export const BUSINESS_HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+// Időkiosztás 6:00–21:00 (Marci kérésére, 2026.08.28., 2. kör) — 15 db 1 órás sáv.
+export const BUSINESS_HOURS = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 const LUNCH_HOUR = 13
 
 export type SlotStatus = 'szabad' | 'foglalt'
@@ -129,40 +130,45 @@ export type SalesCall = {
 
 // a Calendly-ből (placeholder-adatként) érkező sales-hívások — ezek MÉG NEM
 // szerepelnek a salesClients.ts listájában; a "GYT-időpont foglalása" hozza
-// létre belőlük az első valódi ügyfél-bejegyzést
-export const initialSalesCalls: SalesCall[] = [
-  {
-    id: 'call-hajdu-zsofia',
-    name: 'Hajdú Zsófia',
-    email: 'hajdu.zsofia@pelda.hu',
-    phone: '+36 30 678 9012',
-    callTime: '2026-08-29T11:00',
-    status: 'var_gyt_re',
-  },
-  {
-    id: 'call-molnar-tamas',
-    name: 'Molnár Tamás',
-    email: 'molnar.tamas@pelda.hu',
-    phone: '+36 30 789 0123',
-    callTime: '2026-08-31T09:30',
-    status: 'var_gyt_re',
-  },
-  {
-    id: 'call-szucs-viktoria',
-    name: 'Szűcs Viktória',
-    email: 'szucs.viktoria@pelda.hu',
-    phone: '+36 30 890 1234',
-    callTime: '2026-09-02T14:00',
-    status: 'hozzarendelve',
-    assignedGyt: 'Kollé Gábor',
-    assignedStart: '2026-09-03T10:00',
-  },
-  {
-    id: 'call-farkas-milan',
-    name: 'Farkas Milán',
-    email: 'farkas.milan@pelda.hu',
-    phone: '+36 30 901 2345',
-    callTime: '2026-09-03T16:30',
-    status: 'var_gyt_re',
-  },
-]
+// létre belőlük az első valódi ügyfél-bejegyzést. A "mai hívások" nézet
+// (2026.08.28., 2. kör) miatt a dátumok a MINDENKORI "ma"-hoz képest relatívak
+// (nem fix naptári dátumok), hogy a demó bármikor tesztelve mutasson mai elemet.
+export function buildInitialSalesCalls(today: Date): SalesCall[] {
+  const iso = (offset: number) => formatISODate(addDays(today, offset))
+  return [
+    {
+      id: 'call-hajdu-zsofia',
+      name: 'Hajdú Zsófia',
+      email: 'hajdu.zsofia@pelda.hu',
+      phone: '+36 30 678 9012',
+      callTime: `${iso(0)}T09:00`,
+      status: 'var_gyt_re',
+    },
+    {
+      id: 'call-molnar-tamas',
+      name: 'Molnár Tamás',
+      email: 'molnar.tamas@pelda.hu',
+      phone: '+36 30 789 0123',
+      callTime: `${iso(0)}T15:00`,
+      status: 'var_gyt_re',
+    },
+    {
+      id: 'call-szucs-viktoria',
+      name: 'Szűcs Viktória',
+      email: 'szucs.viktoria@pelda.hu',
+      phone: '+36 30 890 1234',
+      callTime: `${iso(3)}T14:00`,
+      status: 'hozzarendelve',
+      assignedGyt: 'Kollé Gábor',
+      assignedStart: `${iso(4)}T10:00`,
+    },
+    {
+      id: 'call-farkas-milan',
+      name: 'Farkas Milán',
+      email: 'farkas.milan@pelda.hu',
+      phone: '+36 30 901 2345',
+      callTime: `${iso(5)}T16:30`,
+      status: 'var_gyt_re',
+    },
+  ]
+}
