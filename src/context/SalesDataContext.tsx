@@ -17,13 +17,23 @@ export type BookingModalConfig = {
   onConfirm: (slot: PickedSlot) => void
 }
 
-// 2 szerkeszthető elutasító-üzenet sablon (2026.08.28., 3. kör) — a "{Név}"
+// 2 szerkeszthető elutasító-üzenet sablon (2026.08.28., 3-4. kör) — a "{Név}"
 // jelölő a küldéskor az ügyfél nevére cserélődik; az "üzenetek" oldal ezt a
 // 2 sablont szerkeszti, a hívás-módosító popup pirosgombja pedig ezek közül
-// választva küld (helyettesítő, backend nélküli) elutasítót
-const DEFAULT_MESSAGE_TEMPLATES: [string, string] = [
-  'Kedves {Név}! Sajnálattal értesítünk, hogy a foglalt konzultációs időpontodat törölnünk kellett. Kérjük, vedd fel velünk a kapcsolatot egy új időpont egyeztetéséhez. Üdvözlettel, a FixYourBack csapata.',
-  'Kedves {Név}! Sajnos jelenleg nincs szabad gyógytornász-kapacitásunk a foglalt időpontodra, ezért azt törölnünk kellett. Hamarosan jelentkezünk egy új javaslattal. Üdvözlettel, a FixYourBack csapata.',
+// választva küld (helyettesítő, backend nélküli) elutasítót. Külön "name"
+// mező (2026.08.28., 4. kör, Marci kérésére) — a törlés-popup gombján NEM a
+// teljes üzenetszöveg, csak ez a rövid elnevezés jelenik meg.
+export type MessageTemplate = { name: string; body: string }
+
+const DEFAULT_MESSAGE_TEMPLATES: [MessageTemplate, MessageTemplate] = [
+  {
+    name: 'lemondás — új időpont egyeztetése',
+    body: 'Kedves {Név}! Sajnálattal értesítünk, hogy a foglalt konzultációs időpontodat törölnünk kellett. Kérjük, vedd fel velünk a kapcsolatot egy új időpont egyeztetéséhez. Üdvözlettel, a FixYourBack csapata.',
+  },
+  {
+    name: 'lemondás — kapacitáshiány',
+    body: 'Kedves {Név}! Sajnos jelenleg nincs szabad gyógytornász-kapacitásunk a foglalt időpontodra, ezért azt törölnünk kellett. Hamarosan jelentkezünk egy új javaslattal. Üdvözlettel, a FixYourBack csapata.',
+  },
 ]
 
 type SalesDataContextValue = {
@@ -43,8 +53,8 @@ type SalesDataContextValue = {
   adminAddedIds: Set<string>
   markAdminAdded: (id: string) => void
   openBookingModal: (config: BookingModalConfig) => void
-  messageTemplates: [string, string]
-  setMessageTemplates: Dispatch<SetStateAction<[string, string]>>
+  messageTemplates: [MessageTemplate, MessageTemplate]
+  setMessageTemplates: Dispatch<SetStateAction<[MessageTemplate, MessageTemplate]>>
 }
 
 const SalesDataContext = createContext<SalesDataContextValue | null>(null)
@@ -72,7 +82,7 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
   const [bookings, setBookings] = useState<Record<string, string>>({})
   const [adminAddedIds, setAdminAddedIds] = useState<Set<string>>(new Set())
   const [modalConfig, setModalConfig] = useState<BookingModalConfig | null>(null)
-  const [messageTemplates, setMessageTemplates] = useState<[string, string]>(DEFAULT_MESSAGE_TEMPLATES)
+  const [messageTemplates, setMessageTemplates] = useState<[MessageTemplate, MessageTemplate]>(DEFAULT_MESSAGE_TEMPLATES)
   const { active: adminActive, guard: adminGuard, isModified, modal: adminModal } = useAdminEditGuard('sales')
 
   function isBooked(gytId: string, dateISO: string, hour: number) {

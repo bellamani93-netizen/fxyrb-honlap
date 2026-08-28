@@ -1,10 +1,56 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import type { SalesClient } from '../data/salesClients'
 import { AdminModifiedBadge } from '../hooks/useAdminEditGuard'
-import { GYT_COLLEAGUES, addDays, formatDateOnly, getMondayOf } from '../data/calendarData'
+import { GYT_COLLEAGUES, addDays, formatDateOnly, getMondayOf, type SalesCall } from '../data/calendarData'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
 import { useSalesData } from '../context/SalesDataContext'
+
+// "adatok importálása" legördülő — a "hívásaim" oldalról érkezett, MÉG NEM
+// GYT-hez rendelt hívások neveit listázza, hogy egy kattintással átvehető
+// legyen a Calendly-ből már ismert név/email/telefon (2026.08.28., 4. kör)
+function ImportCallDropdown({ calls, onSelect }: { calls: SalesCall[]; onSelect: (call: SalesCall) => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  return (
+    <div className={`level-select ${open ? 'is-open' : ''}`} ref={ref}>
+      <button type="button" className="btn-fyb btn-fyb-outline" style={{ padding: '0.4rem 0.9rem', fontSize: '0.85rem' }} onClick={() => setOpen((o) => !o)}>
+        adatok importálása
+      </button>
+      {open && (
+        <ul className="level-select-menu">
+          {calls.length === 0 ? (
+            <li className="px-3 py-2 small" style={{ color: 'var(--color-text-muted)' }}>nincs importálható hívás</li>
+          ) : (
+            calls.map((c) => (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  className="level-select-item"
+                  onClick={() => {
+                    onSelect(c)
+                    setOpen(false)
+                  }}
+                >
+                  <span>{c.name}</span>
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
+      )}
+    </div>
+  )
+}
 
 function SwitchToggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
@@ -105,6 +151,8 @@ export default function SalesHozzarendeles() {
   const {
     clients,
     setClients,
+    salesCalls,
+    setSalesCalls,
     getEffectiveSlot,
     addBooking,
     today,
@@ -120,6 +168,10 @@ export default function SalesHozzarendeles() {
   const [form, setForm] = useState<FormState>(emptyForm)
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [sort, setSort] = useState<SortState>(null)
+  // ha az űrlap adatai egy "hívásaim"-beli hívásból lettek importálva, ennek
+  // az id-ja itt van, hogy a beküldéskor a forrás-hívást is meg lehessen
+  // jelölni "hozzárendelve"-ként (ld. handleSubmit)
+  const [importedCallId, setImportedCallId] = useState<string | null>(null)
 
   const [tab, setTab] = useState<Tab>('hozzarendeles')
   // az űrlapból választott, de MÉG BE NEM KÜLDÖTT foglalás — csak a tényleges
@@ -130,6 +182,27 @@ export default function SalesHozzarendeles() {
   const [weekOffset, setWeekOffset] = useState<0 | 1>(0)
 
   const weekStart = addDays(getMondayOf(today), weekOffset * 7)
+
+  // csak a MÉG NEM gyt-hez rendelt hívások importálhatók; a legelső a "most"-
+  // hoz (abszolút időkülönbségben) legközelebbi hívás, utána a TÖBBI időrendben,
+  // az egyre régebbiek felé (Marci pontos specifikációja) — ez a 2 lépés azért
+  // különbözik egy sima csökkenő rendezéstől, mert ha van jövőbeli hívás is a
+  // listában, egy távoli jövőbeli időpont sima időrendi rendezésnél az összes
+  // közelmúltbeli elé kerülne, holott nem az van "legközelebb a mosthoz"
+  const unassignedCalls = salesCalls.filter((c) => c.status === 'var_gyt_re')
+  const nowMs = today.getTime()
+  const callMs = (c: SalesCall) => new Date(c.callTime).getTime()
+  const importableCalls: SalesCall[] = (() => {
+    if (unassignedCalls.length === 0) return []
+    const closest = [...unassignedCalls].sort((a, b) => Math.abs(callMs(a) - nowMs) - Math.abs(callMs(b) - nowMs))[0]
+    const rest = unassignedCalls.filter((c) => c.id !== closest.id).sort((a, b) => callMs(b) - callMs(a))
+    return [closest, ...rest]
+  })()
+
+  function handleImportCall(call: SalesCall) {
+    setForm((prev) => ({ ...prev, name: call.name, email: call.email, phone: call.phone }))
+    setImportedCallId(call.id)
+  }
 
   function openFormBookingModal() {
     openBookingModal({
@@ -197,8 +270,18 @@ export default function SalesHozzarendeles() {
     ])
     addBooking(pendingFormSlot.gytId, pendingFormSlot.dateISO, pendingFormSlot.hour, `${form.name.trim()} 1`)
     if (adminActive) markAdminAdded(id)
+    if (importedCallId) {
+      setSalesCalls((prev) =>
+        prev.map((c) =>
+          c.id === importedCallId
+            ? { ...c, status: 'hozzarendelve', assignedGyt: formGytName ?? undefined, assignedGytId: pendingFormSlot.gytId, assignedStart: form.startTime, assignedClientId: id }
+            : c
+        )
+      )
+    }
     setForm(emptyForm)
     setPendingFormSlot(null)
+    setImportedCallId(null)
   }
 
   const pendingCount = clients.filter((c) => !c.assignedGyt).length
@@ -236,7 +319,10 @@ export default function SalesHozzarendeles() {
         {tab === 'hozzarendeles' && (
         <>
         <div className="card-fyb card-fyb-accent mb-4">
-          <h2 className="h5 mb-3">új ügyfél felvétele</h2>
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <h2 className="h5 mb-0">új ügyfél felvétele</h2>
+            <ImportCallDropdown calls={importableCalls} onSelect={handleImportCall} />
+          </div>
           <form onSubmit={handleSubmit}>
             <div className="row g-3">
               <div className="col-12 col-md-6">
@@ -446,7 +532,7 @@ export default function SalesHozzarendeles() {
               getSlot={getEffectiveSlot}
             />
             <p className="small mt-3 mb-0" style={{ color: 'var(--color-text-muted)' }}>
-              ez a nézet csak áttekintő — időpontot a "hívásaim" oldalon egy hívásnál, vagy az "új ügyfél felvétele" űrlapon lehet lefoglalni.
+              ez a nézet csak áttekintő — időpontot az "ügyfelek" fülön, az "új ügyfél felvétele" űrlapon lehet lefoglalni.
             </p>
           </div>
         )}

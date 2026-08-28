@@ -4,7 +4,6 @@ import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
 import CallDetailModal from '../components/CallDetailModal'
 import Icon from '../components/Icon'
 import { useSalesData } from '../context/SalesDataContext'
-import type { PickedSlot } from '../components/GytBookingModal'
 
 const OWN_ID = 'sajat'
 const OWN_LIST = [{ id: OWN_ID, name: 'saját hívásaim' }]
@@ -38,17 +37,7 @@ function GearButton({ onClick }: { onClick: () => void }) {
 type SubView = 'mai' | 'naptar'
 
 export default function SalesHivasaim() {
-  const {
-    salesCalls,
-    setSalesCalls,
-    setClients,
-    addBooking,
-    removeBooking,
-    today,
-    adminActive,
-    markAdminAdded,
-    openBookingModal,
-  } = useSalesData()
+  const { salesCalls, setSalesCalls, setClients, removeBooking, today } = useSalesData()
   const [view, setView] = useState<SubView>('mai')
   const [weekOffset, setWeekOffset] = useState<0 | 1>(0)
   const [modifyingCall, setModifyingCall] = useState<SalesCall | null>(null)
@@ -65,35 +54,6 @@ export default function SalesHivasaim() {
   function getOwnSlot(_id: string, dateISO: string, hour: number): TimeSlot {
     const match = findCallAt(dateISO, hour)
     return match ? { hour, status: 'foglalt', label: match.name } : { hour }
-  }
-
-  // a hívás-kártyáról induló foglalás AZONNAL létrehozza az ügyfelet + a
-  // naptár-sávot is (minden adat — név/email/telefon — már megvan a
-  // Calendly-hívásból, nincs mit "beküldeni" utólag, ellentétben az "új
-  // ügyfél felvétele" űrlappal, ld. SalesHozzarendeles.tsx)
-  function handleCallBookingConfirm(call: SalesCall, slot: PickedSlot) {
-    const startTime = `${slot.dateISO}T${String(slot.hour).padStart(2, '0')}:00`
-    addBooking(slot.gytId, slot.dateISO, slot.hour, `${call.name} 1`)
-    const newId = `${Date.now()}`
-    setClients((prev) => [
-      ...prev,
-      { id: newId, name: call.name, email: call.email, phone: call.phone, startTime, assignedGyt: slot.gytName, paid: false },
-    ])
-    if (adminActive) markAdminAdded(newId)
-    setSalesCalls((prev) =>
-      prev.map((c) =>
-        c.id === call.id
-          ? { ...c, status: 'hozzarendelve', assignedGyt: slot.gytName, assignedGytId: slot.gytId, assignedStart: startTime, assignedClientId: newId }
-          : c
-      )
-    )
-  }
-
-  function bookForCall(call: SalesCall) {
-    openBookingModal({
-      clientPreview: { name: call.name, email: call.email, phone: call.phone },
-      onConfirm: (slot) => handleCallBookingConfirm(call, slot),
-    })
   }
 
   function handleSetOutcome(callId: string, outcome: SalesCallOutcome) {
@@ -121,7 +81,7 @@ export default function SalesHivasaim() {
         </div>
 
         <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>
-          a Calendly-foglalásokból érkező sales-hívások — a Calendly már megadja az ügyfél nevét, e-mailjét és telefonszámát, ezt egy kattintással viheted át a gyógytornász naptárába.
+          a Calendly-foglalásokból érkező sales-hívások — a gyógytornászhoz rendeléshez a "hozzárendelések" oldal "adatok importálása" gombjával hozhatod be egy hívás adatait.
         </p>
 
         <div className="auth-tabs mb-4">
@@ -151,7 +111,7 @@ export default function SalesHivasaim() {
               <p className="mb-0 text-center" style={{ color: 'var(--color-text-muted)' }}>ma nincs hívás.</p>
             ) : (
               todaysCalls.map((call) => (
-                <CallRow key={call.id} call={call} onBook={() => bookForCall(call)} onModify={() => setModifyingCall(call)} />
+                <CallRow key={call.id} call={call} onModify={() => setModifyingCall(call)} />
               ))
             )}
           </div>
@@ -217,7 +177,7 @@ export default function SalesHivasaim() {
   )
 }
 
-function CallRow({ call, onBook, onModify }: { call: SalesCall; onBook: () => void; onModify: () => void }) {
+function CallRow({ call, onModify }: { call: SalesCall; onModify: () => void }) {
   const assigned = call.status === 'hozzarendelve'
   return (
     <div className="py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
@@ -227,42 +187,30 @@ function CallRow({ call, onBook, onModify }: { call: SalesCall; onBook: () => vo
         <span className="small" style={{ color: 'var(--color-text-muted)' }}>{call.email}</span>
         <a href={telHref(call.phone)} className="small" style={{ color: 'var(--color-primary)' }}>{call.phone}</a>
         <span className="d-flex align-items-center gap-2 flex-wrap">
-          {assigned ? (
-            <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-              hozzárendelve: {call.assignedGyt}
-            </span>
-          ) : (
-            <button type="button" className="btn-fyb btn-fyb-primary" style={{ padding: '0.35rem 0.9rem', fontSize: '0.8rem' }} onClick={onBook}>
-              GYT-időpont foglalása
-            </button>
-          )}
+          <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+            {assigned ? `hozzárendelve: ${call.assignedGyt}` : 'vár hozzárendelésre'}
+          </span>
           <OutcomeBadge outcome={call.outcome} />
         </span>
         <GearButton onClick={onModify} />
       </div>
 
-      {/* mobil sor — nagy időpont vezeti a sort, alatta a többi adat, a jobb
-         szélen a "+" (foglalás, csak ha még nincs GYT-hez rendelve) és a
-         fogaskerék (módosítás) kör-gombok (2026.08.28., 3. kör) */}
+      {/* mobil sor — nagy időpont vezeti a sort, a jobb szélen a fogaskerék
+         (módosítás) kör-gomb (2026.08.28., 4. kör: a "+" foglalás-gomb
+         eltávolítva — a GYT-hez rendelés innentől kizárólag a
+         "hozzárendelések" oldal "adatok importálása" funkciójával megy) */}
       <div className="d-lg-none">
         <div className="d-flex justify-content-between align-items-start mb-2">
           <span className="call-row-time">{formatTime(call.callTime)}</span>
-          <div className="d-flex gap-2">
-            {!assigned && (
-              <button type="button" className="circle-icon-btn circle-icon-btn--add" aria-label="gyt-időpont foglalása" onClick={onBook}>+</button>
-            )}
-            <GearButton onClick={onModify} />
-          </div>
+          <GearButton onClick={onModify} />
         </div>
         <span className="fw-bold d-block">{call.name}</span>
         <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>{call.email}</span>
         <a href={telHref(call.phone)} className="small d-block" style={{ color: 'var(--color-primary)' }}>{call.phone}</a>
         <div className="mt-2 d-flex align-items-center gap-2 flex-wrap">
-          {assigned && (
-            <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-              hozzárendelve: {call.assignedGyt}
-            </span>
-          )}
+          <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+            {assigned ? `hozzárendelve: ${call.assignedGyt}` : 'vár hozzárendelésre'}
+          </span>
           <OutcomeBadge outcome={call.outcome} />
         </div>
       </div>

@@ -39,10 +39,9 @@ export default function CallDetailModal({ call, onClose, onSetOutcome, onReject 
                 key={i}
                 type="button"
                 className="btn-fyb btn-fyb-danger text-start"
-                style={{ whiteSpace: 'normal', lineHeight: 1.3 }}
                 onClick={() => onReject(i as 0 | 1)}
               >
-                {i + 1}. változat: „{tpl.replace('{Név}', call.name)}”
+                {tpl.name}
               </button>
             ))}
           </div>

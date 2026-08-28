@@ -793,3 +793,15 @@ Marci a "hívásaim" oldalhoz kért továbbfejlesztést: a hívás-sorok elrende
 - `App.tsx`: új `/sales/uzenetek` route + "üzenetek" nav-item (`ikon_csengo`).
 
 **Tesztelve böngészőben, asztali (1280px) és mobil (375px), világos és sötét módban:** az új sor-elrendezés, a fogaskerék-popup mindhárom gombja, a törlés kétlépéses (törlés-gomb → sablon-választás) flow-ja, a naptár mini-előnézet → teljes popup lánc mind helyesen működik; egy törölt hívás a hozzá tartozó GYT-foglalással és klienssel együtt tűnik el; az "üzenetek" oldalon módosított sablon-szöveg azonnal látszik a törlés-popupban. Konzol-hiba nincs, `npm run build` hibamentes.
+
+## 2026.08.28. — Naptár-integráció, 4. kör: "adatok importálása", a hozzárendelés egyetlen útvonala, sablon-elnevezés
+
+Marci egy munkafolyamat-egyszerűsítést kért: a "hívásaim" oldal ne tudjon TÖBBÉ közvetlenül GYT-hez rendelni ÜF-et — ez a képesség kizárólag a "hozzárendelések" oldal "ügyfelek" fülén, egy új "adatok importálása" gombbal legyen elérhető. Emellett a törlés-popup sablon-gombjai csak egy rövid, külön mezőben megadható elnevezést mutassanak, ne a teljes üzenetszöveget.
+
+**Megvalósítás:**
+- `SalesHozzarendeles.tsx`: új `ImportCallDropdown` komponens az "új ügyfél felvétele" cím mellett — a MÉG NEM hozzárendelt hívások neveit listázza (`.level-select` mintával). Rendezés két lépésben: (1) a "most"-hoz abszolút időkülönbségben legközelebbi hívás az első; (2) a maradék hívás sima csökkenő időrendben követi. Ez tudatosan eltér egy sima csökkenő rendezéstől, mert egy jövőbeli hívás simán a legelejére kerülne, holott nem az van legközelebb a jelen pillanathoz. Egy név kiválasztása kitölti a form név/email/telefon mezőit; a form beküldésekor a forrás-hívás állapota is `'hozzarendelve'`-re vált.
+- `SalesHivasaim.tsx`: a "GYT-időpont foglalása" gomb (asztali szöveg + mobil "+" ikon) és a hozzá tartozó `handleCallBookingConfirm`/`bookForCall` logika törölve — helyette egyszerű szöveg jelzi az állapotot ("hozzárendelve: [GYT]" / "vár hozzárendelésre"). A fogaskerék (módosítás/törlés/kimenet) gomb változatlanul megmaradt, mert az a hívás KIMENETÉT követi, nem a GYT-hez rendelést.
+- `SalesDataContext.tsx`: `messageTemplates` típusa `[string, string]` → `{ name: string; body: string }` pár (`MessageTemplate` típus). `SalesUzenetek.tsx` mindkét sablonhoz külön "elnevezés" mezőt kapott a meglévő szöveg-textarea mellé. `CallDetailModal.tsx` törlés-gombjai mostantól csak a `name`-et mutatják.
+- Dead code eltávolítva: `.circle-icon-btn--add` CSS-osztály (többé nem használt).
+
+**Tesztelve böngészőben, asztali (1280px) és mobil (375px):** az import-legördülő helyes sorrendben listázza a hívásokat (böngészőben ellenőrizve: 15:42-kor egy 15:00-as hívás megelőzött egy 5 nappal későbbi jövőbeli hívást), a kiválasztás kitölti a formot, beküldés után a forrás-hívás "hozzárendelve" állapotba kerül gomb nélkül; a törlés-popup gombjai csak a rövid elnevezést mutatják; az "üzenetek" oldal mindkét mezője szerkeszthető. Konzol-hiba nincs, `npm run build` hibamentes.

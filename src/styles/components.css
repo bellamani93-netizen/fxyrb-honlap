@@ -1212,13 +1212,6 @@ html[data-theme='dark'] .sales-delete-icon {
   flex-shrink: 0;
   padding: 0;
 }
-.circle-icon-btn--add {
-  background-color: var(--color-primary);
-  color: var(--color-primary-contrast);
-  font-size: 1.4rem;
-  font-weight: 700;
-  line-height: 1;
-}
 .circle-icon-btn--gear {
   background-color: var(--color-bg-alt);
   border: 1px solid var(--color-border);
