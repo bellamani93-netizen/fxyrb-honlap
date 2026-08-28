@@ -11,6 +11,7 @@ import GytUgyfelek from './pages/GytUgyfelek'
 import GytVideokiosztas from './pages/GytVideokiosztas'
 import SalesHivasaim from './pages/SalesHivasaim'
 import SalesHozzarendeles from './pages/SalesHozzarendeles'
+import SalesUzenetek from './pages/SalesUzenetek'
 import AdminMunkatarsak from './pages/AdminMunkatarsak'
 import { SalesDataProvider } from './context/SalesDataContext'
 
@@ -30,6 +31,7 @@ const gytNavItems: NavItem[] = [
 const salesNavItems: NavItem[] = [
   { to: '/sales/hivasaim', label: 'hívásaim', icon: '/icons/ikon_naptar.svg' },
   { to: '/sales/hozzarendeles', label: 'hozzárendelések', icon: '/icons/ikon_plusz.svg' },
+  { to: '/sales/uzenetek', label: 'üzenetek', icon: '/icons/ikon_csengo.svg' },
 ]
 
 const adminNavItems: NavItem[] = [
@@ -58,6 +60,7 @@ export default function App() {
         <Route element={<SalesDataProvider><Outlet /></SalesDataProvider>}>
           <Route path="/sales/hivasaim" element={<SalesHivasaim />} />
           <Route path="/sales/hozzarendeles" element={<SalesHozzarendeles />} />
+          <Route path="/sales/uzenetek" element={<SalesUzenetek />} />
         </Route>
       </Route>
       <Route element={<AppLayout navItems={adminNavItems} userName="Anna" role="admin" />}>

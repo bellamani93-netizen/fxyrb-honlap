@@ -13,6 +13,10 @@ type GytWeeklyCalendarProps = {
   // sáv sem kattintható (pl. a "gyt naptárak" fülön, ahol a tényleges
   // foglalás mindig a saját-naptár hívás-kártyáról vagy az űrlapról indul)
   onFreeSlotClick?: (gytId: string, gytName: string, dateISO: string, hour: number) => void
+  // opcionális: FOGLALT sávok kattinthatóvá tétele (pl. a "hívásaim" saját
+  // naptár-nézetén, ahol minden foglalt sáv egy saját hívás — rákattintva egy
+  // gyors előnézet nyílik) — a "gyt naptárak" kapacitás-áttekintőn nincs átadva
+  onBookedSlotClick?: (gytId: string, dateISO: string, hour: number) => void
 }
 
 function SlotBlock({
@@ -46,7 +50,7 @@ function SlotBlock({
   )
 }
 
-export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedGytId, getSlot, onFreeSlotClick }: GytWeeklyCalendarProps) {
+export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedGytId, getSlot, onFreeSlotClick, onBookedSlotClick }: GytWeeklyCalendarProps) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const todayISO = formatISODate(today)
   const singleGyt = selectedGytId ? gytList.find((g) => g.id === selectedGytId) : null
@@ -82,7 +86,9 @@ export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedG
                       onClick={
                         slot.status === 'szabad' && onFreeSlotClick
                           ? () => onFreeSlotClick(selectedGytId, singleGyt?.name ?? '', dateISO, hour)
-                          : undefined
+                          : slot.status === 'foglalt' && onBookedSlotClick
+                            ? () => onBookedSlotClick(selectedGytId, dateISO, hour)
+                            : undefined
                       }
                     />
                   </div>

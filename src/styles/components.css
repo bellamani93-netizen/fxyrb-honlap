@@ -1064,13 +1064,20 @@ html[data-theme='dark'] .sales-delete-icon {
 @media (min-width: 992px) {
   .call-row-grid {
     display: grid;
-    /* email és telefon külön oszlopban (2026.08.28., 2. kör) — a telefon
-       önálló, kattintható tel: link, hogy telefonon egy érintéssel indítsa
-       a hívást, ne kelljen kimásolni egy összevont "email · telefon" szövegből */
-    grid-template-columns: 8rem 12rem 8rem 8rem 1fr;
+    /* az időpont (óra:perc) vezeti a sort, nagyobb betűmérettel (2026.08.28.,
+       3. kör, Marci kérésére) — a dátum már nem kell, a hívás mindig a "mai
+       hívások" nézetben van, csak az óra:perc számít; email és telefon külön
+       oszlopban, a telefon önálló, kattintható tel: link; a sor végén a
+       fogaskerék (módosítás) kör-gomb minden sorban ott van */
+    grid-template-columns: 4.5rem 8rem 12rem 8rem 1fr 2.6rem;
     align-items: center;
     column-gap: 0.75rem;
   }
+}
+.call-row-time {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 /* --- SALES: heti GYT-naptár rács (2026.08.28., naptár-integráció) --- */
@@ -1190,3 +1197,51 @@ html[data-theme='dark'] .sales-delete-icon {
   max-height: 16rem;
   overflow-y: auto;
 }
+
+/* --- SALES: hívás-sorok kör-gombjai (+ foglalás, fogaskerék módosítás,
+   piros/sárga/zöld státusz — 2026.08.28., 3. kör) --- */
+.circle-icon-btn {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+}
+.circle-icon-btn--add {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.circle-icon-btn--gear {
+  background-color: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+}
+.circle-icon-btn--gear .icon-fyb { color: var(--color-text); }
+.circle-icon-btn--danger { background-color: var(--color-danger); }
+.circle-icon-btn--danger .icon-fyb { color: var(--offwhite); }
+.circle-icon-btn--warning { background-color: var(--color-warning); color: var(--offwhite); font-weight: 700; }
+.circle-icon-btn--success { background-color: var(--color-success); }
+.circle-icon-btn--success .icon-fyb { color: var(--offwhite); }
+
+/* a hívás utólagos kimenete ("nem jelent meg" / "rendben") — tartós jelvény
+   a hívás sorában, az admin-jelvényhez hasonló pirula-forma, de a saját
+   szemantikus színével (warning/success) */
+.call-outcome-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: var(--radius-pill);
+  color: var(--offwhite);
+  font-size: 0.65rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.call-outcome-badge--warning { background-color: var(--color-warning); }
+.call-outcome-badge--success { background-color: var(--color-success); }

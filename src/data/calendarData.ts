@@ -116,6 +116,10 @@ export function getBaseDaySlots(gytId: string, date: Date, today: Date): TimeSlo
 }
 
 export type SalesCallStatus = 'var_gyt_re' | 'hozzarendelve'
+// a hívás UTÓLAGOS kimenete (2026.08.28., 3. kör) — a "módosítás" popup piros/
+// sárga/zöld gombjaiból a sárga/zöld tartósan ráíródik a hívásra (jelvényként
+// látszik a listában); a piros nem "outcome", hanem törli magát a hívást
+export type SalesCallOutcome = 'nem_jelent_meg' | 'rendben'
 
 export type SalesCall = {
   id: string
@@ -125,7 +129,10 @@ export type SalesCall = {
   callTime: string // datetime-local, pl. "2026-08-29T11:00"
   status: SalesCallStatus
   assignedGyt?: string
+  assignedGytId?: string
   assignedStart?: string
+  assignedClientId?: string
+  outcome?: SalesCallOutcome
 }
 
 // a Calendly-ből (placeholder-adatként) érkező sales-hívások — ezek MÉG NEM

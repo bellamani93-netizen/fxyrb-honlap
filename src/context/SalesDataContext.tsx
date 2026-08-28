@@ -17,6 +17,15 @@ export type BookingModalConfig = {
   onConfirm: (slot: PickedSlot) => void
 }
 
+// 2 szerkeszthető elutasító-üzenet sablon (2026.08.28., 3. kör) — a "{Név}"
+// jelölő a küldéskor az ügyfél nevére cserélődik; az "üzenetek" oldal ezt a
+// 2 sablont szerkeszti, a hívás-módosító popup pirosgombja pedig ezek közül
+// választva küld (helyettesítő, backend nélküli) elutasítót
+const DEFAULT_MESSAGE_TEMPLATES: [string, string] = [
+  'Kedves {Név}! Sajnálattal értesítünk, hogy a foglalt konzultációs időpontodat törölnünk kellett. Kérjük, vedd fel velünk a kapcsolatot egy új időpont egyeztetéséhez. Üdvözlettel, a FixYourBack csapata.',
+  'Kedves {Név}! Sajnos jelenleg nincs szabad gyógytornász-kapacitásunk a foglalt időpontodra, ezért azt törölnünk kellett. Hamarosan jelentkezünk egy új javaslattal. Üdvözlettel, a FixYourBack csapata.',
+]
+
 type SalesDataContextValue = {
   clients: SalesClient[]
   setClients: Dispatch<SetStateAction<SalesClient[]>>
@@ -26,6 +35,7 @@ type SalesDataContextValue = {
   isBooked: (gytId: string, dateISO: string, hour: number) => boolean
   getEffectiveSlot: (gytId: string, dateISO: string, hour: number) => TimeSlot
   addBooking: (gytId: string, dateISO: string, hour: number, label: string) => void
+  removeBooking: (gytId: string, dateISO: string, hour: number) => void
   today: Date
   adminActive: boolean
   adminGuard: (id: string | string[], action: () => void) => void
@@ -33,6 +43,8 @@ type SalesDataContextValue = {
   adminAddedIds: Set<string>
   markAdminAdded: (id: string) => void
   openBookingModal: (config: BookingModalConfig) => void
+  messageTemplates: [string, string]
+  setMessageTemplates: Dispatch<SetStateAction<[string, string]>>
 }
 
 const SalesDataContext = createContext<SalesDataContextValue | null>(null)
@@ -60,6 +72,7 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
   const [bookings, setBookings] = useState<Record<string, string>>({})
   const [adminAddedIds, setAdminAddedIds] = useState<Set<string>>(new Set())
   const [modalConfig, setModalConfig] = useState<BookingModalConfig | null>(null)
+  const [messageTemplates, setMessageTemplates] = useState<[string, string]>(DEFAULT_MESSAGE_TEMPLATES)
   const { active: adminActive, guard: adminGuard, isModified, modal: adminModal } = useAdminEditGuard('sales')
 
   function isBooked(gytId: string, dateISO: string, hour: number) {
@@ -76,6 +89,16 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
     setBookings((prev) => ({ ...prev, [bookingKey(gytId, dateISO, hour)]: label }))
   }
 
+  // pl. egy hívás elutasításakor, ha közben már le is foglaltuk a GYT-időpontot —
+  // ilyenkor a foglalást is fel kell szabadítani, ne maradjon "árva" bejegyzés
+  function removeBooking(gytId: string, dateISO: string, hour: number) {
+    setBookings((prev) => {
+      const next = { ...prev }
+      delete next[bookingKey(gytId, dateISO, hour)]
+      return next
+    })
+  }
+
   function markAdminAdded(id: string) {
     setAdminAddedIds((prev) => new Set(prev).add(id))
   }
@@ -89,6 +112,7 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
     isBooked,
     getEffectiveSlot,
     addBooking,
+    removeBooking,
     today,
     adminActive,
     adminGuard,
@@ -96,6 +120,8 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
     adminAddedIds,
     markAdminAdded,
     openBookingModal: setModalConfig,
+    messageTemplates,
+    setMessageTemplates,
   }
 
   return (
