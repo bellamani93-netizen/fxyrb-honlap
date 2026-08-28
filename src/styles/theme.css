@@ -14,6 +14,7 @@
   /* funkcionális jelzések */
   --color-success: var(--teal);
   --color-warning: #C99A2E; /* visszafogott borostyánsárga */
+  --color-warning-rgb: 201, 154, 46; /* nem vált módonként, ld. lent */
   --color-danger: #C15B4A; /* semleges piros/korall */
 
   /* világos mód (alapértelmezett) */
@@ -23,6 +24,7 @@
   --color-text: var(--navy);
   --color-text-muted: var(--sagegray);
   --color-primary: var(--teal);
+  --color-primary-rgb: 0, 128, 128; /* var(--teal) rgb-változata, tint-számításhoz */
   --color-primary-contrast: #FFFFFF;
   --color-secondary: var(--sagegray);
   --color-border: #E1E5E7;
@@ -71,6 +73,7 @@ html[data-theme='dark'] {
   --color-text: var(--offwhite);
   --color-text-muted: #9BB6B5; /* világosított sagegray — a sima #5E807F nem ad elég kontrasztot navy háttéren */
   --color-primary: var(--mint);
+  --color-primary-rgb: 95, 211, 188; /* var(--mint) rgb-változata, tint-számításhoz */
   --color-primary-contrast: var(--navy);
   --color-secondary: var(--sagegray);
   --color-border: #5A7592;

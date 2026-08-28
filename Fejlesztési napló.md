@@ -805,3 +805,14 @@ Marci egy munkafolyamat-egyszerűsítést kért: a "hívásaim" oldal ne tudjon 
 - Dead code eltávolítva: `.circle-icon-btn--add` CSS-osztály (többé nem használt).
 
 **Tesztelve böngészőben, asztali (1280px) és mobil (375px):** az import-legördülő helyes sorrendben listázza a hívásokat (böngészőben ellenőrizve: 15:42-kor egy 15:00-as hívás megelőzött egy 5 nappal későbbi jövőbeli hívást), a kiválasztás kitölti a formot, beküldés után a forrás-hívás "hozzárendelve" állapotba kerül gomb nélkül; a törlés-popup gombjai csak a rövid elnevezést mutatják; az "üzenetek" oldal mindkét mezője szerkeszthető. Konzol-hiba nincs, `npm run build` hibamentes.
+
+## 2026.08.28. — Naptár-integráció, 5. kör: saját naptár színkódolása (múlt/jövő/"nem jött")
+
+Marci kérése: a "hívásaim" → "naptár" nézetben a hívás-sávok színe legyen 3 esetes — sárga, ha a hívást a módosító popup sárga ("nem jött") gombjával jelöltük; a jelenlegi (semleges) szín minden más esetben, ha az időpont már elmúlt; türkiz (a márka elsődleges színe) a jövőbeli időpontoknál. A sárga jelölés elsőbbséget élvez a múlt/jövő megkülönböztetéssel szemben.
+
+**Megvalósítás:**
+- `GytWeeklyCalendar.tsx`: új opcionális `getSlotColor` prop — ha át van adva, sávonként egyedi színt ad vissza a korábbi, kizárólag kolléga-szín-alapú (`gytColorVar`) logika helyett; ha nincs átadva (pl. a "gyt naptárak" kapacitás-áttekintőn), minden változatlan marad.
+- `theme.css`: új `--color-primary-rgb` (világos: teal, sötét: mint) és `--color-warning-rgb` tokenek, hogy a szemantikus színekre is működjön az `rgba()`-alapú tint-számítás.
+- `SalesHivasaim.tsx`: új `getOwnSlotColor()` — a hívás `outcome` mezője és a sáv dátuma/órája `today`-hoz viszonyítva dönt a színről.
+
+**Tesztelve böngészőben, asztali nézetben, világos és sötét módban, JS-méréssel (`getComputedStyle`):** egy 15:42-kor futtatott teszten a két aznapi (már elmúlt) hívás helyesen a semleges alapszínt kapta, egy jövő heti hívás helyesen teal/mint (türkiz) színű, egy "nem jött"-re jelölt hívás helyesen borostyánsárga, függetlenül attól, hogy múltbeli időpontról van szó. Konzol-hiba nincs, `npm run build` hibamentes.

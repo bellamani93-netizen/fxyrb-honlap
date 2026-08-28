@@ -17,6 +17,11 @@ type GytWeeklyCalendarProps = {
   // naptár-nézetén, ahol minden foglalt sáv egy saját hívás — rákattintva egy
   // gyors előnézet nyílik) — a "gyt naptárak" kapacitás-áttekintőn nincs átadva
   onBookedSlotClick?: (gytId: string, dateISO: string, hour: number) => void
+  // opcionális: felülírja az alapértelmezett, kolléganként fix gytColorVar()
+  // színt egy sávonként eltérő színnel (pl. a "hívásaim" saját naptárán, ahol
+  // a szín a hívás kimenetétől és attól függ, hogy múltbeli vagy jövőbeli
+  // időpontról van-e szó) — ha nincs átadva, a megszokott kolléga-szín marad
+  getSlotColor?: (gytId: string, dateISO: string, hour: number, slot: TimeSlot) => { solid: string; tint: string }
 }
 
 function SlotBlock({
@@ -50,7 +55,7 @@ function SlotBlock({
   )
 }
 
-export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedGytId, getSlot, onFreeSlotClick, onBookedSlotClick }: GytWeeklyCalendarProps) {
+export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedGytId, getSlot, onFreeSlotClick, onBookedSlotClick, getSlotColor }: GytWeeklyCalendarProps) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const todayISO = formatISODate(today)
   const singleGyt = selectedGytId ? gytList.find((g) => g.id === selectedGytId) : null
@@ -82,7 +87,11 @@ export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedG
                     <SlotBlock
                       status={slot.status}
                       label={slot.label}
-                      color={{ solid: gytColorVar(selectedGytId), tint: gytColorVar(selectedGytId, 0.22) }}
+                      color={
+                        getSlotColor
+                          ? getSlotColor(selectedGytId, dateISO, hour, slot)
+                          : { solid: gytColorVar(selectedGytId), tint: gytColorVar(selectedGytId, 0.22) }
+                      }
                       onClick={
                         slot.status === 'szabad' && onFreeSlotClick
                           ? () => onFreeSlotClick(selectedGytId, singleGyt?.name ?? '', dateISO, hour)

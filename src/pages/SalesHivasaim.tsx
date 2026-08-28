@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { addDays, formatDateOnly, formatISODate, getMondayOf, type SalesCall, type SalesCallOutcome, type TimeSlot } from '../data/calendarData'
+import { addDays, formatDateOnly, formatISODate, getMondayOf, gytColorVar, type SalesCall, type SalesCallOutcome, type TimeSlot } from '../data/calendarData'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
 import CallDetailModal from '../components/CallDetailModal'
 import Icon from '../components/Icon'
@@ -54,6 +54,23 @@ export default function SalesHivasaim() {
   function getOwnSlot(_id: string, dateISO: string, hour: number): TimeSlot {
     const match = findCallAt(dateISO, hour)
     return match ? { hour, status: 'foglalt', label: match.name } : { hour }
+  }
+
+  // színkód a saját naptárban (2026.08.28., Marci kérésére): sárga, ha a
+  // hívást a módosító popupon "nem jött"-re állítottuk; a jelenlegi (alap,
+  // sagegray) szín minden más MÚLTBELI időpontnál; türkiz (a márka elsődleges
+  // színe) minden JÖVŐBELI időpontnál. A sorrend fontos: a sárga megelőzi a
+  // múlt/jövő megkülönböztetést, mert egy "nem jött" jelölés mindig erősebb.
+  function getOwnSlotColor(_id: string, dateISO: string, hour: number) {
+    const match = findCallAt(dateISO, hour)
+    if (match?.outcome === 'nem_jelent_meg') {
+      return { solid: 'var(--color-warning)', tint: 'rgba(var(--color-warning-rgb), 0.3)' }
+    }
+    const slotStart = new Date(`${dateISO}T${String(hour).padStart(2, '0')}:00`)
+    if (slotStart.getTime() < today.getTime()) {
+      return { solid: gytColorVar(OWN_ID), tint: gytColorVar(OWN_ID, 0.3) }
+    }
+    return { solid: 'var(--color-primary)', tint: 'rgba(var(--color-primary-rgb), 0.3)' }
   }
 
   function handleSetOutcome(callId: string, outcome: SalesCallOutcome) {
@@ -137,6 +154,7 @@ export default function SalesHivasaim() {
               gytList={OWN_LIST}
               selectedGytId={OWN_ID}
               getSlot={getOwnSlot}
+              getSlotColor={getOwnSlotColor}
               onBookedSlotClick={(_gytId, dateISO, hour) => {
                 const match = findCallAt(dateISO, hour)
                 if (match) setPreviewCall(match)
