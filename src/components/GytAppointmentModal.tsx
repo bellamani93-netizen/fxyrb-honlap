@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { BUSINESS_HOURS, formatHour, generateMeetLink } from '../data/calendarData'
+import Icon from './Icon'
 
 export type GytSlotType = 'szabad' | 'terv' | 'konzultacio'
 
@@ -80,10 +81,10 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
     return (
       <div className="modal-backdrop-fyb" onClick={() => setConfirmingDelete(false)}>
         <div className="modal-fyb card-fyb" onClick={(e) => e.stopPropagation()}>
-          <p className="mb-3">biztosan törlöd ezt az időpontot?</p>
+          <p className="mb-3">biztos, hogy törlöd az időpontot?</p>
           <div className="d-flex justify-content-end gap-2">
-            <button type="button" className="btn-fyb btn-fyb-ghost" onClick={() => setConfirmingDelete(false)}>mégse</button>
-            <button type="button" className="btn-fyb btn-fyb-danger" onClick={onDelete}>igen, törlöm</button>
+            <button type="button" className="btn-fyb btn-fyb-ghost" onClick={() => setConfirmingDelete(false)}>nem</button>
+            <button type="button" className="btn-fyb btn-fyb-danger" onClick={onDelete}>igen</button>
           </div>
         </div>
       </div>
@@ -213,10 +214,16 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
           </div>
         )}
 
-        <div className="d-flex justify-content-between align-items-center">
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
             {isEditing && onDelete && (
-              <button type="button" className="btn-fyb btn-fyb-ghost" style={{ color: 'var(--color-danger)' }} onClick={() => setConfirmingDelete(true)}>
+              <button
+                type="button"
+                className="btn-fyb btn-fyb-ghost d-flex align-items-center gap-2"
+                style={{ color: 'var(--color-danger)' }}
+                onClick={() => setConfirmingDelete(true)}
+              >
+                <Icon src="/icons/ikon_kuka.svg" style={{ width: '1.2rem', height: '1.2rem' }} />
                 időpont törlése
               </button>
             )}
