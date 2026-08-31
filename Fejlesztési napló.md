@@ -913,3 +913,18 @@ Marci további finomító kérései az előző körre: a javasolt gombon BELÜL 
 - `src/pages/GytVideokiosztas.tsx`: a javasolt gomb JSX-e a fenti CSS-osztályokat kapja; a mobil nyíl `chevron-svg--text-height` classNamet kapott.
 
 **Tesztelve böngészőben, asztali (1280px) és mobil (500px), világos és sötét módban:** JS `Range`-méréssel megerősítve, hogy a javasolt gomb kódja és címe pixelre pontosan igazodik a fölötte lévő sorhoz; a "más videó" gomb magassága a szürke perem hozzáadása után is pontosan egyezik a "még nem kiosztható" jelvényével; mobilon a nyíl és a mellette lévő szöveg sormagassága pixelre egyezik. Konzol-hiba (a jól ismert stale HMR hiba kivételével) nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.08.31. — GYT szerepkör: új "naptár" oldal (SALES naptár-struktúra átemelve), új ügyfél-jelzés
+
+Marci kérése: a SALES-nél kialakított naptár-struktúrát emeljük át a GYT fiókba — itt a GYT látja a saját naptárát a SALES által beosztott új ügyfelekkel, és kezelhet további időpontokat. Előtte 3 tisztázó kérdést tettünk fel (nav-elhelyezés, "új ügyfél" jelölés forrása, naptár szerkeszthetősége) — mindháromnál Marci az ajánlott választ erősítette meg.
+
+**Megvalósítás:**
+- A nav-menü korábban zárolt "kapacitás" menüpontja feloldva és "naptár"-ra átnevezve, a videókiosztás mögé sorolva.
+- Új `src/pages/GytNaptar.tsx`: "mai konzultációk"/"naptáram" váltókapcsoló (ugyanaz az `.auth-tabs` minta, mint a SALES "hívásaim" oldalán). A "naptáram" nézet a MEGLÉVŐ `GytWeeklyCalendar`+`AppointmentEditorModal` párost használja, a SALES `getBaseDaySlots('kollegabor', ...)` demo-adatát egy helyi `overlay` state fedi le (a SALES `SalesDataContext` bookings-mintáját követve) — csak az overlay-ben létrehozott/módosított időpontok szerkeszthetők, a demo-generált foglalt sávok inertek maradnak. A "mai konzultációk" lista (időpont/név/Google Meet-link) egy új `.consultation-row-grid` valódi CSS Grid-del jelenik meg, minden méretnél (nem csak asztalin).
+- Új `generateMeetLink(seed)` segédfüggvény (`calendarData.ts`) — determinisztikus, kitalált `meet.google.com/xxx-yyyy-zzz` linket ad.
+- `gytClients.ts`: új, opcionális `isNew` mező a `Client` típuson; Varga Dániel és egy új demo-ügyfél (Fekete Nóra) kapta meg. Új `newClientsCount` származtatott érték.
+- `AppLayout.tsx`/`NavItem`: új, opcionális `badge` mező — lime `.nav-badge-dot` jelvény a nav-menüponton. `GytUgyfelek.tsx`: `.new-client-badge` ("új") az új ügyfelek neve mellett a listában.
+
+**Egy buktató menet közben:** a "mai konzultációk" lista mobil nézetében a fejléc "IDŐPONT" szövege szélesebb volt egy fix `3.5rem` első oszlopnál, mint a rövid "17:00" adat-értékek, ezért belelógott a "NÉV" oszlopba — javítva `auto` oszlopszélességre (soronként a saját tartalmához igazodik).
+
+**Tesztelve böngészőben, asztali (1280px) és mobil (400px), világos és sötét módban:** a nav lime pöttye helyesen "2"-t mutat, az ügyfél-listában Varga Dániel és Fekete Nóra "új" jelzést kap; a "mai konzultációk" a mai nap 3 demo-foglalását mutatja; a "naptáram" a Kollé Gábor-színekkel teljes szélességben jelenik meg; egy szabad sávra kattintva új időpont hozható létre, visszakattintva szerkeszthető/törölhető; egy demo-generált foglalt sávra kattintva nem történik semmi (a SALES-konvenciónak megfelelően); egy új ügyfélre váltva a videókiosztás oldal hibamentesen működik. Konzol-hiba (a jól ismert stale HMR hiba kivételével) nem jelentkezett, `npm run build` hibamentes.

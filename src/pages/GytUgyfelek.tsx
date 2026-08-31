@@ -58,7 +58,10 @@ export default function GytUgyfelek() {
                 onClick={() => choose(c.id)}
               >
                 <span className="module-index">{c.name.charAt(0)}</span>
-                <span className="flex-grow-1 fw-bold">{c.name}</span>
+                <span className="flex-grow-1 fw-bold d-flex align-items-center gap-2">
+                  {c.name}
+                  {c.isNew && <span className="new-client-badge">új</span>}
+                </span>
                 <span style={{ color: 'var(--color-text-muted)' }}>›</span>
               </button>
             ))

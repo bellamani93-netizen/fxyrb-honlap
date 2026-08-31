@@ -86,6 +86,24 @@ export function formatDateOnly(date: Date) {
   return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}.`
 }
 
+// Egy stabil (ugyanarra a bemenetre mindig ugyanazt adó) álca-Google Meet link —
+// a valós Google Naptár/Meet-integráció a leendő programozó feladata, ez itt
+// csak a UI-terv szintjén mutatja be, hogy egy konzultációhoz tartozik egy link.
+const MEET_CHARS = 'abcdefghijklmnopqrstuvwxyz'
+export function generateMeetLink(seed: string): string {
+  let h = 0
+  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  function chunk(len: number) {
+    let out = ''
+    for (let i = 0; i < len; i++) {
+      out += MEET_CHARS[h % MEET_CHARS.length]
+      h = (h * 31 + i + 7) >>> 0
+    }
+    return out
+  }
+  return `meet.google.com/${chunk(3)}-${chunk(4)}-${chunk(3)}`
+}
+
 // egy adott GYT egy adott napjának alap (nem admin/sales-módosított) időrácsa —
 // csak a "most" hetére és a következő hétre van meghirdetett sáv (a spec
 // szerinti "1-2 héttel előre tervez"); hétvégén és ezen a két héten túl a

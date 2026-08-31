@@ -9,6 +9,8 @@ import Belepes from './pages/Belepes'
 import Gyakorlatok from './pages/Gyakorlatok'
 import GytUgyfelek from './pages/GytUgyfelek'
 import GytVideokiosztas from './pages/GytVideokiosztas'
+import GytNaptar from './pages/GytNaptar'
+import { newClientsCount } from './data/gytClients'
 import SalesHivasaim from './pages/SalesHivasaim'
 import SalesHozzarendeles from './pages/SalesHozzarendeles'
 import SalesUzenetek from './pages/SalesUzenetek'
@@ -16,8 +18,9 @@ import AdminMunkatarsak from './pages/AdminMunkatarsak'
 import { SalesDataProvider } from './context/SalesDataContext'
 
 const gytNavItems: NavItem[] = [
-  { to: '/gyt/ugyfelek', label: 'ügyfeleim', icon: '/icons/ikon_kezdolap.svg' },
+  { to: '/gyt/ugyfelek', label: 'ügyfeleim', icon: '/icons/ikon_kezdolap.svg', badge: newClientsCount || undefined },
   { to: '/gyt/videokiosztas', label: 'videókiosztás', icon: '/icons/ikon_video.svg' },
+  { to: '/gyt/naptar', label: 'naptár', icon: '/icons/ikon_naptar.svg' },
   { label: 'dokumentáció', icon: '/icons/ikon_munkafuzet.svg', locked: true },
   { label: 'munkafüzet', icon: '/icons/ikon_tanulas.svg', locked: true },
   { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
@@ -25,7 +28,6 @@ const gytNavItems: NavItem[] = [
   { label: 'eredmények', icon: '/icons/ikon_csillag.svg', locked: true },
   { label: 'állapotfelmérő', icon: '/icons/ikon_kerdoiv.svg', locked: true },
   { label: 'kérdések', icon: '/icons/ikon_csengo.svg', locked: true },
-  { label: 'kapacitás', icon: '/icons/ikon_naptar.svg', locked: true },
 ]
 
 const salesNavItems: NavItem[] = [
@@ -55,6 +57,7 @@ export default function App() {
       <Route element={<AppLayout navItems={gytNavItems} userName="Judit" role="gyt" />}>
         <Route path="/gyt/ugyfelek" element={<GytUgyfelek />} />
         <Route path="/gyt/videokiosztas" element={<GytVideokiosztas />} />
+        <Route path="/gyt/naptar" element={<GytNaptar />} />
       </Route>
       <Route element={<AppLayout navItems={salesNavItems} userName="Eszter" role="sales" />}>
         <Route element={<SalesDataProvider><Outlet /></SalesDataProvider>}>

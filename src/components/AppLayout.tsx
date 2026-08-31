@@ -9,6 +9,8 @@ export type NavItem = {
   label: string
   icon: string
   locked?: boolean
+  /** kis lime pötty a menüponton, benne egy számmal (pl. új ügyfelek száma). */
+  badge?: number
 }
 
 const ufNavItems: NavItem[] = [
@@ -104,6 +106,7 @@ export default function AppLayout({ navItems = ufNavItems, userName = 'Péter', 
               <NavLink key={item.label} to={item.to ?? '/'} className="app-sidebar-link" onClick={() => setOpen(false)}>
                 <Icon src={item.icon} />
                 <span className="flex-grow-1">{item.label}</span>
+                {!!item.badge && <span className="nav-badge-dot">{item.badge}</span>}
               </NavLink>
             )
           )}

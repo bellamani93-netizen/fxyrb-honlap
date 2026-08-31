@@ -16,6 +16,8 @@ export type Client = {
   levels?: GytLevel[]
   history?: { num: number; video: string }[]
   bulkLevels?: { num: number; video: string | null; note?: string }[]
+  /** a SALES épp most osztotta be ehhez a GYT-hez, még nem volt vele konzultáció (2026.08.31.). */
+  isNew?: boolean
 }
 
 export function codeLabel(code: ExerciseCode) {
@@ -61,6 +63,20 @@ export const clients: Client[] = [
     id: 'daniel',
     name: 'Varga Dániel',
     mode: 'kozben',
+    isNew: true,
+    levels: [
+      { num: 1, state: 'nyitva' },
+      { num: 2, state: 'zarolt' },
+      { num: 3, state: 'zarolt' },
+      { num: 4, state: 'zarolt' },
+      { num: 5, state: 'zarolt' },
+    ],
+  },
+  {
+    id: 'nora',
+    name: 'Fekete Nóra',
+    mode: 'kozben',
+    isNew: true,
     levels: [
       { num: 1, state: 'nyitva' },
       { num: 2, state: 'zarolt' },
@@ -71,10 +87,14 @@ export const clients: Client[] = [
   },
 ]
 
+/** hány ügyfelet osztott be a SALES, akikkel még nem volt konzultáció — a nav-menü lime pöttyéhez. */
+export const newClientsCount = clients.filter((c) => c.isNew).length
+
 export const initialVariables: Record<string, ClientVariables> = {
   peter: { painLocation: 'also', proneOk: true, shoulderOk: true, kneePain: false, highBloodPressure: false },
   gabor: { painLocation: 'felso', proneOk: true, shoulderOk: false, kneePain: false, highBloodPressure: false },
   daniel: { painLocation: 'also', proneOk: true, shoulderOk: true, kneePain: false, highBloodPressure: false },
+  nora: { painLocation: 'also', proneOk: true, shoulderOk: true, kneePain: false, highBloodPressure: false },
 }
 
 const SELECTED_CLIENT_KEY = 'fyb-gyt-client'

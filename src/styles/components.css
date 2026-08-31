@@ -723,6 +723,32 @@ html[data-theme='dark'] .locked-overlay-card {
   opacity: 0.6;
   cursor: not-allowed;
 }
+/* nav-menüpont lime pöttye, benne egy számmal (pl. új ügyfelek száma, 2026.08.31.). */
+.nav-badge-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  padding: 0 0.35rem;
+  border-radius: 50%;
+  background-color: var(--lime);
+  color: var(--navy);
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+/* "új" jelvény egy frissen kiosztott ügyfél neve mellett (2026.08.31.). */
+.new-client-badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--lime);
+  color: var(--navy);
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
 .app-sidebar-bottom {
   display: flex;
   flex-direction: column;
@@ -1246,6 +1272,28 @@ html[data-theme='dark'] .sales-delete-icon {
   font-size: 1.4rem;
   font-weight: 700;
   line-height: 1;
+}
+
+/* --- GYT: "mai konzultációk" lista (2026.08.31.) — egyszerűbb, 3 oszlopos
+   valódi CSS Grid, ami minden méretnél működik (nem csak asztalin, mint a
+   SALES .call-row-grid-je, mert itt nincs külön mobil JSX-ág). --- */
+.consultation-row-grid {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr 1fr;
+  align-items: center;
+  column-gap: 0.75rem;
+  row-gap: 0.15rem;
+}
+@media (max-width: 575.98px) {
+  .consultation-row-grid {
+    /* "auto" (nem fix rem), mert a fejléc "IDŐPONT" szövege szélesebb, mint a
+       sorok rövid "17:00" óra-értékei — fix szélességnél az "IDŐPONT" belelógott
+       volna a "NÉV" oszlopba (2026.08.31., böngészős teszt közben derült ki). */
+    grid-template-columns: auto 1fr;
+  }
+  .consultation-row-grid > *:nth-child(3) {
+    grid-column: 1 / -1;
+  }
 }
 
 /* --- SALES: heti GYT-naptár rács (2026.08.28., naptár-integráció) --- */
