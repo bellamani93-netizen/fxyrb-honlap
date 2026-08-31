@@ -851,3 +851,11 @@ Marci kérései: (1) a "saját naptár" időpontjánál a perc is választható 
 - `.gyt-cal-wrap` mobilon `max-height: 65vh; overflow-y: auto`-t kapott, a `.gyt-cal-corner`/`.gyt-cal-day-header` `position: sticky; top: 0`-t — a hét-fejléc rögzítve marad görgetés közben.
 
 **Tesztelve böngészőben, asztali (1280px) és mobil (375px), világos és sötét módban:** a percpontos időválasztás és a kétféle ütközés-kezelés (felülbírálható vs. blokkoló) mindkét módban helyesen működik; JS-méréssel megerősítve a szabad/foglalt szín-felcserélés (`rgb(47,111,237)` tömör vs. `rgba(139,92,246,0.3)` fakó); a naptár teljes szélességben jelenik meg; a mobil legördülő a képernyőn belül nyílik és helyesen működik; a mobil naptár fejléce görgetés közben ténylegesen rögzítve marad (JS-méréssel: `headerRect.top === wrapRect.top` görgetés után is). Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.08.28. — SALES szerepkör lezárva (tartalom/logika)
+
+Marci megerősítése: "a sales fiókot rögzítjük a tartalmi, logikai kapcsolatokat mentjük. A design valószínűleg később módosulni fog kicsit."
+
+Ezzel a SALES szerepkör (7 naptár-integrációs kör után) a TARTALOM és a LOGIKAI KAPCSOLATOK szintjén **lezártnak minősül** — az oldal-szerkezet (hívásaim / hozzárendelések / üzenetek), az adatmodell (`SalesCall` → `SalesClient` → `bookings`, `SalesDataContext`-en keresztül megosztva), a közös `AppointmentEditorModal` és az admin-guard integráció mind véglegesnek tekinthető. **Ez a lezárás kifejezetten ELTÉR a korábbi fázis-lezárásoktól** (Főoldal, Bejelentkezés, ÜF/GYT/SALES alap, ADMIN) abban, hogy csak a tartalmi/logikai réteget rögzíti — Marci előre jelezte, hogy a vizuális design (színek, térközök, elrendezés finomságai) egy későbbi körben még várhatóan módosul, ez a lezárás ezt nem zárja ki és nem blokkolja.
+
+A `Design jegyzet.md`-ben egy új "Státusz (2026.08.28.)" sor és egy összefoglaló 38. pont rögzíti a SALES szerepkör véglegesített szerkezetét, a Fázis 1/2/3/4 lezárások mintájára, de a fenti megkülönböztetéssel kiegészítve.
