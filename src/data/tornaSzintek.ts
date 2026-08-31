@@ -204,6 +204,13 @@ export const EXERCISES: Record<ExerciseCode, Exercise> = {
   },
 }
 
+/** "S01 Háton fekvés, alsó kartartás" alakú felirat egy gyakorlat-kódhoz — a GYT
+ * videókiosztás oldalán a legördülő/kiosztott videó feliratához (áthelyezve
+ * a gytClients.ts-ből az ügyfél-nyilvántartások összevonásakor, 2026.09.01.). */
+export function codeLabel(code: ExerciseCode) {
+  return `${code} ${EXERCISES[code].name}`
+}
+
 // "Szintek sorrendje" táblázat a dokumentumból. HNO ≡ LNO és HNN ≡ LNN
 // (a dokumentum szerint: "Gyakorlatban összesen 6 féle sorrend"), ezért
 // azokat nem tároljuk külön — a sequenceKey függvény erre a 2 kódra képez.

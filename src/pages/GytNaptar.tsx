@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BUSINESS_HOURS, addDays, formatDateOnly, formatHour, formatISODate, generateMeetLink, getMondayOf } from '../data/calendarData'
-import { clients } from '../data/gytClients'
+import { useClients } from '../context/ClientsContext'
+import { LOGGED_IN_GYT_ID } from '../data/colleagues'
 import { useCalendar } from '../context/CalendarContext'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
 import GytAppointmentModal, {
@@ -15,7 +16,7 @@ import Icon from '../components/Icon'
 // egy SALES-oldali foglalás ténylegesen megjelenik itt is, és fordítva
 // (2026.09.01., Marci kérésére — ld. Design jegyzet 47-48. pont; korábban a
 // két oldal egymástól teljesen független overlay-t használt).
-const OWN_ID = 'kollegabor'
+const OWN_ID = LOGGED_IN_GYT_ID
 const OWN_LIST = [{ id: OWN_ID, name: 'Kollé Gábor' }]
 
 type SubView = 'mai' | 'naptar'
@@ -30,6 +31,7 @@ export default function GytNaptar() {
     removeBooking,
     nextAlkalomForClient: sharedNextAlkalomForClient,
   } = useCalendar()
+  const { clients } = useClients()
   const [view, setView] = useState<SubView>('mai')
   const [weekOffset, setWeekOffset] = useState<0 | 1>(0)
   // isNew: a modal EGY ÚJ időpont felvételére nyílt-e (pl. "+" gomb, üres/szabad
@@ -47,9 +49,13 @@ export default function GytNaptar() {
   const todayISO = formatISODate(today)
 
   // "lezárt" ügyfél fogalma még nincs az adatmodellben (ld. Design jegyzet) —
-  // amíg nincs ilyen jelző, minden ügyfél "aktívnak" számít a terv/konzultáció
-  // névválasztójában.
-  const clientOptions = clients.map((c) => ({ id: c.id, name: c.name, email: c.email, phone: c.phone }))
+  // amíg nincs ilyen jelző, minden SAJÁT ügyfél "aktívnak" számít a
+  // terv/konzultáció névválasztójában. Az összevont nyilvántartásban MINDEN
+  // gyt ugyanazt a listát olvassa, ezért itt a sajátjaira szűrünk
+  // (2026.09.01., ügyfél-nyilvántartások összevonása, ld. Design jegyzet 49. pont).
+  const clientOptions = clients
+    .filter((c) => c.assignedGytId === OWN_ID)
+    .map((c) => ({ id: c.id, name: c.name, email: c.email, phone: c.phone }))
 
   function nextAlkalomForClient(clientName: string) {
     return sharedNextAlkalomForClient(OWN_ID, clientName)

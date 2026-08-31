@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
-import type { SalesClient } from '../data/salesClients'
+import { DEFAULT_VARIABLES, type Client } from '../data/initialClients'
 import { AdminModifiedBadge } from '../hooks/useAdminEditGuard'
 import { GYT_COLLEAGUES, addDays, formatDateOnly, getMondayOf, gytColorVar, type SalesCall } from '../data/calendarData'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
@@ -168,12 +168,19 @@ function SortButton({ label, sortKey, current, onClick }: { label: string; sortK
   )
 }
 
-function formatStart(value: string) {
+function formatStart(value: string | undefined) {
   if (!value) return '—'
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return value
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}. ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+// az összevont Client típuson mostantól nincs külön "assignedGyt" névmező,
+// csak "assignedGytId" — a megjelenített nevet innen vezetjük le (2026.09.01.,
+// ügyfél-nyilvántartások összevonása, ld. Design jegyzet 49. pont).
+function gytNameFor(assignedGytId: string | undefined): string | null {
+  return GYT_COLLEAGUES.find((g) => g.id === assignedGytId)?.name ?? null
 }
 
 type FormState = {
@@ -187,7 +194,7 @@ type FormState = {
 
 const emptyForm: FormState = { name: '', email: '', phone: '', gytId: null, startTime: '', paid: false }
 
-type PendingAction = { type: 'unpay' | 'delete'; client: SalesClient }
+type PendingAction = { type: 'unpay' | 'delete'; client: Client }
 
 type Tab = 'hozzarendeles' | 'gyt'
 // ha van clientId, egy MEGLÉVŐ (valódi) foglalás szerkesztése folyik, egyébként
@@ -322,31 +329,35 @@ export default function SalesHozzarendeles() {
 
   function handleSaveBooking(data: AppointmentEditorResult) {
     if (!data.gytId) return
-    const gytName = GYT_COLLEAGUES.find((g) => g.id === data.gytId)?.name ?? null
+    const gytId = data.gytId
     const startTime = `${data.dateISO}T${String(data.hour).padStart(2, '0')}:${String(data.minute).padStart(2, '0')}`
 
     if (bookingEditor?.clientId) {
       // meglévő foglalás szerkesztése: ha a gyt/dátum/óra változott, a régi
       // naptár-sávot fel kell szabadítani, mielőtt az újat lefoglalnánk
       const prevInitial = bookingEditor.initial
-      if (prevInitial.gytId && (prevInitial.gytId !== data.gytId || prevInitial.dateISO !== data.dateISO || prevInitial.hour !== data.hour)) {
+      if (prevInitial.gytId && (prevInitial.gytId !== gytId || prevInitial.dateISO !== data.dateISO || prevInitial.hour !== data.hour)) {
         removeBooking(prevInitial.gytId, prevInitial.dateISO, prevInitial.hour)
       }
-      addBooking(data.gytId, data.dateISO, data.hour, `${data.name} 1`, bookingEditor.clientId)
+      addBooking(gytId, data.dateISO, data.hour, `${data.name} 1`, bookingEditor.clientId)
       setClients((prev) =>
         prev.map((c) =>
           c.id === bookingEditor.clientId
-            ? { ...c, name: data.name, email: data.email, phone: data.phone, note: data.note || undefined, startTime, assignedGyt: gytName }
+            ? { ...c, name: data.name, email: data.email, phone: data.phone, note: data.note || undefined, startTime, assignedGytId: gytId }
             : c
         )
       )
     } else {
       const id = `${Date.now()}`
+      // "isNew" + "variables" alapérték: hogy a frissen felvett ügyfél a GYT
+      // "ügyfeleim" listájában azonnal "új"-ként (lime jelöléssel) jelenjen
+      // meg, és az állapotfelmérő panel se találjon hiányzó bejegyzést
+      // (2026.09.01., ügyfél-nyilvántartások összevonása).
       setClients((prev) => [
         ...prev,
-        { id, name: data.name, email: data.email, phone: data.phone, note: data.note || undefined, startTime, assignedGyt: gytName, paid: false },
+        { id, name: data.name, email: data.email, phone: data.phone, note: data.note || undefined, startTime, assignedGytId: gytId, isNew: true, paid: false, variables: DEFAULT_VARIABLES },
       ])
-      addBooking(data.gytId, data.dateISO, data.hour, `${data.name} 1`, id)
+      addBooking(gytId, data.dateISO, data.hour, `${data.name} 1`, id)
       if (adminActive) markAdminAdded(id)
     }
     setBookingEditor(null)
@@ -379,7 +390,7 @@ export default function SalesHozzarendeles() {
   // a "befizetve" kapcsoló/négyzet kikapcsolása visszavonhatatlan hatásúnak tűnhet (a GYT
   // naptárából eltűnik az időpont), ezért csak megerősítés után lehet visszakapcsolni;
   // bekapcsolni (nem fizetettről fizetettre) megerősítés nélkül lehet.
-  function handleTogglePaid(client: SalesClient, next: boolean) {
+  function handleTogglePaid(client: Client, next: boolean) {
     // admin-nézetben minden fizetés-váltás az egységes "biztosan módosítod?"
     // ablakon megy át (a domain-specifikus "Tényleg nem fizetett be?" ablak
     // helyett), és a sor piros "admin által módosítva" címkét kap
@@ -409,8 +420,10 @@ export default function SalesHozzarendeles() {
         email: form.email.trim(),
         phone: form.phone.trim(),
         startTime: form.startTime,
-        assignedGyt: formGytName,
+        assignedGytId: form.gytId ?? undefined,
+        isNew: true,
         paid: form.paid,
+        variables: DEFAULT_VARIABLES,
       },
     ])
     addBooking(pendingFormSlot.gytId, pendingFormSlot.dateISO, pendingFormSlot.hour, `${form.name.trim()} 1`, id)
@@ -429,7 +442,7 @@ export default function SalesHozzarendeles() {
     setImportedCallId(null)
   }
 
-  const pendingCount = clients.filter((c) => !c.assignedGyt).length
+  const pendingCount = clients.filter((c) => !c.assignedGytId).length
 
   const bySearch = clients.filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase()))
 
@@ -437,8 +450,8 @@ export default function SalesHozzarendeles() {
     ? [...bySearch].sort((a, b) => {
         let cmp = 0
         if (sort.key === 'name') cmp = a.name.localeCompare(b.name, 'hu')
-        else if (sort.key === 'date') cmp = a.startTime.localeCompare(b.startTime)
-        else cmp = (a.assignedGyt ?? '').localeCompare(b.assignedGyt ?? '', 'hu')
+        else if (sort.key === 'date') cmp = (a.startTime ?? '').localeCompare(b.startTime ?? '')
+        else cmp = (gytNameFor(a.assignedGytId) ?? '').localeCompare(gytNameFor(b.assignedGytId) ?? '', 'hu')
         return sort.dir === 'asc' ? cmp : -cmp
       })
     // rendezés nélkül a legfrissebben hozzáadott ügyfél legyen a lista tetején
@@ -619,8 +632,8 @@ export default function SalesHozzarendeles() {
                   <span className="fw-bold">{c.name}</span>
                   <span className="small" style={{ color: 'var(--color-text-muted)' }}>{c.email}</span>
                   <span className="small">{formatStart(c.startTime)}</span>
-                  <span className="small" style={{ color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
-                    {c.assignedGyt ?? '—'}
+                  <span className="small" style={{ color: c.assignedGytId ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+                    {gytNameFor(c.assignedGytId) ?? '—'}
                   </span>
                   <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
                   <span className="sales-delete-cell">
@@ -634,8 +647,8 @@ export default function SalesHozzarendeles() {
                     <span className="fw-bold d-block">{c.name}</span>
                     <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>{formatStart(c.startTime)}</span>
                   </span>
-                  <span className="small" style={{ color: c.assignedGyt ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
-                    {c.assignedGyt ?? '—'}
+                  <span className="small" style={{ color: c.assignedGytId ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
+                    {gytNameFor(c.assignedGytId) ?? '—'}
                   </span>
                   <span className="sales-action-cell">
                     <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />

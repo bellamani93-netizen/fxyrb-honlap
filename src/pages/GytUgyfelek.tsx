@@ -1,22 +1,34 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
-import { clients, getSelectedClientId, setSelectedClientId } from '../data/gytClients'
+import { useClients } from '../context/ClientsContext'
+import { getSelectedClientId, setSelectedClientId } from '../data/initialClients'
+import { LOGGED_IN_GYT_ID } from '../data/colleagues'
 
 export default function GytUgyfelek() {
   const navigate = useNavigate()
+  const { clients } = useClients()
   const [search, setSearch] = useState('')
+  // csak a saját (hozzá rendelt) ügyfelek — az összevont nyilvántartásban
+  // MINDEN gyt ugyanazt a listát olvassa, ezért itt szűrünk (2026.09.01.,
+  // ügyfél-nyilvántartások összevonása, ld. Design jegyzet 49. pont)
+  const ownClients = clients.filter((c) => c.assignedGytId === LOGGED_IN_GYT_ID)
   // ha nincs kiválasztott ügyfél (első belépés, vagy egy másik almenüről
   // idekerülve, mert még nem volt kiválasztás), erre hívjuk fel a figyelmet —
-  // ez a jelzés csak az induló állapotot mutatja, egy választás után eltűnik
-  const [noSelection] = useState(() => getSelectedClientId() === null)
+  // ez a jelzés csak az induló állapotot mutatja, egy választás után eltűnik.
+  // A tárolt id-t a LIVE saját-ügyfél listával szemben is ellenőrizzük, mert
+  // getSelectedClientId() önmagában már nem validál (ld. initialClients.ts).
+  const [noSelection] = useState(() => {
+    const id = getSelectedClientId()
+    return id === null || !ownClients.some((c) => c.id === id)
+  })
 
   function choose(id: string) {
     setSelectedClientId(id)
     navigate('/gyt/videokiosztas')
   }
 
-  const filtered = clients.filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase()))
+  const filtered = ownClients.filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase()))
 
   return (
     <section className="py-3 py-lg-5">

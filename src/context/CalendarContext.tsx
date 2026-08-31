@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { addDays, formatISODate, getBaseDaySlots, getMondayOf, parseISODateLocal, type TimeSlot } from '../data/calendarData'
-import { clients as gytClientsList } from '../data/gytClients'
+import { useClients } from './ClientsContext'
 
 // Közös, a SALES ÉS a GYT szerepkör között OSZTOTT naptár-állapot (2026.09.01.,
 // Marci kérésére — a korábbi, két teljesen független overlay helyett, ld.
@@ -11,8 +11,8 @@ import { clients as gytClientsList } from '../data/gytClients'
 export type BookingType = 'szabad' | 'terv' | 'konzultacio'
 export type Booking = { type: BookingType; clientId?: string; name?: string; alkalom?: number; meetLink?: string }
 // a GYT-oldal (részletesebb) igényeihez — kiegészíti a demo-eredetű
-// bejegyzéseket egy, a gytClients.ts-ben név szerint egyező clientId-vel is,
-// hogy szerkeszthetők legyenek (ld. Design jegyzet 46. pont). A SALES oldal
+// bejegyzéseket egy, a közös ügyfél-listában név szerint egyező clientId-vel
+// is, hogy szerkeszthetők legyenek (ld. Design jegyzet 46. pont). A SALES oldal
 // EZT NEM használja — ő a nyers getBookingClientId()-t nézi, ami demo-eredetű
 // sávnál sosem ad vissza clientId-t (ld. Design jegyzet 36. pont, ez a
 // szabály a refaktor után is érvényben marad).
@@ -67,6 +67,11 @@ function parseLabel(label: string): { name: string; alkalom?: number } {
 }
 
 export function CalendarProvider({ children }: { children: ReactNode }) {
+  // a demo-eredetű bejegyzések clientId-feloldásához kell a közös,
+  // ÉLŐ ügyfél-lista (ld. Design jegyzet 49. pont — korábban egy statikus
+  // gytClients.ts importra hivatkozott, ami a két nyilvántartás
+  // összevonásával megszűnt).
+  const { clients } = useClients()
   const [today] = useState(() => new Date())
   const [bookings, setBookings] = useState<Record<string, Booking>>({})
   // ha egy DEMO-generált (getBaseDaySlots) sávot töröl valamelyik szerepkör,
@@ -124,7 +129,7 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     if (!base?.status) return { kind: null }
     if (base.status === 'szabad') return { kind: 'szabad' }
     const { name, alkalom } = parseLabel(base.label ?? '')
-    const matchedClient = gytClientsList.find((c) => c.name === name)
+    const matchedClient = clients.find((c) => c.name === name && (!c.assignedGytId || c.assignedGytId === gytId))
     return { kind: 'konzultacio', alkalom, name, clientId: matchedClient?.id }
   }
 

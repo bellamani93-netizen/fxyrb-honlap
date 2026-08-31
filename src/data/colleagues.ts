@@ -15,3 +15,8 @@ export const initialColleagues: Colleague[] = [
   { id: 'tothbence', name: 'Tóth Bence', email: 'toth.bence@pelda.hu', role: 'gyt' },
   { id: 'ertekeseszter', name: 'Értékes Eszter', email: 'ertekes@ertekes.hu', role: 'sales' },
 ]
+
+/** a demóban a "kollega@kollega.hu" teszt-fiókkal bejelentkezett GYT mindig ő —
+ * a GYT-oldali lapok (ügyfeleim, videókiosztás, naptár) ezzel szűrik, mely
+ * ügyfelek/foglalások tartoznak "hozzájuk". */
+export const LOGGED_IN_GYT_ID = 'kollegabor'

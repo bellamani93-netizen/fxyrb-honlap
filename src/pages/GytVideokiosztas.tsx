@@ -2,8 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import Chevron from '../components/Chevron'
-import { EXERCISES, type ExerciseCode, type ClientVariables, suggestedSequence } from '../data/tornaSzintek'
-import { clients, codeLabel, initialVariables, getSelectedClientId, type GytLevel, type LevelState } from '../data/gytClients'
+import { EXERCISES, type ExerciseCode, type ClientVariables, codeLabel, suggestedSequence } from '../data/tornaSzintek'
+import { getSelectedClientId, type GytLevel, type LevelState } from '../data/initialClients'
+import { useClients } from '../context/ClientsContext'
 import { useAdminEditGuard, AdminModifiedBadge } from '../hooks/useAdminEditGuard'
 
 const VIDEOS = (Object.keys(EXERCISES) as ExerciseCode[]).map((code) => `${code} ${EXERCISES[code].name}`)
@@ -490,11 +491,31 @@ export default function GytVideokiosztas() {
 }
 
 function GytVideokiosztasInner({ clientId }: { clientId: string }) {
+  const { clients, updateClient } = useClients()
   const client = clients.find((c) => c.id === clientId)!
 
-  const [variables, setVariables] = useState(initialVariables)
-  const clientVariables = variables[clientId]
+  // az állapotfelmérő értékei mostantól az összevont Client rekord RÉSZE
+  // (variables mező, mindig jelen van) — a korábbi, id szerint kulcsolt külön
+  // "initialVariables" map megszűnt (2026.09.01., ügyfél-nyilvántartások
+  // összevonása, ld. Design jegyzet 49. pont). A helyi másolat (mint a
+  // szintek/mód esetén is) csak ezen az oldalon él, nem íródik vissza.
+  const [variablesByClient, setVariablesByClient] = useState(() => {
+    const map: Record<string, ClientVariables> = {}
+    for (const c of clients) map[c.id] = c.variables
+    return map
+  })
+  const clientVariables = variablesByClient[clientId]
   const suggested = suggestedSequence(clientVariables)
+
+  // egy SALES-oldalról frissen hozzárendelt, teljesen új ügyfélnek még nincs
+  // "mode"-ja (se "kozben", se "utana") — a helyi másolat teszi lehetővé,
+  // hogy a GYT itt, a "videókiosztás" oldalon indítsa el vele a munkát.
+  const [modeByClient, setModeByClient] = useState<Record<string, 'kozben' | 'utana' | undefined>>(() => {
+    const map: Record<string, 'kozben' | 'utana' | undefined> = {}
+    for (const c of clients) map[c.id] = c.mode
+    return map
+  })
+  const mode = modeByClient[clientId]
 
   // A limitációk alapból "mentett" (rögzített) állapotban indulnak minden klienshez —
   // ezek már korábban felvett adatok, nem üres űrlapok. Módosításhoz elő kell hívni.
@@ -529,13 +550,39 @@ function GytVideokiosztasInner({ clientId }: { clientId: string }) {
 
         <VariablesPanel
           variables={clientVariables}
-          onChange={(v) => adminGuard('limitaciok', () => setVariables((prev) => ({ ...prev, [clientId]: v })))}
+          onChange={(v) => adminGuard('limitaciok', () => setVariablesByClient((prev) => ({ ...prev, [clientId]: v })))}
           locked={variablesLocked}
           onLockedChange={setVariablesLocked}
           modified={isModified('limitaciok')}
         />
 
-        {client.mode === 'kozben' && (() => {
+        {!mode && (
+          <div className="card-fyb card-fyb-accent text-center py-4">
+            <p className="mb-3">{client.name} még nem kezdte el a videókiosztást. Indítsd el az 1. szinttel!</p>
+            <button
+              type="button"
+              className="btn-fyb btn-fyb-primary"
+              onClick={() => {
+                setModeByClient((prev) => ({ ...prev, [clientId]: 'kozben' }))
+                setLevelsByClient((prev) => ({
+                  ...prev,
+                  [clientId]: prev[clientId] ?? [
+                    { num: 1, state: 'nyitva' },
+                    { num: 2, state: 'zarolt' },
+                    { num: 3, state: 'zarolt' },
+                    { num: 4, state: 'zarolt' },
+                    { num: 5, state: 'zarolt' },
+                  ],
+                }))
+                if (client.isNew) updateClient(clientId, { isNew: false })
+              }}
+            >
+              videókiosztás indítása
+            </button>
+          </div>
+        )}
+
+        {mode === 'kozben' && (() => {
           // A GYT csak a 2 legutóbb kiosztott szintet javíthatja utólag — a korábbiakat nem,
           // hogy ne lehessen véletlenül az egész előzményt átírni.
           const editableNums = new Set(
@@ -566,7 +613,7 @@ function GytVideokiosztasInner({ clientId }: { clientId: string }) {
           )
         })()}
 
-        {client.mode === 'utana' && (
+        {mode === 'utana' && (
           <>
             <div className="locked-card mb-3">
               <div className="locked-header">

@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
-import { initialSalesClients, type SalesClient } from '../data/salesClients'
+import type { Client } from '../data/initialClients'
 import { buildInitialSalesCalls, type SalesCall, type TimeSlot } from '../data/calendarData'
 import { useAdminEditGuard } from '../hooks/useAdminEditGuard'
 import { useCalendar } from './CalendarContext'
+import { useClients } from './ClientsContext'
 
 // 2 szerkeszthető elutasító-üzenet sablon (2026.08.28., 3-4. kör) — a "{Név}"
 // jelölő a küldéskor az ügyfél nevére cserélődik; az "üzenetek" oldal ezt a
@@ -24,8 +25,8 @@ const DEFAULT_MESSAGE_TEMPLATES: [MessageTemplate, MessageTemplate] = [
 ]
 
 type SalesDataContextValue = {
-  clients: SalesClient[]
-  setClients: Dispatch<SetStateAction<SalesClient[]>>
+  clients: Client[]
+  setClients: Dispatch<SetStateAction<Client[]>>
   salesCalls: SalesCall[]
   setSalesCalls: Dispatch<SetStateAction<SalesCall[]>>
   isBooked: (gytId: string, dateISO: string, hour: number) => boolean
@@ -63,7 +64,10 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
   // SALES-oldali foglalás ténylegesen megjelenjen a GYT saját naptárában is
   // (2026.09.01., Marci kérésére — ld. Design jegyzet 47-48. pont).
   const { today, isBooked, getEffectiveSlot, getBookingClientId, addBooking, removeBooking } = useCalendar()
-  const [clients, setClients] = useState<SalesClient[]>(initialSalesClients)
+  // az ügyfél-lista mostantól a közös ClientsContext-ből jön — a SALES ÉS a
+  // GYT szerepkör EGY listát olvas/ír (2026.09.01., Marci kérésére: "vonjuk
+  // össze a két ügyfél nyilvántartó rendszert", ld. Design jegyzet 49. pont).
+  const { clients, setClients } = useClients()
   const [salesCalls, setSalesCalls] = useState<SalesCall[]>(() => buildInitialSalesCalls(today))
   const [adminAddedIds, setAdminAddedIds] = useState<Set<string>>(new Set())
   const [messageTemplates, setMessageTemplates] = useState<[MessageTemplate, MessageTemplate]>(DEFAULT_MESSAGE_TEMPLATES)
