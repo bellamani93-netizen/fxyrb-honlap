@@ -903,3 +903,13 @@ Marci finomító kérései az előző körre: a szint-szám igazodjon a fölött
 - `src/pages/GytVideokiosztas.tsx`: a javasolt-szöveg mostantól egy `btn-fyb btn-fyb-suggested` kattintható gomb (a kód+cím elrendezéssel), ami közvetlenül kiosztja a javasolt videót. `VideoPickerInline` új `chipSized` propja. A mobil lenyíló panel `align-items-start` → `align-items-center`.
 
 **Tesztelve böngészőben, asztali (1280px) és mobil (500px), világos és sötét módban:** JS `Range`-méréssel megerősítve, hogy a szint-számok szövege pixelre pontosan igazodik egymáshoz; a jelvény és a nyíl középpontja megegyezik, a nyíl ténylegesen túllóg a jelvényen; a "más videó" gomb magassága pontosan egyezik a "még nem kiosztható" jelvényével (26.88px mindkettő); a javasolt gombra kattintva a szint azonnal kiosztásra kerül; mobilon a lenyitott tartalom középre rendezve, egymás alatt jelenik meg. Konzol-hiba (a jól ismert stale HMR hiba kivételével) nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.08.31. — Videókiosztás: javasolt gomb belső igazítása, "más videó" szürke perem, mobil nyíl-magasság
+
+Marci további finomító kérései az előző körre: a javasolt gombon BELÜL a kód és a név is igazodjon a fölötte lévő sor kód/cím-elemeihez; a "más videó" gombnak legyen szürke pereme; telefon nézetben a dupla nyíl legyen olyan magas, mint a szöveg, amire mutat.
+
+**Megvalósítás:**
+- `src/styles/components.css`: új `.suggested-video-btn`/`.suggested-video-btn-code` — a kód fix szélességű (a rács col2-jével egyező) + a rács oszlopközével egyező jobb margóval, a gomb bal paddingja (a `.btn-fyb` keretét is beleértve) negatív margóval semlegesítve. Két buktató menet közben: a `<button>` alapértelmezett középre igazítása felülírva `text-align:left`-tel, az öröklött `.btn-fyb` gap-je pedig `gap:0`-ra állítva (különben ráadódott az explicit margókra). A "más videó" gomb visszakapta a szürke keretet, a magasság-egyezés egy fix `height` értékkel (a jelvény mért magassága) maradt meg `box-sizing:border-box` mellett. Új `.chevron-svg--text-height` a mobil nyílhoz, CSS `lh` egységgel (a szöveg tényleges sormagassága).
+- `src/pages/GytVideokiosztas.tsx`: a javasolt gomb JSX-e a fenti CSS-osztályokat kapja; a mobil nyíl `chevron-svg--text-height` classNamet kapott.
+
+**Tesztelve böngészőben, asztali (1280px) és mobil (500px), világos és sötét módban:** JS `Range`-méréssel megerősítve, hogy a javasolt gomb kódja és címe pixelre pontosan igazodik a fölötte lévő sorhoz; a "más videó" gomb magassága a szürke perem hozzáadása után is pontosan egyezik a "még nem kiosztható" jelvényével; mobilon a nyíl és a mellette lévő szöveg sormagassága pixelre egyezik. Konzol-hiba (a jól ismert stale HMR hiba kivételével) nem jelentkezett, `npm run build` hibamentes.

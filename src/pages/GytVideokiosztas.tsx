@@ -130,23 +130,25 @@ function LevelRow({
 
   // "kiosztásra vár" sor — a felette lévő "kiosztva" sor kód/név-elrendezését követve.
   // Kattintható, enyhe lime háttérrel — kattintásra rögtön a javasolt videó kerül kiosztásra.
+  // A gomb bal paddingját negatív margó semlegesíti (mint a szám-jelvénynél), a kód pedig
+  // fix szélességű + a rács oszlopközével egyező jobb margóval — így a kód ÉS a név is
+  // pontosan a fölötte lévő "kiosztva" sor kód/cím-oszlopaival egy vonalban jelenik meg.
   const suggestedButton = suggestedParsed && onAssign && (
     <button
       type="button"
-      className="btn-fyb btn-fyb-suggested d-flex align-items-center gap-2 flex-wrap"
-      style={{ padding: '0.4rem 0.85rem', fontSize: '1rem', textTransform: 'none' }}
+      className="btn-fyb btn-fyb-suggested suggested-video-btn"
       onClick={() => onAssign(suggested!)}
     >
-      <span className="fw-bold">{suggestedParsed.code}</span>
-      <span style={{ color: 'var(--color-text-muted)' }}>{suggestedParsed.title}</span>
+      <span className="fw-bold suggested-video-btn-code">{suggestedParsed.code}</span>
+      <span style={{ color: 'var(--color-text-muted)', marginRight: '0.4rem' }}>{suggestedParsed.title}</span>
       <span className="fst-italic" style={{ color: 'var(--color-text-muted)' }}>-javasolt</span>
     </button>
   )
-  // mobilon a kisméretű, sorba illő nyíl a javasolt-gomb előtt jelenik meg (asztalon a
-  // nyíl a szint-szám jelvényén "lóg túl", ld. lent) — ld. Design jegyzet.
+  // mobilon a kisméretű nyíl a javasolt-gomb előtt jelenik meg, a mellette lévő szöveggel
+  // egyező magassággal (asztalon a nyíl a szint-szám jelvényén "lóg túl", ld. lent).
   const suggestedInline = suggestedButton && (
     <span className="d-flex align-items-center gap-2 flex-wrap">
-      <Chevron direction="right" double color="var(--lime)" />
+      <Chevron direction="right" double color="var(--lime)" className="chevron-svg--text-height" />
       {suggestedButton}
     </span>
   )

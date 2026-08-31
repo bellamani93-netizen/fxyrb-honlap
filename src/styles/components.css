@@ -55,6 +55,28 @@
 }
 .btn-fyb-suggested:hover { background-color: rgba(215, 232, 52, 0.32); }
 
+/* "kiosztásra vár" sor javasolt-gombja — a kód fix szélességű, a rács oszlopközével (1.5rem)
+   egyező jobb margóval, hogy a kód ÉS a név is a "kiosztva" sorok kód/cím-oszlopaival
+   pontosan egy vonalban jelenjen meg (a bal padding negatív margóval semlegesítve, mint a
+   szám-jelvénynél) — ld. GytVideokiosztas.tsx, 2026.08.31. */
+.suggested-video-btn {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 0.4rem 0.85rem;
+  /* a .btn-fyb 2px-es (átlátszó) kerete a bal paddingen felül is eltolná a
+     tartalmat, ezért azt is belevesszük a kompenzáló negatív margóba. */
+  margin-left: calc(-0.85rem - 2px);
+  font-size: 1rem;
+  text-transform: none;
+  text-align: left;
+}
+.suggested-video-btn-code {
+  min-width: 4.5rem;
+  margin-right: 1.5rem;
+}
+
 /* piros "javítás" gomb — kiosztott videó utólagos korrekciójához (2026.08.27.) */
 .btn-fyb-danger {
   background-color: transparent;
@@ -127,6 +149,14 @@ html[data-theme='dark'] .card-fyb {
   align-items: stretch;
   vertical-align: 0.02em;
   flex-shrink: 0;
+}
+/* a mellette álló szöveg sorával megegyező magasságú változat (pl. a "kiosztásra vár"
+   sor mobil nézetében a javasolt-gomb előtt) — a "lh" (line-height) egység a szöveg
+   TÉNYLEGES sormagasságát adja; a korábbi "em" érték nem, mert nem veszi figyelembe a
+   sor teljes (betűméretnél nagyobb) magasságát. Régebbi böngészőkhöz "em"-alapú tartalék. */
+.chevron-svg--text-height {
+  height: 1.3em;
+  height: 1lh;
 }
 .chevron-unit {
   height: 100%;
@@ -753,11 +783,15 @@ html[data-theme='dark'] .locked-overlay-card {
   white-space: nowrap;
 }
 /* a "kiosztásra vár" sor "más videó" legördülője — a "még nem kiosztható" jelvénnyel
-   pontosan megegyező méretre húzva (asztali nézet, ld. GytVideokiosztas.tsx, 2026.08.31.). */
+   pontosan megegyező méretre húzva (asztali nézet, ld. GytVideokiosztas.tsx, 2026.08.31.).
+   A magasság fix érték (a jelvény mért magassága), hogy a szürke perem (2026.08.31.,
+   2. kör) hozzáadása se térítse el a magasságot a jelvényétől — box-sizing:border-box
+   mellett a keret/padding/tartalom mind ebbe a fix magasságba fér bele. */
 .level-select--chip-sized .level-select-toggle {
   width: 100%;
-  padding: 0.3rem 0.85rem;
-  border: none;
+  height: 1.68rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   font-family: var(--font-body);
   font-weight: 700;
