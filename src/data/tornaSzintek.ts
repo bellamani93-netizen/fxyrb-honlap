@@ -1,34 +1,36 @@
 // Forrás: "torna szintek.odt" (2026.08.26., Marci — "ez a program központja").
-// A leírásoknál szándékosan csak a kiinduló helyzet és az ismétlésszám szerepel,
-// a részletes kivitelezés (légzés, izomaktiválás mértéke stb.) nem — az a videóban lesz.
+// A leírásoknál szándékosan csak a kiinduló helyzet szerepel — a részletes kivitelezés
+// (légzés, izomaktiválás mértéke stb.) nem, az a videóban lesz. Az ismétlésszám és a
+// megtartás (ld. lent) az ÜF-felületen egységesített, leegyszerűsített szabály szerint jelenik meg,
+// nem az itt szereplő, gyakorlatonként eltérő (mozgásváltozat-számláló) ismétlés-jelöléssel.
 
 export type ExerciseCode =
   | 'S01' | 'S02' | 'S03' | 'S04' | 'S05' | 'S06' | 'S07' | 'S08' | 'S09' | 'S10' | 'S11' | 'S12' | 'S13'
   | 'A01' | 'A02' | 'A03' | 'A04' | 'A05' | 'A06' | 'A07'
 
-type Exercise = { name: string; desc: string }
+type Exercise = { name: string; start: string }
 
 export const EXERCISES: Record<ExerciseCode, Exercise> = {
-  S01: { name: 'Háton fekvés, alsó kartartás', desc: 'Kiinduló helyzet: háton fekvés, térdek kb. 90 fokban behajlítva, karok törzs mellett a talajon. Ismétlés: 10x a megadott ideig.' },
-  S02: { name: 'Háton fekvés, felső kartartás', desc: 'Kiinduló helyzet: háton fekvés, térdek behajlítva, karok "kezeket fel" tartásban, könyök 90 fokban. Ismétlés: 10x a megadott ideig.' },
-  S03: { name: 'Hason fekvés, alsó kartartás', desc: 'Kiinduló helyzet: hason fekvés, homlok alatt alátámasztás, karok törzs mellett. Ismétlés: 10x a megadott ideig.' },
-  S04: { name: 'Hason fekvés, felső kartartás', desc: 'Kiinduló helyzet: hason fekvés, karok "kezeket fel" tartásban. Ismétlés: 10x a megadott ideig.' },
-  S05: { name: 'Hason fekvés, dinamikus', desc: 'Kiinduló helyzet: hason fekvés, karok törzs mellett. Ismétlés: 1x a megadott ideig, 4 dinamikus karmozgás-változatban.' },
-  S06: { name: 'Állva, alsó kartartás', desc: 'Kiinduló helyzet: állva a falnak támaszkodva, karok test mellett lógnak. Ismétlés: 10x a megadott ideig.' },
-  S07: { name: 'Állva, felső kartartás', desc: 'Kiinduló helyzet: állva a falnak támaszkodva, karok "kezeket fel" tartásban. Ismétlés: 10x a megadott ideig.' },
-  S08: { name: 'Állva, dinamikus', desc: 'Kiinduló helyzet: állva szabadon, karok test mellett lógnak. Ismétlés: 1x a megadott ideig, 4 dinamikus karmozgás-változatban.' },
-  S09: { name: 'Ülve falnál, alsó kartartás', desc: 'Kiinduló helyzet: ülve támla nélküli széken, a falnak támaszkodva, karok test mellett lógnak. Ismétlés: 10x a megadott ideig.' },
-  S10: { name: 'Ülve falnál, felső kartartás', desc: 'Kiinduló helyzet: ülve a falnak támaszkodva, karok vállmagasságban, könyök 90 fokban. Ismétlés: 10x a megadott ideig.' },
-  S11: { name: 'Ülve, dinamikus', desc: 'Kiinduló helyzet: ülve szabadon, magas széken, karok test mellett lógnak. Ismétlés: 1x a megadott ideig, 4 dinamikus karmozgás-változatban.' },
-  S12: { name: 'Plank', desc: 'Kiinduló helyzet: alkartámasz, könyök 90 fokban, térdek a padlón. Ismétlés: 10x a megadott ideig.' },
-  S13: { name: 'Dinamikus, instabil felszínen', desc: 'Kiinduló helyzet: fitneszlabdán/dynairen ülve vagy állva, illetve négykézláb instabil felszínen. Ismétlés: az addig tanult 4 dinamikus karmozgás, minden kartartásban.' },
-  A01: { name: 'Hason fekvés, dinamikus alsó tartással', desc: 'Kiinduló helyzet: hason fekvés, karok törzs mellett. Ismétlés: 3x a megadott ideig, 4 dinamikus karmozgás-változatban.' },
-  A02: { name: 'Négykézláb A', desc: 'Kiinduló helyzet: négykézláb, kezek a váll alatt, térdek csípő alatt. Ismétlés: 20x a megadott ideig.' },
-  A03: { name: 'Négykézláb B', desc: 'Kiinduló helyzet: négykézláb, tenyerek egymás felé néznek. Ismétlés: 15x, ill. 2×10x a megadott ideig.' },
-  A04: { name: 'Állva, dinamikus alsó tartással', desc: 'Kiinduló helyzet: állva szabadon, karok test mellett lógnak. Ismétlés: 3x a megadott ideig, 4 dinamikus karmozgás-változatban.' },
-  A05: { name: 'Ülve, dinamikus alsó tartással', desc: 'Kiinduló helyzet: ülve támla nélküli széken, karok test mellett lógnak. Ismétlés: 3x a megadott ideig, 4 dinamikus karmozgás-változatban.' },
-  A06: { name: 'Ülve, dinamikus alsó, előre dőlve', desc: 'Kiinduló helyzet: ülve magas széken, comb előre lejt, karok test mellett lógnak. Ismétlés: 3x a megadott ideig, 4 dinamikus karmozgás-változatban.' },
-  A07: { name: 'Háton fekvés, alsó kartartás B', desc: 'Kiinduló helyzet: háton fekvés, karok törzs mellett, kezek a csípőn. Ismétlés: 10x a megadott ideig.' },
+  S01: { name: 'Háton fekvés, alsó kartartás', start: 'háton fekvés, térdek kb. 90 fokban behajlítva, karok törzs mellett a talajon.' },
+  S02: { name: 'Háton fekvés, felső kartartás', start: 'háton fekvés, térdek behajlítva, karok "kezeket fel" tartásban, könyök 90 fokban.' },
+  S03: { name: 'Hason fekvés, alsó kartartás', start: 'hason fekvés, homlok alatt alátámasztás, karok törzs mellett.' },
+  S04: { name: 'Hason fekvés, felső kartartás', start: 'hason fekvés, karok "kezeket fel" tartásban.' },
+  S05: { name: 'Hason fekvés, dinamikus', start: 'hason fekvés, karok törzs mellett.' },
+  S06: { name: 'Állva, alsó kartartás', start: 'állva a falnak támaszkodva, karok test mellett lógnak.' },
+  S07: { name: 'Állva, felső kartartás', start: 'állva a falnak támaszkodva, karok "kezeket fel" tartásban.' },
+  S08: { name: 'Állva, dinamikus', start: 'állva szabadon, karok test mellett lógnak.' },
+  S09: { name: 'Ülve falnál, alsó kartartás', start: 'ülve támla nélküli széken, a falnak támaszkodva, karok test mellett lógnak.' },
+  S10: { name: 'Ülve falnál, felső kartartás', start: 'ülve a falnak támaszkodva, karok vállmagasságban, könyök 90 fokban.' },
+  S11: { name: 'Ülve, dinamikus', start: 'ülve szabadon, magas széken, karok test mellett lógnak.' },
+  S12: { name: 'Plank', start: 'alkartámasz, könyök 90 fokban, térdek a padlón.' },
+  S13: { name: 'Dinamikus, instabil felszínen', start: 'fitneszlabdán/dynairen ülve vagy állva, illetve négykézláb instabil felszínen.' },
+  A01: { name: 'Hason fekvés, dinamikus alsó tartással', start: 'hason fekvés, karok törzs mellett.' },
+  A02: { name: 'Négykézláb A', start: 'négykézláb, kezek a váll alatt, térdek csípő alatt.' },
+  A03: { name: 'Négykézláb B', start: 'négykézláb, tenyerek egymás felé néznek.' },
+  A04: { name: 'Állva, dinamikus alsó tartással', start: 'állva szabadon, karok test mellett lógnak.' },
+  A05: { name: 'Ülve, dinamikus alsó tartással', start: 'ülve támla nélküli széken, karok test mellett lógnak.' },
+  A06: { name: 'Ülve, dinamikus alsó, előre dőlve', start: 'ülve magas széken, comb előre lejt, karok test mellett lógnak.' },
+  A07: { name: 'Háton fekvés, alsó kartartás B', start: 'háton fekvés, karok törzs mellett, kezek a csípőn.' },
 }
 
 // "Szintek sorrendje" táblázat a dokumentumból. HNO ≡ LNO és HNN ≡ LNN
@@ -72,6 +74,11 @@ export function sequenceKey(v: ClientVariables): SequenceKey {
 /** Négykézláb helyzetű gyakorlatok — térdfájdalom esetén ezeket nem csináljuk (Marci, 2026.08.27.). */
 const QUADRUPED_CODES: ExerciseCode[] = ['A02', 'A03']
 
+/** Az ÜF-felületen megjelenő, egységesített ismétlésszám — négykézláb gyakorlatoknál magasabb (Marci, 2026.08.29.). */
+export function repCount(code: ExerciseCode): number {
+  return QUADRUPED_CODES.includes(code) ? 15 : 10
+}
+
 /**
  * Javasolt szint-sorrend a befolyásoló tényezők alapján. Csak javaslat — a GYT felülbírálhatja.
  * Térdfájdalom esetén a négykézláb gyakorlatok (A02, A03) kiszűrve — a dokumentum nem ad helyettesítő
@@ -90,6 +97,13 @@ export function suggestedSequence(v: ClientVariables): ExerciseCode[] {
 export const HOLD_START_SECONDS = 3
 export const HOLD_STEP_SECONDS = 1
 export const HOLD_STEP_DAYS = 2
+
+/**
+ * A "megtartás" felső korlátja (mp) — magas vérnyomásnál alacsonyabb. A checklist-fázisig
+ * (amíg a napi progresszió nincs kiszámolva) az ÜF "szintjeid" oldal ezt NEM számolja ki
+ * dinamikusan, csak a statikus kezdőértéket mutatja (ld. Gyakorlatok.tsx), a lépésszabályt
+ * pedig egy megjelenő magyarázatban írja le (Marci, 2026.08.29.).
+ */
 
 /** A "megtartás" (statikus tartás, mp) paraméter felső korlátja — magas vérnyomásnál alacsonyabb. */
 export function maxHoldSeconds(v: Pick<ClientVariables, 'highBloodPressure'>): number {

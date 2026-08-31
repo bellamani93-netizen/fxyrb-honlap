@@ -749,6 +749,15 @@ html[data-theme='dark'] .locked-overlay-card {
 .level-select.is-open .level-select-chevron {
   transform: rotate(180deg);
 }
+.info-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-primary);
+  font-size: 0.9em;
+  line-height: 1;
+  cursor: pointer;
+}
 .level-select-menu {
   list-style: none;
   margin: 0.5rem 0 0;

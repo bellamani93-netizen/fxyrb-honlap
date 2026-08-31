@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
-import { EXERCISES, SEQUENCES } from '../data/tornaSzintek'
+import { EXERCISES, SEQUENCES, HOLD_START_SECONDS, HOLD_STEP_SECONDS, HOLD_STEP_DAYS, repCount } from '../data/tornaSzintek'
 
 type LevelState = 'lezart' | 'aktiv' | 'zarolt'
 
@@ -54,9 +54,12 @@ function LevelBadge({ level }: { level: Level }) {
 export default function Gyakorlatok() {
   const [selected, setSelected] = useState(5)
   const [open, setOpen] = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [holdInfoOpen, setHoldInfoOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
   const level = levels.find((l) => l.num === selected)!
   const exercise = level.code ? EXERCISES[level.code as keyof typeof EXERCISES] : undefined
+  const reps = level.code ? repCount(level.code as keyof typeof EXERCISES) : 0
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -65,6 +68,11 @@ export default function Gyakorlatok() {
     document.addEventListener('mousedown', onClickOutside)
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
+
+  useEffect(() => {
+    setDetailsOpen(false)
+    setHoldInfoOpen(false)
+  }, [selected])
 
   return (
     <section className="py-3 py-lg-5">
@@ -124,11 +132,43 @@ export default function Gyakorlatok() {
               <p className="small mb-2" style={{ color: 'var(--color-text-muted)' }}>{level.period}</p>
 
               <h3 className="h6 mb-1">{level.code} {exercise!.name}</h3>
-              <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>{exercise!.desc}</p>
-              {level.note && (
-                <p className="small fst-italic mt-2 mb-0" style={{ color: 'var(--color-text-muted)' }}>
-                  Megjegyzés a gyógytornászodtól: {level.note}
-                </p>
+
+              <button
+                type="button"
+                className="d-flex align-items-center gap-2 w-100 text-start"
+                style={{ background: 'none', border: 'none', padding: 0, color: 'var(--color-text)' }}
+                onClick={() => setDetailsOpen((o) => !o)}
+              >
+                <span className="small">gyakorlat részletei</span>
+                <span className="level-select-chevron ms-auto" style={{ transform: detailsOpen ? 'rotate(180deg)' : 'none' }}>▾</span>
+              </button>
+
+              {detailsOpen && (
+                <div className="mt-2">
+                  <p className="small mb-1"><strong>kiinduló helyzet:</strong> {exercise!.start}</p>
+                  <p className="small mb-1"><strong>ismétlésszám:</strong> {reps}x</p>
+                  <p className="small mb-0">
+                    <strong>megtartás:</strong> {reps}× {HOLD_START_SECONDS}s{' '}
+                    <button
+                      type="button"
+                      className="info-toggle"
+                      aria-label="mit jelent ez?"
+                      onClick={() => setHoldInfoOpen((o) => !o)}
+                    >
+                      ⓘ
+                    </button>
+                    {holdInfoOpen && (
+                      <span className="fst-italic" style={{ color: 'var(--color-text-muted)' }}>
+                        {' '}({HOLD_STEP_DAYS} naponta {HOLD_STEP_SECONDS} s-el hosszabb ideig)
+                      </span>
+                    )}
+                  </p>
+                  {level.note && (
+                    <p className="small fst-italic mt-2 mb-0" style={{ color: 'var(--color-text-muted)' }}>
+                      Megjegyzés a gyógytornászodtól: {level.note}
+                    </p>
+                  )}
+                </div>
               )}
             </>
           )}
