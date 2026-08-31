@@ -165,19 +165,30 @@ export default function GytNaptar() {
   }
 
   function handleSlotClick(dateISO: string, hour: number) {
-    const o = overlay[slotKey(dateISO, hour)]
+    const key = slotKey(dateISO, hour)
+    const o = overlay[key]
     if (o?.type === 'terv') {
       setTervActionsSlot({ dateISO, hour })
       return
     }
-    const meta = getEntryMeta(dateISO, hour)
-    if (meta.kind === null || meta.kind === 'szabad') {
-      setEditingSlot({ dateISO, hour, isNew: true })
+    // egy overlay-ben LÉTREHOZOTT bejegyzés (akár "szabad", akár "konzultáció")
+    // mindig szerkeszthető/törölhető — a GYT saját maga vette fel, van mit
+    // szerkeszteni/törölni rajta (2026.09.01., Marci kérésére: a "szabad"
+    // időpont is legyen törölhető).
+    if (o) {
+      setEditingSlot({ dateISO, hour, isNew: false })
       return
     }
-    // 'terv' (csak overlay-ben létezhet, már kezelve fent) vagy 'konzultacio'
-    // (overlay-ben létrehozott VAGY demo-generált) — mindkettő szerkeszthető.
-    setEditingSlot({ dateISO, hour, isNew: false })
+    const meta = getEntryMeta(dateISO, hour)
+    if (meta.kind === 'konzultacio') {
+      // demo-generált bejegyzés — nincs mögötte overlay, de a névből fel tudtuk
+      // oldani az ügyfelet, tehát ez is szerkeszthető (ld. getEntryMeta).
+      setEditingSlot({ dateISO, hour, isNew: false })
+      return
+    }
+    // demo-generált "szabad" óra vagy teljesen üres/meghirdetetlen óra — itt
+    // nincs semmi, amit törölni lehetne, tehát ez mindig ÚJ felvétel.
+    setEditingSlot({ dateISO, hour, isNew: true })
   }
 
   function handleCreateNew() {
@@ -193,6 +204,18 @@ export default function GytNaptar() {
     if (editingSlot && !editingSlot.isNew) {
       const oldKey = slotKey(editingSlot.dateISO, editingSlot.hour)
       if (oldKey !== key) setRemovedKeys((prev) => new Set(prev).add(oldKey))
+    }
+    // ha ÉPPEN erre a helyre korábban töröltünk valamit (removedKeys), az
+    // elfedés itt már nem érvényes — most valódi tartalom kerül ide. Enélkül
+    // egy korábban törölt, majd újra felhasznált sáv "elfedve" maradt volna,
+    // és a mentés után sem jelent volna meg a naptárban (böngészős teszt
+    // közben derült ki, Marci hibajelzése alapján).
+    if (removedKeys.has(key)) {
+      setRemovedKeys((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
     }
     setOverlay((prev) => {
       const next = { ...prev }
@@ -228,13 +251,16 @@ export default function GytNaptar() {
     setEditingSlot(null)
   }
 
+  // a "meet link létrehozása és rögzítése" a tervet RÖGZÍTI — vagyis a színe
+  // is átvált a "konzultáció" (mentett menta) színére, nem marad "tervezett"
+  // (világos menta) (2026.09.01., Marci kérésére).
   function handleGenerateMeetLinkForTerv() {
     if (!tervActionsSlot) return
     const key = slotKey(tervActionsSlot.dateISO, tervActionsSlot.hour)
     setOverlay((prev) => {
       const entry = prev[key]
       if (!entry) return prev
-      return { ...prev, [key]: { ...entry, meetLink: generateMeetLink(`${key}-${entry.clientId}-${Date.now()}`) } }
+      return { ...prev, [key]: { ...entry, type: 'konzultacio', meetLink: generateMeetLink(`${key}-${entry.clientId}-${Date.now()}`) } }
     })
     setTervActionsSlot(null)
   }
@@ -360,9 +386,15 @@ export default function GytNaptar() {
                 tervezett időpont{tervActionsEntry.alkalom ? `, ${tervActionsEntry.alkalom}. alkalom` : ''}
               </p>
               <div className="d-flex flex-column gap-2 mb-2">
-                <button type="button" className="btn-fyb btn-fyb-outline" onClick={handleGenerateMeetLinkForTerv}>
-                  meet link létrehozása és rögzítése
-                </button>
+                {tervActionsEntry.alkalom === 1 ? (
+                  <p className="small fst-italic mb-0" style={{ color: 'var(--color-text-muted)' }}>
+                    az 1. alkalom hívás-linkjét már elküldte a sales.
+                  </p>
+                ) : (
+                  <button type="button" className="btn-fyb btn-fyb-outline" onClick={handleGenerateMeetLinkForTerv}>
+                    meet link létrehozása és rögzítése
+                  </button>
+                )}
                 <button
                   type="button"
                   className="btn-fyb btn-fyb-primary"
@@ -406,8 +438,10 @@ export default function GytNaptar() {
               type: editingMeta?.kind ?? undefined,
               clientId: editingMeta?.clientId,
               meetLink: editingMeta?.meetLink,
+              alkalom: editingMeta?.alkalom,
             }}
             checkConflict={checkConflict}
+            previewAlkalom={(clientId) => nextAlkalomForClient(clients.find((c) => c.id === clientId)?.name ?? '')}
             onSave={handleSaveAppointment}
             onDelete={isEditingExisting ? handleDeleteAppointment : undefined}
             onClose={() => setEditingSlot(null)}

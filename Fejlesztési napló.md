@@ -954,3 +954,15 @@ Marci hibajelzése: a naptárba bekerült időpontokat nem lehetett megnyitni. O
 - Melléktalált hiba: a modal lábléce keskeny mobil nézetben túllógott, amikor a törlés-gomb (az új ikon miatt) két sorba tördelődött — `flex-wrap` hozzáadásával javítva.
 
 **Tesztelve böngészőben, asztali (1280px) és mobil (400px), világos és sötét módban:** egy demo-eredetű foglalásra kattintva sikeresen megnyílik és szerkeszthető/törölhető a szerkesztő; törlés után a sáv ténylegesen üressé válik; a "terv" mini-popup kuka-ikonja is helyesen töröl megerősítés után; a lábléc-túllógás JS-méréssel megerősítve javítva. Konzol-hiba (a jól ismert stale HMR hiba kivételével) nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.08.31. — GYT naptár: 4 korrekció + SALES/GYT workflow-átvilágítás
+
+Marci 4 korrekciója az előző körre: a "szabad" időpont is legyen törölhető; az 1. alkalomnál ne kelljen meet-linket létrehozni (azt már a sales elküldte); a "terv" színe váltson át a "konzultáció" színére, ha rögzítjük; egy nulláról létrehozott időpont nem jelent meg a naptárban. Utána teljes SALES/GYT naptár-workflow átvilágítást kért.
+
+**Megvalósítás:**
+- `src/pages/GytNaptar.tsx`: `handleSlotClick` mostantól minden overlay-bejegyzést (szabad is) szerkeszthetőnek/törölhetőnek kezel, csak a demo-eredetű "szabad" és a teljesen üres óra marad "új felvétel". `handleGenerateMeetLinkForTerv` a meet link mentésével egyszerre a típust is `konzultacio`-ra váltja (a szín is frissül). Javítva egy hiba: `handleSaveAppointment` mentéskor most explicit törli a mentett kulcsot a `removedKeys`-ből is, különben egy korábban törölt, majd újra felhasznált sáv "láthatatlan" maradt volna.
+- `src/components/GytAppointmentModal.tsx`: új `previewAlkalom` prop — ha a kiválasztott/szerkesztett ügyfélnél az alkalom 1, a "meet link létrehozása" gomb helyett egy tájékoztató szöveg jelenik meg ("az 1. alkalom hívás-linkjét már elküldte a sales"). Ugyanez a szabály a "terv" mini-popupjában is.
+
+**SALES/GYT workflow-átvilágítás — 1 megállapítás:** böngészőben végigjátszva a folyamatot (SALES új foglalása Kollé Gábornak → ellenőrzés a GYT saját naptárában) kiderült, hogy egy SALES-oldali új foglalás NEM jelenik meg a GYT saját naptárában — a két oldal külön, egymástól független állapotot használ, csak a közös demo-alapadatot osztják meg. Ez feszül az eredeti "itt látja a sales által kiosztott új ügyfeleket" narratívával, de egy valódi, szerepkörök közötti adatmegosztás egy önálló, nagyobb feladat lenne — ezt NEM építettük meg ebben a körben, Marcival egyeztetni kell előbb.
+
+**Tesztelve böngészőben, asztali (1280px), világos és sötét módban:** mind a 4 korrekció JS-eseménnyel és screenshottal megerősítve; a SALES→GYT teszt megerősítette a fenti megállapítást. Konzol-hiba (a jól ismert stale HMR hiba kivételével) nem jelentkezett, `npm run build` hibamentes.

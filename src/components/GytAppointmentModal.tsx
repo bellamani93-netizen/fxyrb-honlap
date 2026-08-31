@@ -10,6 +10,8 @@ export type GytAppointmentInitial = {
   type?: GytSlotType
   clientId?: string
   meetLink?: string
+  /** szerkesztésnél a bejegyzés már rögzített alkalom-száma (ld. previewAlkalom új felvételnél). */
+  alkalom?: number
 }
 
 export type GytAppointmentResult = {
@@ -28,6 +30,10 @@ type GytAppointmentModalProps = {
   isEditing: boolean
   clientOptions: GytClientOption[]
   checkConflict?: (dateISO: string, hour: number) => GytConflictInfo | null
+  // új felvételnél (nincs még rögzített alkalom-szám) ebből tudjuk meg, hányadik
+  // alkalom lenne a kiválasztott ügyfélnek — az 1. alkalomnál a sales már
+  // elküldte a hívás-linket, ott nem kell a "meet link létrehozása" gomb.
+  previewAlkalom: (clientId: string) => number
   onSave: (data: GytAppointmentResult) => void
   onDelete?: () => void
   onClose: () => void
@@ -38,7 +44,7 @@ type GytAppointmentModalProps = {
 // eltér (szabadnál csak dátum+idő, terv/konzultációnál ügyfél-legördülő, nem szabad
 // szöveg — az e-mail/telefon a kiválasztott ügyfél adataiból jön), és a SALES oldal
 // modalját ez a divergencia feleslegesen bonyolította volna (2026.08.31., Marci kérésére).
-export default function GytAppointmentModal({ initial, isEditing, clientOptions, checkConflict, onSave, onDelete, onClose }: GytAppointmentModalProps) {
+export default function GytAppointmentModal({ initial, isEditing, clientOptions, checkConflict, previewAlkalom, onSave, onDelete, onClose }: GytAppointmentModalProps) {
   const [dateISO, setDateISO] = useState(initial.dateISO)
   const [hour, setHour] = useState(initial.hour)
   const [type, setType] = useState<GytSlotType>(initial.type ?? 'szabad')
@@ -50,6 +56,12 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
   const needsClient = type !== 'szabad'
   const selectedClient = clientOptions.find((c) => c.id === clientId) ?? null
   const valid = Boolean(dateISO) && (!needsClient || !!clientId)
+  // szerkesztésnél a már rögzített számot vesszük, új felvételnél a
+  // kiválasztott ügyfélre előre kiszámoljuk, hányadik alkalom lenne
+  const currentAlkalom = isEditing ? initial.alkalom : clientId ? previewAlkalom(clientId) : undefined
+  // az 1. alkalom hívás-linkjét már a sales elküldte — nem kell újra
+  // létrehozni/küldeni (2026.09.01., Marci kérésére)
+  const isFirstAlkalom = currentAlkalom === 1
 
   function clearConflict() {
     setConflict(null)
@@ -192,7 +204,11 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
 
           {type === 'konzultacio' && (
             <div className="col-12">
-              {meetLink ? (
+              {isFirstAlkalom ? (
+                <p className="small fst-italic mb-0" style={{ color: 'var(--color-text-muted)' }}>
+                  az 1. alkalom hívás-linkjét már elküldte a sales.
+                </p>
+              ) : meetLink ? (
                 <p className="small mb-0">
                   meet link: <a href={`https://${meetLink}`} target="_blank" rel="noreferrer">{meetLink}</a>
                   <span className="fst-italic" style={{ color: 'var(--color-text-muted)' }}> — elküldve az ügyfélnek e-mailben</span>
