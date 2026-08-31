@@ -66,6 +66,24 @@ function parseLabel(label: string): { name: string; alkalom?: number } {
   return { name: label }
 }
 
+// A demo-naptár (getBaseDaySlots) a "hányadik alkalom" számot egy, a
+// gyakorlat-kiosztástól TELJESEN FÜGGETLEN, órától/naptól függő képlettel
+// generálja (ld. calendarData.ts megjegyzése) — emiatt egy VALÓS, ismert
+// ügyfélnél (pl. Varga Dániel) a naptár akár teljesen más "alkalom"-ot és
+// színt mutatott, mint amit az "ügyfeleim" oldal tényleges szint-állapota
+// (levels) sugallt. Marci kérésére (2026.09.01., "legyen kapcsolat az
+// ügyfeleim és a naptár között") a MÉG FOLYAMATBAN LÉVŐ (mode: 'kozben',
+// vagy még el sem indított) valós ügyfeleknél a demo-címke alkalom-számát
+// felülírjuk a tényleges haladással: a lezárt szintek száma + 1 (ez a
+// KÖVETKEZŐ, még ki nem osztott alkalom). A "mode: 'utana'" (lezárt
+// együttműködésű) ügyfeleknél nincs ilyen egyértelmű megfeleltetés, ott a
+// demo-szám változatlan marad.
+function realNextAlkalom(client: { mode?: 'kozben' | 'utana'; levels?: { state: string }[] } | undefined): number | undefined {
+  if (!client || client.mode === 'utana') return undefined
+  const closed = (client.levels ?? []).filter((l) => l.state === 'lezart').length
+  return closed + 1
+}
+
 export function CalendarProvider({ children }: { children: ReactNode }) {
   // a demo-eredetű bejegyzések clientId-feloldásához kell a közös,
   // ÉLŐ ügyfél-lista (ld. Design jegyzet 49. pont — korábban egy statikus
@@ -99,7 +117,13 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
       const label = b.name ? (b.alkalom ? `${b.name} ${b.alkalom}` : b.name) : undefined
       return { hour, status: 'foglalt', label }
     }
-    return getBaseDaySlots(gytId, parseISODateLocal(dateISO), today).find((s) => s.hour === hour) ?? { hour }
+    const base = getBaseDaySlots(gytId, parseISODateLocal(dateISO), today).find((s) => s.hour === hour) ?? { hour }
+    if (base.status !== 'foglalt' || !base.label) return base
+    const { name } = parseLabel(base.label)
+    const matchedClient = clients.find((c) => c.name === name && (!c.assignedGytId || c.assignedGytId === gytId))
+    const realAlkalom = realNextAlkalom(matchedClient)
+    if (realAlkalom === undefined) return base
+    return { ...base, label: `${name} ${realAlkalom}` }
   }
 
   // a SALES oldal ezt nézi, hogy egy "foglalt" sáv mögött van-e VALÓDI, ŐÁLTALA
@@ -128,8 +152,9 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     const base = getBaseDaySlots(gytId, parseISODateLocal(dateISO), today).find((s) => s.hour === hour)
     if (!base?.status) return { kind: null }
     if (base.status === 'szabad') return { kind: 'szabad' }
-    const { name, alkalom } = parseLabel(base.label ?? '')
+    const { name, alkalom: rawAlkalom } = parseLabel(base.label ?? '')
     const matchedClient = clients.find((c) => c.name === name && (!c.assignedGytId || c.assignedGytId === gytId))
+    const alkalom = realNextAlkalom(matchedClient) ?? rawAlkalom
     return { kind: 'konzultacio', alkalom, name, clientId: matchedClient?.id }
   }
 
@@ -177,6 +202,14 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   }
 
   function nextAlkalomForClient(gytId: string, clientName: string): number {
+    // valós, ismert ügyfélnél a tényleges haladásból számolt érték a mérvadó
+    // (ld. realNextAlkalom fenti megjegyzése) — az alábbi, demo-sávokat
+    // pásztázó heurisztika csak a nyilvántartásban nem szereplő, kitalált
+    // demo-ügyfelekre (pl. "Fehér Anna") marad érvényben.
+    const matchedClient = clients.find((c) => c.name === clientName && (!c.assignedGytId || c.assignedGytId === gytId))
+    const real = realNextAlkalom(matchedClient)
+    if (real !== undefined) return real
+
     let max = 0
     const prefix = `${gytId}__`
     for (const [key, entry] of Object.entries(bookings)) {

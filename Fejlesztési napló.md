@@ -994,3 +994,14 @@ Marci hibajelzése: egy SALES-oldali frissen hozzárendelt ügyfél nem jelent m
 - Feltárt rés: egy frissen hozzárendelt ügyfélnek nincs `mode`-ja, a `GytVideokiosztas.tsx` ezért korábban üresen hagyta volna az oldal alját — új "még nem kezdte el a videókiosztást" kártya, "videókiosztás indítása" gombbal, ami feltölti az 1-5. szintet és törli az `isNew` jelzőt.
 
 **Tesztelve böngészőben:** SALES-ből új ügyfél felvétele Kollé Gábornak → azonnal megjelenik a SALES listában a helyes GYT-névvel; a GYT "ügyfeleim" oldalán lime "új" jelvénnyel, a nav-pötty élőben nő; a videókiosztás oldal helyesen mutatja az "indítás" kártyát, utána az 1. szintet, és a nav-pötty élőben csökken; a GYT saját naptárában a foglalás helyes színnel megjelenik és megnyitható. Konzol-hiba (a jól ismert stale HMR hiba kivételével) nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.09.01. — Naptár-kapcsolat az "ügyfeleim" tényleges szint-haladásával
+
+Marci hibajelzése közvetlenül az előző kör után: Varga Dániel "új"-ként van bent, a videókiosztásnál is az 1. szint van soron nála, de a naptárban "Varga Dániel 2" jelent meg, nem is lime színnel. Ok: a naptár demo-generátora (`calendarData.ts` `getBaseDaySlots`) az "alkalom" számot egy, a gyakorlat-kiosztástól szándékosan független, órától/naptól függő képlettel adja — ez korábban dokumentált, tudatos döntés volt, de Marci szerint most már kapcsolat kell a két rendszer között.
+
+**Megvalósítás:**
+- Új `realNextAlkalom()` segédfüggvény (`CalendarContext.tsx`): egy folyamatban lévő (`mode: 'kozben'`, vagy még el sem indított) valós ügyfélnél a következő alkalom = a lezárt szintek száma + 1 — ugyanaz a szám, amit a videókiosztás oldal "kiosztásra vár"-ként mutat.
+- A korrekciót `getEffectiveSlot` (a naptár-cella feliratszövege), `getBookingMeta` (a szín-döntés alapja) és `nextAlkalomForClient` (új időpont ajánlott alkalma) egységesen alkalmazza, a már meglévő név szerinti ügyfél-egyeztetéssel (ld. előző kör). Kitalált, nem-regisztrált demo-nevekre (a másik 2 kolléga filler-ügyfelei) nem vonatkozik.
+- Mivel `getEffectiveSlot` a SALES és a GYT közös függvénye, a javítás mindkét oldalon (GYT saját naptár, SALES "gyt naptárak") egyszerre, külön kezelés nélkül érvényesül.
+
+**Tesztelve böngészőben:** Varga Dániel minden korábban szórt (1/2/3/4) számú időpontja mostantól egységesen "1"-ként, lime színnel jelenik meg; Kovács Gábor (2 lezárt szint) egységesen "3"-ként, mentett menta színnel; Péter (`mode: 'utana'`) számozása szándékosan változatlan. Egy Varga Dániel-időpontra kattintva a szerkesztő helyesen előre kitöltve nyílik meg. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
