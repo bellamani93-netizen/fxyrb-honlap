@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import type { SalesClient } from '../data/salesClients'
 import { AdminModifiedBadge } from '../hooks/useAdminEditGuard'
-import { BUSINESS_HOURS, GYT_COLLEAGUES, addDays, formatDateOnly, formatISODate, getMondayOf, gytColorVar, type SalesCall } from '../data/calendarData'
+import { GYT_COLLEAGUES, addDays, formatDateOnly, getMondayOf, gytColorVar, type SalesCall } from '../data/calendarData'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
-import AppointmentEditorModal, { type AppointmentEditorInitial, type AppointmentEditorResult } from '../components/AppointmentEditorModal'
+import AppointmentEditorModal, { type AppointmentEditorInitial, type AppointmentEditorResult, type ConflictInfo } from '../components/AppointmentEditorModal'
 import { useSalesData } from '../context/SalesDataContext'
 
 // "adatok importálása" legördülő — a "hívásaim" oldalról érkezett, MÉG NEM
@@ -47,6 +47,49 @@ function ImportCallDropdown({ calls, onSelect }: { calls: SalesCall[]; onSelect:
               </li>
             ))
           )}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+// mobil nézetben a gyt-választó pirula-sor helyett egy kompakt legördülő
+// (2026.08.28., 7. kör, Marci kérésére) — a "+" gomb mellé kerül, felül
+function MobileGytPicker({ value, onChange, gytList }: { value: string | null; onChange: (id: string | null) => void; gytList: { id: string; name: string }[] }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  const currentLabel = value === null ? 'összes' : gytList.find((g) => g.id === value)?.name ?? 'összes'
+
+  return (
+    <div className={`level-select mobile-gyt-picker ${open ? 'is-open' : ''}`} ref={ref}>
+      <button type="button" className="level-select-toggle" onClick={() => setOpen((o) => !o)}>
+        <span>{currentLabel}</span>
+        <span className="level-select-chevron">▾</span>
+      </button>
+      {open && (
+        <ul className="level-select-menu">
+          <li>
+            <button type="button" className={`level-select-item ${value === null ? 'is-selected' : ''}`} onClick={() => { onChange(null); setOpen(false) }}>
+              <span>összes</span>
+            </button>
+          </li>
+          {gytList.map((g) => (
+            <li key={g.id}>
+              <button type="button" className={`level-select-item ${value === g.id ? 'is-selected' : ''}`} onClick={() => { onChange(g.id); setOpen(false) }}>
+                <span>{g.name}</span>
+                <span className="auth-tab-color-dot" style={{ backgroundColor: gytColorVar(g.id) }} />
+              </button>
+            </li>
+          ))}
         </ul>
       )}
     </div>
@@ -250,14 +293,37 @@ export default function SalesHozzarendeles() {
     })
   }
 
+  // a "+" gomb mostantól csak a "gyt naptárak" fülre vált (2026.08.28., 7. kör,
+  // Marci kérésére) — a tényleges létrehozás onnan, egy konkrét sávra kattintva
+  // indul (ugyanaz az élmény, mint amikor valaki magától nyitja meg a naptárat)
   function openNewBookingEditor() {
-    setBookingEditor({ initial: { dateISO: formatISODate(today), hour: BUSINESS_HOURS[0], gytId: calSelectedGyt } })
+    setTab('gyt')
+  }
+
+  // "booking" módban egy ütközés VALÓDI (blokkoló, nem felülbírálható) —
+  // egy GYT fizikailag nem lehet két helyen egyszerre. A "szabad" jelzésű
+  // sávok nem számítanak ütközésnek (ld. getEffectiveSlot 'szabad' ága).
+  // Ha épp ugyanazt a foglalást szerkesztjük ugyanarra a helyre (nincs
+  // változás), nem önmagával ütközik.
+  function checkBookingConflict(dateISO: string, hour: number, gytId: string | null): ConflictInfo | null {
+    if (!gytId) return null
+    if (
+      bookingEditor?.clientId &&
+      bookingEditor.initial.gytId === gytId &&
+      bookingEditor.initial.dateISO === dateISO &&
+      bookingEditor.initial.hour === hour
+    ) {
+      return null
+    }
+    const slot = getEffectiveSlot(gytId, dateISO, hour)
+    if (slot.status === 'foglalt') return { name: slot.label ?? 'foglalt', hour }
+    return null
   }
 
   function handleSaveBooking(data: AppointmentEditorResult) {
     if (!data.gytId) return
     const gytName = GYT_COLLEAGUES.find((g) => g.id === data.gytId)?.name ?? null
-    const startTime = `${data.dateISO}T${String(data.hour).padStart(2, '0')}:00`
+    const startTime = `${data.dateISO}T${String(data.hour).padStart(2, '0')}:${String(data.minute).padStart(2, '0')}`
 
     if (bookingEditor?.clientId) {
       // meglévő foglalás szerkesztése: ha a gyt/dátum/óra változott, a régi
@@ -381,7 +447,11 @@ export default function SalesHozzarendeles() {
 
   return (
     <section className="py-3 py-lg-5">
-      <div className="container-fluid" style={{ maxWidth: 900 }}>
+      {/* a "gyt naptárak" fülön a teljes rendelkezésre álló szélességet
+         használjuk (2026.08.28., 7. kör, Marci kérésére — csak minimális
+         szélső margóval), az "ügyfelek" fül megtartja az olvasható
+         max-szélességet (form + lista) */}
+      <div className="container-fluid" style={{ maxWidth: tab === 'gyt' ? undefined : 900 }}>
         <div className="app-page-header mb-3">
           <h1 className="app-page-title mb-0">ügyfél–GYT hozzárendelés</h1>
         </div>
@@ -403,6 +473,14 @@ export default function SalesHozzarendeles() {
           >
             +
           </button>
+          {/* mobilon a gyt-választó pirula-sor helyett ez a kompakt legördülő
+             kerül a "+" mellé (2026.08.28., 7. kör) — a pirula-sor ilyenkor
+             lent (a naptár fölött) rejtve marad, ld. d-none d-lg-flex ott */}
+          {tab === 'gyt' && (
+            <div className="d-lg-none">
+              <MobileGytPicker value={calSelectedGyt} onChange={setCalSelectedGyt} gytList={GYT_COLLEAGUES} />
+            </div>
+          )}
         </div>
 
         {tab === 'hozzarendeles' && (
@@ -590,7 +668,7 @@ export default function SalesHozzarendeles() {
             )}
 
             <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-              <div className="auth-tabs" style={{ flexWrap: 'wrap' }}>
+              <div className="auth-tabs d-none d-lg-flex" style={{ flexWrap: 'wrap' }}>
                 <button type="button" className={`auth-tab ${calSelectedGyt === null ? 'active' : ''}`} onClick={() => setCalSelectedGyt(null)}>
                   összes
                 </button>
@@ -662,6 +740,7 @@ export default function SalesHozzarendeles() {
             isEditing={Boolean(bookingEditor.clientId)}
             initial={bookingEditor.initial}
             gytOptions={GYT_COLLEAGUES}
+            checkConflict={checkBookingConflict}
             onSave={handleSaveBooking}
             onDelete={bookingEditor.clientId ? handleDeleteBooking : undefined}
             onClose={() => setBookingEditor(null)}

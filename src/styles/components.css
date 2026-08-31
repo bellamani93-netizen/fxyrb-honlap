@@ -777,6 +777,13 @@ html[data-theme='dark'] .locked-overlay-card {
     right: auto;
   }
 }
+/* a mobil gyt-választó a képernyő bal szélén ül (a "+" gomb mellett) — a
+   jobbról-kinövő alapértelmezés itt a képernyőn KÍVÜLRE lógna, ezért balról
+   kell nyílnia (2026.08.28., 7. kör) */
+.mobile-gyt-picker .level-select-menu {
+  left: 0;
+  right: auto;
+}
 .level-select-item {
   display: flex;
   align-items: center;
@@ -1117,6 +1124,24 @@ html[data-theme='dark'] .sales-delete-icon {
 .gyt-cal-wrap {
   overflow-x: auto;
 }
+/* telefon nézetben a naptár fejléce (sarok + napok sora) rögzített marad,
+   csak az óránkénti sorok görgethetők alatta (2026.08.28., 7. kör, Marci
+   kérésére) — a rács maga nem elég magas ahhoz, hogy asztali/tablet nézetben
+   is szükség legyen erre, ezért csak mobilon kap belső, korlátozott
+   magasságú görgetést */
+@media (max-width: 991.98px) {
+  .gyt-cal-wrap {
+    max-height: 65vh;
+    overflow-y: auto;
+  }
+  .gyt-cal-corner,
+  .gyt-cal-day-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: var(--color-surface);
+  }
+}
 /* mind a 7 nap mindig egyszerre látszik, mobilon is (Marci kifejezett kérése,
    a Google Calendar mobil heti nézete alapján) — a hét-oszlopok keskeny
    minmax-floor-je (2.2rem) miatt a rács szűk (375px) telefonon is befér
@@ -1268,3 +1293,14 @@ html[data-theme='dark'] .sales-delete-icon {
 }
 .call-outcome-dot--warning { background-color: var(--macos-yellow); }
 .call-outcome-dot--success { background-color: var(--macos-green); }
+
+/* --- SALES: időpont-ütközés figyelmeztetés az AppointmentEditorModal-ban
+   (2026.08.28., 7. kör) — "call" módban felülbírálható ("nem baj, jó lesz!"),
+   "booking" módban blokkoló (nincs felülbírálás, a mentés gomb letiltva) --- */
+.conflict-warning {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  background-color: rgba(193, 91, 74, 0.12);
+  border: 1px solid var(--color-danger);
+  color: var(--color-text);
+}

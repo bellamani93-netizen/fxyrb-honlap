@@ -21,7 +21,7 @@ type GytWeeklyCalendarProps = {
   // színt egy sávonként eltérő színnel (pl. a "hívásaim" saját naptárán, ahol
   // a szín a hívás kimenetétől és attól függ, hogy múltbeli vagy jövőbeli
   // időpontról van-e szó) — ha nincs átadva, a megszokott kolléga-szín marad
-  getSlotColor?: (gytId: string, dateISO: string, hour: number, slot: TimeSlot) => { solid: string; tint: string }
+  getSlotColor?: (gytId: string, dateISO: string, hour: number, slot: TimeSlot) => { solid: string; tint: string; textSolid?: string; textTint?: string }
 }
 
 function SlotBlock({
@@ -32,11 +32,19 @@ function SlotBlock({
 }: {
   status: TimeSlot['status']
   label?: string
-  color: { solid: string; tint: string }
+  // textSolid/textTint opcionális felülírás (alapértelmezés a GYT-kapacitás-
+  // nézethez illik: fehér szöveg az élénk "szabad" háttéren, normál
+  // szövegszín a fakó "foglalt" háttéren) — a "saját naptár" (más szemantikájú
+  // színezés, ld. SalesHivasaim.tsx getOwnSlotColor) mindkettőt felülírja
+  color: { solid: string; tint: string; textSolid?: string; textTint?: string }
   onClick?: () => void
 }) {
   if (!status) return null
   const isFree = status === 'szabad'
+  // 2026.08.28., 7. kör, Marci kérésére MEGFORDÍTVA: a SZABAD sáv kapja a
+  // tömör, élénk színt (hogy azonnal kitűnjön, hol van hely), a FOGLALT sáv
+  // a fakóbb, áttetsző tint-et (kevésbé versenyez a figyelemért) — a korábbi
+  // logika pont fordítva volt
   return (
     <button
       type="button"
@@ -44,8 +52,8 @@ function SlotBlock({
       disabled={!onClick}
       onClick={onClick}
       style={{
-        backgroundColor: isFree ? color.tint : color.solid,
-        color: isFree ? 'var(--color-text)' : 'var(--offwhite)',
+        backgroundColor: isFree ? color.solid : color.tint,
+        color: isFree ? (color.textSolid ?? 'var(--offwhite)') : (color.textTint ?? 'var(--color-text)'),
         cursor: onClick ? 'pointer' : 'default',
       }}
       title={label ?? (isFree ? 'szabad' : 'foglalt')}

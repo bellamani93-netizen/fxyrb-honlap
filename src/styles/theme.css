@@ -31,17 +31,21 @@
   --color-highlight-bg: var(--lime);
   --color-highlight-text: var(--navy);
 
-  /* GYT-naptár kollégánkénti színkód (2026.08.28., naptár-integráció) — a
-     meglévő szemantikus színektől (danger, warning, primary, lime) tudatosan
-     elkülönítve, hogy egy adott kolléga színe ne keveredjen egy állapot-jelzés
-     jelentésével. Kollégánként egy alap (tömör, "foglalt" időpontokhoz) és egy
-     -rgb változat (áttetsző "szabad" időpontokhoz, rgba()-val). */
-  --gyt-color-kollegabor: #4A7FC1; /* kék */
-  --gyt-color-kollegabor-rgb: 74, 127, 193;
-  --gyt-color-nagyreka: #8B6FC9; /* lila */
-  --gyt-color-nagyreka-rgb: 139, 111, 201;
-  --gyt-color-tothbence: #6E8F52; /* oliva-zöld */
-  --gyt-color-tothbence-rgb: 110, 143, 82;
+  /* GYT-naptár kollégánkénti színkód (2026.08.28., naptár-integráció, 7. kör
+     óta ÉLÉNKEBB árnyalatok — Marci kérésére, hogy a szabad/foglalt sávok
+     jobban elváljanak) — a meglévő szemantikus színektől (danger, warning,
+     primary, lime) tudatosan elkülönítve, hogy egy adott kolléga színe ne
+     keveredjen egy állapot-jelzés jelentésével. A "szabad" sáv MOSTANTÓL a
+     tömör (solid) színt kapja (élénk, jól látható), a "foglalt" sáv az
+     áttetsző (rgb-alapú rgba) tint-et (fakóbb, hogy a szabad helyek jobban
+     kitűnjenek — ld. GytWeeklyCalendar.tsx SlotBlock, a korábbihoz képest
+     megfordított logika). */
+  --gyt-color-kollegabor: #2F6FED; /* élénk kék */
+  --gyt-color-kollegabor-rgb: 47, 111, 237;
+  --gyt-color-nagyreka: #8B5CF6; /* élénk lila */
+  --gyt-color-nagyreka-rgb: 139, 92, 246;
+  --gyt-color-tothbence: #22A649; /* élénk zöld */
+  --gyt-color-tothbence-rgb: 34, 166, 73;
   --gyt-color-default: var(--sagegray); /* fallback, ha egy admin által felvett új GYT-nek nincs saját szín-tokene */
   --gyt-color-default-rgb: 94, 128, 127;
 
@@ -93,14 +97,15 @@ html[data-theme='dark'] {
   --color-highlight-bg: transparent;
   --color-highlight-text: var(--lime);
 
-  /* sötét módban kissé világosított árnyalatok, hogy a navy háttéren is jól
-     látszódjanak (ugyanaz az elv, mint a --color-text-muted világosításánál) */
-  --gyt-color-kollegabor: #7EA8E0;
-  --gyt-color-kollegabor-rgb: 126, 168, 224;
-  --gyt-color-nagyreka: #B39EE0;
-  --gyt-color-nagyreka-rgb: 179, 158, 224;
-  --gyt-color-tothbence: #9AC17A;
-  --gyt-color-tothbence-rgb: 154, 193, 122;
+  /* sötét módban is élénk (nem csak "világosított") árnyalatok, hogy a
+     navy háttéren jól látszódjanak, ÉS a szabad/foglalt megkülönböztetés
+     itt is egyértelmű maradjon (2026.08.28., 7. kör) */
+  --gyt-color-kollegabor: #5B9AFF;
+  --gyt-color-kollegabor-rgb: 91, 154, 255;
+  --gyt-color-nagyreka: #A98BFA;
+  --gyt-color-nagyreka-rgb: 169, 139, 250;
+  --gyt-color-tothbence: #4ECB74;
+  --gyt-color-tothbence-rgb: 78, 203, 116;
   --gyt-color-default: #9BB6B5;
   --gyt-color-default-rgb: 155, 182, 181;
 }

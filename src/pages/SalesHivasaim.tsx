@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { addDays, formatDateOnly, formatISODate, getMondayOf, gytColorVar, type SalesCall, type SalesCallOutcome, type TimeSlot } from '../data/calendarData'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
 import CallDetailModal from '../components/CallDetailModal'
-import AppointmentEditorModal, { type AppointmentEditorResult } from '../components/AppointmentEditorModal'
+import AppointmentEditorModal, { type AppointmentEditorResult, type ConflictInfo } from '../components/AppointmentEditorModal'
 import Icon from '../components/Icon'
 import { useSalesData } from '../context/SalesDataContext'
 
@@ -70,19 +70,29 @@ export default function SalesHivasaim() {
   // Az üres (még nem foglalt) sávok mindig a semleges alap-szín halvány
   // tintjét kapják, időtől függetlenül — ez csak azt jelzi, hogy ide LEHET
   // időpontot felvenni, nem egy tényleges hívás állapotát mutatja.
+  // Technikai megjegyzés (2026.08.28., 7. kör): a GytWeeklyCalendar SlotBlock-ja
+  // a "szabad" státusznál a `solid`, "foglalt"-nál a `tint` mezőt olvassa ki
+  // (ld. ott a fordított logikát a GYT-kapacitás-nézet élénkítéséhez) — itt,
+  // a "saját naptár" szemantikus (nem kapacitás-) színezésénél ez a
+  // megkülönböztetés nem releváns, ezért mindkét mezőbe UGYANAZT az egy
+  // szándékolt színt adjuk vissza, státusztól függetlenül helyesen jelenjen meg.
   function getOwnSlotColor(_id: string, dateISO: string, hour: number) {
     const match = findCallAt(dateISO, hour)
     if (!match) {
-      return { solid: gytColorVar(OWN_ID), tint: gytColorVar(OWN_ID, 0.15) }
+      const empty = gytColorVar(OWN_ID, 0.15)
+      return { solid: empty, tint: empty }
     }
     if (match.outcome === 'nem_jelent_meg') {
-      return { solid: 'var(--macos-yellow)', tint: 'rgba(var(--macos-yellow-rgb), 0.3)' }
+      const yellow = 'var(--macos-yellow)'
+      return { solid: yellow, tint: yellow, textSolid: 'var(--offwhite)', textTint: 'var(--offwhite)' }
     }
     const slotStart = new Date(`${dateISO}T${String(hour).padStart(2, '0')}:00`)
     if (slotStart.getTime() < today.getTime()) {
-      return { solid: gytColorVar(OWN_ID), tint: gytColorVar(OWN_ID, 0.3) }
+      const past = gytColorVar(OWN_ID)
+      return { solid: past, tint: past, textSolid: 'var(--offwhite)', textTint: 'var(--offwhite)' }
     }
-    return { solid: 'var(--color-primary)', tint: 'rgba(var(--color-primary-rgb), 0.3)' }
+    const future = 'var(--color-primary)'
+    return { solid: future, tint: future, textSolid: 'var(--offwhite)', textTint: 'var(--offwhite)' }
   }
 
   function handleCreateCall(data: AppointmentEditorResult) {
@@ -95,11 +105,19 @@ export default function SalesHivasaim() {
         email: data.email,
         phone: data.phone,
         note: data.note || undefined,
-        callTime: `${data.dateISO}T${String(data.hour).padStart(2, '0')}:00`,
+        callTime: `${data.dateISO}T${String(data.hour).padStart(2, '0')}:${String(data.minute).padStart(2, '0')}`,
         status: 'var_gyt_re',
       },
     ])
     setCreatingAt(null)
+  }
+
+  // "call" módban ütközés csak FIGYELMEZTETÉS (felülbírálható) — az órás
+  // rács-sáv szerint nézzük, van-e már hívás ugyanabban az órában, a perc
+  // nem számít bele (a rács maga is óránkénti bontású, ld. findCallAt)
+  function checkOwnConflict(dateISO: string, hour: number): ConflictInfo | null {
+    const match = findCallAt(dateISO, hour)
+    return match ? { name: match.name, hour } : null
   }
 
   function handleSetOutcome(callId: string, outcome: SalesCallOutcome) {
@@ -121,7 +139,10 @@ export default function SalesHivasaim() {
 
   return (
     <section className="py-3 py-lg-5">
-      <div className="container-fluid" style={{ maxWidth: 900 }}>
+      {/* a naptár-nézet a teljes rendelkezésre álló szélességet használja
+         (2026.08.28., 7. kör, Marci kérésére — csak minimális szélső margóval),
+         a "mai hívások" lista viszont megtartja az olvasható max-szélességet */}
+      <div className="container-fluid" style={{ maxWidth: view === 'naptar' ? undefined : 900 }}>
         <div className="app-page-header mb-3">
           <h1 className="app-page-title mb-0">hívásaim</h1>
         </div>
@@ -226,6 +247,7 @@ export default function SalesHivasaim() {
             mode="call"
             isEditing={false}
             initial={{ dateISO: creatingAt.dateISO, hour: creatingAt.hour }}
+            checkConflict={checkOwnConflict}
             onSave={handleCreateCall}
             onClose={() => setCreatingAt(null)}
           />
