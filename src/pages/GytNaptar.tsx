@@ -1,70 +1,42 @@
 import { useState } from 'react'
-import {
-  BUSINESS_HOURS,
-  addDays,
-  formatDateOnly,
-  formatHour,
-  formatISODate,
-  generateMeetLink,
-  getBaseDaySlots,
-  getMondayOf,
-  parseISODateLocal,
-  type TimeSlot,
-} from '../data/calendarData'
+import { BUSINESS_HOURS, addDays, formatDateOnly, formatHour, formatISODate, generateMeetLink, getMondayOf } from '../data/calendarData'
 import { clients } from '../data/gytClients'
+import { useCalendar } from '../context/CalendarContext'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
 import GytAppointmentModal, {
   type GytAppointmentResult,
   type GytConflictInfo,
-  type GytSlotType,
 } from '../components/GytAppointmentModal'
 import Icon from '../components/Icon'
 
 // A demóban a bejelentkezett GYT mindig "Kollé Gábor" (kollega@kollega.hu) —
-// ugyanaz az azonosító, amit a SALES oldal "gyt naptárak" nézete is használ
-// (ld. calendarData.ts DEMO_CLIENTS_BY_GYT), így a két oldal UGYANAZT a
-// demo-beosztást mutatja, anélkül hogy valódi, szerepkörök közötti adatmegosztást
-// kellene építeni ehhez a UI-tervhez (2026.08.31., Marci kérésére).
+// ugyanaz az azonosító, amit a SALES oldal "gyt naptárak" nézete is használ.
+// A naptár-állapot (foglalások) mostantól a KÖZÖS CalendarContext-ből jön —
+// egy SALES-oldali foglalás ténylegesen megjelenik itt is, és fordítva
+// (2026.09.01., Marci kérésére — ld. Design jegyzet 47-48. pont; korábban a
+// két oldal egymástól teljesen független overlay-t használt).
 const OWN_ID = 'kollegabor'
 const OWN_LIST = [{ id: OWN_ID, name: 'Kollé Gábor' }]
 
-type OverlayEntry = { type: GytSlotType; clientId?: string; name?: string; alkalom?: number; meetLink?: string }
 type SubView = 'mai' | 'naptar'
-type EntryMeta = { kind: GytSlotType | null; alkalom?: number; name?: string; meetLink?: string; clientId?: string }
-
-function slotKey(dateISO: string, hour: number) {
-  return `${dateISO}__${hour}`
-}
-
-// a demó-címkék "Név szám" alakúak (pl. "Kovács Gábor 4") — az "alkalom" a
-// végén álló szám, ld. Marci kérése: "Az alkalom: ide kerül az a szám, ami a
-// nevek mellett áll."
-function parseLabel(label: string): { name: string; alkalom?: number } {
-  const m = label.match(/^(.*?)\s+(\d+)$/)
-  if (m) return { name: m[1], alkalom: Number(m[2]) }
-  return { name: label }
-}
 
 export default function GytNaptar() {
-  const [today] = useState(() => new Date())
+  const {
+    today,
+    getBooking,
+    getEffectiveSlot,
+    getBookingMeta,
+    setBooking,
+    removeBooking,
+    nextAlkalomForClient: sharedNextAlkalomForClient,
+  } = useCalendar()
   const [view, setView] = useState<SubView>('mai')
   const [weekOffset, setWeekOffset] = useState<0 | 1>(0)
-  // a GYT saját maga is felvehet/módosíthat konzultációt (2026.08.31., Marci
-  // kérésére) — ez az overlay a SALES SalesDataContext bookings-mintáját
-  // követi, csak ennek az egy oldalnak a helyi állapotaként (nincs még másik
-  // GYT-oldal, aminek meg kellene osztania).
-  const [overlay, setOverlay] = useState<Record<string, OverlayEntry>>({})
-  // ha egy DEMO-generált (getBaseDaySlots) sávot töröl a GYT, azt itt jelöljük —
-  // a demo-függvény maga nem módosítható (tiszta függvény), ezért egy "elfedő"
-  // halmazzal biztosítjuk, hogy törlés után a sáv ténylegesen üresnek látsszon.
-  const [removedKeys, setRemovedKeys] = useState<Set<string>>(new Set())
   // isNew: a modal EGY ÚJ időpont felvételére nyílt-e (pl. "+" gomb, üres/szabad
   // sávra kattintás), szemben egy MEGLÉVŐ bejegyzés szerkesztésével — ezt
   // KÜLÖN kell jelölni (nem a dateISO/hour-ból visszafejteni), mert a "+" gomb
   // mindig ugyanazt az alapértelmezett dátum/órát ajánlja fel, ami olykor
-  // ÉPP egybeesik egy már meglévő bejegyzéssel — enélkül a jelölés nélkül ez
-  // tévesen "szerkesztésnek" tűnne, és a mentés csendben felülírná a más
-  // időpontját (böngészős teszt közben derült ki).
+  // ÉPP egybeesik egy már meglévő bejegyzéssel.
   const [editingSlot, setEditingSlot] = useState<{ dateISO: string; hour: number; isNew: boolean } | null>(null)
   // egy meglévő "terv" sávra kattintva előbb egy kis 2-gombos popup jelenik
   // meg (meet link rögzítése / módosítás), nem rögtön a teljes szerkesztő
@@ -79,79 +51,14 @@ export default function GytNaptar() {
   // névválasztójában.
   const clientOptions = clients.map((c) => ({ id: c.id, name: c.name, email: c.email, phone: c.phone }))
 
-  function getEntryMeta(dateISO: string, hour: number): EntryMeta {
-    const key = slotKey(dateISO, hour)
-    if (removedKeys.has(key)) return { kind: null }
-    const o = overlay[key]
-    if (o) return { kind: o.type, alkalom: o.alkalom, name: o.name, meetLink: o.meetLink, clientId: o.clientId }
-    const base = getBaseDaySlots(OWN_ID, parseISODateLocal(dateISO), today).find((s) => s.hour === hour)
-    if (!base?.status) return { kind: null }
-    if (base.status === 'szabad') return { kind: 'szabad' }
-    const { name, alkalom } = parseLabel(base.label ?? '')
-    // a demo-adatban nincs clientId, csak név — a gytClients.ts-beli egyező
-    // nevű ügyfélhez kötjük, hogy szerkesztéskor az e-mail/telefon is behúzható legyen
-    const matchedClient = clients.find((c) => c.name === name)
-    return { kind: 'konzultacio', alkalom, name, clientId: matchedClient?.id }
-  }
-
-  function getEffectiveSlot(dateISO: string, hour: number): TimeSlot {
-    const meta = getEntryMeta(dateISO, hour)
-    if (meta.kind === null) return { hour }
-    if (meta.kind === 'szabad') return { hour, status: 'szabad' }
-    const label = meta.name ? (meta.alkalom ? `${meta.name} ${meta.alkalom}` : meta.name) : undefined
-    return { hour, status: 'foglalt', label }
-  }
-
-  // saját naptár-színkód (2026.08.31., Marci kérésére) — MINDEN gyt ugyanígy
-  // látja a sajátját, függetlenül a SALES-oldali kolléga-színétől:
-  // 1. alkalom mindig lime (a legerősebb jelzés, mindent felülír),
-  // lefoglalt (konzultáció) mentett menta, tervezett (terv) világos menta,
-  // szabad halvány narancssárga.
-  function getOwnSlotColor(_id: string, dateISO: string, hour: number) {
-    const meta = getEntryMeta(dateISO, hour)
-    if (meta.kind === 'szabad') {
-      return { solid: 'var(--pale-orange)', tint: 'var(--pale-orange)', textSolid: 'var(--navy)', textTint: 'var(--navy)' }
-    }
-    if (meta.alkalom === 1) {
-      return { solid: 'var(--lime)', tint: 'var(--lime)', textSolid: 'var(--navy)', textTint: 'var(--navy)' }
-    }
-    if (meta.kind === 'terv') {
-      const c = 'rgba(var(--mint-rgb), 0.35)'
-      return { solid: c, tint: c, textSolid: 'var(--navy)', textTint: 'var(--navy)' }
-    }
-    const mint = 'var(--mint)'
-    return { solid: mint, tint: mint, textSolid: 'var(--navy)', textTint: 'var(--navy)' }
-  }
-
-  function nextAlkalomForClient(clientName: string): number {
-    let max = 0
-    for (const entry of Object.values(overlay)) {
-      if (entry.name === clientName && entry.alkalom) max = Math.max(max, entry.alkalom)
-    }
-    for (let w = 0; w <= 1; w++) {
-      for (let d = 0; d < 7; d++) {
-        const date = addDays(addDays(getMondayOf(today), w * 7), d)
-        const dateISO = formatISODate(date)
-        for (const slot of getBaseDaySlots(OWN_ID, date, today)) {
-          if (removedKeys.has(slotKey(dateISO, slot.hour))) continue
-          if (slot.status === 'foglalt' && slot.label) {
-            const parsed = parseLabel(slot.label)
-            if (parsed.name === clientName && parsed.alkalom) max = Math.max(max, parsed.alkalom)
-          }
-        }
-      }
-    }
-    return max + 1
+  function nextAlkalomForClient(clientName: string) {
+    return sharedNextAlkalomForClient(OWN_ID, clientName)
   }
 
   // csak akkor van "eredeti" bejegyzés, ha TÉNYLEG szerkesztünk (isNew===false)
   // — új felvételnél a form alapértelmezett dátuma/órája sosem számít
-  // "meglévőnek", még ha épp egybe is esik egy másik bejegyzéssel. A
-  // getEntryMeta EGYSÉGESEN kezeli az overlay-ben létrehozott ÉS a
-  // demo-generált bejegyzéseket is — mindkettő szerkeszthető/törölhető
-  // (2026.09.01., Marci kérésére: korábban a demo-bejegyzések, ami a naptár
-  // TÖBBSÉGE, nem voltak megnyithatók, ezt jelezte hibaként).
-  const editingMeta = editingSlot && !editingSlot.isNew ? getEntryMeta(editingSlot.dateISO, editingSlot.hour) : null
+  // "meglévőnek", még ha épp egybe is esik egy másik bejegyzéssel.
+  const editingMeta = editingSlot && !editingSlot.isNew ? getBookingMeta(OWN_ID, editingSlot.dateISO, editingSlot.hour) : null
   const isEditingExisting = !!editingSlot && !editingSlot.isNew
 
   // a GYT saját naptárában egy ütközés MINDIG valódi blokk (fizikai
@@ -159,15 +66,14 @@ export default function GytNaptar() {
   // "saját magával" kivétel csak szerkesztésnél érvényes — új felvételnél soha.
   function checkConflict(dateISO: string, hour: number): GytConflictInfo | null {
     if (isEditingExisting && editingSlot && editingSlot.dateISO === dateISO && editingSlot.hour === hour) return null
-    const meta = getEntryMeta(dateISO, hour)
+    const meta = getBookingMeta(OWN_ID, dateISO, hour)
     if (meta.kind === 'szabad' || meta.kind === null) return null
     return meta.name ? { name: meta.name, hour } : null
   }
 
   function handleSlotClick(dateISO: string, hour: number) {
-    const key = slotKey(dateISO, hour)
-    const o = overlay[key]
-    if (o?.type === 'terv') {
+    const raw = getBooking(OWN_ID, dateISO, hour)
+    if (raw?.type === 'terv') {
       setTervActionsSlot({ dateISO, hour })
       return
     }
@@ -175,14 +81,14 @@ export default function GytNaptar() {
     // mindig szerkeszthető/törölhető — a GYT saját maga vette fel, van mit
     // szerkeszteni/törölni rajta (2026.09.01., Marci kérésére: a "szabad"
     // időpont is legyen törölhető).
-    if (o) {
+    if (raw) {
       setEditingSlot({ dateISO, hour, isNew: false })
       return
     }
-    const meta = getEntryMeta(dateISO, hour)
+    const meta = getBookingMeta(OWN_ID, dateISO, hour)
     if (meta.kind === 'konzultacio') {
       // demo-generált bejegyzés — nincs mögötte overlay, de a névből fel tudtuk
-      // oldani az ügyfelet, tehát ez is szerkeszthető (ld. getEntryMeta).
+      // oldani az ügyfelet, tehát ez is szerkeszthető (ld. getBookingMeta).
       setEditingSlot({ dateISO, hour, isNew: false })
       return
     }
@@ -196,92 +102,63 @@ export default function GytNaptar() {
   }
 
   function handleSaveAppointment(data: GytAppointmentResult) {
-    const key = slotKey(data.dateISO, data.hour)
-    // a régi helyet csak akkor kell "elfedni", ha TÉNYLEG egy meglévő
-    // bejegyzést mozgatunk máshova (pl. egy demo-eredetű konzultáció áthelyezve
-    // egy másik órára) — ekkor a régi hely demo-adata továbbra is megjelenne
-    // enélkül, hisz a demo-függvény maga nem változik.
+    // ha TÉNYLEG egy meglévő bejegyzést mozgatunk máshova, a régi helyet fel
+    // kell szabadítani (removeBooking a demo-adatot is elfedi, ha kell)
     if (editingSlot && !editingSlot.isNew) {
-      const oldKey = slotKey(editingSlot.dateISO, editingSlot.hour)
-      if (oldKey !== key) setRemovedKeys((prev) => new Set(prev).add(oldKey))
+      const samePlace = editingSlot.dateISO === data.dateISO && editingSlot.hour === data.hour
+      if (!samePlace) removeBooking(OWN_ID, editingSlot.dateISO, editingSlot.hour)
     }
-    // ha ÉPPEN erre a helyre korábban töröltünk valamit (removedKeys), az
-    // elfedés itt már nem érvényes — most valódi tartalom kerül ide. Enélkül
-    // egy korábban törölt, majd újra felhasznált sáv "elfedve" maradt volna,
-    // és a mentés után sem jelent volna meg a naptárban (böngészős teszt
-    // közben derült ki, Marci hibajelzése alapján).
-    if (removedKeys.has(key)) {
-      setRemovedKeys((prev) => {
-        const next = new Set(prev)
-        next.delete(key)
-        return next
-      })
+    if (data.type === 'szabad') {
+      setBooking(OWN_ID, data.dateISO, data.hour, { type: 'szabad' })
+    } else {
+      const client = clients.find((c) => c.id === data.clientId)
+      const alkalom =
+        editingMeta?.clientId === data.clientId && editingMeta?.alkalom
+          ? editingMeta.alkalom
+          : nextAlkalomForClient(client?.name ?? '')
+      setBooking(OWN_ID, data.dateISO, data.hour, { type: data.type, clientId: data.clientId, name: client?.name, alkalom, meetLink: data.meetLink })
     }
-    setOverlay((prev) => {
-      const next = { ...prev }
-      if (editingSlot && !editingSlot.isNew) {
-        const oldKey = slotKey(editingSlot.dateISO, editingSlot.hour)
-        if (oldKey !== key) delete next[oldKey]
-      }
-      if (data.type === 'szabad') {
-        next[key] = { type: 'szabad' }
-      } else {
-        const client = clients.find((c) => c.id === data.clientId)
-        const alkalom =
-          editingMeta?.clientId === data.clientId && editingMeta?.alkalom
-            ? editingMeta.alkalom
-            : nextAlkalomForClient(client?.name ?? '')
-        next[key] = { type: data.type, clientId: data.clientId, name: client?.name, alkalom, meetLink: data.meetLink }
-      }
-      return next
-    })
     setEditingSlot(null)
   }
 
   function handleDeleteAppointment() {
     if (!editingSlot) return
-    const key = slotKey(editingSlot.dateISO, editingSlot.hour)
-    setOverlay((prev) => {
-      const next = { ...prev }
-      delete next[key]
-      return next
-    })
-    // demo-eredetű bejegyzésnél ez tünteti el ténylegesen a sávot (ld. getEntryMeta)
-    setRemovedKeys((prev) => new Set(prev).add(key))
+    removeBooking(OWN_ID, editingSlot.dateISO, editingSlot.hour)
     setEditingSlot(null)
   }
 
   // a "meet link létrehozása és rögzítése" a tervet RÖGZÍTI — vagyis a színe
   // is átvált a "konzultáció" (mentett menta) színére, nem marad "tervezett"
-  // (világos menta) (2026.09.01., Marci kérésére).
+  // (világos menta) (2026.08.31., Marci kérésére).
   function handleGenerateMeetLinkForTerv() {
     if (!tervActionsSlot) return
-    const key = slotKey(tervActionsSlot.dateISO, tervActionsSlot.hour)
-    setOverlay((prev) => {
-      const entry = prev[key]
-      if (!entry) return prev
-      return { ...prev, [key]: { ...entry, type: 'konzultacio', meetLink: generateMeetLink(`${key}-${entry.clientId}-${Date.now()}`) } }
+    // getBookingMeta-t használjuk (nem a nyers getBooking-ot), mert az a
+    // clientId-t már a GYT-oldal saját (nem névtér-előtaggal ellátott)
+    // formájában adja vissza — ha a nyers, már előtaggal tárolt clientId-t
+    // adnánk vissza a setBooking-nak, az duplán prefixelné (ld. Design
+    // jegyzet 48. pont, névtér-ütközés SALES/GYT ügyfél-azonosítók között).
+    const meta = getBookingMeta(OWN_ID, tervActionsSlot.dateISO, tervActionsSlot.hour)
+    setBooking(OWN_ID, tervActionsSlot.dateISO, tervActionsSlot.hour, {
+      type: 'konzultacio',
+      clientId: meta.clientId,
+      name: meta.name,
+      alkalom: meta.alkalom,
+      meetLink: generateMeetLink(`${tervActionsSlot.dateISO}-${tervActionsSlot.hour}-${meta.clientId}-${Date.now()}`),
     })
     setTervActionsSlot(null)
   }
 
   function handleDeleteTerv() {
     if (!tervActionsSlot) return
-    const key = slotKey(tervActionsSlot.dateISO, tervActionsSlot.hour)
-    setOverlay((prev) => {
-      const next = { ...prev }
-      delete next[key]
-      return next
-    })
-    setRemovedKeys((prev) => new Set(prev).add(key))
+    removeBooking(OWN_ID, tervActionsSlot.dateISO, tervActionsSlot.hour)
     setTervActionsSlot(null)
     setConfirmingTervDelete(false)
   }
 
-  const tervActionsEntry = tervActionsSlot ? overlay[slotKey(tervActionsSlot.dateISO, tervActionsSlot.hour)] : undefined
+  const tervActionsEntry = tervActionsSlot ? getBooking(OWN_ID, tervActionsSlot.dateISO, tervActionsSlot.hour) : undefined
 
-  const todaysConsultations = BUSINESS_HOURS.map((hour) => ({ hour, meta: getEntryMeta(todayISO, hour) }))
-    .filter((entry): entry is { hour: number; meta: EntryMeta & { name: string } } => (entry.meta.kind === 'terv' || entry.meta.kind === 'konzultacio') && !!entry.meta.name)
+  const todaysConsultations = BUSINESS_HOURS.map((hour) => ({ hour, meta: getBookingMeta(OWN_ID, todayISO, hour) }))
+    .filter((entry): entry is { hour: number; meta: typeof entry.meta & { name: string } } => (entry.meta.kind === 'terv' || entry.meta.kind === 'konzultacio') && !!entry.meta.name)
     .map(({ hour, meta }) => ({ hour, name: meta.name, alkalom: meta.alkalom, meetLink: meta.meetLink }))
 
   return (
@@ -359,8 +236,27 @@ export default function GytNaptar() {
               today={today}
               gytList={OWN_LIST}
               selectedGytId={OWN_ID}
-              getSlot={(_id, dateISO, hour) => getEffectiveSlot(dateISO, hour)}
-              getSlotColor={getOwnSlotColor}
+              getSlot={(_id, dateISO, hour) => getEffectiveSlot(OWN_ID, dateISO, hour)}
+              getSlotColor={(_id, dateISO, hour) => {
+                // saját naptár-színkód (2026.08.31., Marci kérésére) — MINDEN gyt
+                // ugyanígy látja a sajátját, függetlenül a SALES-oldali kolléga-
+                // színétől: 1. alkalom mindig lime, lefoglalt (konzultáció)
+                // mentett menta, tervezett (terv) világos menta, szabad halvány
+                // narancssárga.
+                const meta = getBookingMeta(OWN_ID, dateISO, hour)
+                if (meta.kind === 'szabad') {
+                  return { solid: 'var(--pale-orange)', tint: 'var(--pale-orange)', textSolid: 'var(--navy)', textTint: 'var(--navy)' }
+                }
+                if (meta.alkalom === 1) {
+                  return { solid: 'var(--lime)', tint: 'var(--lime)', textSolid: 'var(--navy)', textTint: 'var(--navy)' }
+                }
+                if (meta.kind === 'terv') {
+                  const c = 'rgba(var(--mint-rgb), 0.35)'
+                  return { solid: c, tint: c, textSolid: 'var(--navy)', textTint: 'var(--navy)' }
+                }
+                const mint = 'var(--mint)'
+                return { solid: mint, tint: mint, textSolid: 'var(--navy)', textTint: 'var(--navy)' }
+              }}
               onFreeSlotClick={(_gytId, _gytName, dateISO, hour) => handleSlotClick(dateISO, hour)}
               onBookedSlotClick={(_gytId, dateISO, hour) => handleSlotClick(dateISO, hour)}
               onEmptySlotClick={(_gytId, _gytName, dateISO, hour) => handleSlotClick(dateISO, hour)}

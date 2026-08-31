@@ -966,3 +966,18 @@ Marci 4 korrekciója az előző körre: a "szabad" időpont is legyen törölhet
 **SALES/GYT workflow-átvilágítás — 1 megállapítás:** böngészőben végigjátszva a folyamatot (SALES új foglalása Kollé Gábornak → ellenőrzés a GYT saját naptárában) kiderült, hogy egy SALES-oldali új foglalás NEM jelenik meg a GYT saját naptárában — a két oldal külön, egymástól független állapotot használ, csak a közös demo-alapadatot osztják meg. Ez feszül az eredeti "itt látja a sales által kiosztott új ügyfeleket" narratívával, de egy valódi, szerepkörök közötti adatmegosztás egy önálló, nagyobb feladat lenne — ezt NEM építettük meg ebben a körben, Marcival egyeztetni kell előbb.
 
 **Tesztelve böngészőben, asztali (1280px), világos és sötét módban:** mind a 4 korrekció JS-eseménnyel és screenshottal megerősítve; a SALES→GYT teszt megerősítette a fenti megállapítást. Konzol-hiba (a jól ismert stale HMR hiba kivételével) nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.08.31. — Valódi, megosztott naptár-állapot a SALES és a GYT szerepkör között
+
+Az előző kör workflow-átvilágítása egy hiányosságot tárt fel: egy SALES-oldali foglalás nem jelent meg a GYT saját naptárában. Marci kérése: építsük meg most a valódi megosztást.
+
+**Megvalósítás:**
+- Új, közös `src/context/CalendarContext.tsx` — a naptár-foglalások (korábban a `SalesDataContext` saját `bookings`-je és a `GytNaptar.tsx` helyi `overlay`-je, két teljesen külön állapot) mostantól EGY közös állapotban élnek. A providert az `App.tsx` gyökerén helyeztük el, a teljes útvonal-fát körülölelve.
+- A `SalesDataContext.tsx` a saját booking-logikáját eltávolította, helyette a közös `useCalendar()`-t hívja — ugyanazt az API-t adja kifelé, mint korábban, így a SALES oldalak (`SalesHozzarendeles.tsx`, `SalesHivasaim.tsx`) egyetlen sort sem kellett módosítani.
+- `GytNaptar.tsx` a helyi `overlay`/`removedKeys` állapotot lecserélte a közös context hívásaira.
+
+**Kritikus hiba, még commit előtt derült ki böngészős teszt közben:** a `gytClients.ts` és a `salesClients.ts` egymástól függetlenül ugyanazokat az egyszerű azonosítókat használja (`'peter'`, `'gabor'`, `'daniel'`) — a közös állapotban ez azt eredményezte, hogy SALES egy GYT-oldalon felvett foglalásra kattintva TÉVESEN saját, szerkeszthető/törölhető ügyfélként nyitotta meg (mert a `salesClients.ts`-ben is létezik ugyanaz az id). Javítva: a közös állapotban a `clientId` mostantól névtér-előtaggal tárolódik (`"gyt:..."` / `"sales:..."`), mindkét oldal csak a saját előtagú azonosítóit oldja fel, minden mást `undefined`-nek (inertnek) tekint.
+
+**Tudatos, dokumentált korlát:** egy SALES-eredetű foglalást a GYT a név/alkalom/meet-link szintjén helyesen lát, de a hozzá tartozó ügyfél-azonosítót nem tudja feloldani (nincs neki megfelelő `gytClients.ts` rekord) — a két oldal ügyfél-adatmodellje továbbra is teljesen külön rendszer, ennek egységesítése nem volt e kör része.
+
+**Tesztelve böngészőben:** SALES új foglalása Kollé Gábornak → valódi (nem teljes oldal-újratöltéses) átnavigálás a GYT saját naptárára → a foglalás ténylegesen megjelenik ott, helyes színnel és a "mai konzultációk" listában is; fordítva is működik. Az azonosító-ütközés hibája explicit reprodukálva, majd a javítás után explicit megcáfolva. A korábbi körök összes GYT-oldali viselkedése (szabad/terv/konzultáció kezelés, 1. alkalom szabály, szín-váltás) újra megerősítve a refaktor után; a SALES oldal (gyt naptárak, saját naptár) változatlanul működik. Konzol-hiba (a jól ismert stale HMR hiba kivételével) nem jelentkezett, `npm run build` hibamentes.

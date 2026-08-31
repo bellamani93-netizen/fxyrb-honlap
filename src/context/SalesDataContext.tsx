@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
 import { initialSalesClients, type SalesClient } from '../data/salesClients'
-import { buildInitialSalesCalls, getBaseDaySlots, parseISODateLocal, type SalesCall, type TimeSlot } from '../data/calendarData'
+import { buildInitialSalesCalls, type SalesCall, type TimeSlot } from '../data/calendarData'
 import { useAdminEditGuard } from '../hooks/useAdminEditGuard'
+import { useCalendar } from './CalendarContext'
 
 // 2 szerkeszthető elutasító-üzenet sablon (2026.08.28., 3-4. kör) — a "{Név}"
 // jelölő a küldéskor az ügyfél nevére cserélődik; az "üzenetek" oldal ezt a
@@ -21,13 +22,6 @@ const DEFAULT_MESSAGE_TEMPLATES: [MessageTemplate, MessageTemplate] = [
     body: 'Kedves {Név}! Sajnos jelenleg nincs szabad gyógytornász-kapacitásunk a foglalt időpontodra, ezért azt törölnünk kellett. Hamarosan jelentkezünk egy új javaslattal. Üdvözlettel, a FixYourBack csapata.',
   },
 ]
-
-// egy naptár-sáv foglalása — a "label" mindig megvan (ez jelenik meg a
-// rácsban), a "clientId" csak akkor, ha a foglalás egy VALÓDI, a session
-// alatt létrehozott ügyfélhez tartozik (a demó-adat generált "foglalt" sávjai
-// — ld. getBaseDaySlots — sosem kapnak clientId-t, ezért nem szerkeszthetők
-// utólag: nincs mögöttük valódi adat, amit meg lehetne nyitni)
-type Booking = { label: string; clientId?: string }
 
 type SalesDataContextValue = {
   clients: SalesClient[]
@@ -63,46 +57,17 @@ export function useSalesData() {
   return ctx
 }
 
-function bookingKey(gytId: string, dateISO: string, hour: number) {
-  return `${gytId}__${dateISO}__${hour}`
-}
-
 export function SalesDataProvider({ children }: { children: ReactNode }) {
+  // a naptár-foglalások (bookings) mostantól a CalendarContext-ből jönnek —
+  // ez az EGY állapot közös a SALES ÉS a GYT szerepkör között, hogy egy
+  // SALES-oldali foglalás ténylegesen megjelenjen a GYT saját naptárában is
+  // (2026.09.01., Marci kérésére — ld. Design jegyzet 47-48. pont).
+  const { today, isBooked, getEffectiveSlot, getBookingClientId, addBooking, removeBooking } = useCalendar()
   const [clients, setClients] = useState<SalesClient[]>(initialSalesClients)
-  const [today] = useState(() => new Date())
   const [salesCalls, setSalesCalls] = useState<SalesCall[]>(() => buildInitialSalesCalls(today))
-  const [bookings, setBookings] = useState<Record<string, Booking>>({})
   const [adminAddedIds, setAdminAddedIds] = useState<Set<string>>(new Set())
   const [messageTemplates, setMessageTemplates] = useState<[MessageTemplate, MessageTemplate]>(DEFAULT_MESSAGE_TEMPLATES)
   const { active: adminActive, guard: adminGuard, isModified, modal: adminModal } = useAdminEditGuard('sales')
-
-  function isBooked(gytId: string, dateISO: string, hour: number) {
-    return Boolean(bookings[bookingKey(gytId, dateISO, hour)])
-  }
-
-  function getEffectiveSlot(gytId: string, dateISO: string, hour: number): TimeSlot {
-    const override = bookings[bookingKey(gytId, dateISO, hour)]
-    if (override) return { hour, status: 'foglalt', label: override.label }
-    return getBaseDaySlots(gytId, parseISODateLocal(dateISO), today).find((s) => s.hour === hour) ?? { hour }
-  }
-
-  function getBookingClientId(gytId: string, dateISO: string, hour: number) {
-    return bookings[bookingKey(gytId, dateISO, hour)]?.clientId
-  }
-
-  function addBooking(gytId: string, dateISO: string, hour: number, label: string, clientId?: string) {
-    setBookings((prev) => ({ ...prev, [bookingKey(gytId, dateISO, hour)]: { label, clientId } }))
-  }
-
-  // pl. egy hívás elutasításakor, ha közben már le is foglaltuk a GYT-időpontot —
-  // ilyenkor a foglalást is fel kell szabadítani, ne maradjon "árva" bejegyzés
-  function removeBooking(gytId: string, dateISO: string, hour: number) {
-    setBookings((prev) => {
-      const next = { ...prev }
-      delete next[bookingKey(gytId, dateISO, hour)]
-      return next
-    })
-  }
 
   function markAdminAdded(id: string) {
     setAdminAddedIds((prev) => new Set(prev).add(id))

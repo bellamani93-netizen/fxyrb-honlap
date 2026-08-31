@@ -16,6 +16,7 @@ import SalesHozzarendeles from './pages/SalesHozzarendeles'
 import SalesUzenetek from './pages/SalesUzenetek'
 import AdminMunkatarsak from './pages/AdminMunkatarsak'
 import { SalesDataProvider } from './context/SalesDataContext'
+import { CalendarProvider } from './context/CalendarContext'
 
 const gytNavItems: NavItem[] = [
   { to: '/gyt/ugyfelek', label: 'ügyfeleim', icon: '/icons/ikon_kezdolap.svg', badge: newClientsCount || undefined },
@@ -43,32 +44,34 @@ const adminNavItems: NavItem[] = [
 
 export default function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/mini-kurzus" element={<MiniKurzus />} />
-        <Route path="/idopontfoglalas" element={<Idopontfoglalas />} />
-        <Route path="/belepes" element={<Belepes />} />
-      </Route>
-      <Route element={<AppLayout role="ugyfel" />}>
-        <Route path="/gyakorlatok" element={<Gyakorlatok />} />
-      </Route>
-      <Route element={<AppLayout navItems={gytNavItems} userName="Judit" role="gyt" />}>
-        <Route path="/gyt/ugyfelek" element={<GytUgyfelek />} />
-        <Route path="/gyt/videokiosztas" element={<GytVideokiosztas />} />
-        <Route path="/gyt/naptar" element={<GytNaptar />} />
-      </Route>
-      <Route element={<AppLayout navItems={salesNavItems} userName="Eszter" role="sales" />}>
-        <Route element={<SalesDataProvider><Outlet /></SalesDataProvider>}>
-          <Route path="/sales/hivasaim" element={<SalesHivasaim />} />
-          <Route path="/sales/hozzarendeles" element={<SalesHozzarendeles />} />
-          <Route path="/sales/uzenetek" element={<SalesUzenetek />} />
+    <CalendarProvider>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/mini-kurzus" element={<MiniKurzus />} />
+          <Route path="/idopontfoglalas" element={<Idopontfoglalas />} />
+          <Route path="/belepes" element={<Belepes />} />
         </Route>
-      </Route>
-      <Route element={<AppLayout navItems={adminNavItems} userName="Anna" role="admin" />}>
-        <Route path="/admin/munkatarsak" element={<AdminMunkatarsak />} />
-      </Route>
-    </Routes>
+        <Route element={<AppLayout role="ugyfel" />}>
+          <Route path="/gyakorlatok" element={<Gyakorlatok />} />
+        </Route>
+        <Route element={<AppLayout navItems={gytNavItems} userName="Judit" role="gyt" />}>
+          <Route path="/gyt/ugyfelek" element={<GytUgyfelek />} />
+          <Route path="/gyt/videokiosztas" element={<GytVideokiosztas />} />
+          <Route path="/gyt/naptar" element={<GytNaptar />} />
+        </Route>
+        <Route element={<AppLayout navItems={salesNavItems} userName="Eszter" role="sales" />}>
+          <Route element={<SalesDataProvider><Outlet /></SalesDataProvider>}>
+            <Route path="/sales/hivasaim" element={<SalesHivasaim />} />
+            <Route path="/sales/hozzarendeles" element={<SalesHozzarendeles />} />
+            <Route path="/sales/uzenetek" element={<SalesUzenetek />} />
+          </Route>
+        </Route>
+        <Route element={<AppLayout navItems={adminNavItems} userName="Anna" role="admin" />}>
+          <Route path="/admin/munkatarsak" element={<AdminMunkatarsak />} />
+        </Route>
+      </Routes>
+    </CalendarProvider>
   )
 }
