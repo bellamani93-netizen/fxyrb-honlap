@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
+import Chevron from '../components/Chevron'
 import { EXERCISES, type ExerciseCode, type ClientVariables, suggestedSequence } from '../data/tornaSzintek'
 import { clients, codeLabel, initialVariables, getSelectedClientId, type GytLevel, type LevelState } from '../data/gytClients'
 import { useAdminEditGuard, AdminModifiedBadge } from '../hooks/useAdminEditGuard'
@@ -111,6 +112,18 @@ function LevelRow({
   const showCorrectButton = level.state === 'lezart' && editable && !!onAssign && !correcting
 
   const noteSuffix = level.note ? <span className="fst-italic small" style={{ color: 'var(--color-text-muted)' }}> ({level.note})</span> : null
+  const isPending = level.state === 'nyitva'
+
+  // "kiosztásra vár" sor — a felette lévő "kiosztva" sor kód/név-elrendezését követve,
+  // előtte a márka kettős nyilával (balról jobbra, lime színben), lásd Design jegyzet.
+  const suggestedInline = suggestedParsed && (
+    <span className="d-flex align-items-center gap-2 flex-wrap">
+      <Chevron direction="right" double color="var(--lime)" />
+      <span className="fw-bold">{suggestedParsed.code}</span>
+      <span style={{ color: 'var(--color-text-muted)' }}>{suggestedParsed.title}</span>
+      <span className="fst-italic" style={{ color: 'var(--color-text-muted)' }}>-javasolt</span>
+    </span>
+  )
 
   // Mobilon (és a "kiosztva" eset kódját/címét NEM külön oszlopba rendező, folyó szövegű megjelenítéshez) egyben.
   const flowContent = (
@@ -153,7 +166,7 @@ function LevelRow({
     <div className="level-row">
       {/* asztali/tablet: valódi rács — a szintek, kódok, címek és jelvények oszloponként egymás alatt */}
       <div className="level-row-grid">
-        <span className="level-row-num" style={{ gridColumn: 1 }}>
+        <span className={`level-row-num ${isPending ? 'level-row-num--highlight' : ''}`} style={{ gridColumn: 1 }}>
           {level.num}. szint
         </span>
 
@@ -169,15 +182,21 @@ function LevelRow({
           </>
         ) : (
           <div style={{ gridColumn: '2 / span 2' }} className="d-flex align-items-center gap-2 flex-wrap">
-            {flowContent}
+            {isPending ? suggestedInline : flowContent}
           </div>
         )}
 
         <span style={{ gridColumn: 4, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span className={`status-chip ${statusClass}`} style={correctButton ? undefined : { flex: 1, textAlign: 'center' }}>
-            {statusLabel}
-          </span>
-          {correctButton}
+          {isPending && onAssign ? (
+            <VideoPickerInline onAssign={onAssign} />
+          ) : (
+            <>
+              <span className={`status-chip ${statusClass}`} style={correctButton ? undefined : { flex: 1, textAlign: 'center' }}>
+                {statusLabel}
+              </span>
+              {correctButton}
+            </>
+          )}
         </span>
 
         {modified && (
@@ -190,9 +209,9 @@ function LevelRow({
       {/* mobil: összecsukva — szint az elején, ikon a végén, a kód/javaslat középen, arányosan elosztva ("sorkizárt") */}
       <div className="d-flex d-lg-none flex-column w-100">
         <div className="d-flex align-items-center justify-content-between gap-2" role="button" tabIndex={0} onClick={() => setExpanded((e) => !e)} style={{ cursor: 'pointer' }}>
-          <span className="level-row-num">{level.num}. szint</span>
+          <span className={`level-row-num ${isPending ? 'level-row-num--highlight' : ''}`}>{level.num}. szint</span>
           {assigned && <span className="small fw-bold">{assigned.code}</span>}
-          {!assigned && level.state === 'nyitva' && suggestedParsed && (
+          {!assigned && isPending && suggestedParsed && (
             <span className="small fw-bold">javasolt {suggestedParsed.code}</span>
           )}
           <LevelDot state={level.state} />
@@ -200,11 +219,15 @@ function LevelRow({
 
         {expanded && (
           <div className="d-flex flex-column align-items-start gap-2 mt-2 pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
-            {flowContent}
-            <span className="d-flex align-items-center gap-2">
-              <span className={`status-chip ${statusClass}`}>{statusLabel}</span>
-              {correctButton}
-            </span>
+            {isPending ? suggestedInline : flowContent}
+            {isPending && onAssign ? (
+              <VideoPickerInline onAssign={onAssign} />
+            ) : (
+              <span className="d-flex align-items-center gap-2">
+                <span className={`status-chip ${statusClass}`}>{statusLabel}</span>
+                {correctButton}
+              </span>
+            )}
             {modified && <AdminModifiedBadge />}
           </div>
         )}
