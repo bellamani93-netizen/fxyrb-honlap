@@ -33,7 +33,16 @@ function splitLabel(label: string) {
   return { code: label.slice(0, idx), title: label.slice(idx + 1) }
 }
 
-function VideoPickerInline({ suggested, onAssign }: { suggested?: string; onAssign: (video: string) => void }) {
+function VideoPickerInline({
+  suggested,
+  onAssign,
+  chipSized,
+}: {
+  suggested?: string
+  onAssign: (video: string) => void
+  /** a "még nem kiosztható" jelvénnyel megegyező méretre húzza a legördülő gombot (2026.08.31.). */
+  chipSized?: boolean
+}) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
 
@@ -60,7 +69,12 @@ function VideoPickerInline({ suggested, onAssign }: { suggested?: string; onAssi
           javasolt: {suggested}
         </button>
       )}
-      <div className={`level-select ${pickerOpen ? 'is-open' : ''}`} ref={pickerRef} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`level-select ${pickerOpen ? 'is-open' : ''} ${chipSized ? 'level-select--chip-sized' : ''}`}
+        style={chipSized ? { flex: 1 } : undefined}
+        ref={pickerRef}
+        onClick={(e) => e.stopPropagation()}
+      >
         <button type="button" className="level-select-toggle" onClick={() => setPickerOpen((o) => !o)}>
           <span style={{ color: 'var(--color-text-muted)' }}>más videó</span>
           <span className="level-select-chevron">▾</span>
@@ -114,14 +128,26 @@ function LevelRow({
   const noteSuffix = level.note ? <span className="fst-italic small" style={{ color: 'var(--color-text-muted)' }}> ({level.note})</span> : null
   const isPending = level.state === 'nyitva'
 
-  // "kiosztásra vár" sor — a felette lévő "kiosztva" sor kód/név-elrendezését követve,
-  // előtte a márka kettős nyilával (balról jobbra, lime színben), lásd Design jegyzet.
-  const suggestedInline = suggestedParsed && (
-    <span className="d-flex align-items-center gap-2 flex-wrap">
-      <Chevron direction="right" double color="var(--lime)" />
+  // "kiosztásra vár" sor — a felette lévő "kiosztva" sor kód/név-elrendezését követve.
+  // Kattintható, enyhe lime háttérrel — kattintásra rögtön a javasolt videó kerül kiosztásra.
+  const suggestedButton = suggestedParsed && onAssign && (
+    <button
+      type="button"
+      className="btn-fyb btn-fyb-suggested d-flex align-items-center gap-2 flex-wrap"
+      style={{ padding: '0.4rem 0.85rem', fontSize: '1rem', textTransform: 'none' }}
+      onClick={() => onAssign(suggested!)}
+    >
       <span className="fw-bold">{suggestedParsed.code}</span>
       <span style={{ color: 'var(--color-text-muted)' }}>{suggestedParsed.title}</span>
       <span className="fst-italic" style={{ color: 'var(--color-text-muted)' }}>-javasolt</span>
+    </button>
+  )
+  // mobilon a kisméretű, sorba illő nyíl a javasolt-gomb előtt jelenik meg (asztalon a
+  // nyíl a szint-szám jelvényén "lóg túl", ld. lent) — ld. Design jegyzet.
+  const suggestedInline = suggestedButton && (
+    <span className="d-flex align-items-center gap-2 flex-wrap">
+      <Chevron direction="right" double color="var(--lime)" />
+      {suggestedButton}
     </span>
   )
 
@@ -166,8 +192,9 @@ function LevelRow({
     <div className="level-row">
       {/* asztali/tablet: valódi rács — a szintek, kódok, címek és jelvények oszloponként egymás alatt */}
       <div className="level-row-grid">
-        <span className={`level-row-num ${isPending ? 'level-row-num--highlight' : ''}`} style={{ gridColumn: 1 }}>
-          {level.num}. szint
+        <span className="level-row-num-cell" style={{ gridColumn: 1 }}>
+          <span className={`level-row-num ${isPending ? 'level-row-num--highlight' : ''}`}>{level.num}. szint</span>
+          {isPending && <Chevron direction="right" double color="var(--lime)" className="level-row-num-chevron" />}
         </span>
 
         {isDoneDisplay ? (
@@ -182,13 +209,13 @@ function LevelRow({
           </>
         ) : (
           <div style={{ gridColumn: '2 / span 2' }} className="d-flex align-items-center gap-2 flex-wrap">
-            {isPending ? suggestedInline : flowContent}
+            {isPending ? suggestedButton : flowContent}
           </div>
         )}
 
         <span style={{ gridColumn: 4, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           {isPending && onAssign ? (
-            <VideoPickerInline onAssign={onAssign} />
+            <VideoPickerInline onAssign={onAssign} chipSized />
           ) : (
             <>
               <span className={`status-chip ${statusClass}`} style={correctButton ? undefined : { flex: 1, textAlign: 'center' }}>
@@ -218,7 +245,7 @@ function LevelRow({
         </div>
 
         {expanded && (
-          <div className="d-flex flex-column align-items-start gap-2 mt-2 pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
+          <div className="d-flex flex-column align-items-center gap-2 mt-2 pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
             {isPending ? suggestedInline : flowContent}
             {isPending && onAssign ? (
               <VideoPickerInline onAssign={onAssign} />

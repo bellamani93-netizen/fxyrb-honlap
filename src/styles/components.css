@@ -752,6 +752,17 @@ html[data-theme='dark'] .locked-overlay-card {
   text-align: left;
   white-space: nowrap;
 }
+/* a "kiosztásra vár" sor "más videó" legördülője — a "még nem kiosztható" jelvénnyel
+   pontosan megegyező méretre húzva (asztali nézet, ld. GytVideokiosztas.tsx, 2026.08.31.). */
+.level-select--chip-sized .level-select-toggle {
+  width: 100%;
+  padding: 0.3rem 0.85rem;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.72rem;
+}
 .level-select-chevron {
   margin-left: auto;
   color: var(--color-text-muted);
@@ -951,13 +962,40 @@ html[data-theme='dark'] .locked-overlay-card {
   font-weight: 700;
   white-space: nowrap;
 }
-/* "kiosztásra vár" sor szám-jelvénye — a saját lime kiemelőszínünkkel (2026.08.31.) */
+/* "kiosztásra vár" sor szám-jelvénye — a saját lime kiemelőszínünkkel (2026.08.31.,
+   nagyobb doboz + korrekció 2026.08.31. 2. kör: a bal oldali padding negatív
+   margóval kompenzálva, hogy a szöveg a fölötte lévő sorokéval egy vonalban maradjon,
+   miközben a háttérdoboz mégis nagyobb/szélesebb lesz). */
 .level-row-num--highlight {
   background-color: var(--lime);
   color: var(--navy);
-  padding: 0.15rem 0.55rem;
+  padding: 0.4rem 0.85rem;
+  margin-left: -0.85rem;
   border-radius: var(--radius-pill);
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  height: 2rem;
+  box-sizing: border-box;
+}
+/* a szint-szám cellája asztali nézetben — relatív konténer, hogy a kettős nyíl
+   (ld. lent) a jelvény jobb szélén "túllóghasson" rajta. */
+.level-row-num-cell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+/* a "kiosztásra vár" sor kettős nyila asztali nézetben — a szám-jelvény magasságával
+   megegyező méretű, és a jelvény jobb szélén túlnyúlva "lóg ki" belőle (2026.08.31.). */
+.level-row-num-chevron {
+  position: absolute;
+  right: -0.7rem;
+  top: 50%;
+  /* margin (nem transform) végzi a függőleges középre igazítást, mert a Chevron
+     "direction=right" esetén saját inline transform-ot (scaleX) állít be, ami
+     felülírná egy CSS-osztályból jövő transform:translateY-t (2026.08.31.). */
+  margin-top: -1rem;
+  height: 2rem;
+  z-index: 1;
 }
 /* asztali/tablet: valódi táblázat-szerű rács, hogy a szintek, kódok, címek és
    jelvények oszloponként pontosan egymás alá rendeződjenek soronként (nem csak
