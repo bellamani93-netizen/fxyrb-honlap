@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { addDays, formatDateOnly, formatISODate, getMondayOf, gytColorVar, type SalesCall, type SalesCallOutcome, type TimeSlot } from '../data/calendarData'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
 import CallDetailModal from '../components/CallDetailModal'
+import AppointmentEditorModal, { type AppointmentEditorResult } from '../components/AppointmentEditorModal'
 import Icon from '../components/Icon'
 import { useSalesData } from '../context/SalesDataContext'
 
@@ -17,19 +18,19 @@ function telHref(phone: string) {
   return `tel:${phone.replace(/\s+/g, '')}`
 }
 
-function OutcomeBadge({ outcome }: { outcome?: SalesCallOutcome }) {
+// 2026.08.28., 6. kör: szöveg nélküli, kis színes pötty a korábbi szöveges
+// pirula helyett (Marci kérésére) — a listanézet ne legyen zsúfolt
+function OutcomeDot({ outcome }: { outcome?: SalesCallOutcome }) {
   if (!outcome) return null
-  return (
-    <span className={`call-outcome-badge call-outcome-badge--${outcome === 'rendben' ? 'success' : 'warning'}`}>
-      {outcome === 'rendben' ? 'rendben' : 'nem jött'}
-    </span>
-  )
+  return <span className={`call-outcome-dot call-outcome-dot--${outcome === 'rendben' ? 'success' : 'warning'}`} title={outcome === 'rendben' ? 'rendben' : 'nem jött'} />
 }
 
+// a kattintható terület mérete változatlan (2.2rem, ld. .circle-icon-btn),
+// de kör-háttér nélkül, csak maga a fogaskerék-ikon (2026.08.28., 6. kör)
 function GearButton({ onClick }: { onClick: () => void }) {
   return (
     <button type="button" className="circle-icon-btn circle-icon-btn--gear" aria-label="hívás módosítása" onClick={onClick}>
-      <Icon src="/icons/ikon_beallitasok.svg" style={{ width: '1.1rem', height: '1.1rem' }} />
+      <Icon src="/icons/ikon_beallitasok.svg" style={{ width: '1.6rem', height: '1.6rem' }} />
     </button>
   )
 }
@@ -42,6 +43,9 @@ export default function SalesHivasaim() {
   const [weekOffset, setWeekOffset] = useState<0 | 1>(0)
   const [modifyingCall, setModifyingCall] = useState<SalesCall | null>(null)
   const [previewCall, setPreviewCall] = useState<SalesCall | null>(null)
+  // egy üres sávra kattintva nyílik meg, új hívás/időpont felvételéhez a
+  // saját naptárban (2026.08.28., 6. kör, Marci kérésére)
+  const [creatingAt, setCreatingAt] = useState<{ dateISO: string; hour: number } | null>(null)
 
   const weekStart = addDays(getMondayOf(today), weekOffset * 7)
   const todayISO = formatISODate(today)
@@ -51,9 +55,11 @@ export default function SalesHivasaim() {
     return salesCalls.find((c) => c.callTime.startsWith(`${dateISO}T${String(hour).padStart(2, '0')}`))
   }
 
+  // üres sáv is "szabad"-nak számít itt (2026.08.28., 6. kör) — ide is lehet
+  // új időpontot felvenni, kattintva az onFreeSlotClick nyitja a létrehozó popupot
   function getOwnSlot(_id: string, dateISO: string, hour: number): TimeSlot {
     const match = findCallAt(dateISO, hour)
-    return match ? { hour, status: 'foglalt', label: match.name } : { hour }
+    return match ? { hour, status: 'foglalt', label: match.name } : { hour, status: 'szabad' }
   }
 
   // színkód a saját naptárban (2026.08.28., Marci kérésére): sárga, ha a
@@ -61,16 +67,39 @@ export default function SalesHivasaim() {
   // sagegray) szín minden más MÚLTBELI időpontnál; türkiz (a márka elsődleges
   // színe) minden JÖVŐBELI időpontnál. A sorrend fontos: a sárga megelőzi a
   // múlt/jövő megkülönböztetést, mert egy "nem jött" jelölés mindig erősebb.
+  // Az üres (még nem foglalt) sávok mindig a semleges alap-szín halvány
+  // tintjét kapják, időtől függetlenül — ez csak azt jelzi, hogy ide LEHET
+  // időpontot felvenni, nem egy tényleges hívás állapotát mutatja.
   function getOwnSlotColor(_id: string, dateISO: string, hour: number) {
     const match = findCallAt(dateISO, hour)
-    if (match?.outcome === 'nem_jelent_meg') {
-      return { solid: 'var(--color-warning)', tint: 'rgba(var(--color-warning-rgb), 0.3)' }
+    if (!match) {
+      return { solid: gytColorVar(OWN_ID), tint: gytColorVar(OWN_ID, 0.15) }
+    }
+    if (match.outcome === 'nem_jelent_meg') {
+      return { solid: 'var(--macos-yellow)', tint: 'rgba(var(--macos-yellow-rgb), 0.3)' }
     }
     const slotStart = new Date(`${dateISO}T${String(hour).padStart(2, '0')}:00`)
     if (slotStart.getTime() < today.getTime()) {
       return { solid: gytColorVar(OWN_ID), tint: gytColorVar(OWN_ID, 0.3) }
     }
     return { solid: 'var(--color-primary)', tint: 'rgba(var(--color-primary-rgb), 0.3)' }
+  }
+
+  function handleCreateCall(data: AppointmentEditorResult) {
+    const id = `${Date.now()}`
+    setSalesCalls((prev) => [
+      ...prev,
+      {
+        id,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        note: data.note || undefined,
+        callTime: `${data.dateISO}T${String(data.hour).padStart(2, '0')}:00`,
+        status: 'var_gyt_re',
+      },
+    ])
+    setCreatingAt(null)
   }
 
   function handleSetOutcome(callId: string, outcome: SalesCallOutcome) {
@@ -159,6 +188,7 @@ export default function SalesHivasaim() {
                 const match = findCallAt(dateISO, hour)
                 if (match) setPreviewCall(match)
               }}
+              onFreeSlotClick={(_gytId, _gytName, dateISO, hour) => setCreatingAt({ dateISO, hour })}
             />
           </div>
         )}
@@ -190,6 +220,16 @@ export default function SalesHivasaim() {
             onReject={() => handleReject(modifyingCall)}
           />
         )}
+
+        {creatingAt && (
+          <AppointmentEditorModal
+            mode="call"
+            isEditing={false}
+            initial={{ dateISO: creatingAt.dateISO, hour: creatingAt.hour }}
+            onSave={handleCreateCall}
+            onClose={() => setCreatingAt(null)}
+          />
+        )}
       </div>
     </section>
   )
@@ -206,9 +246,9 @@ function CallRow({ call, onModify }: { call: SalesCall; onModify: () => void }) 
         <a href={telHref(call.phone)} className="small" style={{ color: 'var(--color-primary)' }}>{call.phone}</a>
         <span className="d-flex align-items-center gap-2 flex-wrap">
           <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-            {assigned ? `hozzárendelve: ${call.assignedGyt}` : 'vár hozzárendelésre'}
+            {assigned ? `gyt: ${call.assignedGyt}` : 'nincs kiosztva'}
           </span>
-          <OutcomeBadge outcome={call.outcome} />
+          <OutcomeDot outcome={call.outcome} />
         </span>
         <GearButton onClick={onModify} />
       </div>
@@ -227,9 +267,9 @@ function CallRow({ call, onModify }: { call: SalesCall; onModify: () => void }) 
         <a href={telHref(call.phone)} className="small d-block" style={{ color: 'var(--color-primary)' }}>{call.phone}</a>
         <div className="mt-2 d-flex align-items-center gap-2 flex-wrap">
           <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-            {assigned ? `hozzárendelve: ${call.assignedGyt}` : 'vár hozzárendelésre'}
+            {assigned ? `gyt: ${call.assignedGyt}` : 'nincs kiosztva'}
           </span>
-          <OutcomeBadge outcome={call.outcome} />
+          <OutcomeDot outcome={call.outcome} />
         </div>
       </div>
     </div>

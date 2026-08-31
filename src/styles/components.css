@@ -474,6 +474,23 @@ html[data-theme='dark'] .signature-for-light { display: none; }
   opacity: 0.55;
   cursor: not-allowed;
 }
+/* a GYT-nevek tulajdonnevek, ne kisbetűsödjenek (2026.08.28., Marci kérésére,
+   kivétel a projekt "UI-feliratok kisbetűvel" szabálya alól, ld. Design
+   jegyzet 3. pont — ez a kivétel csak névre vonatkozik, feliratra nem) */
+.auth-tab.auth-tab--proper-case {
+  text-transform: none;
+}
+/* kis színes pötty a gyt neve mellett, kicsit megemelve (2026.08.28.,
+   a korábbi külön szín-magyarázat/legenda helyett) */
+.auth-tab-color-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  margin-left: 0.3rem;
+  position: relative;
+  top: -0.35rem;
+}
 .auth-tabs-sm {
   padding: 0.15rem;
   gap: 0.15rem;
@@ -1028,6 +1045,22 @@ html[data-theme='dark'] .sales-delete-icon {
   color: var(--color-text);
   font-size: 0.9rem;
 }
+/* "időpont választása a naptárból" kiválasztás-mód sávja (2026.08.28.,
+   6. kör) — ugyanaz a szerkezet, mint az admin-view-banner, csak a márka
+   elsődleges (türkiz) színével, mert ez nem figyelmeztetés, csak állapot-jelzés */
+.picking-mode-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.65rem 1.25rem;
+  background-color: rgba(var(--color-primary-rgb), 0.12);
+  border-radius: var(--radius-card);
+  border: 2px solid var(--color-primary);
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
 .admin-modified-badge {
   display: inline-flex;
   align-items: center;
@@ -1155,31 +1188,16 @@ html[data-theme='dark'] .sales-delete-icon {
   overflow: hidden;
   font-weight: 700;
 }
+.gyt-cal-slot--empty {
+  background: transparent;
+  pointer-events: none;
+}
 .gyt-cal-slot-label {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.gyt-cal-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 0.75rem;
-  font-size: 0.8rem;
-}
-.gyt-cal-legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-.gyt-cal-legend-dot {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 50%;
-  display: inline-block;
-}
-
 /* --- SALES: GYT-időpont foglaló modal (2026.08.28., naptár-integráció) --- */
 .gyt-booking-modal {
   max-width: 32rem;
@@ -1199,7 +1217,7 @@ html[data-theme='dark'] .sales-delete-icon {
 }
 
 /* --- SALES: hívás-sorok kör-gombjai (+ foglalás, fogaskerék módosítás,
-   piros/sárga/zöld státusz — 2026.08.28., 3. kör) --- */
+   piros/sárga/zöld státusz — 2026.08.28., 3., 6. kör) --- */
 .circle-icon-btn {
   width: 2.2rem;
   height: 2.2rem;
@@ -1212,29 +1230,41 @@ html[data-theme='dark'] .sales-delete-icon {
   flex-shrink: 0;
   padding: 0;
 }
-.circle-icon-btn--gear {
-  background-color: var(--color-bg-alt);
-  border: 1px solid var(--color-border);
+.circle-icon-btn--add {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
 }
-.circle-icon-btn--gear .icon-fyb { color: var(--color-text); }
-.circle-icon-btn--danger { background-color: var(--color-danger); }
+/* a fogaskerék NEM kör hátterű (2026.08.28., 6. kör, Marci kérésére) — csak
+   maga az ikon, de a kattintható terület mérete (2.2rem) változatlan marad;
+   a szín ugyanaz, mint a telefonszám-linké (var(--color-primary): sötét
+   türkiz világos módban, türkiz sötét módban) */
+.circle-icon-btn--gear {
+  background-color: transparent;
+}
+.circle-icon-btn--gear .icon-fyb { color: var(--color-primary); }
+/* a 3 státuszgomb színe a macOS ablak-vezérlő gombok színeivel egyezik
+   (2026.08.28., 6. kör, Marci kérésére) — ez a 3 hex-érték szándékosan FIX,
+   nem a projekt szemantikus --color-danger/warning/success tokenjeiből jön,
+   mert azok más (nem macOS-imitáló) célra hangolt színek máshol az appban */
+.circle-icon-btn--danger { background-color: var(--macos-red); }
 .circle-icon-btn--danger .icon-fyb { color: var(--offwhite); }
-.circle-icon-btn--warning { background-color: var(--color-warning); color: var(--offwhite); font-weight: 700; }
-.circle-icon-btn--success { background-color: var(--color-success); }
+.circle-icon-btn--warning { background-color: var(--macos-yellow); color: var(--navy); font-weight: 700; }
+.circle-icon-btn--success { background-color: var(--macos-green); }
 .circle-icon-btn--success .icon-fyb { color: var(--offwhite); }
 
-/* a hívás utólagos kimenete ("nem jelent meg" / "rendben") — tartós jelvény
-   a hívás sorában, az admin-jelvényhez hasonló pirula-forma, de a saját
-   szemantikus színével (warning/success) */
-.call-outcome-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.15rem 0.6rem;
-  border-radius: var(--radius-pill);
-  color: var(--offwhite);
-  font-size: 0.65rem;
-  font-weight: 700;
-  white-space: nowrap;
+/* a hívás utólagos kimenete ("nem jelent meg" / "rendben") — 2026.08.28.,
+   6. kör: Marci kérésére szöveg nélküli, kis színes pötty (a korábbi
+   szöveges pirula helyett), ugyanazzal a macOS-szerű színpárral, mint a
+   módosító popup piros/sárga/zöld gombjai */
+.call-outcome-dot {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
-.call-outcome-badge--warning { background-color: var(--color-warning); }
-.call-outcome-badge--success { background-color: var(--color-success); }
+.call-outcome-dot--warning { background-color: var(--macos-yellow); }
+.call-outcome-dot--success { background-color: var(--macos-green); }

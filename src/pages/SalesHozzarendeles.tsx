@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import type { SalesClient } from '../data/salesClients'
 import { AdminModifiedBadge } from '../hooks/useAdminEditGuard'
-import { GYT_COLLEAGUES, addDays, formatDateOnly, getMondayOf, type SalesCall } from '../data/calendarData'
+import { BUSINESS_HOURS, GYT_COLLEAGUES, addDays, formatDateOnly, formatISODate, getMondayOf, gytColorVar, type SalesCall } from '../data/calendarData'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
+import AppointmentEditorModal, { type AppointmentEditorInitial, type AppointmentEditorResult } from '../components/AppointmentEditorModal'
 import { useSalesData } from '../context/SalesDataContext'
 
 // "adatok importálása" legördülő — a "hívásaim" oldalról érkezett, MÉG NEM
@@ -137,7 +138,7 @@ type FormState = {
   email: string
   phone: string
   gytId: string | null
-  startTime: string // csak a naptár-modalból tölthető ki, ld. lent
+  startTime: string // csak a naptárból választható ki, ld. lent
   paid: boolean
 }
 
@@ -146,6 +147,9 @@ const emptyForm: FormState = { name: '', email: '', phone: '', gytId: null, star
 type PendingAction = { type: 'unpay' | 'delete'; client: SalesClient }
 
 type Tab = 'hozzarendeles' | 'gyt'
+// ha van clientId, egy MEGLÉVŐ (valódi) foglalás szerkesztése folyik, egyébként
+// egy teljesen új időpont létrehozása (2026.08.28., 6. kör)
+type BookingEditorTarget = { initial: AppointmentEditorInitial; clientId?: string }
 
 export default function SalesHozzarendeles() {
   const {
@@ -154,14 +158,15 @@ export default function SalesHozzarendeles() {
     salesCalls,
     setSalesCalls,
     getEffectiveSlot,
+    getBookingClientId,
     addBooking,
+    removeBooking,
     today,
     adminActive,
     adminGuard,
     isModified,
     adminAddedIds,
     markAdminAdded,
-    openBookingModal,
   } = useSalesData()
 
   const [search, setSearch] = useState('')
@@ -180,6 +185,12 @@ export default function SalesHozzarendeles() {
   const [pendingFormSlot, setPendingFormSlot] = useState<{ gytId: string; dateISO: string; hour: number } | null>(null)
   const [calSelectedGyt, setCalSelectedGyt] = useState<string | null>(null) // null = összesített nézet
   const [weekOffset, setWeekOffset] = useState<0 | 1>(0)
+  // "időpont választása a naptárból" mostantól ténylegesen átvált a "gyt
+  // naptárak" fülre, "kiválasztás módban" (2026.08.28., 6. kör, Marci
+  // kérésére — a korábbi, szöveges listás popup helyett a vizuális rácson
+  // lehet kattintva választani)
+  const [pickingMode, setPickingMode] = useState(false)
+  const [bookingEditor, setBookingEditor] = useState<BookingEditorTarget | null>(null)
 
   const weekStart = addDays(getMondayOf(today), weekOffset * 7)
 
@@ -204,15 +215,83 @@ export default function SalesHozzarendeles() {
     setImportedCallId(call.id)
   }
 
-  function openFormBookingModal() {
-    openBookingModal({
-      clientPreview: form.name.trim() ? { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() } : undefined,
-      preselectedGytId: calSelectedGyt,
-      onConfirm: (slot) => {
-        setForm((prev) => ({ ...prev, gytId: slot.gytId, startTime: `${slot.dateISO}T${String(slot.hour).padStart(2, '0')}:00` }))
-        setPendingFormSlot({ gytId: slot.gytId, dateISO: slot.dateISO, hour: slot.hour })
-      },
+  function startPicking() {
+    setPickingMode(true)
+    setTab('gyt')
+  }
+
+  function goToUgyfelek() {
+    setPickingMode(false)
+    setTab('hozzarendeles')
+  }
+
+  function handleFreeSlotClick(gytId: string, _gytName: string, dateISO: string, hour: number) {
+    if (pickingMode) {
+      setForm((prev) => ({ ...prev, gytId, startTime: `${dateISO}T${String(hour).padStart(2, '0')}:00` }))
+      setPendingFormSlot({ gytId, dateISO, hour })
+      goToUgyfelek()
+      return
+    }
+    setBookingEditor({ initial: { dateISO, hour, gytId } })
+  }
+
+  // meglévő sávra kattintva csak akkor nyitjuk a szerkesztőt, ha VALÓDI
+  // (session alatt létrehozott) foglalásról van szó — a demó-adat generált
+  // "foglalt" sávjai mögött nincs valódi ügyfél-rekord, azokat nem lehet
+  // megnyitni (ld. SalesDataContext.tsx getBookingClientId dokumentációja)
+  function handleBookedSlotClick(gytId: string, dateISO: string, hour: number) {
+    const clientId = getBookingClientId(gytId, dateISO, hour)
+    if (!clientId) return
+    const client = clients.find((c) => c.id === clientId)
+    if (!client) return
+    setBookingEditor({
+      clientId,
+      initial: { dateISO, hour, gytId, name: client.name, email: client.email, phone: client.phone, note: client.note },
     })
+  }
+
+  function openNewBookingEditor() {
+    setBookingEditor({ initial: { dateISO: formatISODate(today), hour: BUSINESS_HOURS[0], gytId: calSelectedGyt } })
+  }
+
+  function handleSaveBooking(data: AppointmentEditorResult) {
+    if (!data.gytId) return
+    const gytName = GYT_COLLEAGUES.find((g) => g.id === data.gytId)?.name ?? null
+    const startTime = `${data.dateISO}T${String(data.hour).padStart(2, '0')}:00`
+
+    if (bookingEditor?.clientId) {
+      // meglévő foglalás szerkesztése: ha a gyt/dátum/óra változott, a régi
+      // naptár-sávot fel kell szabadítani, mielőtt az újat lefoglalnánk
+      const prevInitial = bookingEditor.initial
+      if (prevInitial.gytId && (prevInitial.gytId !== data.gytId || prevInitial.dateISO !== data.dateISO || prevInitial.hour !== data.hour)) {
+        removeBooking(prevInitial.gytId, prevInitial.dateISO, prevInitial.hour)
+      }
+      addBooking(data.gytId, data.dateISO, data.hour, `${data.name} 1`, bookingEditor.clientId)
+      setClients((prev) =>
+        prev.map((c) =>
+          c.id === bookingEditor.clientId
+            ? { ...c, name: data.name, email: data.email, phone: data.phone, note: data.note || undefined, startTime, assignedGyt: gytName }
+            : c
+        )
+      )
+    } else {
+      const id = `${Date.now()}`
+      setClients((prev) => [
+        ...prev,
+        { id, name: data.name, email: data.email, phone: data.phone, note: data.note || undefined, startTime, assignedGyt: gytName, paid: false },
+      ])
+      addBooking(data.gytId, data.dateISO, data.hour, `${data.name} 1`, id)
+      if (adminActive) markAdminAdded(id)
+    }
+    setBookingEditor(null)
+  }
+
+  function handleDeleteBooking() {
+    if (!bookingEditor?.clientId) return
+    const { gytId, dateISO, hour } = bookingEditor.initial
+    if (gytId) removeBooking(gytId, dateISO, hour)
+    setClients((prev) => prev.filter((c) => c.id !== bookingEditor.clientId))
+    setBookingEditor(null)
   }
 
   function toggleSort(key: SortKey) {
@@ -268,7 +347,7 @@ export default function SalesHozzarendeles() {
         paid: form.paid,
       },
     ])
-    addBooking(pendingFormSlot.gytId, pendingFormSlot.dateISO, pendingFormSlot.hour, `${form.name.trim()} 1`)
+    addBooking(pendingFormSlot.gytId, pendingFormSlot.dateISO, pendingFormSlot.hour, `${form.name.trim()} 1`, id)
     if (adminActive) markAdminAdded(id)
     if (importedCallId) {
       setSalesCalls((prev) =>
@@ -307,12 +386,22 @@ export default function SalesHozzarendeles() {
           <h1 className="app-page-title mb-0">ügyfél–GYT hozzárendelés</h1>
         </div>
 
-        <div className="auth-tabs mb-4">
-          <button type="button" className={`auth-tab ${tab === 'hozzarendeles' ? 'active' : ''}`} onClick={() => setTab('hozzarendeles')}>
-            ügyfelek
-          </button>
-          <button type="button" className={`auth-tab ${tab === 'gyt' ? 'active' : ''}`} onClick={() => setTab('gyt')}>
-            gyt naptárak
+        <div className="d-flex align-items-center gap-2 mb-4 flex-wrap">
+          <div className="auth-tabs">
+            <button type="button" className={`auth-tab ${tab === 'hozzarendeles' ? 'active' : ''}`} onClick={goToUgyfelek}>
+              ügyfelek
+            </button>
+            <button type="button" className={`auth-tab ${tab === 'gyt' ? 'active' : ''}`} onClick={() => setTab('gyt')}>
+              gyt naptárak
+            </button>
+          </div>
+          <button
+            type="button"
+            className="circle-icon-btn circle-icon-btn--add"
+            aria-label="új időpont létrehozása"
+            onClick={openNewBookingEditor}
+          >
+            +
           </button>
         </div>
 
@@ -371,13 +460,13 @@ export default function SalesHozzarendeles() {
                       type="button"
                       className="btn-fyb btn-fyb-ghost"
                       style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem' }}
-                      onClick={openFormBookingModal}
+                      onClick={startPicking}
                     >
                       módosítás
                     </button>
                   </div>
                 ) : (
-                  <button type="button" className="btn-fyb btn-fyb-outline" onClick={openFormBookingModal}>
+                  <button type="button" className="btn-fyb btn-fyb-outline" onClick={startPicking}>
                     időpont választása a naptárból
                   </button>
                 )}
@@ -491,6 +580,15 @@ export default function SalesHozzarendeles() {
 
         {tab === 'gyt' && (
           <div className="card-fyb">
+            {pickingMode && (
+              <div className="picking-mode-banner mb-3">
+                <span>válassz egy szabad időpontot <strong>{form.name.trim() || 'az ügyfélnek'}</strong> számára</span>
+                <button type="button" className="btn-fyb btn-fyb-outline" style={{ padding: '0.3rem 0.9rem', fontSize: '0.8rem' }} onClick={goToUgyfelek}>
+                  mégse
+                </button>
+              </div>
+            )}
+
             <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
               <div className="auth-tabs" style={{ flexWrap: 'wrap' }}>
                 <button type="button" className={`auth-tab ${calSelectedGyt === null ? 'active' : ''}`} onClick={() => setCalSelectedGyt(null)}>
@@ -500,10 +598,11 @@ export default function SalesHozzarendeles() {
                   <button
                     key={g.id}
                     type="button"
-                    className={`auth-tab ${calSelectedGyt === g.id ? 'active' : ''}`}
+                    className={`auth-tab auth-tab--proper-case ${calSelectedGyt === g.id ? 'active' : ''}`}
                     onClick={() => setCalSelectedGyt(g.id)}
                   >
                     {g.name}
+                    <span className="auth-tab-color-dot" style={{ backgroundColor: gytColorVar(g.id) }} />
                   </button>
                 ))}
               </div>
@@ -521,19 +620,15 @@ export default function SalesHozzarendeles() {
               </div>
             </div>
 
-            {/* ez a fül csak KAPACITÁS-áttekintő — nincs kattintható szabad sáv itt,
-               a tényleges foglalás mindig a "hívásaim" oldal hívás-kártyáról vagy
-               az "új ügyfél felvétele" űrlapról indul (ugyanazzal a modallal) */}
             <GytWeeklyCalendar
               weekStart={weekStart}
               today={today}
               gytList={GYT_COLLEAGUES}
               selectedGytId={calSelectedGyt}
               getSlot={getEffectiveSlot}
+              onFreeSlotClick={handleFreeSlotClick}
+              onBookedSlotClick={pickingMode ? undefined : handleBookedSlotClick}
             />
-            <p className="small mt-3 mb-0" style={{ color: 'var(--color-text-muted)' }}>
-              ez a nézet csak áttekintő — időpontot az "ügyfelek" fülön, az "új ügyfél felvétele" űrlapon lehet lefoglalni.
-            </p>
           </div>
         )}
 
@@ -558,6 +653,18 @@ export default function SalesHozzarendeles() {
               deleteClient(pendingAction.client.id)
               setPendingAction(null)
             }}
+          />
+        )}
+
+        {bookingEditor && (
+          <AppointmentEditorModal
+            mode="booking"
+            isEditing={Boolean(bookingEditor.clientId)}
+            initial={bookingEditor.initial}
+            gytOptions={GYT_COLLEAGUES}
+            onSave={handleSaveBooking}
+            onDelete={bookingEditor.clientId ? handleDeleteBooking : undefined}
+            onClose={() => setBookingEditor(null)}
           />
         )}
       </div>

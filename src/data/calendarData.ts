@@ -128,6 +128,7 @@ export type SalesCall = {
   phone: string
   callTime: string // datetime-local, pl. "2026-08-29T11:00"
   status: SalesCallStatus
+  note?: string
   assignedGyt?: string
   assignedGytId?: string
   assignedStart?: string

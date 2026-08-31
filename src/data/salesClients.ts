@@ -6,6 +6,7 @@ export type SalesClient = {
   startTime: string // datetime-local érték, pl. "2026-09-02T10:00"
   assignedGyt: string | null
   paid: boolean
+  note?: string
 }
 
 export const initialSalesClients: SalesClient[] = [

@@ -1,21 +1,7 @@
 import { createContext, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
 import { initialSalesClients, type SalesClient } from '../data/salesClients'
-import {
-  GYT_COLLEAGUES,
-  buildInitialSalesCalls,
-  getBaseDaySlots,
-  parseISODateLocal,
-  type SalesCall,
-  type TimeSlot,
-} from '../data/calendarData'
+import { buildInitialSalesCalls, getBaseDaySlots, parseISODateLocal, type SalesCall, type TimeSlot } from '../data/calendarData'
 import { useAdminEditGuard } from '../hooks/useAdminEditGuard'
-import GytBookingModal, { type PickedSlot } from '../components/GytBookingModal'
-
-export type BookingModalConfig = {
-  clientPreview?: { name: string; email: string; phone: string }
-  preselectedGytId?: string | null
-  onConfirm: (slot: PickedSlot) => void
-}
 
 // 2 szerkeszthető elutasító-üzenet sablon (2026.08.28., 3-4. kör) — a "{Név}"
 // jelölő a küldéskor az ügyfél nevére cserélődik; az "üzenetek" oldal ezt a
@@ -36,15 +22,22 @@ const DEFAULT_MESSAGE_TEMPLATES: [MessageTemplate, MessageTemplate] = [
   },
 ]
 
+// egy naptár-sáv foglalása — a "label" mindig megvan (ez jelenik meg a
+// rácsban), a "clientId" csak akkor, ha a foglalás egy VALÓDI, a session
+// alatt létrehozott ügyfélhez tartozik (a demó-adat generált "foglalt" sávjai
+// — ld. getBaseDaySlots — sosem kapnak clientId-t, ezért nem szerkeszthetők
+// utólag: nincs mögöttük valódi adat, amit meg lehetne nyitni)
+type Booking = { label: string; clientId?: string }
+
 type SalesDataContextValue = {
   clients: SalesClient[]
   setClients: Dispatch<SetStateAction<SalesClient[]>>
   salesCalls: SalesCall[]
   setSalesCalls: Dispatch<SetStateAction<SalesCall[]>>
-  bookings: Record<string, string>
   isBooked: (gytId: string, dateISO: string, hour: number) => boolean
   getEffectiveSlot: (gytId: string, dateISO: string, hour: number) => TimeSlot
-  addBooking: (gytId: string, dateISO: string, hour: number, label: string) => void
+  getBookingClientId: (gytId: string, dateISO: string, hour: number) => string | undefined
+  addBooking: (gytId: string, dateISO: string, hour: number, label: string, clientId?: string) => void
   removeBooking: (gytId: string, dateISO: string, hour: number) => void
   today: Date
   adminActive: boolean
@@ -52,7 +45,6 @@ type SalesDataContextValue = {
   isModified: (id: string) => boolean
   adminAddedIds: Set<string>
   markAdminAdded: (id: string) => void
-  openBookingModal: (config: BookingModalConfig) => void
   messageTemplates: [MessageTemplate, MessageTemplate]
   setMessageTemplates: Dispatch<SetStateAction<[MessageTemplate, MessageTemplate]>>
 }
@@ -79,9 +71,8 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
   const [clients, setClients] = useState<SalesClient[]>(initialSalesClients)
   const [today] = useState(() => new Date())
   const [salesCalls, setSalesCalls] = useState<SalesCall[]>(() => buildInitialSalesCalls(today))
-  const [bookings, setBookings] = useState<Record<string, string>>({})
+  const [bookings, setBookings] = useState<Record<string, Booking>>({})
   const [adminAddedIds, setAdminAddedIds] = useState<Set<string>>(new Set())
-  const [modalConfig, setModalConfig] = useState<BookingModalConfig | null>(null)
   const [messageTemplates, setMessageTemplates] = useState<[MessageTemplate, MessageTemplate]>(DEFAULT_MESSAGE_TEMPLATES)
   const { active: adminActive, guard: adminGuard, isModified, modal: adminModal } = useAdminEditGuard('sales')
 
@@ -91,12 +82,16 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
 
   function getEffectiveSlot(gytId: string, dateISO: string, hour: number): TimeSlot {
     const override = bookings[bookingKey(gytId, dateISO, hour)]
-    if (override) return { hour, status: 'foglalt', label: override }
+    if (override) return { hour, status: 'foglalt', label: override.label }
     return getBaseDaySlots(gytId, parseISODateLocal(dateISO), today).find((s) => s.hour === hour) ?? { hour }
   }
 
-  function addBooking(gytId: string, dateISO: string, hour: number, label: string) {
-    setBookings((prev) => ({ ...prev, [bookingKey(gytId, dateISO, hour)]: label }))
+  function getBookingClientId(gytId: string, dateISO: string, hour: number) {
+    return bookings[bookingKey(gytId, dateISO, hour)]?.clientId
+  }
+
+  function addBooking(gytId: string, dateISO: string, hour: number, label: string, clientId?: string) {
+    setBookings((prev) => ({ ...prev, [bookingKey(gytId, dateISO, hour)]: { label, clientId } }))
   }
 
   // pl. egy hívás elutasításakor, ha közben már le is foglaltuk a GYT-időpontot —
@@ -118,9 +113,9 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
     setClients,
     salesCalls,
     setSalesCalls,
-    bookings,
     isBooked,
     getEffectiveSlot,
+    getBookingClientId,
     addBooking,
     removeBooking,
     today,
@@ -129,7 +124,6 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
     isModified,
     adminAddedIds,
     markAdminAdded,
-    openBookingModal: setModalConfig,
     messageTemplates,
     setMessageTemplates,
   }
@@ -137,20 +131,6 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
   return (
     <SalesDataContext.Provider value={value}>
       {children}
-      {modalConfig && (
-        <GytBookingModal
-          gytOptions={GYT_COLLEAGUES}
-          today={today}
-          isBooked={isBooked}
-          clientPreview={modalConfig.clientPreview}
-          preselectedGytId={modalConfig.preselectedGytId ?? null}
-          onConfirm={(slot) => {
-            modalConfig.onConfirm(slot)
-            setModalConfig(null)
-          }}
-          onCancel={() => setModalConfig(null)}
-        />
-      )}
       {adminModal}
     </SalesDataContext.Provider>
   )

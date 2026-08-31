@@ -45,6 +45,19 @@
   --gyt-color-default: var(--sagegray); /* fallback, ha egy admin által felvett új GYT-nek nincs saját szín-tokene */
   --gyt-color-default-rgb: 94, 128, 127;
 
+  /* macOS ablak-vezérlő gombok színei (2026.08.28., 6. kör, Marci kérésére) —
+     a hívás-módosító popup piros/sárga/zöld státuszgombjaihoz és a "saját
+     naptár" időkód-jelöléséhez. Szándékosan FIX, nem mód-függő (a valódi
+     macOS gombok sem váltanak színt sötét módban), és tudatosan elkülönítve
+     a projekt --color-danger/warning/success szemantikus tokenjeitől, mert
+     azok máshol az appban más (nem macOS-imitáló) célra vannak hangolva. */
+  --macos-red: #FF5F57;
+  --macos-red-rgb: 255, 95, 87;
+  --macos-yellow: #FFBD2E;
+  --macos-yellow-rgb: 255, 189, 46;
+  --macos-green: #28C840;
+  --macos-green-rgb: 40, 200, 64;
+
   /* alak / árnyék */
   --radius-pill: 999px;
   --radius-card: 16px;

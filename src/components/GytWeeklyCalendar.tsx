@@ -103,39 +103,44 @@ export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedG
                   </div>
                 )
               }
-              // összesített nézet: kolléganként egy vékony sáv, csak azoknak,
-              // akiknek van bármilyen (szabad VAGY foglalt) állapotuk ekkor
-              const lanes = gytList
-                .map((g) => ({ g, slot: getSlot(g.id, dateISO, hour) }))
-                .filter(({ slot }) => slot.status)
+              // összesített nézet: MINDIG annyi sáv, ahány GYT van összesen
+              // (2026.08.28., 6. kör, Marci kérésére — korábban csak azoknak
+              // a kollégáknak volt sávjuk, akiknek volt állapotuk az adott
+              // órában, ami cellánként eltérő sáv-számot adott, összezavaró
+              // volt) — akinek nincs állapota, annak egy üres, láthatatlan
+              // helykitöltő sávja van, hogy az oszlop-igazítás mindig azonos
+              // maradjon minden cellában
               return (
                 <div key={`${dateISO}-${hour}`} className="gyt-cal-cell gyt-cal-cell--lanes">
-                  {lanes.map(({ g, slot }) => (
-                    <SlotBlock
-                      key={g.id}
-                      status={slot.status}
-                      label={slot.label}
-                      color={{ solid: gytColorVar(g.id), tint: gytColorVar(g.id, 0.3) }}
-                      onClick={slot.status === 'szabad' && onFreeSlotClick ? () => onFreeSlotClick(g.id, g.name, dateISO, hour) : undefined}
-                    />
-                  ))}
+                  {gytList.map((g) => {
+                    const slot = getSlot(g.id, dateISO, hour)
+                    if (!slot.status) return <span key={g.id} className="gyt-cal-slot gyt-cal-slot--empty" />
+                    return (
+                      <SlotBlock
+                        key={g.id}
+                        status={slot.status}
+                        label={slot.label}
+                        color={
+                          getSlotColor
+                            ? getSlotColor(g.id, dateISO, hour, slot)
+                            : { solid: gytColorVar(g.id), tint: gytColorVar(g.id, 0.3) }
+                        }
+                        onClick={
+                          slot.status === 'szabad' && onFreeSlotClick
+                            ? () => onFreeSlotClick(g.id, g.name, dateISO, hour)
+                            : slot.status === 'foglalt' && onBookedSlotClick
+                              ? () => onBookedSlotClick(g.id, dateISO, hour)
+                              : undefined
+                        }
+                      />
+                    )
+                  })}
                 </div>
               )
             })}
           </Fragment>
         ))}
       </div>
-
-      {!selectedGytId && (
-        <div className="gyt-cal-legend">
-          {gytList.map((g) => (
-            <span key={g.id} className="gyt-cal-legend-item">
-              <span className="gyt-cal-legend-dot" style={{ backgroundColor: gytColorVar(g.id) }} />
-              {g.name}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
