@@ -758,6 +758,32 @@ html[data-theme='dark'] .locked-overlay-card {
   line-height: 1;
   cursor: pointer;
 }
+.exercise-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.exercise-table th,
+.exercise-table td {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+.exercise-table th {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.exercise-table td:first-child,
+.exercise-table th:first-child,
+.exercise-table td:nth-child(4),
+.exercise-table th:nth-child(4) {
+  white-space: nowrap;
+}
+.exercise-table tbody tr:last-child td {
+  border-bottom: none;
+}
 .level-select-menu {
   list-style: none;
   margin: 0.5rem 0 0;

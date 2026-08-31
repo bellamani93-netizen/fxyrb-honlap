@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
-import { EXERCISES, SEQUENCES, HOLD_START_SECONDS, HOLD_STEP_SECONDS, HOLD_STEP_DAYS, repCount } from '../data/tornaSzintek'
+import { EXERCISES, SEQUENCES, HOLD_START_SECONDS, HOLD_STEP_SECONDS, HOLD_STEP_DAYS } from '../data/tornaSzintek'
 
 type LevelState = 'lezart' | 'aktiv' | 'zarolt'
 
@@ -59,7 +59,6 @@ export default function Gyakorlatok() {
   const wrapRef = useRef<HTMLDivElement>(null)
   const level = levels.find((l) => l.num === selected)!
   const exercise = level.code ? EXERCISES[level.code as keyof typeof EXERCISES] : undefined
-  const reps = level.code ? repCount(level.code as keyof typeof EXERCISES) : 0
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -145,24 +144,46 @@ export default function Gyakorlatok() {
 
               {detailsOpen && (
                 <div className="mt-2">
-                  <p className="small mb-1"><strong>kiinduló helyzet:</strong> {exercise!.start}</p>
-                  <p className="small mb-1"><strong>ismétlésszám:</strong> {reps}x</p>
-                  <p className="small mb-0">
-                    <strong>megtartás:</strong> {reps}× {HOLD_START_SECONDS}s{' '}
-                    <button
-                      type="button"
-                      className="info-toggle"
-                      aria-label="mit jelent ez?"
-                      onClick={() => setHoldInfoOpen((o) => !o)}
-                    >
-                      ⓘ
-                    </button>
-                    {holdInfoOpen && (
-                      <span className="fst-italic" style={{ color: 'var(--color-text-muted)' }}>
-                        {' '}({HOLD_STEP_DAYS} naponta {HOLD_STEP_SECONDS} s-el hosszabb ideig)
-                      </span>
-                    )}
-                  </p>
+                  {exercise!.note && (
+                    <p className="small fst-italic mb-2" style={{ color: 'var(--color-text-muted)' }}>{exercise!.note}</p>
+                  )}
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="exercise-table">
+                      <thead>
+                        <tr>
+                          <th>gyakorlat</th>
+                          <th>kiinduló helyzet</th>
+                          <th>ismétlésszám</th>
+                          <th>
+                            megtartás{' '}
+                            <button
+                              type="button"
+                              className="info-toggle"
+                              aria-label="mit jelent ez?"
+                              onClick={() => setHoldInfoOpen((o) => !o)}
+                            >
+                              ⓘ
+                            </button>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {exercise!.variants.map((v) => (
+                          <tr key={v.label}>
+                            <td>{v.label}</td>
+                            <td>{v.start}</td>
+                            <td>{v.reps}</td>
+                            <td>{HOLD_START_SECONDS}s</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {holdInfoOpen && (
+                    <p className="small fst-italic mt-1 mb-0" style={{ color: 'var(--color-text-muted)' }}>
+                      ({HOLD_STEP_DAYS} naponta {HOLD_STEP_SECONDS} s-el hosszabb ideig)
+                    </p>
+                  )}
                   {level.note && (
                     <p className="small fst-italic mt-2 mb-0" style={{ color: 'var(--color-text-muted)' }}>
                       Megjegyzés a gyógytornászodtól: {level.note}
