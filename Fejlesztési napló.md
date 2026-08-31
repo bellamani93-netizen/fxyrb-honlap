@@ -1005,3 +1005,14 @@ Marci hibajelzése közvetlenül az előző kör után: Varga Dániel "új"-kén
 - Mivel `getEffectiveSlot` a SALES és a GYT közös függvénye, a javítás mindkét oldalon (GYT saját naptár, SALES "gyt naptárak") egyszerre, külön kezelés nélkül érvényesül.
 
 **Tesztelve böngészőben:** Varga Dániel minden korábban szórt (1/2/3/4) számú időpontja mostantól egységesen "1"-ként, lime színnel jelenik meg; Kovács Gábor (2 lezárt szint) egységesen "3"-ként, mentett menta színnel; Péter (`mode: 'utana'`) számozása szándékosan változatlan. Egy Varga Dániel-időpontra kattintva a szerkesztő helyesen előre kitöltve nyílik meg. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.09.01. — Meet link megjelenítése a popupon, hiányzó "+" ikon javítása
+
+Marci 3 pontos korrekciója: (1) az 1. alkalom popupja mutassa is a meet linket, ne csak egy szöveget; (2) egy már lefixált és kiküldött további időpont popupja is mutassa a linket, gomb helyett; (3) a "naptáram" melletti kerek gombból hiányzik a "+" ikon.
+
+**Megvalósítás:**
+- Új `resolveMeetLink()` (`CalendarContext.tsx`): ha egy bejegyzésnek van tárolt linkje, azt adja vissza; ha nincs, de az alkalom 1, egy determinisztikus (mindig ugyanazt adó) álca-linket generál menet közben — sem a demo-eredetű, sem a korábbi SALES-eredetű bejegyzések nem tároltak tényleges linket, csak egy szöveges "már elküldte a sales" jegyzetet.
+- `GytAppointmentModal.tsx`: a link MEGLÉTE dönt elsőként (nem az "1. alkalom-e" jelző) — ha van link, azt mutatja megfelelő felirattal, csak hiányában esik vissza a puszta szövegre vagy a "létrehozás" gombra.
+- CSS-hiba a "+" gombnál: az `Icon` komponens maszk-alapú ikonja (`.icon-fyb`) saját `color: var(--color-primary)` szabálya pontosan egybeesett a gomb türkiz háttérszínével, ezért az ikon láthatatlan volt — a SALES oldal ugyanilyen gombja csak azért működött eddig is, mert az sima "+" szöveget használ, nem ezt a komponenst. Javítva egy célzott `.circle-icon-btn--add .icon-fyb` override-dal.
+
+**Tesztelve böngészőben:** Varga Dániel (1. alkalom) popupja valódi linket mutat; Kovács Gábor (3. alkalom) "meet link létrehozása" gombja megnyomva előállítja a linket, mentés után a popup újranyitva ugyanazt a linket mutatja (nem regenerálódik); a "+" ikon világos és sötét módban is látszik. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.

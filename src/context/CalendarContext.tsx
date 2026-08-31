@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import { addDays, formatISODate, getBaseDaySlots, getMondayOf, parseISODateLocal, type TimeSlot } from '../data/calendarData'
+import { addDays, formatISODate, generateMeetLink, getBaseDaySlots, getMondayOf, parseISODateLocal, type TimeSlot } from '../data/calendarData'
 import { useClients } from './ClientsContext'
 
 // Közös, a SALES ÉS a GYT szerepkör között OSZTOTT naptár-állapot (2026.09.01.,
@@ -84,6 +84,24 @@ function realNextAlkalom(client: { mode?: 'kozben' | 'utana'; levels?: { state: 
   return closed + 1
 }
 
+// Az 1. alkalom hívás-linkjét mindig a SALES küldi ki a foglaláskor (ld.
+// GytAppointmentModal "az 1. alkalom hívás-linkjét már elküldte a sales"
+// szövege) — eddig ez csak egy tájékoztató MONDAT volt, tényleges link
+// nélkül, mert sem a demo-generált, sem a SALES saját addBooking-jával
+// felvett bejegyzés nem tárolt hozzá linket. Marci kérésére (2026.09.01.,
+// "mutassa a gyt naptárjában a megnyitott 1. alkalom popupjában a meet
+// linket") mostantól MINDIG van megjeleníthető link 1. alkalomnál: ha a
+// bejegyzésnek van már ténylegesen elmentett linkje, azt mutatjuk; ha nincs
+// (demo-eredetű, vagy a SALES-oldali addBooking sosem generált), egy
+// determinisztikus (a sáv koordinátáiból/névből számolt, mindig ugyanazt
+// adó) álca-linket generálunk — nem íródik vissza az állapotba, csak
+// megjelenítéskor számolódik.
+function resolveMeetLink(existing: string | undefined, alkalom: number | undefined, seed: string): string | undefined {
+  if (existing) return existing
+  if (alkalom !== 1) return undefined
+  return generateMeetLink(seed)
+}
+
 export function CalendarProvider({ children }: { children: ReactNode }) {
   // a demo-eredetű bejegyzések clientId-feloldásához kell a közös,
   // ÉLŐ ügyfél-lista (ld. Design jegyzet 49. pont — korábban egy statikus
@@ -147,7 +165,8 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     const b = getBooking(gytId, dateISO, hour)
     if (b) {
       const clientId = b.clientId?.startsWith(GYT_CLIENT_PREFIX) ? b.clientId.slice(GYT_CLIENT_PREFIX.length) : undefined
-      return { kind: b.type, alkalom: b.alkalom, name: b.name, meetLink: b.meetLink, clientId }
+      const meetLink = resolveMeetLink(b.meetLink, b.alkalom, `${gytId}-${dateISO}-${hour}-${b.name ?? clientId ?? 'x'}`)
+      return { kind: b.type, alkalom: b.alkalom, name: b.name, meetLink, clientId }
     }
     const base = getBaseDaySlots(gytId, parseISODateLocal(dateISO), today).find((s) => s.hour === hour)
     if (!base?.status) return { kind: null }
@@ -155,7 +174,8 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     const { name, alkalom: rawAlkalom } = parseLabel(base.label ?? '')
     const matchedClient = clients.find((c) => c.name === name && (!c.assignedGytId || c.assignedGytId === gytId))
     const alkalom = realNextAlkalom(matchedClient) ?? rawAlkalom
-    return { kind: 'konzultacio', alkalom, name, clientId: matchedClient?.id }
+    const meetLink = resolveMeetLink(undefined, alkalom, `${gytId}-${dateISO}-${hour}-${name}`)
+    return { kind: 'konzultacio', alkalom, name, meetLink, clientId: matchedClient?.id }
   }
 
   function clearRemoved(key: string) {

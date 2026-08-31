@@ -1446,6 +1446,11 @@ html[data-theme='dark'] .sales-delete-icon {
   font-weight: 700;
   line-height: 1;
 }
+/* a GYT naptár "+" gombja az Icon.tsx maszk-technikás komponensét használja
+   (nem sima "+" szöveget, mint a SALES oldalé) — az .icon-fyb saját
+   var(--color-primary) színe enélkül EGYBEOLVADT volna a gomb ugyanolyan
+   színű hátterével, láthatatlanná téve az ikont (2026.09.01., Marci hibajelzésére). */
+.circle-icon-btn--add .icon-fyb { color: var(--color-primary-contrast); }
 /* a fogaskerék NEM kör hátterű (2026.08.28., 6. kör, Marci kérésére) — csak
    maga az ikon, de a kattintható terület mérete (2.2rem) változatlan marad;
    a szín ugyanaz, mint a telefonszám-linké (var(--color-primary): sötét

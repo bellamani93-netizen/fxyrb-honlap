@@ -204,14 +204,17 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
 
           {type === 'konzultacio' && (
             <div className="col-12">
-              {isFirstAlkalom ? (
-                <p className="small fst-italic mb-0" style={{ color: 'var(--color-text-muted)' }}>
-                  az 1. alkalom hívás-linkjét már elküldte a sales.
-                </p>
-              ) : meetLink ? (
+              {meetLink ? (
                 <p className="small mb-0">
                   meet link: <a href={`https://${meetLink}`} target="_blank" rel="noreferrer">{meetLink}</a>
-                  <span className="fst-italic" style={{ color: 'var(--color-text-muted)' }}> — elküldve az ügyfélnek e-mailben</span>
+                  <span className="fst-italic" style={{ color: 'var(--color-text-muted)' }}>
+                    {' — '}
+                    {isFirstAlkalom ? 'az 1. alkalomnál ezt már a sales elküldte az ügyfélnek' : 'elküldve az ügyfélnek e-mailben'}
+                  </span>
+                </p>
+              ) : isFirstAlkalom ? (
+                <p className="small fst-italic mb-0" style={{ color: 'var(--color-text-muted)' }}>
+                  az 1. alkalom hívás-linkjét már elküldte a sales.
                 </p>
               ) : (
                 <button type="button" className="btn-fyb btn-fyb-outline" disabled={!clientId} onClick={handleGenerateMeetLink}>
