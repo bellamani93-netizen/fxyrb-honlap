@@ -1274,12 +1274,12 @@ html[data-theme='dark'] .sales-delete-icon {
   line-height: 1;
 }
 
-/* --- GYT: "mai konzultációk" lista (2026.08.31.) — egyszerűbb, 3 oszlopos
+/* --- GYT: "mai konzultációk" lista (2026.08.31.) — egyszerűbb, 4 oszlopos
    valódi CSS Grid, ami minden méretnél működik (nem csak asztalin, mint a
    SALES .call-row-grid-je, mert itt nincs külön mobil JSX-ág). --- */
 .consultation-row-grid {
   display: grid;
-  grid-template-columns: 4.5rem 1fr 1fr;
+  grid-template-columns: 4.5rem 1fr 5rem 1fr;
   align-items: center;
   column-gap: 0.75rem;
   row-gap: 0.15rem;
@@ -1287,12 +1287,10 @@ html[data-theme='dark'] .sales-delete-icon {
 @media (max-width: 575.98px) {
   .consultation-row-grid {
     /* "auto" (nem fix rem), mert a fejléc "IDŐPONT" szövege szélesebb, mint a
-       sorok rövid "17:00" óra-értékei — fix szélességnél az "IDŐPONT" belelógott
-       volna a "NÉV" oszlopba (2026.08.31., böngészős teszt közben derült ki). */
+       sorok rövid "17:00" óra-értékei — fix szélességnél belelógott volna a
+       "NÉV" oszlopba (2026.08.31., böngészős teszt közben derült ki). 2 oszlop,
+       a 4 mező 2×2-es elrendezésbe rendeződik (időpont+név, alkalom+link). */
     grid-template-columns: auto 1fr;
-  }
-  .consultation-row-grid > *:nth-child(3) {
-    grid-column: 1 / -1;
   }
 }
 
@@ -1392,6 +1390,16 @@ html[data-theme='dark'] .sales-delete-icon {
 .gyt-cal-slot--empty {
   background: transparent;
   pointer-events: none;
+}
+/* teljesen üres (nem meghirdetett) óra, de kattintható — ld. onEmptySlotClick
+   (GYT saját "naptáram" nézete, 2026.08.31.) — alapból láthatatlan, csak
+   hover-re jelez, hogy ide is fel lehet venni új időpontot. */
+.gyt-cal-slot--empty-clickable {
+  background-color: transparent;
+  cursor: pointer;
+}
+.gyt-cal-slot--empty-clickable:hover {
+  background-color: var(--color-bg-alt);
 }
 .gyt-cal-slot-label {
   display: block;

@@ -17,6 +17,11 @@ type GytWeeklyCalendarProps = {
   // naptár-nézetén, ahol minden foglalt sáv egy saját hívás — rákattintva egy
   // gyors előnézet nyílik) — a "gyt naptárak" kapacitás-áttekintőn nincs átadva
   onBookedSlotClick?: (gytId: string, dateISO: string, hour: number) => void
+  // opcionális: a TELJESEN üres (nincs meghirdetve, `slot.status` sincs) órákat is
+  // kattinthatóvá teszi (pl. a GYT saját "naptáram" nézetén, ahol bármelyik üres
+  // helyre fel lehet venni új időpontot, nem csak a már meghirdetett "szabad"
+  // sávokra) — ha nincs átadva, egy üres óra változatlanul nem kattintható (null).
+  onEmptySlotClick?: (gytId: string, gytName: string, dateISO: string, hour: number) => void
   // opcionális: felülírja az alapértelmezett, kolléganként fix gytColorVar()
   // színt egy sávonként eltérő színnel (pl. a "hívásaim" saját naptárán, ahol
   // a szín a hívás kimenetétől és attól függ, hogy múltbeli vagy jövőbeli
@@ -29,6 +34,7 @@ function SlotBlock({
   label,
   color,
   onClick,
+  onEmptyClick,
 }: {
   status: TimeSlot['status']
   label?: string
@@ -38,8 +44,22 @@ function SlotBlock({
   // színezés, ld. SalesHivasaim.tsx getOwnSlotColor) mindkettőt felülírja
   color: { solid: string; tint: string; textSolid?: string; textTint?: string }
   onClick?: () => void
+  onEmptyClick?: () => void
 }) {
-  if (!status) return null
+  if (!status) {
+    // ha a hívó kattinthatóvá tette az üres órákat is (ld. onEmptySlotClick),
+    // egy láthatatlan, de kattintható sáv jelenik meg — egyébként (a legtöbb
+    // helyen, pl. SALES kapacitás-áttekintő) változatlanul nincs itt semmi
+    if (!onEmptyClick) return null
+    return (
+      <button
+        type="button"
+        className="gyt-cal-slot gyt-cal-slot--empty-clickable"
+        onClick={onEmptyClick}
+        title="új időpont létrehozása"
+      />
+    )
+  }
   const isFree = status === 'szabad'
   // 2026.08.28., 7. kör, Marci kérésére MEGFORDÍTVA: a SZABAD sáv kapja a
   // tömör, élénk színt (hogy azonnal kitűnjön, hol van hely), a FOGLALT sáv
@@ -63,7 +83,7 @@ function SlotBlock({
   )
 }
 
-export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedGytId, getSlot, onFreeSlotClick, onBookedSlotClick, getSlotColor }: GytWeeklyCalendarProps) {
+export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedGytId, getSlot, onFreeSlotClick, onBookedSlotClick, onEmptySlotClick, getSlotColor }: GytWeeklyCalendarProps) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const todayISO = formatISODate(today)
   const singleGyt = selectedGytId ? gytList.find((g) => g.id === selectedGytId) : null
@@ -107,6 +127,7 @@ export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedG
                             ? () => onBookedSlotClick(selectedGytId, dateISO, hour)
                             : undefined
                       }
+                      onEmptyClick={onEmptySlotClick ? () => onEmptySlotClick(selectedGytId, singleGyt?.name ?? '', dateISO, hour) : undefined}
                     />
                   </div>
                 )

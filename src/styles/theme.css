@@ -62,6 +62,15 @@
   --macos-green: #28C840;
   --macos-green-rgb: 40, 200, 64;
 
+  /* GYT "naptáram" — saját (nem SALES-kapacitás-) színkódolás (2026.08.31.,
+     Marci kérésére) — MINDEN gyt a saját naptárában ezt látja, függetlenül
+     attól, hogy a SALES "gyt naptárak" nézetén milyen kolléga-színt kapott
+     (ld. --gyt-color-* fent). Szándékosan FIX, nem mód-függő, mint a fenti
+     macOS-színek. */
+  --mint-rgb: 95, 211, 188; /* var(--mint) rgb-változata, "tervezett" halvány tinthez */
+  --pale-orange: #E8A968; /* "szabad" időpont jelölése */
+  --pale-orange-rgb: 232, 169, 104;
+
   /* alak / árnyék */
   --radius-pill: 999px;
   --radius-card: 16px;

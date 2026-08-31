@@ -18,6 +18,9 @@ export type Client = {
   bulkLevels?: { num: number; video: string | null; note?: string }[]
   /** a SALES épp most osztotta be ehhez a GYT-hez, még nem volt vele konzultáció (2026.08.31.). */
   isNew?: boolean
+  /** a "naptár" oldalon, terv/konzultáció felvételekor ezt húzza be automatikusan (2026.08.31.). */
+  email: string
+  phone: string
 }
 
 export function codeLabel(code: ExerciseCode) {
@@ -29,6 +32,8 @@ export const clients: Client[] = [
     id: 'peter',
     name: 'Péter',
     mode: 'utana',
+    email: 'peter@pelda.hu',
+    phone: '+36 30 111 2233',
     history: [
       { num: 1, video: codeLabel('S01') },
       { num: 2, video: codeLabel('S02') },
@@ -51,6 +56,8 @@ export const clients: Client[] = [
     id: 'gabor',
     name: 'Kovács Gábor',
     mode: 'kozben',
+    email: 'kovacs.gabor@pelda.hu',
+    phone: '+36 30 222 3344',
     levels: [
       { num: 1, state: 'lezart', video: codeLabel('S03'), note: 'csak az első 2 gyakorlat ebből a szintből.' },
       { num: 2, state: 'lezart', video: codeLabel('A01') },
@@ -64,6 +71,8 @@ export const clients: Client[] = [
     name: 'Varga Dániel',
     mode: 'kozben',
     isNew: true,
+    email: 'varga.daniel@pelda.hu',
+    phone: '+36 30 333 4455',
     levels: [
       { num: 1, state: 'nyitva' },
       { num: 2, state: 'zarolt' },
@@ -77,6 +86,8 @@ export const clients: Client[] = [
     name: 'Fekete Nóra',
     mode: 'kozben',
     isNew: true,
+    email: 'fekete.nora@pelda.hu',
+    phone: '+36 30 444 5566',
     levels: [
       { num: 1, state: 'nyitva' },
       { num: 2, state: 'zarolt' },
