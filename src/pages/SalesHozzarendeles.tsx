@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { DEFAULT_VARIABLES, type Client } from '../data/initialClients'
 import { AdminModifiedBadge } from '../hooks/useAdminEditGuard'
-import { GYT_COLLEAGUES, addDays, formatDateOnly, getMondayOf, gytColorVar, type SalesCall } from '../data/calendarData'
+import { BUSINESS_HOURS, GYT_COLLEAGUES, addDays, formatDateOnly, getMondayOf, gytColorVar, type SalesCall } from '../data/calendarData'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
 import AppointmentEditorModal, { type AppointmentEditorInitial, type AppointmentEditorResult, type ConflictInfo } from '../components/AppointmentEditorModal'
 import { useSalesData } from '../context/SalesDataContext'
@@ -311,19 +311,44 @@ export default function SalesHozzarendeles() {
   // egy GYT fizikailag nem lehet két helyen egyszerre. A "szabad" jelzésű
   // sávok nem számítanak ütközésnek (ld. getEffectiveSlot 'szabad' ága).
   // Ha épp ugyanazt a foglalást szerkesztjük ugyanarra a helyre (nincs
-  // változás), nem önmagával ütközik.
-  function checkBookingConflict(dateISO: string, hour: number, gytId: string | null): ConflictInfo | null {
-    if (!gytId) return null
-    if (
-      bookingEditor?.clientId &&
-      bookingEditor.initial.gytId === gytId &&
-      bookingEditor.initial.dateISO === dateISO &&
-      bookingEditor.initial.hour === hour
-    ) {
+  // változás), nem önmagával ütközik. Mivel egy nem kerek órakor kezdődő
+  // időpont vizuálisan átlóg a szomszédos órás sávba is (ld.
+  // GytWeeklyCalendar verticalOffsetPct), a KÖVETKEZŐ órát (ha az új
+  // időpont maga lóg bele) és az ELŐZŐ órát (ha ANNAK van olyan perce,
+  // amivel EBBE lóg) is figyelembe vesszük (2026.09.01., Marci kérésére).
+  function checkBookingConflict(dateISO: string, hour: number, gytIdOrNull: string | null, minute: number): ConflictInfo | null {
+    if (!gytIdOrNull) return null
+    const gytId = gytIdOrNull
+    function slotConflict(h: number): ConflictInfo | null {
+      if (
+        bookingEditor?.clientId &&
+        bookingEditor.initial.gytId === gytId &&
+        bookingEditor.initial.dateISO === dateISO &&
+        bookingEditor.initial.hour === h
+      ) {
+        return null
+      }
+      const slot = getEffectiveSlot(gytId, dateISO, h)
+      if (slot.status === 'foglalt') return { name: slot.label ?? 'foglalt', hour: h }
       return null
     }
-    const slot = getEffectiveSlot(gytId, dateISO, hour)
-    if (slot.status === 'foglalt') return { name: slot.label ?? 'foglalt', hour }
+    const own = slotConflict(hour)
+    if (own) return own
+    if (minute && BUSINESS_HOURS.includes(hour + 1)) {
+      const next = slotConflict(hour + 1)
+      if (next) return next
+    }
+    if (BUSINESS_HOURS.includes(hour - 1)) {
+      const isSelf =
+        bookingEditor?.clientId &&
+        bookingEditor.initial.gytId === gytId &&
+        bookingEditor.initial.dateISO === dateISO &&
+        bookingEditor.initial.hour === hour - 1
+      const prevSlot = getEffectiveSlot(gytId, dateISO, hour - 1)
+      if (!isSelf && prevSlot.status === 'foglalt' && prevSlot.minute) {
+        return { name: prevSlot.label ?? 'foglalt', hour: hour - 1 }
+      }
+    }
     return null
   }
 

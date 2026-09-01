@@ -66,11 +66,32 @@ export default function GytNaptar() {
   // a GYT saját naptárában egy ütközés MINDIG valódi blokk (fizikai
   // időbeosztás — nem lehet két dolgot csinálni ugyanabban az órában). A
   // "saját magával" kivétel csak szerkesztésnél érvényes — új felvételnél soha.
-  function checkConflict(dateISO: string, hour: number): GytConflictInfo | null {
-    if (isEditingExisting && editingSlot && editingSlot.dateISO === dateISO && editingSlot.hour === hour) return null
-    const meta = getBookingMeta(OWN_ID, dateISO, hour)
-    if (meta.kind === 'szabad' || meta.kind === null) return null
-    return meta.name ? { name: meta.name, hour } : null
+  // Mivel egy nem kerek órakor kezdődő időpont vizuálisan átlóg a szomszédos
+  // órás sávba is (ld. GytWeeklyCalendar verticalOffsetPct), az ütközés-
+  // vizsgálatnak is figyelembe kell vennie mindkét szomszédot: a KÖVETKEZŐ
+  // órát (ha az új időpont maga lóg bele) és az ELŐZŐ órát (ha ANNAK van
+  // olyan perce, amivel EBBE az órába lóg) — 2026.09.01., Marci kérésére.
+  function checkConflict(dateISO: string, hour: number, minute: number): GytConflictInfo | null {
+    function metaConflict(h: number): GytConflictInfo | null {
+      if (isEditingExisting && editingSlot && editingSlot.dateISO === dateISO && editingSlot.hour === h) return null
+      const meta = getBookingMeta(OWN_ID, dateISO, h)
+      if (meta.kind === 'szabad' || meta.kind === null) return null
+      return meta.name ? { name: meta.name, hour: h } : null
+    }
+    const own = metaConflict(hour)
+    if (own) return own
+    if (minute && BUSINESS_HOURS.includes(hour + 1)) {
+      const next = metaConflict(hour + 1)
+      if (next) return next
+    }
+    if (BUSINESS_HOURS.includes(hour - 1)) {
+      const prevMeta = getBookingMeta(OWN_ID, dateISO, hour - 1)
+      const isSelf = isEditingExisting && editingSlot && editingSlot.dateISO === dateISO && editingSlot.hour === hour - 1
+      if (!isSelf && prevMeta.minute && prevMeta.kind !== 'szabad' && prevMeta.kind !== null && prevMeta.name) {
+        return { name: prevMeta.name, hour: hour - 1 }
+      }
+    }
+    return null
   }
 
   function handleSlotClick(dateISO: string, hour: number) {

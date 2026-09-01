@@ -40,7 +40,11 @@ type GytAppointmentModalProps = {
   initial: GytAppointmentInitial
   isEditing: boolean
   clientOptions: GytClientOption[]
-  checkConflict?: (dateISO: string, hour: number) => GytConflictInfo | null
+  // a `minute` azért kell a hívónak is, mert egy nem kerek órakor kezdődő
+  // időpont vizuálisan átlóg a KÖVETKEZŐ órás sávba is (ld. GytWeeklyCalendar
+  // verticalOffsetPct) — ezért a szomszédos órát is ütközésnek kell
+  // tekinteni, nem csak a sajátját (2026.09.01., Marci kérésére).
+  checkConflict?: (dateISO: string, hour: number, minute: number) => GytConflictInfo | null
   // új felvételnél (nincs még rögzített alkalom-szám) ebből tudjuk meg, hányadik
   // alkalom lenne a kiválasztott ügyfélnek — az 1. alkalomnál a sales már
   // elküldte a hívás-linket, ott nem kell a "meet link létrehozása" gomb.
@@ -98,7 +102,7 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
   // lista, nem fizikai foglaltság — itt más a helyzet).
   function handleSaveClick() {
     if (!valid) return
-    const found = checkConflict?.(dateISO, hour) ?? null
+    const found = checkConflict?.(dateISO, hour, minute) ?? null
     if (found) {
       setConflict(found)
       return

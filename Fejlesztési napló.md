@@ -1076,3 +1076,13 @@ Marci hibajelzése: egy 9:30-as időpont a naptár-rácsban megkülönböztetés
 - Új `.gyt-cal-slot--offhour` CSS-osztály: `box-shadow: inset 0 0 0 1.5px currentColor` — a sáv saját, már kontrasztra hangolt szövegszínét használva világos és sötét módban egyaránt látszik.
 
 **Tesztelve böngészőben:** egy 9:30-as konzultációt felvéve mindhárom felületen (GYT saját naptár, SALES összesített "gyt naptárak" nézet szűk sávjaiban is, SALES saját "hívásaim" naptára egy meglévő 16:30-as seed-hívással) helyesen megjelent a pontos idő és a keret, külön beavatkozás nélkül mindhárom helyen. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.09.01. — Valódi vizuális elcsúszás a nem kerek órás időpontoknál
+
+Marci pontosított az előző kör (szöveg+keret) után: a cél, hogy egy 9:30-as időpont ténylegesen NE töltse ki a 9-10-es kockát, hanem a kocka feléből átlógjon a következő kocka feléig — a keret emiatt feleslegessé vált.
+
+**Megvalósítás:** a `GytWeeklyCalendar.tsx` sávjai flex-elrendezés helyett abszolút pozicionáltak lettek: kerek óránál `top:0, height:100%` (változatlan), nem kerek óránál `top: {perc/60*100}%, height:100%` — a sáv alja pontosan ennyivel túllóg a cellán, a következő órás cellába. Az "összesített" (több-GYT) nézet is fix, index-alapú vízszintes pozicionálásra váltott (a korábbi flex helyett), hogy konzisztens maradjon.
+
+**Fontos, útközben felmerült probléma:** egy 9:30-as időpont TÉNYLEGESEN ütközhet a szomszédos óra saját foglalásával — ez azonnal, az első teszt alkalmával elő is jött (Varga Dánielnek felvett 9:30-as időpont vizuálisan összecsúszott a nála meglévő 10:00-ás bejegyzéssel). Javítás: a GYT naptárának és a SALES "gyt naptárak" foglalási folyamatának ütközés-vizsgálata mostantól a szomszédos (előző ÉS következő) órát is figyelembe veszi, ha a perc miatt átfedés lenne. A SALES saját, nem-blokkoló "hívásaim" naptárának figyelmeztetése ezt szándékosan nem kapta meg (alacsonyabb tétű, már eddig is csak felülbírálható figyelmeztetés).
+
+**Tesztelve böngészőben:** egy 9:30-as időpont felvétele, amikor a 10:00 óra már foglalt — a mentés helyesen elutasítva ütközés-üzenettel. Ugyanez egy valóban szabad szomszédos órával — a sáv vizuálisan pontosan a kocka aljától a következő kocka feléig húzódott, mindhárom felületen és mobil nézetben is helyesen. A fordított irányú ütközés (új időpont kerek órán, miközben az előző óra átlóg bele) szintén helyesen blokkolva. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.

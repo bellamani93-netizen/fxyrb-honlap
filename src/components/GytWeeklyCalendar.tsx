@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, type CSSProperties } from 'react'
 import { BUSINESS_HOURS, addDays, formatDayHeader, formatHour, formatISODate, gytColorVar, type TimeSlot } from '../data/calendarData'
 
 type GytOption = { id: string; name: string }
@@ -30,9 +30,9 @@ type GytWeeklyCalendarProps = {
 }
 
 // ha egy sáv NEM kerek egész órakor kezdődik (pl. 9:30), a felirat elé
-// kerül a pontos idő — enélkül a sáv mindig a sor egész órájának tűnne
-// (2026.09.01., Marci hibajelzésére: "vizuálisan látszódjon, ha egy
-// időpont nem kerek egész órakor kezdődik, mert most félrevezető"). Az
+// kerül a pontos idő — a vizuális elcsúszás (ld. verticalOffsetPct) sokszor
+// csak néhány pixelnyi különbséget okoz egy ilyen apró sávnál, a pontos idő
+// szövegesen is egyértelművé teszi (2026.09.01., Marci kérésére). Az
 // ellipszis-vágás (ld. .gyt-cal-slot-label) a felirat VÉGÉT vágja, ezért a
 // legelső, legfontosabb infó (a pontos idő) még a legszűkebb, "összesített"
 // nézet sávjaiban is látszik.
@@ -41,18 +41,32 @@ function slotLabelWithTime(label: string | undefined, hour: number, minute: numb
   return `${hour}:${String(minute).padStart(2, '0')} ${label}`
 }
 
+// Egy sáv függőleges elhelyezkedése a SAJÁT órás cellájában — kerek egész
+// óránál (minute=0) pontosan kitölti a cellát, mint eddig. Ha nem kerek
+// órakor kezdődik, a cella alsó, "perc/60" arányú részétől indul, és
+// TOVÁBBRA IS pontosan 1 cellányi magas marad — vagyis a teteje a cella
+// alján túllóg, át a KÖVETKEZŐ órás cellába, pont annyi arányban, amennyi a
+// kezdő perc (pl. 9:30 → a 9-es cella alsó feléből indul, átlóg a 10-es
+// cella felső feléig; 9:15 → a cella alsó negyedéből indul). Ez váltja ki a
+// korábbi, csak szöveges/kereten alapuló jelzést (2026.09.01., Marci
+// kérésére: "a naptárban ne töltse ki a kockát, hanem a kocka felétől
+// átlógjon a másik kocka feléig").
+function verticalOffsetPct(minute: number | undefined) {
+  return minute ? (minute / 60) * 100 : 0
+}
+
 function SlotBlock({
   status,
   label,
-  offHour,
+  minute,
   color,
   onClick,
   onEmptyClick,
+  horizontalStyle,
 }: {
   status: TimeSlot['status']
   label?: string
-  // true, ha a sáv perce nem 0 — ld. slotLabelWithTime és a lenti box-shadow
-  offHour?: boolean
+  minute?: number
   // textSolid/textTint opcionális felülírás (alapértelmezés a GYT-kapacitás-
   // nézethez illik: fehér szöveg az élénk "szabad" háttéren, normál
   // szövegszín a fakó "foglalt" háttéren) — a "saját naptár" (más szemantikájú
@@ -60,7 +74,22 @@ function SlotBlock({
   color: { solid: string; tint: string; textSolid?: string; textTint?: string }
   onClick?: () => void
   onEmptyClick?: () => void
+  // az "összesített" (több-sávos) nézetben a sáv vízszintes helyét/szélességét
+  // adja meg (ld. lentebb) — egyetlen GYT nézetében nincs rá szükség, a sáv a
+  // teljes cellaszélességet kapja
+  horizontalStyle?: CSSProperties
 }) {
+  const offset = verticalOffsetPct(minute)
+  const positionStyle: CSSProperties = {
+    position: 'absolute',
+    top: `${offset}%`,
+    height: '100%',
+    left: 0,
+    right: 0,
+    zIndex: offset ? 2 : 1,
+    ...horizontalStyle,
+  }
+
   if (!status) {
     // ha a hívó kattinthatóvá tette az üres órákat is (ld. onEmptySlotClick),
     // egy láthatatlan, de kattintható sáv jelenik meg — egyébként (a legtöbb
@@ -72,6 +101,7 @@ function SlotBlock({
         className="gyt-cal-slot gyt-cal-slot--empty-clickable"
         onClick={onEmptyClick}
         title="új időpont létrehozása"
+        style={{ position: 'absolute', top: 0, height: '100%', left: 0, right: 0, ...horizontalStyle }}
       />
     )
   }
@@ -83,10 +113,11 @@ function SlotBlock({
   return (
     <button
       type="button"
-      className={`gyt-cal-slot ${offHour ? 'gyt-cal-slot--offhour' : ''}`}
+      className="gyt-cal-slot"
       disabled={!onClick}
       onClick={onClick}
       style={{
+        ...positionStyle,
         backgroundColor: isFree ? color.solid : color.tint,
         color: isFree ? (color.textSolid ?? 'var(--offwhite)') : (color.textTint ?? 'var(--color-text)'),
         cursor: onClick ? 'pointer' : 'default',
@@ -130,7 +161,7 @@ export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedG
                     <SlotBlock
                       status={slot.status}
                       label={slotLabelWithTime(slot.label, hour, slot.minute)}
-                      offHour={!!slot.minute}
+                      minute={slot.minute}
                       color={
                         getSlotColor
                           ? getSlotColor(selectedGytId, dateISO, hour, slot)
@@ -154,18 +185,26 @@ export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedG
               // órában, ami cellánként eltérő sáv-számot adott, összezavaró
               // volt) — akinek nincs állapota, annak egy üres, láthatatlan
               // helykitöltő sávja van, hogy az oszlop-igazítás mindig azonos
-              // maradjon minden cellában
+              // maradjon minden cellában. A sávok mindegyike (a nem kerek
+              // órakor kezdődők függőleges átlógása miatt, ld. SlotBlock)
+              // abszolút pozicionált, fix index/n szélességgel — ez felváltja
+              // a korábbi flex-elrendezést, mert egy abszolút pozicionált
+              // gyereknél a flex "gap"/arányos-szélesség logika már nem
+              // működne (2026.09.01., Marci kérésére).
               return (
                 <div key={`${dateISO}-${hour}`} className="gyt-cal-cell gyt-cal-cell--lanes">
-                  {gytList.map((g) => {
+                  {gytList.map((g, i) => {
+                    const laneStyle: CSSProperties = { left: `${(i / gytList.length) * 100}%`, right: 'auto', width: `${100 / gytList.length}%` }
                     const slot = getSlot(g.id, dateISO, hour)
-                    if (!slot.status) return <span key={g.id} className="gyt-cal-slot gyt-cal-slot--empty" />
+                    if (!slot.status) {
+                      return <span key={g.id} className="gyt-cal-slot gyt-cal-slot--empty" style={{ position: 'absolute', top: 0, height: '100%', ...laneStyle }} />
+                    }
                     return (
                       <SlotBlock
                         key={g.id}
                         status={slot.status}
                         label={slotLabelWithTime(slot.label, hour, slot.minute)}
-                        offHour={!!slot.minute}
+                        minute={slot.minute}
                         color={
                           getSlotColor
                             ? getSlotColor(g.id, dateISO, hour, slot)
@@ -178,6 +217,7 @@ export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedG
                               ? () => onBookedSlotClick(g.id, dateISO, hour)
                               : undefined
                         }
+                        horizontalStyle={laneStyle}
                       />
                     )
                   })}

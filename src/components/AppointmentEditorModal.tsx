@@ -36,8 +36,12 @@ type AppointmentEditorModalProps = {
   isEditing: boolean
   // ha van ütközés az adott dátum/óra(/gyt)-on, adja vissza az ütköző
   // bejegyzés nevét+óráját, egyébként null — a hívó (page) tudja csak
-  // eldönteni, mert csak neki van rálátása a teljes hívás-/foglalás-listára
-  checkConflict?: (dateISO: string, hour: number, gytId: string | null) => ConflictInfo | null
+  // eldönteni, mert csak neki van rálátása a teljes hívás-/foglalás-listára.
+  // A `minute` "booking" módban azért kell, mert egy nem kerek órakor
+  // kezdődő GYT-időpont vizuálisan átlóg a szomszédos órás sávba is (ld.
+  // GytWeeklyCalendar verticalOffsetPct) — "call" módban (saját, nem
+  // blokkoló naptár) a hívó egyszerűen figyelmen kívül hagyhatja.
+  checkConflict?: (dateISO: string, hour: number, gytId: string | null, minute: number) => ConflictInfo | null
   onSave: (data: AppointmentEditorResult) => void
   onDelete?: () => void
   onClose: () => void
@@ -79,7 +83,7 @@ export default function AppointmentEditorModal({ mode, initial, gytOptions = [],
 
   function handleSaveClick() {
     if (!valid) return
-    const found = checkConflict?.(dateISO, hour, mode === 'booking' ? gytId : null) ?? null
+    const found = checkConflict?.(dateISO, hour, mode === 'booking' ? gytId : null, minute) ?? null
     if (found) {
       setConflict(found)
       return
