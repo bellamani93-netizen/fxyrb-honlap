@@ -48,6 +48,13 @@
 }
 .btn-fyb-ghost:hover { background-color: var(--color-bg-alt); color: var(--color-text); }
 
+/* kisebb, a szöveg mellé illő méret (pl. meet link melletti "másolás"/
+   "megosztás" gomb, 2026.09.01., Marci kérésére) — a pirula-alak megmarad */
+.btn-fyb-sm {
+  padding: 0.3rem 0.85rem;
+  font-size: 0.8rem;
+}
+
 /* halvány lime hátterű gomb — jelzi, hogy a rendszer javaslata kattintható (2026.08.27.) */
 .btn-fyb-suggested {
   background-color: rgba(215, 232, 52, 0.18);

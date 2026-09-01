@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BUSINESS_HOURS, addDays, formatDateOnly, formatHour, formatISODate, generateMeetLink, getMondayOf } from '../data/calendarData'
+import { BUSINESS_HOURS, addDays, formatDateOnly, formatHour, formatISODate, getMondayOf } from '../data/calendarData'
 import { useClients } from '../context/ClientsContext'
 import { LOGGED_IN_GYT_ID } from '../data/colleagues'
 import { useCalendar } from '../context/CalendarContext'
@@ -40,10 +40,6 @@ export default function GytNaptar() {
   // mindig ugyanazt az alapértelmezett dátum/órát ajánlja fel, ami olykor
   // ÉPP egybeesik egy már meglévő bejegyzéssel.
   const [editingSlot, setEditingSlot] = useState<{ dateISO: string; hour: number; isNew: boolean } | null>(null)
-  // egy meglévő "terv" sávra kattintva előbb egy kis 2-gombos popup jelenik
-  // meg (meet link rögzítése / módosítás), nem rögtön a teljes szerkesztő
-  const [tervActionsSlot, setTervActionsSlot] = useState<{ dateISO: string; hour: number } | null>(null)
-  const [confirmingTervDelete, setConfirmingTervDelete] = useState(false)
 
   const weekStart = addDays(getMondayOf(today), weekOffset * 7)
   const todayISO = formatISODate(today)
@@ -79,14 +75,12 @@ export default function GytNaptar() {
 
   function handleSlotClick(dateISO: string, hour: number) {
     const raw = getBooking(OWN_ID, dateISO, hour)
-    if (raw?.type === 'terv') {
-      setTervActionsSlot({ dateISO, hour })
-      return
-    }
-    // egy overlay-ben LÉTREHOZOTT bejegyzés (akár "szabad", akár "konzultáció")
-    // mindig szerkeszthető/törölhető — a GYT saját maga vette fel, van mit
-    // szerkeszteni/törölni rajta (2026.09.01., Marci kérésére: a "szabad"
-    // időpont is legyen törölhető).
+    // egy overlay-ben LÉTREHOZOTT bejegyzés (akár "szabad", "terv", akár
+    // "konzultáció") mindig egyenesen a teljes szerkesztőben nyílik meg —
+    // a korábbi, "terv"-re kattintva megjelenő 2-gombos köztes popup
+    // megszűnt (2026.09.01., Marci kérésére: kevesebb felesleges popup),
+    // a "meet link létrehozása és rögzítése" akció most már magában a
+    // szerkesztőben, a típus-választó mellett érhető el.
     if (raw) {
       setEditingSlot({ dateISO, hour, isNew: false })
       return
@@ -132,36 +126,6 @@ export default function GytNaptar() {
     removeBooking(OWN_ID, editingSlot.dateISO, editingSlot.hour)
     setEditingSlot(null)
   }
-
-  // a "meet link létrehozása és rögzítése" a tervet RÖGZÍTI — vagyis a színe
-  // is átvált a "konzultáció" (mentett menta) színére, nem marad "tervezett"
-  // (világos menta) (2026.08.31., Marci kérésére).
-  function handleGenerateMeetLinkForTerv() {
-    if (!tervActionsSlot) return
-    // getBookingMeta-t használjuk (nem a nyers getBooking-ot), mert az a
-    // clientId-t már a GYT-oldal saját (nem névtér-előtaggal ellátott)
-    // formájában adja vissza — ha a nyers, már előtaggal tárolt clientId-t
-    // adnánk vissza a setBooking-nak, az duplán prefixelné (ld. Design
-    // jegyzet 48. pont, névtér-ütközés SALES/GYT ügyfél-azonosítók között).
-    const meta = getBookingMeta(OWN_ID, tervActionsSlot.dateISO, tervActionsSlot.hour)
-    setBooking(OWN_ID, tervActionsSlot.dateISO, tervActionsSlot.hour, {
-      type: 'konzultacio',
-      clientId: meta.clientId,
-      name: meta.name,
-      alkalom: meta.alkalom,
-      meetLink: generateMeetLink(`${tervActionsSlot.dateISO}-${tervActionsSlot.hour}-${meta.clientId}-${Date.now()}`),
-    })
-    setTervActionsSlot(null)
-  }
-
-  function handleDeleteTerv() {
-    if (!tervActionsSlot) return
-    removeBooking(OWN_ID, tervActionsSlot.dateISO, tervActionsSlot.hour)
-    setTervActionsSlot(null)
-    setConfirmingTervDelete(false)
-  }
-
-  const tervActionsEntry = tervActionsSlot ? getBooking(OWN_ID, tervActionsSlot.dateISO, tervActionsSlot.hour) : undefined
 
   const todaysConsultations = BUSINESS_HOURS.map((hour) => ({ hour, meta: getBookingMeta(OWN_ID, todayISO, hour) }))
     .filter((entry): entry is { hour: number; meta: typeof entry.meta & { name: string } } => (entry.meta.kind === 'terv' || entry.meta.kind === 'konzultacio') && !!entry.meta.name)
@@ -267,61 +231,6 @@ export default function GytNaptar() {
               onBookedSlotClick={(_gytId, dateISO, hour) => handleSlotClick(dateISO, hour)}
               onEmptySlotClick={(_gytId, _gytName, dateISO, hour) => handleSlotClick(dateISO, hour)}
             />
-          </div>
-        )}
-
-        {tervActionsSlot && tervActionsEntry && !confirmingTervDelete && (
-          <div className="modal-backdrop-fyb" onClick={() => setTervActionsSlot(null)}>
-            <div className="modal-fyb card-fyb" onClick={(e) => e.stopPropagation()}>
-              <div className="d-flex justify-content-between align-items-start mb-1 gap-2">
-                <h2 className="h6 mb-0">{tervActionsEntry.name} — {formatHour(tervActionsSlot.hour)}</h2>
-                <button
-                  type="button"
-                  onClick={() => setConfirmingTervDelete(true)}
-                  aria-label="időpont törlése"
-                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', flexShrink: 0 }}
-                >
-                  <Icon src="/icons/ikon_kuka.svg" style={{ width: '1.3rem', height: '1.3rem', color: 'var(--color-danger)' }} />
-                </button>
-              </div>
-              <p className="small mb-3" style={{ color: 'var(--color-text-muted)' }}>
-                tervezett időpont{tervActionsEntry.alkalom ? `, ${tervActionsEntry.alkalom}. alkalom` : ''}
-              </p>
-              <div className="d-flex flex-column gap-2 mb-2">
-                {tervActionsEntry.alkalom === 1 ? (
-                  <p className="small fst-italic mb-0" style={{ color: 'var(--color-text-muted)' }}>
-                    az 1. alkalom hívás-linkjét már elküldte a sales.
-                  </p>
-                ) : (
-                  <button type="button" className="btn-fyb btn-fyb-outline" onClick={handleGenerateMeetLinkForTerv}>
-                    meet link létrehozása és rögzítése
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="btn-fyb btn-fyb-primary"
-                  onClick={() => {
-                    setEditingSlot({ ...tervActionsSlot!, isNew: false })
-                    setTervActionsSlot(null)
-                  }}
-                >
-                  módosítás
-                </button>
-              </div>
-              <button type="button" className="btn-fyb btn-fyb-ghost" onClick={() => setTervActionsSlot(null)}>mégse</button>
-            </div>
-          </div>
-        )}
-
-        {tervActionsSlot && confirmingTervDelete && (
-          <div className="modal-backdrop-fyb" onClick={() => setConfirmingTervDelete(false)}>
-            <div className="modal-fyb card-fyb" onClick={(e) => e.stopPropagation()}>
-              <p className="mb-3">biztos, hogy törlöd az időpontot?</p>
-              <div className="d-flex justify-content-end gap-2">
-                <button type="button" className="btn-fyb btn-fyb-ghost" onClick={() => setConfirmingTervDelete(false)}>nem</button>
-                <button type="button" className="btn-fyb btn-fyb-danger" onClick={handleDeleteTerv}>igen</button>
-              </div>
-            </div>
           </div>
         )}
 

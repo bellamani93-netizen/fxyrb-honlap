@@ -1016,3 +1016,15 @@ Marci 3 pontos korrekciója: (1) az 1. alkalom popupja mutassa is a meet linket,
 - CSS-hiba a "+" gombnál: az `Icon` komponens maszk-alapú ikonja (`.icon-fyb`) saját `color: var(--color-primary)` szabálya pontosan egybeesett a gomb türkiz háttérszínével, ezért az ikon láthatatlan volt — a SALES oldal ugyanilyen gombja csak azért működött eddig is, mert az sima "+" szöveget használ, nem ezt a komponenst. Javítva egy célzott `.circle-icon-btn--add .icon-fyb` override-dal.
 
 **Tesztelve böngészőben:** Varga Dániel (1. alkalom) popupja valódi linket mutat; Kovács Gábor (3. alkalom) "meet link létrehozása" gombja megnyomva előállítja a linket, mentés után a popup újranyitva ugyanazt a linket mutatja (nem regenerálódik); a "+" ikon világos és sötét módban is látszik. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.09.01. — Naptár/naptáram workflow-egyszerűsítés
+
+Marci kérésére elemzést készítettem a GYT naptár-időpont-kezelés jelenlegi kattintás-útvonalairól (túl sok popup-réteg, nehézkes "szabad" törlés, kézi meet-link generálás), és 3 javaslatot adtam. Mindhármat jóváhagyta (a "B" javaslat kuka-ikonos gyorsítása nélkül).
+
+**A — kevesebb popup:** a "terv" sávra kattintáskor megjelenő 2-gombos köztes popup megszűnt, minden sáv (szabad/terv/konzultáció) egyenesen a teljes szerkesztőt nyitja meg.
+
+**B — egyszerűbb törlés:** a "szabad" jelölés törlése megerősítő kérdés nélkül, azonnali (terv/konzultáció törlésénél a megerősítés marad).
+
+**C — automatikus meet link + másolás/megosztás:** a link a kézi "létrehozás" gomb helyett automatikusan, determinisztikusan megjelenik, amint van kiválasztott ügyfél (terv VAGY konzultáció típusnál) — még mentés előtt is látszik, élő előnézetként. Mellette új "másolás" (vágólap) és "megosztás" (előre kitöltött `mailto:` az ügyfél címére) gomb.
+
+**Tesztelve böngészőben:** "szabad" sáv azonnal törlődik megerősítés nélkül; "terv" típusú bejegyzés létrehozásakor a link+másolás+megosztás gombok kliens-választás után azonnal megjelentek; a sávra visszakattintva egyenesen a teljes szerkesztő nyílt, köztes popup nélkül, a mentett link nem változott újranyitáskor; "terv"/"konzultáció" törlésénél a megerősítő kérdés változatlanul megjelent. A "megosztás" mailto-linkje JS-sel ellenőrizve helyesen tartalmazta az ügyfél adatait. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.

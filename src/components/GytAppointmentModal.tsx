@@ -49,9 +49,10 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
   const [hour, setHour] = useState(initial.hour)
   const [type, setType] = useState<GytSlotType>(initial.type ?? 'szabad')
   const [clientId, setClientId] = useState<string | null>(initial.clientId ?? null)
-  const [meetLink, setMeetLink] = useState<string | undefined>(initial.meetLink)
+  const [meetLink] = useState<string | undefined>(initial.meetLink)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [conflict, setConflict] = useState<GytConflictInfo | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const needsClient = type !== 'szabad'
   const selectedClient = clientOptions.find((c) => c.id === clientId) ?? null
@@ -59,16 +60,24 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
   // szerkesztésnél a már rögzített számot vesszük, új felvételnél a
   // kiválasztott ügyfélre előre kiszámoljuk, hányadik alkalom lenne
   const currentAlkalom = isEditing ? initial.alkalom : clientId ? previewAlkalom(clientId) : undefined
-  // az 1. alkalom hívás-linkjét már a sales elküldte — nem kell újra
-  // létrehozni/küldeni (2026.09.01., Marci kérésére)
+  // az 1. alkalom hívás-linkjét már a sales elküldte (2026.09.01., Marci kérésére)
   const isFirstAlkalom = currentAlkalom === 1
+
+  // A linket mostantól NEM kell külön gombbal "létrehozni" — automatikusan,
+  // determinisztikusan (mindig ugyanazt adva ugyanarra a sávra/ügyfélre)
+  // elkészül, amint van kiválasztott ügyfél (2026.09.01., Marci kérésére:
+  // "a link generálódjon automatikusan, ne kelljen külön létrehozás gombra
+  // kattintani"). A ténylegesen ELMENTETT (initial.meetLink) érték élvez
+  // elsőbbséget, hogy szerkesztésnél ne változzon meg a korábban látott/
+  // kiküldött link.
+  const displayMeetLink = needsClient && clientId ? meetLink ?? generateMeetLink(`${dateISO}-${hour}-${clientId}`) : undefined
 
   function clearConflict() {
     setConflict(null)
   }
 
   function doSave() {
-    onSave({ dateISO, hour, type, clientId: needsClient ? clientId ?? undefined : undefined, meetLink: type === 'konzultacio' ? meetLink : undefined })
+    onSave({ dateISO, hour, type, clientId: needsClient ? clientId ?? undefined : undefined, meetLink: needsClient ? displayMeetLink : undefined })
   }
 
   // a GYT saját naptárában egy ütközés MINDIG valódi blokk — ez az ő fizikai
@@ -85,8 +94,34 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
     doSave()
   }
 
-  function handleGenerateMeetLink() {
-    setMeetLink(generateMeetLink(`${dateISO}-${hour}-${clientId ?? 'x'}-${Date.now()}`))
+  async function handleCopyMeetLink() {
+    if (!displayMeetLink) return
+    try {
+      await navigator.clipboard.writeText(`https://${displayMeetLink}`)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // a vágólap-hozzáférés böngészőtől függően megtagadható — ilyenkor a
+      // link szövegként (link + "megnyitás" gomb formájában) attól még ott
+      // marad, kézzel kimásolható.
+    }
+  }
+
+  const shareHref = selectedClient && displayMeetLink
+    ? `mailto:${selectedClient.email}?subject=${encodeURIComponent('Videóhívás linkje')}&body=${encodeURIComponent(
+        `Szia ${selectedClient.name}!\n\nItt a linked a konzultációhoz: https://${displayMeetLink}\n\nÜdv,\na FixYourBack csapat`
+      )}`
+    : undefined
+
+  // a "szabad" jelölés mögött nincs ügyfél-adat, triviálisan pótolható —
+  // ennél felesleges a megerősítő kérdés, csak terv/konzultáció törlésénél
+  // (valódi ügyfél-foglalás) kérdezünk vissza (2026.09.01., Marci kérésére).
+  function handleDeleteClick() {
+    if (type === 'szabad') {
+      onDelete?.()
+      return
+    }
+    setConfirmingDelete(true)
   }
 
   if (confirmingDelete) {
@@ -202,24 +237,25 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
             </div>
           )}
 
-          {type === 'konzultacio' && (
+          {needsClient && displayMeetLink && (
             <div className="col-12">
-              {meetLink ? (
-                <p className="small mb-0">
-                  meet link: <a href={`https://${meetLink}`} target="_blank" rel="noreferrer">{meetLink}</a>
-                  <span className="fst-italic" style={{ color: 'var(--color-text-muted)' }}>
-                    {' — '}
-                    {isFirstAlkalom ? 'az 1. alkalomnál ezt már a sales elküldte az ügyfélnek' : 'elküldve az ügyfélnek e-mailben'}
-                  </span>
-                </p>
-              ) : isFirstAlkalom ? (
-                <p className="small fst-italic mb-0" style={{ color: 'var(--color-text-muted)' }}>
-                  az 1. alkalom hívás-linkjét már elküldte a sales.
-                </p>
-              ) : (
-                <button type="button" className="btn-fyb btn-fyb-outline" disabled={!clientId} onClick={handleGenerateMeetLink}>
-                  meet link létrehozása, és küldése
+              <div className="d-flex flex-wrap align-items-center gap-2">
+                <a href={`https://${displayMeetLink}`} target="_blank" rel="noreferrer" className="small">
+                  {displayMeetLink}
+                </a>
+                <button type="button" className="btn-fyb btn-fyb-ghost btn-fyb-sm" onClick={handleCopyMeetLink}>
+                  {copied ? 'másolva ✓' : 'másolás'}
                 </button>
+                {shareHref && (
+                  <a className="btn-fyb btn-fyb-ghost btn-fyb-sm" href={shareHref}>
+                    megosztás
+                  </a>
+                )}
+              </div>
+              {isFirstAlkalom && (
+                <p className="small fst-italic mb-0 mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                  az 1. alkalomnál ezt már a sales elküldte az ügyfélnek.
+                </p>
               )}
             </div>
           )}
@@ -240,7 +276,7 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
                 type="button"
                 className="btn-fyb btn-fyb-ghost d-flex align-items-center gap-2"
                 style={{ color: 'var(--color-danger)' }}
-                onClick={() => setConfirmingDelete(true)}
+                onClick={handleDeleteClick}
               >
                 <Icon src="/icons/ikon_kuka.svg" style={{ width: '1.2rem', height: '1.2rem' }} />
                 időpont törlése
