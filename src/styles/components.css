@@ -615,9 +615,27 @@ html[data-theme='dark'] .locked-overlay-card {
   min-height: 100vh;
   background-color: var(--color-bg);
 }
+/* asztali nézetben (≥992px) a bal oldali menüsáv fix helyen marad, csak a
+   tartalom görgethető alatta — korábban a teljes oldal (menüsáv+tartalom)
+   együtt görgetett, ezért egy hosszú oldalnál (pl. a naptár-rács) a menüsáv
+   is felcsúszott és eltűnt (2026.09.01., Marci kérésére). A `.app-shell`
+   fix magassága + `overflow: hidden` teszi a menüsávot ÉS a tartalmat KÉT
+   FÜGGETLEN görgetési területté; a `position: fixed` modalok (ld.
+   .modal-backdrop-fyb) ettől függetlenül a teljes viewportot fedik, mert a
+   `overflow` önmagában nem hoz létre új containing blockot fixed elemekhez. */
 @media (min-width: 992px) {
   .app-shell {
     flex-direction: row;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .app-sidebar {
+    height: 100%;
+    overflow-y: auto;
+  }
+  .app-main {
+    height: 100%;
+    overflow-y: auto;
   }
 }
 .app-topbar {
