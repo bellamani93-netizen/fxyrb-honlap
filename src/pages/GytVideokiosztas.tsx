@@ -385,7 +385,10 @@ function VariablesPanel({
   onLockedChange: (locked: boolean) => void
   modified?: boolean
 }) {
-  const [expanded, setExpanded] = useState(false)
+  // ha a panel FELOLDVA indul (vadonatúj kliens, még nincs mentett limitáció),
+  // legyen egyből nyitva is — a GYT-nek látnia kell, hogy van itt tennivaló,
+  // mielőtt a videókiosztást elindítaná (2026.09.01., Marci kérésére).
+  const [expanded, setExpanded] = useState(() => !locked)
 
   return (
     <div className="card-fyb mb-3">
@@ -517,11 +520,15 @@ function GytVideokiosztasInner({ clientId }: { clientId: string }) {
   })
   const mode = modeByClient[clientId]
 
-  // A limitációk alapból "mentett" (rögzített) állapotban indulnak minden klienshez —
-  // ezek már korábban felvett adatok, nem üres űrlapok. Módosításhoz elő kell hívni.
+  // A limitációk a MÁR elindított (van mode-ja) klienseknél alapból "mentett"
+  // (rögzített) állapotban indulnak — ezek már korábban felvett adatok, nem
+  // üres űrlapok, módosításhoz elő kell hívni. Egy vadonatúj (SALES-től frissen
+  // kapott, mode nélküli) kliensnél viszont a panel NYITVA, FELOLDVA indul —
+  // a videókiosztás csak a limitációk elmentése UTÁN indítható (2026.09.01.,
+  // Marci kérésére: "előbb be kell állítani a limitációkat").
   const [variablesLockedByClient, setVariablesLockedByClient] = useState(() => {
     const map: Record<string, boolean> = {}
-    for (const c of clients) map[c.id] = true
+    for (const c of clients) map[c.id] = !!c.mode
     return map
   })
   const variablesLocked = variablesLockedByClient[clientId]
@@ -559,9 +566,15 @@ function GytVideokiosztasInner({ clientId }: { clientId: string }) {
         {!mode && (
           <div className="card-fyb card-fyb-accent text-center py-4">
             <p className="mb-3">{client.name} még nem kezdte el a videókiosztást. Indítsd el az 1. szinttel!</p>
+            {!variablesLocked && (
+              <p className="small mb-3" style={{ color: 'var(--color-text-muted)' }}>
+                előbb állítsd be és mentsd el a fenti limitációkat.
+              </p>
+            )}
             <button
               type="button"
               className="btn-fyb btn-fyb-primary"
+              disabled={!variablesLocked}
               onClick={() => {
                 setModeByClient((prev) => ({ ...prev, [clientId]: 'kozben' }))
                 setLevelsByClient((prev) => ({

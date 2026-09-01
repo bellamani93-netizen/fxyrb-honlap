@@ -1094,3 +1094,15 @@ Marci kérésére: a menüsáv egyik fiókban se görgessen el a tartalommal egy
 **Javítás:** csak asztali nézetben (`min-width: 992px`, ahol a menüsáv állandóan látható — mobilon ez a `☰`-fiók, más mechanizmus) `.app-shell` mostantól `height:100vh; overflow:hidden`, `.app-sidebar` és `.app-main` pedig egyaránt saját `height:100%; overflow-y:auto`-t kapott — két teljesen független görgetési terület. A `position:fixed` modalok ettől függetlenül változatlanul a teljes viewportot fedik.
 
 **Tesztelve böngészőben:** mesterségesen alacsony (1280×500px) asztali viewport-on mind a 4 szerepkörben (GYT, SALES, admin, ÜF) ellenőrizve: a tartalom görgetése nem mozdítja a menüsávot, a menüsáv saját görgetése (ha sok a menüpont) nem mozdítja a tartalmat, `window.scrollY` mindig 0 marad. Mobil nézetben a viselkedés változatlan (a média-lekérdezés ott nem aktiválódik). Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.09.01. — 3 korrekció: ügyfeleim kezdő dátuma, limitációk kötelezővé tétele, dinamikus alkalom-számozás
+
+Miután Marci sikeresen leteszteltette a teljes SALES→GYT→ÜF folyamatot, 3 további korrekciót kért.
+
+**A — GYT "ügyfeleim" lista:** minden sor mostantól a név alatt egy halványabb sorban mutatja az ügyfél kezdő hétköznapját+dátumát (pl. "kezdés: kedd, 2026.06.30.").
+
+**B — Videókiosztás, vadonatúj ügyfél:** eddig egy teljesen új (SALES-től frissen kapott) ügyfélnél a "limitációk" panel alapból zárt/mentett állapotban indult, és a "videókiosztás indítása" gomb rögtön aktív volt — vagyis a GYT a limitációk átnézése nélkül is elindíthatta a kiosztást. Mostantól egy vadonatúj (még nincs "mode"-ja) ügyfélnél a panel NYITVA és FELOLDVA indul, a "videókiosztás indítása" gomb pedig inaktív, amíg a GYT el nem menti a limitációkat.
+
+**C — Dinamikus alkalom-számozás:** eddig egy konzultáció "alkalom" száma a LÉTREHOZÁSKOR ("eddigi legnagyobb + 1") lett kiszámolva és véglegesen eltárolva — egy utólag, korábbi dátumra beillesztett konzultáció nem igazította a többi szám sorrendjét. Mostantól (`CalendarContext.tsx`) az alkalom-szám mindig ÚJRASZÁMOLÓDIK olvasáskor: az adott ügyfél összes valódi konzultációját dátum/idő szerint sorba rendezve, a szám = a bejegyzés pozíciója (index+1) ebben a sorban. Ez a naptár-cellák feliratában/színében ÉS az ÜF "konzultációk" listájában egységesen érvényesül.
+
+**Tesztelve böngészőben:** (A) minden sor helyesen mutatta a kezdő dátumot. (B) egy új teszt-ügyfélnél a panel nyitva/feloldva indult, a start-gomb `disabled` volt, mentés után aktívvá vált. (C) 3 konzultációt hozva létre nem-időrendi sorrendben (hétfő, péntek, majd egy közbeeső kedd) a kedd azonnal "2."-ként jelent meg, a péntek automatikusan "3."-ra tolódott — kizárólag a dátumok alapján. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.

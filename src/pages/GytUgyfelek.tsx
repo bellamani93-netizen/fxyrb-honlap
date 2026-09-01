@@ -5,6 +5,21 @@ import { useClients } from '../context/ClientsContext'
 import { getSelectedClientId, setSelectedClientId } from '../data/initialClients'
 import { LOGGED_IN_GYT_ID } from '../data/colleagues'
 
+const WEEKDAY_NAMES = ['vasárnap', 'hétfő', 'kedd', 'szerda', 'csütörtök', 'péntek', 'szombat']
+
+// az ügyfél kezdő napja/dátuma a listában (2026.09.01., Marci kérésére) —
+// a "startTime" datetime-local string dátum-részéből számolt hétköznap-név
+// + a dátum, pl. "kedd, 2026.06.30."
+function formatStartDay(startTime: string | undefined) {
+  if (!startTime) return null
+  const [datePart] = startTime.split('T')
+  const [y, m, d] = datePart.split('-').map(Number)
+  if (!y || !m || !d) return null
+  const weekday = WEEKDAY_NAMES[new Date(y, m - 1, d).getDay()]
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${weekday}, ${y}.${pad(m)}.${pad(d)}.`
+}
+
 export default function GytUgyfelek() {
   const navigate = useNavigate()
   const { clients } = useClients()
@@ -70,9 +85,16 @@ export default function GytUgyfelek() {
                 onClick={() => choose(c.id)}
               >
                 <span className="module-index">{c.name.charAt(0)}</span>
-                <span className="flex-grow-1 fw-bold d-flex align-items-center gap-2">
-                  {c.name}
-                  {c.isNew && <span className="new-client-badge">új</span>}
+                <span className="flex-grow-1" style={{ minWidth: 0 }}>
+                  <span className="fw-bold d-flex align-items-center gap-2">
+                    {c.name}
+                    {c.isNew && <span className="new-client-badge">új</span>}
+                  </span>
+                  {formatStartDay(c.startTime) && (
+                    <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>
+                      kezdés: {formatStartDay(c.startTime)}
+                    </span>
+                  )}
                 </span>
                 <span style={{ color: 'var(--color-text-muted)' }}>›</span>
               </button>

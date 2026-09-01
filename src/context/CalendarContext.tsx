@@ -134,6 +134,51 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     return bookings[key]
   }
 
+  // a "gyt:"/"sales:" névtér-előtag alól a nyers, ügyfél-nyilvántartásbeli
+  // (bare) azonosítót adja vissza, függetlenül attól, melyik szerepkör
+  // hozta létre a bejegyzést — az összevont regiszterben (ld. Design jegyzet
+  // 49. pont) ez már biztonságos, mert az id-k egyediek szerepkörtől
+  // függetlenül is.
+  function bareClientId(raw: string | undefined): string | undefined {
+    if (!raw) return undefined
+    if (raw.startsWith(GYT_CLIENT_PREFIX)) return raw.slice(GYT_CLIENT_PREFIX.length)
+    if (raw.startsWith(SALES_CLIENT_PREFIX)) return raw.slice(SALES_CLIENT_PREFIX.length)
+    return undefined
+  }
+
+  // Az adott ügyfélhez tartozó, TÉNYLEGESEN rögzített (nem demo-eredetű, nem
+  // "terv") konzultáció-bejegyzések, dátum/idő szerint növekvő sorrendben.
+  // Ez a "nyers" lista — az "alkalom" számot a HÍVÓ számolja ki az itteni
+  // SORRENDBŐL (index+1), nem a bejegyzésen esetlegesen tárolt régi értékből
+  // (ld. dynamicAlkalomFor és getClientConsultations, 2026.09.01., Marci
+  // kérésére: "a számozás dinamikusan változzon... nem a létrehozás
+  // időpontja számít, hanem az egymásutániság sorrendje").
+  function sortedConsultationsForClient(clientId: string) {
+    const entries: { key: string; dateISO: string; hour: number; minute?: number; booking: Booking }[] = []
+    for (const [key, b] of Object.entries(bookings)) {
+      if (removedKeys.has(key) || b.type !== 'konzultacio') continue
+      if (bareClientId(b.clientId) !== clientId) continue
+      const [, dateISO, hourStr] = key.split('__')
+      entries.push({ key, dateISO, hour: Number(hourStr), minute: b.minute, booking: b })
+    }
+    entries.sort((a, c) => {
+      if (a.dateISO !== c.dateISO) return a.dateISO < c.dateISO ? -1 : 1
+      if (a.hour !== c.hour) return a.hour - c.hour
+      return (a.minute ?? 0) - (c.minute ?? 0)
+    })
+    return entries
+  }
+
+  // a konkrét (gytId/dateISO/hour) sávon lévő bejegyzés hányadik alkalom a
+  // saját, időrendbe rendezett sorában — `undefined`, ha nincs feloldható
+  // clientId (pl. filler demo-ügyfél), ilyenkor a hívó a régi, tárolt
+  // `b.alkalom` értékre esik vissza.
+  function dynamicAlkalomFor(clientId: string | undefined, key: string): number | undefined {
+    if (!clientId) return undefined
+    const idx = sortedConsultationsForClient(clientId).findIndex((e) => e.key === key)
+    return idx === -1 ? undefined : idx + 1
+  }
+
   function isBooked(gytId: string, dateISO: string, hour: number) {
     return !!getBooking(gytId, dateISO, hour)
   }
@@ -144,7 +189,8 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     const b = bookings[key]
     if (b) {
       if (b.type === 'szabad') return { hour, status: 'szabad', minute: b.minute }
-      const label = b.name ? (b.alkalom ? `${b.name} ${b.alkalom}` : b.name) : undefined
+      const alkalom = b.type === 'konzultacio' ? (dynamicAlkalomFor(bareClientId(b.clientId), key) ?? b.alkalom) : b.alkalom
+      const label = b.name ? (alkalom ? `${b.name} ${alkalom}` : b.name) : undefined
       return { hour, status: 'foglalt', label, minute: b.minute }
     }
     const base = getBaseDaySlots(gytId, parseISODateLocal(dateISO), today).find((s) => s.hour === hour) ?? { hour }
@@ -174,11 +220,13 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   // (clientId "sales:"-prefixű) nincs megfeleltethető gytClients.ts rekord,
   // ott a clientId üresen marad (a név/alkalom/meetLink attól még megjelenik).
   function getBookingMeta(gytId: string, dateISO: string, hour: number): BookingMeta {
+    const key = bookingKey(gytId, dateISO, hour)
     const b = getBooking(gytId, dateISO, hour)
     if (b) {
       const clientId = b.clientId?.startsWith(GYT_CLIENT_PREFIX) ? b.clientId.slice(GYT_CLIENT_PREFIX.length) : undefined
-      const meetLink = resolveMeetLink(b.meetLink, b.alkalom, `${gytId}-${dateISO}-${hour}-${b.name ?? clientId ?? 'x'}`)
-      return { kind: b.type, alkalom: b.alkalom, name: b.name, meetLink, clientId, minute: b.minute }
+      const alkalom = b.type === 'konzultacio' ? (dynamicAlkalomFor(bareClientId(b.clientId), key) ?? b.alkalom) : b.alkalom
+      const meetLink = resolveMeetLink(b.meetLink, alkalom, `${gytId}-${dateISO}-${hour}-${b.name ?? clientId ?? 'x'}`)
+      return { kind: b.type, alkalom, name: b.name, meetLink, clientId, minute: b.minute }
     }
     const base = getBaseDaySlots(gytId, parseISODateLocal(dateISO), today).find((s) => s.hour === hour)
     if (!base?.status) return { kind: null }
@@ -271,20 +319,11 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   // az 1. tétel a SALES foglalásával jön létre, minden további a GYT által
   // ténylegesen lefixált (nem csak "terv") időponttal.
   function getClientConsultations(clientId: string): ClientConsultation[] {
-    const results: ClientConsultation[] = []
-    for (const [key, b] of Object.entries(bookings)) {
-      if (removedKeys.has(key) || b.type !== 'konzultacio' || !b.alkalom) continue
-      const bareId = b.clientId?.startsWith(GYT_CLIENT_PREFIX)
-        ? b.clientId.slice(GYT_CLIENT_PREFIX.length)
-        : b.clientId?.startsWith(SALES_CLIENT_PREFIX)
-          ? b.clientId.slice(SALES_CLIENT_PREFIX.length)
-          : undefined
-      if (bareId !== clientId) continue
-      const [, dateISO, hourStr] = key.split('__')
-      const meetLink = resolveMeetLink(b.meetLink, b.alkalom, `${key}-${b.name ?? clientId}`)
-      results.push({ alkalom: b.alkalom, dateISO, hour: Number(hourStr), minute: b.minute, meetLink })
-    }
-    return results.sort((a, b) => a.alkalom - b.alkalom)
+    return sortedConsultationsForClient(clientId).map((entry, i) => {
+      const alkalom = i + 1
+      const meetLink = resolveMeetLink(entry.booking.meetLink, alkalom, `${entry.key}-${entry.booking.name ?? clientId}`)
+      return { alkalom, dateISO: entry.dateISO, hour: entry.hour, minute: entry.minute, meetLink }
+    })
   }
 
   const value: CalendarContextValue = {
