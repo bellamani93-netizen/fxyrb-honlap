@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
 import Icon from './Icon'
+import { withBase } from '../lib/assetUrl'
 
 const navItems = [
   { to: '/', label: 'főoldal' },
@@ -17,8 +18,8 @@ export default function Header() {
     <header className="site-header">
       <div className="container d-flex flex-wrap align-items-center justify-content-between py-3 gap-3">
         <NavLink to="/" className="brand-logo order-lg-1" onClick={() => setOpen(false)}>
-          <img src="/images/logo-light-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-light" />
-          <img src="/images/logo-dark-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-dark" />
+          <img src={withBase("/images/logo-light-bg.png")} alt="Fix Your Back" className="brand-logo-img logo-for-light" />
+          <img src={withBase("/images/logo-dark-bg.png")} alt="Fix Your Back" className="brand-logo-img logo-for-dark" />
         </NavLink>
 
         <div className="d-flex align-items-center gap-2 order-lg-3">

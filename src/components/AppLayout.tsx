@@ -3,6 +3,7 @@ import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
 import Icon from './Icon'
 import { getAdminView, setAdminView } from '../hooks/useAdminEditGuard'
+import { withBase } from '../lib/assetUrl'
 
 export type NavItem = {
   to?: string
@@ -65,8 +66,8 @@ export default function AppLayout({ navItems = ufNavItems, userName = 'Péter', 
       <div className="app-topbar d-lg-none">
         <div className="app-topbar-row">
           <div className="brand-logo">
-            <img src="/images/logo-light-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-light" />
-            <img src="/images/logo-dark-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-dark" />
+            <img src={withBase("/images/logo-light-bg.png")} alt="Fix Your Back" className="brand-logo-img logo-for-light" />
+            <img src={withBase("/images/logo-dark-bg.png")} alt="Fix Your Back" className="brand-logo-img logo-for-dark" />
           </div>
           <div className="app-topbar-greeting">Szia, {displayName}!</div>
           <button type="button" className="btn-fyb btn-fyb-ghost" aria-label="menü" onClick={() => setOpen(true)}>
@@ -80,8 +81,8 @@ export default function AppLayout({ navItems = ufNavItems, userName = 'Péter', 
       <aside className={`app-sidebar ${open ? 'open' : ''}`}>
         <div className="app-sidebar-top">
           <div className="brand-logo">
-            <img src="/images/logo-light-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-light" />
-            <img src="/images/logo-dark-bg.png" alt="Fix Your Back" className="brand-logo-img logo-for-dark" />
+            <img src={withBase("/images/logo-light-bg.png")} alt="Fix Your Back" className="brand-logo-img logo-for-light" />
+            <img src={withBase("/images/logo-dark-bg.png")} alt="Fix Your Back" className="brand-logo-img logo-for-dark" />
           </div>
           <button type="button" className="app-sidebar-close d-lg-none" aria-label="menü bezárása" onClick={() => setOpen(false)}>
             ✕

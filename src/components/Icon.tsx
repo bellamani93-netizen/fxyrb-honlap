@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { withBase } from '../lib/assetUrl'
 
 type IconProps = {
   src: string
@@ -17,7 +18,7 @@ export default function Icon({ src, className = '', style, label }: IconProps) {
   return (
     <span
       className={`icon-fyb icon-mask ${className}`}
-      style={{ WebkitMaskImage: `url(${src})`, maskImage: `url(${src})`, ...style }}
+      style={{ WebkitMaskImage: `url(${withBase(src)})`, maskImage: `url(${withBase(src)})`, ...style }}
       role={label ? 'img' : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}

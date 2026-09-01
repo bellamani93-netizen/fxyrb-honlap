@@ -1,3 +1,6 @@
+import { Link } from 'react-router-dom'
+import { withBase } from '../lib/assetUrl'
+
 export default function Footer() {
   return (
     <footer className="site-footer">
@@ -5,7 +8,7 @@ export default function Footer() {
       <div className="container">
         <div className="row gy-4">
           <div className="col-md-4">
-            <img src="/images/logo-dark-bg.png" alt="Fix Your Back" className="brand-logo-img mb-2" />
+            <img src={withBase("/images/logo-dark-bg.png")} alt="Fix Your Back" className="brand-logo-img mb-2" />
             <p className="text-white-50 small mb-0">
               gerincbarát gyógytorna program — szakértő útmutatással, saját tempódban
             </p>
@@ -14,10 +17,10 @@ export default function Footer() {
           <div className="col-md-4">
             <div className="fw-bold mb-2">oldal</div>
             <ul className="list-unstyled d-flex flex-column gap-2 small">
-              <li><a href="/">főoldal</a></li>
-              <li><a href="/blog">blog</a></li>
-              <li><a href="/mini-kurzus">mini-kurzus</a></li>
-              <li><a href="/idopontfoglalas">időpontfoglalás</a></li>
+              <li><Link to="/">főoldal</Link></li>
+              <li><Link to="/blog">blog</Link></li>
+              <li><Link to="/mini-kurzus">mini-kurzus</Link></li>
+              <li><Link to="/idopontfoglalas">időpontfoglalás</Link></li>
             </ul>
           </div>
 

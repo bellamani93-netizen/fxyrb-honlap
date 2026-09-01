@@ -1,3 +1,5 @@
+import { withBase } from '../lib/assetUrl'
+
 type ChevronProps = {
   direction?: 'left' | 'right' | 'down'
   /** két, szorosan egymás mellett álló nyíl — a logóban látható ismétlődő minta, pl. eyebrow-khoz */
@@ -15,11 +17,11 @@ function Unit({ color }: { color?: string }) {
     return (
       <span
         className="chevron-unit chevron-unit--mask"
-        style={{ WebkitMaskImage: 'url(/images/chevron.png)', maskImage: 'url(/images/chevron.png)', backgroundColor: color }}
+        style={{ WebkitMaskImage: `url(${withBase('/images/chevron.png')})`, maskImage: `url(${withBase('/images/chevron.png')})`, backgroundColor: color }}
       />
     )
   }
-  return <img src="/images/chevron.png" alt="" className="chevron-unit" draggable={false} />
+  return <img src={withBase('/images/chevron.png')} alt="" className="chevron-unit" draggable={false} />
 }
 
 export default function Chevron({ direction = 'left', double = false, className = '', color }: ChevronProps) {

@@ -2,6 +2,7 @@ import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
 import Chevron from '../components/Chevron'
 import Icon from '../components/Icon'
+import { withBase } from '../lib/assetUrl'
 
 const helpCards = [
   {
@@ -66,10 +67,10 @@ export default function Home() {
             </div>
             <div className="col-lg-5 align-self-end">
               <div className="hero-photo-wrap">
-                <img src="/images/hero.png" alt="Bella Márton, gyógytornász" className="hero-photo" />
+                <img src={withBase("/images/hero.png")} alt="Bella Márton, gyógytornász" className="hero-photo" />
                 <div className="hero-signature-wrap">
-                  <img src="/images/signature-light.png" alt="" className="hero-signature signature-for-light" />
-                  <img src="/images/signature-dark.png" alt="" className="hero-signature signature-for-dark" />
+                  <img src={withBase("/images/signature-light.png")} alt="" className="hero-signature signature-for-light" />
+                  <img src={withBase("/images/signature-dark.png")} alt="" className="hero-signature signature-for-dark" />
                 </div>
               </div>
             </div>
