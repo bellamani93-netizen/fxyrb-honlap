@@ -30,7 +30,7 @@ export default function Belepes() {
     e.preventDefault()
     const match = TEST_ACCOUNTS[loginEmail.trim().toLowerCase()]
     if (!match) {
-      setError('ismeretlen teszt-fiók — próbáld: peldabela@peldabela.hu (ügyfél), kollega@kollega.hu (gyógytornász), ertekes@ertekes.hu (értékesítő) vagy admin@admin.hu (adminisztrátor)')
+      setError('ismeretlen e-mail cím vagy jelszó')
       return
     }
     localStorage.setItem('fyb-session', JSON.stringify(match))
@@ -91,9 +91,6 @@ export default function Belepes() {
               {error && (
                 <p className="small mb-0" style={{ color: 'var(--color-danger)' }}>{error}</p>
               )}
-              <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>
-                teszt-fiókok: <strong>peldabela@peldabela.hu</strong> (ügyfél) · <strong>kollega@kollega.hu</strong> (gyógytornász) · <strong>ertekes@ertekes.hu</strong> (értékesítő) · <strong>admin@admin.hu</strong> (adminisztrátor) — a jelszó tetszőleges
-              </p>
               <div className="text-end">
                 <a href="#" className="small" style={{ color: 'var(--color-primary)' }}>elfelejtett jelszó</a>
               </div>
