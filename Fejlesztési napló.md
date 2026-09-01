@@ -1065,3 +1065,14 @@ Marci megkérdezte, mire jó a meet-link "másolás"/"megosztás" gomb — kider
 ## 2026.09.01. — Visszavonva: "a naptár-sáv csak befizetés után foglalódik le"
 
 Az előző kör ("a naptár-sáv csak befizetés után foglalódik le") megvalósítása után Marci jelezte, hogy ez a megoldás mégsem jó — kérésére a commit `git revert`-tel visszavonva (`d21524f`), a kódbázis visszaállt a 8. kör (ÜF "konzultációk" oldal) állapotára. A `SalesHozzarendeles.tsx` ismét feltétel nélkül foglalja le a naptár-sávot ügyfél/időpont felvételekor, a "fizetve" jelölő státusza jelenleg nem befolyásolja a naptárat. A build hibamentes, a visszavonás nem érintett más, azóta készült funkciót.
+
+## 2026.09.01. — Nem kerek órakor kezdődő időpontok vizuális jelzése minden naptárban
+
+Marci hibajelzése: egy 9:30-as időpont a naptár-rácsban megkülönböztetés nélkül a 9:00-ás sorban jelent meg, ami félrevezető. Mivel a GYT saját naptára, a SALES "gyt naptárak" kapacitás-áttekintője ÉS a SALES saját "hívásaim" naptára mind ugyanazt az EGY `GytWeeklyCalendar.tsx` komponenst használják, egy helyen javítva mindhárom felületen egyszerre érvényesül.
+
+**Megvalósítás:**
+- `TimeSlot` típus (`calendarData.ts`) új, opcionális `minute` mezőt kapott, amit mindhárom `getSlot`-implementáció (GYT/SALES közös `CalendarContext.getEffectiveSlot`, SALES saját `SalesHivasaim.tsx` `getOwnSlot`) továbbad.
+- A sáv felirata elé kerül a pontos idő, ha a perc nem 0 (pl. "9:30 Kovács Gábor 3") — mivel az ellipszis-vágás a szöveg VÉGÉT vágja, ez a legszűkebb, "összesített" nézetben is látható marad.
+- Új `.gyt-cal-slot--offhour` CSS-osztály: `box-shadow: inset 0 0 0 1.5px currentColor` — a sáv saját, már kontrasztra hangolt szövegszínét használva világos és sötét módban egyaránt látszik.
+
+**Tesztelve böngészőben:** egy 9:30-as konzultációt felvéve mindhárom felületen (GYT saját naptár, SALES összesített "gyt naptárak" nézet szűk sávjaiban is, SALES saját "hívásaim" naptára egy meglévő 16:30-as seed-hívással) helyesen megjelent a pontos idő és a keret, külön beavatkozás nélkül mindhárom helyen. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.

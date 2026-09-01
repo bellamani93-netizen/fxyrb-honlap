@@ -143,9 +143,9 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     if (removedKeys.has(key)) return { hour }
     const b = bookings[key]
     if (b) {
-      if (b.type === 'szabad') return { hour, status: 'szabad' }
+      if (b.type === 'szabad') return { hour, status: 'szabad', minute: b.minute }
       const label = b.name ? (b.alkalom ? `${b.name} ${b.alkalom}` : b.name) : undefined
-      return { hour, status: 'foglalt', label }
+      return { hour, status: 'foglalt', label, minute: b.minute }
     }
     const base = getBaseDaySlots(gytId, parseISODateLocal(dateISO), today).find((s) => s.hour === hour) ?? { hour }
     if (base.status !== 'foglalt' || !base.label) return base

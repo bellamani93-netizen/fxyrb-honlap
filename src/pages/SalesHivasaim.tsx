@@ -59,7 +59,9 @@ export default function SalesHivasaim() {
   // új időpontot felvenni, kattintva az onFreeSlotClick nyitja a létrehozó popupot
   function getOwnSlot(_id: string, dateISO: string, hour: number): TimeSlot {
     const match = findCallAt(dateISO, hour)
-    return match ? { hour, status: 'foglalt', label: match.name } : { hour, status: 'szabad' }
+    if (!match) return { hour, status: 'szabad' }
+    const minute = Number(match.callTime.split(':')[1])
+    return { hour, status: 'foglalt', label: match.name, minute }
   }
 
   // színkód a saját naptárban (2026.08.28., Marci kérésére): sárga, ha a

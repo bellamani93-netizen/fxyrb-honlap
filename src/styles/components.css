@@ -1414,6 +1414,14 @@ html[data-theme='dark'] .sales-delete-icon {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* nem kerek egész órakor kezdődő sáv (pl. 9:30) — a felirat elé kerülő
+   pontos idő mellé egy halk, a sáv saját szövegszínéhez igazodó belső
+   keret is jelzi, hogy ez a sáv "más", mint a többi (2026.09.01., Marci
+   kérésére). A `currentColor` a SlotBlock már kontrasztra hangolt saját
+   szövegszínét használja, így világos és sötét módban is látszik. */
+.gyt-cal-slot--offhour {
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
 /* --- SALES: GYT-időpont foglaló modal (2026.08.28., naptár-integráció) --- */
 .gyt-booking-modal {
   max-width: 32rem;

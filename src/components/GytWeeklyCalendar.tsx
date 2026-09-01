@@ -29,15 +29,30 @@ type GytWeeklyCalendarProps = {
   getSlotColor?: (gytId: string, dateISO: string, hour: number, slot: TimeSlot) => { solid: string; tint: string; textSolid?: string; textTint?: string }
 }
 
+// ha egy sáv NEM kerek egész órakor kezdődik (pl. 9:30), a felirat elé
+// kerül a pontos idő — enélkül a sáv mindig a sor egész órájának tűnne
+// (2026.09.01., Marci hibajelzésére: "vizuálisan látszódjon, ha egy
+// időpont nem kerek egész órakor kezdődik, mert most félrevezető"). Az
+// ellipszis-vágás (ld. .gyt-cal-slot-label) a felirat VÉGÉT vágja, ezért a
+// legelső, legfontosabb infó (a pontos idő) még a legszűkebb, "összesített"
+// nézet sávjaiban is látszik.
+function slotLabelWithTime(label: string | undefined, hour: number, minute: number | undefined) {
+  if (!label || !minute) return label
+  return `${hour}:${String(minute).padStart(2, '0')} ${label}`
+}
+
 function SlotBlock({
   status,
   label,
+  offHour,
   color,
   onClick,
   onEmptyClick,
 }: {
   status: TimeSlot['status']
   label?: string
+  // true, ha a sáv perce nem 0 — ld. slotLabelWithTime és a lenti box-shadow
+  offHour?: boolean
   // textSolid/textTint opcionális felülírás (alapértelmezés a GYT-kapacitás-
   // nézethez illik: fehér szöveg az élénk "szabad" háttéren, normál
   // szövegszín a fakó "foglalt" háttéren) — a "saját naptár" (más szemantikájú
@@ -68,7 +83,7 @@ function SlotBlock({
   return (
     <button
       type="button"
-      className="gyt-cal-slot"
+      className={`gyt-cal-slot ${offHour ? 'gyt-cal-slot--offhour' : ''}`}
       disabled={!onClick}
       onClick={onClick}
       style={{
@@ -114,7 +129,8 @@ export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedG
                   <div key={`${dateISO}-${hour}`} className="gyt-cal-cell">
                     <SlotBlock
                       status={slot.status}
-                      label={slot.label}
+                      label={slotLabelWithTime(slot.label, hour, slot.minute)}
+                      offHour={!!slot.minute}
                       color={
                         getSlotColor
                           ? getSlotColor(selectedGytId, dateISO, hour, slot)
@@ -148,7 +164,8 @@ export default function GytWeeklyCalendar({ weekStart, today, gytList, selectedG
                       <SlotBlock
                         key={g.id}
                         status={slot.status}
-                        label={slot.label}
+                        label={slotLabelWithTime(slot.label, hour, slot.minute)}
+                        offHour={!!slot.minute}
                         color={
                           getSlotColor
                             ? getSlotColor(g.id, dateISO, hour, slot)

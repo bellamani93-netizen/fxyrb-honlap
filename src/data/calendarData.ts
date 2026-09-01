@@ -9,7 +9,11 @@ export const BUSINESS_HOURS = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 1
 const LUNCH_HOUR = 13
 
 export type SlotStatus = 'szabad' | 'foglalt'
-export type TimeSlot = { hour: number; status?: SlotStatus; label?: string }
+// a `minute` csak akkor van kitöltve, ha a bejegyzés ténylegesen NEM kerek
+// egész órakor kezdődik — a naptár-rács ezt vizuálisan is jelzi (ld.
+// GytWeeklyCalendar.tsx, 2026.09.01., Marci kérésére: "vizuálisan látszódjon,
+// ha egy időpont nem kerek egész órakor kezdődik").
+export type TimeSlot = { hour: number; status?: SlotStatus; label?: string; minute?: number }
 
 export const GYT_COLOR_VAR: Record<string, string> = {
   kollegabor: 'kollegabor',
