@@ -1028,3 +1028,13 @@ Marci kérésére elemzést készítettem a GYT naptár-időpont-kezelés jelenl
 **C — automatikus meet link + másolás/megosztás:** a link a kézi "létrehozás" gomb helyett automatikusan, determinisztikusan megjelenik, amint van kiválasztott ügyfél (terv VAGY konzultáció típusnál) — még mentés előtt is látszik, élő előnézetként. Mellette új "másolás" (vágólap) és "megosztás" (előre kitöltött `mailto:` az ügyfél címére) gomb.
 
 **Tesztelve böngészőben:** "szabad" sáv azonnal törlődik megerősítés nélkül; "terv" típusú bejegyzés létrehozásakor a link+másolás+megosztás gombok kliens-választás után azonnal megjelentek; a sávra visszakattintva egyenesen a teljes szerkesztő nyílt, köztes popup nélkül, a mentett link nem változott újranyitáskor; "terv"/"konzultáció" törlésénél a megerősítő kérdés változatlanul megjelent. A "megosztás" mailto-linkje JS-sel ellenőrizve helyesen tartalmazta az ügyfél adatait. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.09.01. — Hibajavítás: demo-eredetű "szabad" sávok nem voltak szerkeszthetők
+
+Marci hibajelzése: a naptárban maradt "szabad" színkódú (narancssárga) sávok úgy viselkedtek, mintha nem is lennének ott. Kiderült: a korábbi (46. pont) javítás, ami a demo-eredetű bejegyzéseket szerkeszthetővé tette, csak a "konzultáció" típusú demo-sávokra vonatkozott — a demo-eredetű "szabad" sávok (a rács nagy része) tévesen mindig "új felvételként" nyíltak meg, törlés-gomb nélkül, mintha ott semmi sem lenne.
+
+Javítás: `GytNaptar.tsx` `handleSlotClick()` feltétele kibővítve `meta.kind === 'konzultacio' || meta.kind === 'szabad'`-ra — mostantól minden demo-eredetű "szabad" sáv is létező bejegyzésként nyílik meg, törlés-gombbal, és a legutóbbi (B) javítás szerint azonnal törölhető.
+
+Ellenőriztem azt is, hogy ez a SALES "gyt naptárak" nézetében is látszik: mivel mindkét oldal ugyanazt a közös `getEffectiveSlot`-ot olvassa, egy GYT-oldalon törölt "szabad" sáv azonnal, ugyanabban a session-ben eltűnik a SALES nézetéből is (mind az összesített, mind az adott kolléga saját lapján).
+
+**Tesztelve böngészőben:** egy soha nem mentett demo "szabad" sávra kattintva a szerkesztő "időpont szerkesztése" címmel, törlés-gombbal nyílt meg; törlés után a sáv azonnal eltűnt, majd a SALES "Kollé Gábor" saját naptár-lapján ugyanaz a sáv szintén üresen jelent meg. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.

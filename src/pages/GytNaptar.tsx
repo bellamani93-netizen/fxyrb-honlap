@@ -86,14 +86,19 @@ export default function GytNaptar() {
       return
     }
     const meta = getBookingMeta(OWN_ID, dateISO, hour)
-    if (meta.kind === 'konzultacio') {
-      // demo-generált bejegyzés — nincs mögötte overlay, de a névből fel tudtuk
-      // oldani az ügyfelet, tehát ez is szerkeszthető (ld. getBookingMeta).
+    if (meta.kind === 'konzultacio' || meta.kind === 'szabad') {
+      // demo-generált bejegyzés — nincs mögötte overlay, de MÁR van itt egy
+      // meghirdetett állapot (konzultáció VAGY szabad), tehát ez is
+      // szerkeszthető/törölhető, nem "új felvétel" (2026.09.01., Marci
+      // hibajelzésére — korábban a demo-eredetű "szabad" sávok tévesen
+      // mindig új felvételként nyíltak meg, törlés-gomb nélkül, mintha ott
+      // nem is lenne semmi, holott a naptár lime/menta bejegyzésekhez
+      // hasonlóan "szabad"-ként jelölte őket).
       setEditingSlot({ dateISO, hour, isNew: false })
       return
     }
-    // demo-generált "szabad" óra vagy teljesen üres/meghirdetetlen óra — itt
-    // nincs semmi, amit törölni lehetne, tehát ez mindig ÚJ felvétel.
+    // teljesen üres/meghirdetetlen óra — itt tényleg nincs semmi, tehát ez
+    // mindig ÚJ felvétel.
     setEditingSlot({ dateISO, hour, isNew: true })
   }
 
