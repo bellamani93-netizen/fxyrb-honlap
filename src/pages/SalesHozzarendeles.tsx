@@ -334,20 +334,12 @@ export default function SalesHozzarendeles() {
 
     if (bookingEditor?.clientId) {
       // meglévő foglalás szerkesztése: ha a gyt/dátum/óra változott, a régi
-      // naptár-sávot fel kell szabadítani, mielőtt az újat lefoglalnánk —
-      // DE csak akkor, ha az ügyfél már befizetett, mert egy MÉG NEM
-      // fizetett ügyfélnek sosem volt valódi naptár-sávja (ld. lent), így
-      // nincs mit felszabadítani/újra lefoglalni (2026.09.01., Marci
-      // hibajelzésére: "a gyt naptárjába akkor is bekerül valaki, ha a
-      // sales még nem kattintotta a befizetés checkboxot").
+      // naptár-sávot fel kell szabadítani, mielőtt az újat lefoglalnánk
       const prevInitial = bookingEditor.initial
-      const existingClient = clients.find((c) => c.id === bookingEditor.clientId)
-      if (existingClient?.paid) {
-        if (prevInitial.gytId && (prevInitial.gytId !== gytId || prevInitial.dateISO !== data.dateISO || prevInitial.hour !== data.hour)) {
-          removeBooking(prevInitial.gytId, prevInitial.dateISO, prevInitial.hour)
-        }
-        addBooking(gytId, data.dateISO, data.hour, `${data.name} 1`, bookingEditor.clientId)
+      if (prevInitial.gytId && (prevInitial.gytId !== gytId || prevInitial.dateISO !== data.dateISO || prevInitial.hour !== data.hour)) {
+        removeBooking(prevInitial.gytId, prevInitial.dateISO, prevInitial.hour)
       }
+      addBooking(gytId, data.dateISO, data.hour, `${data.name} 1`, bookingEditor.clientId)
       setClients((prev) =>
         prev.map((c) =>
           c.id === bookingEditor.clientId
@@ -360,15 +352,12 @@ export default function SalesHozzarendeles() {
       // "isNew" + "variables" alapérték: hogy a frissen felvett ügyfél a GYT
       // "ügyfeleim" listájában azonnal "új"-ként (lime jelöléssel) jelenjen
       // meg, és az állapotfelmérő panel se találjon hiányzó bejegyzést
-      // (2026.09.01., ügyfél-nyilvántartások összevonása). A naptár-sáv
-      // szándékosan NEM foglalódik le itt — ez a flow mindig "paid: false"
-      // ügyfelet hoz létre (itt nincs "befizetett" kapcsoló), a booking csak
-      // akkor jön létre, amikor SALES ténylegesen bepipálja a "fizetve"
-      // jelölőt (ld. setPaid).
+      // (2026.09.01., ügyfél-nyilvántartások összevonása).
       setClients((prev) => [
         ...prev,
         { id, name: data.name, email: data.email, phone: data.phone, note: data.note || undefined, startTime, assignedGytId: gytId, isNew: true, paid: false, variables: DEFAULT_VARIABLES },
       ])
+      addBooking(gytId, data.dateISO, data.hour, `${data.name} 1`, id)
       if (adminActive) markAdminAdded(id)
     }
     setBookingEditor(null)
@@ -377,11 +366,7 @@ export default function SalesHozzarendeles() {
   function handleDeleteBooking() {
     if (!bookingEditor?.clientId) return
     const { gytId, dateISO, hour } = bookingEditor.initial
-    const existingClient = clients.find((c) => c.id === bookingEditor.clientId)
-    // csak akkor van mit felszabadítani a naptárban, ha az ügyfél már
-    // fizetett (ld. handleSaveBooking megjegyzése) — egyébként a
-    // removeBooking feleslegesen "elfedne" egy ott lévő demo-eredetű sávot.
-    if (gytId && existingClient?.paid) removeBooking(gytId, dateISO, hour)
+    if (gytId) removeBooking(gytId, dateISO, hour)
     setClients((prev) => prev.filter((c) => c.id !== bookingEditor.clientId))
     setBookingEditor(null)
   }
@@ -394,20 +379,8 @@ export default function SalesHozzarendeles() {
     })
   }
 
-  // a naptár-sáv csak IDE, a tényleges fizetés-váltáskor foglalódik le/
-  // szabadul fel — a felvételkor (handleSaveBooking/handleSubmit) még
-  // fizetetlen ügyfélnek szándékosan nincs valódi naptár-bejegyzése
-  // (2026.09.01., Marci hibajelzésére).
-  function setPaid(client: Client, paid: boolean) {
-    setClients((prev) => prev.map((c) => (c.id === client.id ? { ...c, paid } : c)))
-    if (!client.assignedGytId || !client.startTime) return
-    const [dateISO, timePart] = client.startTime.split('T')
-    const hour = Number(timePart.split(':')[0])
-    if (paid) {
-      addBooking(client.assignedGytId, dateISO, hour, `${client.name} 1`, client.id)
-    } else {
-      removeBooking(client.assignedGytId, dateISO, hour)
-    }
+  function setPaid(id: string, paid: boolean) {
+    setClients((prev) => prev.map((c) => (c.id === id ? { ...c, paid } : c)))
   }
 
   function deleteClient(id: string) {
@@ -422,14 +395,14 @@ export default function SalesHozzarendeles() {
     // ablakon megy át (a domain-specifikus "Tényleg nem fizetett be?" ablak
     // helyett), és a sor piros "admin által módosítva" címkét kap
     if (adminActive) {
-      adminGuard(`paid-${client.id}`, () => setPaid(client, next))
+      adminGuard(`paid-${client.id}`, () => setPaid(client.id, next))
       return
     }
     if (client.paid && !next) {
       setPendingAction({ type: 'unpay', client })
       return
     }
-    setPaid(client, next)
+    setPaid(client.id, next)
   }
 
   const formGytName = GYT_COLLEAGUES.find((g) => g.id === form.gytId)?.name ?? null
@@ -453,13 +426,7 @@ export default function SalesHozzarendeles() {
         variables: DEFAULT_VARIABLES,
       },
     ])
-    // a naptár-sáv csak fizetett ügyfélnél foglalódik le (ld. setPaid
-    // megjegyzése) — ha itt még nincs bepipálva a "befizetett", a
-    // foglalás majd akkor jön létre, amikor SALES az ügyfél-listában
-    // ténylegesen bepipálja.
-    if (form.paid) {
-      addBooking(pendingFormSlot.gytId, pendingFormSlot.dateISO, pendingFormSlot.hour, `${form.name.trim()} 1`, id)
-    }
+    addBooking(pendingFormSlot.gytId, pendingFormSlot.dateISO, pendingFormSlot.hour, `${form.name.trim()} 1`, id)
     if (adminActive) markAdminAdded(id)
     if (importedCallId) {
       setSalesCalls((prev) =>
@@ -762,7 +729,7 @@ export default function SalesHozzarendeles() {
             confirmLabel="tényleg nem"
             onCancel={() => setPendingAction(null)}
             onConfirm={() => {
-              setPaid(pendingAction.client, false)
+              setPaid(pendingAction.client.id, false)
               setPendingAction(null)
             }}
           />

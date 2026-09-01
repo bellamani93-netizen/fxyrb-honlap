@@ -1061,11 +1061,3 @@ Marci megkérdezte, mire jó a meet-link "másolás"/"megosztás" gomb — kider
 - Megjegyzés: Péter demo-narratívája szerint már 5 szintet teljesített, de mivel ehhez sosem volt valódi SALES-bejegyzés, a "konzultációk" listája üresen indul, amíg tényleges bejegyzés nem születik — ez a gyakorlatok-oldali szint-történettől független, külön demo-réteg.
 
 **Tesztelve böngészőben:** friss állapotban Péter oldala helyesen "még nincs rögzített konzultációd" üzenetet mutatott; a GYT naptárában Péternek felvett "konzultáció" azonnal megjelent az ÜF oldalán; a "fizetve" kikapcsolása elrejtette, visszakapcsolása változatlanul visszahozta a listát. Mobil nézetben a lista helyesen 2×2 elrendezésbe rendeződött. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
-
-## 2026.09.01. — Hibajavítás: a naptár-sáv csak befizetés után foglalódik le
-
-Marci hibajelzése: egy ügyfél akkor is bekerült a GYT naptárába, ha SALES még nem pipálta be a "fizetve" jelölőt — pedig az űrlap saját szövege már eleve ezt ígérte ("csak befizetés után jelenik meg az időpont a gyógytornász naptárában"), a kód viszont mindig feltétel nélkül foglalta le a sávot felvételkor.
-
-**Javítás:** `SalesHozzarendeles.tsx` `setPaid()` mostantól a teljes `Client` objektumot kapja, és a fizetés-váltáskor MAGA kezeli a naptár-sávot is: fizetettre váltva lefoglalja (`addBooking`), fizetetlenre visszaváltva felszabadítja (`removeBooking`) — pontosan azt, amit egy már meglévő kódkommentár is dokumentált, de a kód eddig nem követett. Az ügyfél/időpont felvételekor (`handleSubmit`, `handleSaveBooking`) az `addBooking` hívás feltételessé vált: csak akkor fut le, ha az ügyfél már fizetett (vagy az űrlapon a "befizetett" kapcsoló be van kapcsolva) — a "gyt naptárak" fülön szabad sávra kattintással felvett új ügyfél sosem fizetett azonnal, ott a foglalás csak az utólagos bepipáláskor jön létre.
-
-**Tesztelve böngészőben:** egy "gyt naptárak" fülön felvett új, fizetetlen ügyfél NEM foglalta le a sávot sem a SALES, sem a GYT naptárában; a "fizetve" bepipálása azonnal létrehozta a foglalást, kikapcsolása azonnal eltüntette. Az "ügyfelek" fül saját űrlapján "befizetett"-et már felvételkor bekapcsolva a foglalás azonnal megjelent. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
