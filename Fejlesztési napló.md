@@ -1061,3 +1061,7 @@ Marci megkérdezte, mire jó a meet-link "másolás"/"megosztás" gomb — kider
 - Megjegyzés: Péter demo-narratívája szerint már 5 szintet teljesített, de mivel ehhez sosem volt valódi SALES-bejegyzés, a "konzultációk" listája üresen indul, amíg tényleges bejegyzés nem születik — ez a gyakorlatok-oldali szint-történettől független, külön demo-réteg.
 
 **Tesztelve böngészőben:** friss állapotban Péter oldala helyesen "még nincs rögzített konzultációd" üzenetet mutatott; a GYT naptárában Péternek felvett "konzultáció" azonnal megjelent az ÜF oldalán; a "fizetve" kikapcsolása elrejtette, visszakapcsolása változatlanul visszahozta a listát. Mobil nézetben a lista helyesen 2×2 elrendezésbe rendeződött. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.09.01. — Visszavonva: "a naptár-sáv csak befizetés után foglalódik le"
+
+Az előző kör ("a naptár-sáv csak befizetés után foglalódik le") megvalósítása után Marci jelezte, hogy ez a megoldás mégsem jó — kérésére a commit `git revert`-tel visszavonva (`d21524f`), a kódbázis visszaállt a 8. kör (ÜF "konzultációk" oldal) állapotára. A `SalesHozzarendeles.tsx` ismét feltétel nélkül foglalja le a naptár-sávot ügyfél/időpont felvételekor, a "fizetve" jelölő státusza jelenleg nem befolyásolja a naptárat. A build hibamentes, a visszavonás nem érintett más, azóta készült funkciót.
