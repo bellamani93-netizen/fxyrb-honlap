@@ -1038,3 +1038,13 @@ Javítás: `GytNaptar.tsx` `handleSlotClick()` feltétele kibővítve `meta.kind
 Ellenőriztem azt is, hogy ez a SALES "gyt naptárak" nézetében is látszik: mivel mindkét oldal ugyanazt a közös `getEffectiveSlot`-ot olvassa, egy GYT-oldalon törölt "szabad" sáv azonnal, ugyanabban a session-ben eltűnik a SALES nézetéből is (mind az összesített, mind az adott kolléga saját lapján).
 
 **Tesztelve böngészőben:** egy soha nem mentett demo "szabad" sávra kattintva a szerkesztő "időpont szerkesztése" címmel, törlés-gombbal nyílt meg; törlés után a sáv azonnal eltűnt, majd a SALES "Kollé Gábor" saját naptár-lapján ugyanaz a sáv szintén üresen jelent meg. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.09.01. — Lime→terv színváltás javítása, óra:perc pontosságú időpont-választó
+
+Marci 2 pontos korrekciója: (1) egy lime (1. alkalmú) időpontot "terv"-re váltva a színe nem változott; (2) a GYT időpont-választója is tudjon óra:perc pontosan választani, ne csak egész órát.
+
+**Javítás 1:** `GytNaptar.tsx` `getSlotColor()`-jában az "1. alkalom → lime" szabály a "terv → világos menta" szabály ELŐTT futott, ezért egy lime bejegyzést terv-re váltva a lime-szabály felülírta a terv-szabályt. A sorrend megcserélve: a típus (terv) most elsőbbséget élvez, a lime csak konzultáció típusnál számít.
+
+**Javítás 2:** `GytAppointmentModal.tsx` óra-legördülője natív `<input type="time">` mezőre cserélve (ugyanaz a minta, mint a SALES "hívásaim" saját naptáránál). A naptár-rács továbbra is 1 órás sávokban gondolkodik (az óra dönti el a foglalt cellát/ütközést), a perc csak a bejegyzés pontos, megjelenített kezdési idejét finomítja — ehhez a közös `Booking`/`BookingMeta` típus új `minute` mezőt kapott, a "mai konzultációk" lista pedig a pontos időt mutatja.
+
+**Tesztelve böngészőben:** lime Varga Dániel-időpontot terv-re váltva a szín azonnal világos mentára változott (JS-sel mérve). Az időpont-mezőben natív óra:perc kerék jelent meg; 10:15-re állítva és mentve a "mai konzultációk" lista helyesen "10:15"-öt mutatott. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.

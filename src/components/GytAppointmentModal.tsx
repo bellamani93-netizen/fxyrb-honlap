@@ -7,6 +7,7 @@ export type GytSlotType = 'szabad' | 'terv' | 'konzultacio'
 export type GytAppointmentInitial = {
   dateISO: string
   hour: number
+  minute?: number
   type?: GytSlotType
   clientId?: string
   meetLink?: string
@@ -17,10 +18,20 @@ export type GytAppointmentInitial = {
 export type GytAppointmentResult = {
   dateISO: string
   hour: number
+  minute: number
   type: GytSlotType
   clientId?: string
   meetLink?: string
 }
+
+const pad = (n: number) => String(n).padStart(2, '0')
+// a naptár-rács 1 órás sávokban gondolkodik (a `hour` dönti el, melyik cella
+// foglalódik le) — az óra-választó ezért a meghirdetett sávokra (BUSINESS_HOURS)
+// korlátozza a natív időválasztót, a perc viszont szabadon, tetszőleges
+// pontossággal választható (2026.09.01., Marci kérésére: "óra:perc pontosan
+// tudjon választani").
+const MIN_TIME = `${pad(BUSINESS_HOURS[0])}:00`
+const MAX_TIME = `${pad(BUSINESS_HOURS[BUSINESS_HOURS.length - 1])}:59`
 
 export type GytClientOption = { id: string; name: string; email: string; phone: string }
 export type GytConflictInfo = { name: string; hour: number }
@@ -47,6 +58,7 @@ type GytAppointmentModalProps = {
 export default function GytAppointmentModal({ initial, isEditing, clientOptions, checkConflict, previewAlkalom, onSave, onDelete, onClose }: GytAppointmentModalProps) {
   const [dateISO, setDateISO] = useState(initial.dateISO)
   const [hour, setHour] = useState(initial.hour)
+  const [minute, setMinute] = useState(initial.minute ?? 0)
   const [type, setType] = useState<GytSlotType>(initial.type ?? 'szabad')
   const [clientId, setClientId] = useState<string | null>(initial.clientId ?? null)
   const [meetLink] = useState<string | undefined>(initial.meetLink)
@@ -77,7 +89,7 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
   }
 
   function doSave() {
-    onSave({ dateISO, hour, type, clientId: needsClient ? clientId ?? undefined : undefined, meetLink: needsClient ? displayMeetLink : undefined })
+    onSave({ dateISO, hour, minute, type, clientId: needsClient ? clientId ?? undefined : undefined, meetLink: needsClient ? displayMeetLink : undefined })
   }
 
   // a GYT saját naptárában egy ütközés MINDIG valódi blokk — ez az ő fizikai
@@ -195,19 +207,20 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
           </div>
           <div className="col-6">
             <label className="form-label small fw-bold" htmlFor="gyt-appt-hour">időpont</label>
-            <select
+            <input
               id="gyt-appt-hour"
+              type="time"
               className="form-control"
-              value={hour}
+              min={MIN_TIME}
+              max={MAX_TIME}
+              value={`${pad(hour)}:${pad(minute)}`}
               onChange={(e) => {
-                setHour(Number(e.target.value))
+                const [h, m] = e.target.value.split(':').map(Number)
+                if (!Number.isNaN(h)) setHour(h)
+                if (!Number.isNaN(m)) setMinute(m)
                 clearConflict()
               }}
-            >
-              {BUSINESS_HOURS.map((h) => (
-                <option key={h} value={h}>{formatHour(h)}</option>
-              ))}
-            </select>
+            />
           </div>
 
           {needsClient && (

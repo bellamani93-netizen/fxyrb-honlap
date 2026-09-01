@@ -9,14 +9,19 @@ import { useClients } from './ClientsContext'
 // és fordítva — mindkét oldal ugyanezt az EGY állapotot olvassa/írja.
 
 export type BookingType = 'szabad' | 'terv' | 'konzultacio'
-export type Booking = { type: BookingType; clientId?: string; name?: string; alkalom?: number; meetLink?: string }
+// a `minute` csak a GYT-oldali pontos időpont-megjelenítéshez kell (ld.
+// GytAppointmentModal — 2026.09.01., Marci kérésére: "óra:perc pontosan
+// választható legyen") — a naptár-RÁCS maga változatlanul 1 órás sávokban
+// gondolkodik (a `hour` dönti el, melyik cellát foglalja le), a perc pusztán
+// a bejegyzés pontos, megjelenített kezdési idejét finomítja.
+export type Booking = { type: BookingType; clientId?: string; name?: string; alkalom?: number; meetLink?: string; minute?: number }
 // a GYT-oldal (részletesebb) igényeihez — kiegészíti a demo-eredetű
 // bejegyzéseket egy, a közös ügyfél-listában név szerint egyező clientId-vel
 // is, hogy szerkeszthetők legyenek (ld. Design jegyzet 46. pont). A SALES oldal
 // EZT NEM használja — ő a nyers getBookingClientId()-t nézi, ami demo-eredetű
 // sávnál sosem ad vissza clientId-t (ld. Design jegyzet 36. pont, ez a
 // szabály a refaktor után is érvényben marad).
-export type BookingMeta = { kind: BookingType | null; alkalom?: number; name?: string; meetLink?: string; clientId?: string }
+export type BookingMeta = { kind: BookingType | null; alkalom?: number; name?: string; meetLink?: string; clientId?: string; minute?: number }
 
 type CalendarContextValue = {
   today: Date
@@ -166,7 +171,7 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     if (b) {
       const clientId = b.clientId?.startsWith(GYT_CLIENT_PREFIX) ? b.clientId.slice(GYT_CLIENT_PREFIX.length) : undefined
       const meetLink = resolveMeetLink(b.meetLink, b.alkalom, `${gytId}-${dateISO}-${hour}-${b.name ?? clientId ?? 'x'}`)
-      return { kind: b.type, alkalom: b.alkalom, name: b.name, meetLink, clientId }
+      return { kind: b.type, alkalom: b.alkalom, name: b.name, meetLink, clientId, minute: b.minute }
     }
     const base = getBaseDaySlots(gytId, parseISODateLocal(dateISO), today).find((s) => s.hour === hour)
     if (!base?.status) return { kind: null }

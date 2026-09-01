@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BUSINESS_HOURS, addDays, formatDateOnly, formatHour, formatISODate, getMondayOf } from '../data/calendarData'
+import { BUSINESS_HOURS, addDays, formatDateOnly, formatISODate, getMondayOf } from '../data/calendarData'
 import { useClients } from '../context/ClientsContext'
 import { LOGGED_IN_GYT_ID } from '../data/colleagues'
 import { useCalendar } from '../context/CalendarContext'
@@ -114,14 +114,14 @@ export default function GytNaptar() {
       if (!samePlace) removeBooking(OWN_ID, editingSlot.dateISO, editingSlot.hour)
     }
     if (data.type === 'szabad') {
-      setBooking(OWN_ID, data.dateISO, data.hour, { type: 'szabad' })
+      setBooking(OWN_ID, data.dateISO, data.hour, { type: 'szabad', minute: data.minute })
     } else {
       const client = clients.find((c) => c.id === data.clientId)
       const alkalom =
         editingMeta?.clientId === data.clientId && editingMeta?.alkalom
           ? editingMeta.alkalom
           : nextAlkalomForClient(client?.name ?? '')
-      setBooking(OWN_ID, data.dateISO, data.hour, { type: data.type, clientId: data.clientId, name: client?.name, alkalom, meetLink: data.meetLink })
+      setBooking(OWN_ID, data.dateISO, data.hour, { type: data.type, clientId: data.clientId, name: client?.name, alkalom, meetLink: data.meetLink, minute: data.minute })
     }
     setEditingSlot(null)
   }
@@ -134,7 +134,7 @@ export default function GytNaptar() {
 
   const todaysConsultations = BUSINESS_HOURS.map((hour) => ({ hour, meta: getBookingMeta(OWN_ID, todayISO, hour) }))
     .filter((entry): entry is { hour: number; meta: typeof entry.meta & { name: string } } => (entry.meta.kind === 'terv' || entry.meta.kind === 'konzultacio') && !!entry.meta.name)
-    .map(({ hour, meta }) => ({ hour, name: meta.name, alkalom: meta.alkalom, meetLink: meta.meetLink }))
+    .map(({ hour, meta }) => ({ hour, minute: meta.minute ?? 0, name: meta.name, alkalom: meta.alkalom, meetLink: meta.meetLink }))
 
   return (
     <section className="py-3 py-lg-5">
@@ -176,7 +176,7 @@ export default function GytNaptar() {
             ) : (
               todaysConsultations.map((c) => (
                 <div key={c.hour} className="consultation-row-grid py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  <span className="fw-bold">{formatHour(c.hour)}</span>
+                  <span className="fw-bold">{c.hour}:{String(c.minute).padStart(2, '0')}</span>
                   <span>{c.name}</span>
                   <span style={{ color: 'var(--color-text-muted)' }}>{c.alkalom ?? '—'}</span>
                   {c.meetLink ? (
@@ -215,19 +215,22 @@ export default function GytNaptar() {
               getSlotColor={(_id, dateISO, hour) => {
                 // saját naptár-színkód (2026.08.31., Marci kérésére) — MINDEN gyt
                 // ugyanígy látja a sajátját, függetlenül a SALES-oldali kolléga-
-                // színétől: 1. alkalom mindig lime, lefoglalt (konzultáció)
-                // mentett menta, tervezett (terv) világos menta, szabad halvány
-                // narancssárga.
+                // színétől: szabad halvány narancssárga, tervezett (terv) MINDIG
+                // világos menta (a típus dönt, nem az alkalom-szám — 2026.09.01.,
+                // Marci hibajelzésére: korábban egy lime, 1. alkalmú bejegyzés
+                // terv-re váltva is lime maradt, mert az alkalom===1 ellenőrzés
+                // megelőzte a "terv"-ellenőrzést), lefoglalt (konzultáció) 1.
+                // alkalma lime, minden más konzultáció mentett menta.
                 const meta = getBookingMeta(OWN_ID, dateISO, hour)
                 if (meta.kind === 'szabad') {
                   return { solid: 'var(--pale-orange)', tint: 'var(--pale-orange)', textSolid: 'var(--navy)', textTint: 'var(--navy)' }
                 }
-                if (meta.alkalom === 1) {
-                  return { solid: 'var(--lime)', tint: 'var(--lime)', textSolid: 'var(--navy)', textTint: 'var(--navy)' }
-                }
                 if (meta.kind === 'terv') {
                   const c = 'rgba(var(--mint-rgb), 0.35)'
                   return { solid: c, tint: c, textSolid: 'var(--navy)', textTint: 'var(--navy)' }
+                }
+                if (meta.alkalom === 1) {
+                  return { solid: 'var(--lime)', tint: 'var(--lime)', textSolid: 'var(--navy)', textTint: 'var(--navy)' }
                 }
                 const mint = 'var(--mint)'
                 return { solid: mint, tint: mint, textSolid: 'var(--navy)', textTint: 'var(--navy)' }
@@ -251,6 +254,7 @@ export default function GytNaptar() {
             initial={{
               dateISO: editingSlot.dateISO,
               hour: editingSlot.hour,
+              minute: editingMeta?.minute,
               type: editingMeta?.kind ?? undefined,
               clientId: editingMeta?.clientId,
               meetLink: editingMeta?.meetLink,
