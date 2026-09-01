@@ -37,7 +37,14 @@ type CalendarContextValue = {
   setBooking: (gytId: string, dateISO: string, hour: number, booking: Booking) => void
   removeBooking: (gytId: string, dateISO: string, hour: number) => void
   nextAlkalomForClient: (gytId: string, clientName: string) => number
+  // az ÜF saját "konzultációk" oldalának — az adott ügyfélhez (bármelyik
+  // gyt-nél, bármelyik szerepkör által) TÉNYLEGESEN, valódi bejegyzésként
+  // rögzített (nem demo-eredetű, nem "terv") konzultációk, alkalom szerint
+  // növekvő sorrendben (ld. Design jegyzet, "ÜF konzultációk" pont).
+  getClientConsultations: (clientId: string) => ClientConsultation[]
 }
+
+export type ClientConsultation = { alkalom: number; dateISO: string; hour: number; minute?: number; meetLink?: string }
 
 const CalendarContext = createContext<CalendarContextValue | null>(null)
 
@@ -257,6 +264,29 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     return max + 1
   }
 
+  // ld. Design jegyzet — az ÜF "konzultációk" oldala EZT olvassa: csak a
+  // ténylegesen (SALES vagy GYT által) rögzített, "konzultáció" típusú
+  // (tehát NEM "terv") bejegyzéseket, a demo-generált zajt (getBaseDaySlots)
+  // figyelmen kívül hagyva — a lista pontosan úgy nő, ahogy Marci kérte:
+  // az 1. tétel a SALES foglalásával jön létre, minden további a GYT által
+  // ténylegesen lefixált (nem csak "terv") időponttal.
+  function getClientConsultations(clientId: string): ClientConsultation[] {
+    const results: ClientConsultation[] = []
+    for (const [key, b] of Object.entries(bookings)) {
+      if (removedKeys.has(key) || b.type !== 'konzultacio' || !b.alkalom) continue
+      const bareId = b.clientId?.startsWith(GYT_CLIENT_PREFIX)
+        ? b.clientId.slice(GYT_CLIENT_PREFIX.length)
+        : b.clientId?.startsWith(SALES_CLIENT_PREFIX)
+          ? b.clientId.slice(SALES_CLIENT_PREFIX.length)
+          : undefined
+      if (bareId !== clientId) continue
+      const [, dateISO, hourStr] = key.split('__')
+      const meetLink = resolveMeetLink(b.meetLink, b.alkalom, `${key}-${b.name ?? clientId}`)
+      results.push({ alkalom: b.alkalom, dateISO, hour: Number(hourStr), minute: b.minute, meetLink })
+    }
+    return results.sort((a, b) => a.alkalom - b.alkalom)
+  }
+
   const value: CalendarContextValue = {
     today,
     isBooked,
@@ -268,6 +298,7 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     setBooking,
     removeBooking,
     nextAlkalomForClient,
+    getClientConsultations,
   }
 
   return <CalendarContext.Provider value={value}>{children}</CalendarContext.Provider>

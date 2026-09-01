@@ -15,6 +15,7 @@ export type NavItem = {
 
 const ufNavItems: NavItem[] = [
   { to: '/gyakorlatok', label: 'gyakorlatok', icon: '/icons/ikon_torna.svg' },
+  { to: '/konzultacioim', label: 'konzultációk', icon: '/icons/ikon_naptar.svg' },
   { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
   { label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: true },
   { label: 'oktatóanyag', icon: '/icons/ikon_tanulas.svg', locked: true },

@@ -1048,3 +1048,16 @@ Marci 2 pontos korrekciója: (1) egy lime (1. alkalmú) időpontot "terv"-re vá
 **Javítás 2:** `GytAppointmentModal.tsx` óra-legördülője natív `<input type="time">` mezőre cserélve (ugyanaz a minta, mint a SALES "hívásaim" saját naptáránál). A naptár-rács továbbra is 1 órás sávokban gondolkodik (az óra dönti el a foglalt cellát/ütközést), a perc csak a bejegyzés pontos, megjelenített kezdési idejét finomítja — ehhez a közös `Booking`/`BookingMeta` típus új `minute` mezőt kapott, a "mai konzultációk" lista pedig a pontos időt mutatja.
 
 **Tesztelve böngészőben:** lime Varga Dániel-időpontot terv-re váltva a szín azonnal világos mentára változott (JS-sel mérve). Az időpont-mezőben natív óra:perc kerék jelent meg; 10:15-re állítva és mentve a "mai konzultációk" lista helyesen "10:15"-öt mutatott. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.09.01. — ÜF "konzultációk" oldal
+
+Marci megkérdezte, mire jó a meet-link "másolás"/"megosztás" gomb — kiderült, a valós cél az, hogy az ügyfél a linket a saját fiókján belül kapja meg. Mivel az ÜF-oldalnak eddig nem volt a közös naptár-állapothoz kapcsolódó felülete, Marci egy új "konzultációk" menüpontot kért: egy lista (pl. "1. konzultáció 2026.09.15. 9:00, link"), ami a SALES által létrehozott 1. konzultációval indul (csak ha a "fizetve" be van pipálva), és csak akkor bővül, amikor a GYT egy TOVÁBBI, ténylegesen lefixált (nem "terv") időpontot hoz létre.
+
+**Megvalósítás:**
+- Új oldalsáv-elem "konzultációk" (`/konzultacioim`), új `UgyfelKonzultaciok.tsx` oldal.
+- Az ÜF a demóban mindig "Péter" (`LOGGED_IN_UF_ID = 'peter'`, `initialClients.ts`).
+- Új `getClientConsultations(clientId)` a `CalendarContext`-ben: a közös `bookings` állapotból szűri az adott ügyfélhez tartozó, valóban "konzultáció" típusú (nem "terv", nem demo-eredetű) bejegyzéseket, alkalom szerint rendezve.
+- A lista csak `client.paid === true` esetén jelenik meg — a kapu csak a megjelenítést vezérli, az adatok a "fizetve" ki/bekapcsolásától függetlenül megmaradnak.
+- Megjegyzés: Péter demo-narratívája szerint már 5 szintet teljesített, de mivel ehhez sosem volt valódi SALES-bejegyzés, a "konzultációk" listája üresen indul, amíg tényleges bejegyzés nem születik — ez a gyakorlatok-oldali szint-történettől független, külön demo-réteg.
+
+**Tesztelve böngészőben:** friss állapotban Péter oldala helyesen "még nincs rögzített konzultációd" üzenetet mutatott; a GYT naptárában Péternek felvett "konzultáció" azonnal megjelent az ÜF oldalán; a "fizetve" kikapcsolása elrejtette, visszakapcsolása változatlanul visszahozta a listát. Mobil nézetben a lista helyesen 2×2 elrendezésbe rendeződött. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.

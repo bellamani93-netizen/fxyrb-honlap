@@ -157,6 +157,11 @@ export const initialClients: Client[] = [
   },
 ]
 
+/** a demóban a "Péter" teszt-fiókkal bejelentkezett ÜF mindig ő (ld. AppLayout.tsx
+ * alapértelmezett userName-je és Gyakorlatok.tsx) — az ÜF-oldali "konzultációk"
+ * lap ezzel szűri, mely foglalások tartoznak "hozzá". */
+export const LOGGED_IN_UF_ID = 'peter'
+
 const SELECTED_CLIENT_KEY = 'fyb-gyt-client'
 
 /** csak a nyers, tárolt értéket adja vissza — a hívónak kell ellenőriznie a LIVE ügyfél-listával szemben (ld. useClients()), mert ez a lista futásidőben bővülhet. */

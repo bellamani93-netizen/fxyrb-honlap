@@ -7,6 +7,7 @@ import MiniKurzus from './pages/MiniKurzus'
 import Idopontfoglalas from './pages/Idopontfoglalas'
 import Belepes from './pages/Belepes'
 import Gyakorlatok from './pages/Gyakorlatok'
+import UgyfelKonzultaciok from './pages/UgyfelKonzultaciok'
 import GytUgyfelek from './pages/GytUgyfelek'
 import GytVideokiosztas from './pages/GytVideokiosztas'
 import GytNaptar from './pages/GytNaptar'
@@ -75,6 +76,7 @@ function AppRoutes() {
       </Route>
       <Route element={<AppLayout role="ugyfel" />}>
         <Route path="/gyakorlatok" element={<Gyakorlatok />} />
+        <Route path="/konzultacioim" element={<UgyfelKonzultaciok />} />
       </Route>
       <Route element={<AppLayout navItems={gytNavItems} userName="Judit" role="gyt" />}>
         <Route path="/gyt/ugyfelek" element={<GytUgyfelek />} />
