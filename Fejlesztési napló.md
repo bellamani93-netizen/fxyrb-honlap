@@ -1114,3 +1114,11 @@ Marci kérte az addigi állás publikálását GitHub Pages-re. Előkészítette
 Akadály: a repó privát, a jelenlegi GitHub csomag pedig nem támogatja a Pages-t privát repóknál (csak Pro+ csomaggal, vagy ha publikus a repó). Marci a repó publikussá tételét választotta. Ezt megelőzően eltávolítottam a `/belepes` oldal látható teszt-fiók e-mail listáját (korábban egy tájékoztató szöveg felsorolta mind a 4 teszt-e-mailt) — Marci ezeket privát üzenetben küldi el a tesztelőknek. A bejelentkezés funkcionálisan változatlan, csak a UI-n nincs kiírva a lista.
 
 **Tesztelve böngészőben:** `vite preview`-val a tényleges production build-et `/fxyrb-honlap/` alútvonalon kiszolgálva — a főoldal, bejelentkezés, GYT szerepkör minden ikonja/képe hibátlanul töltött be, a navigáció a helyes alútvonalon maradt, konzol-hiba nem jelentkezett. A `/belepes` oldalon a teszt-fiókok listája eltűnt, a bejelentkezés funkcionálisan továbbra is működött.
+
+## 2026.09.01. — Popupok méretre igazítása alacsony valódi telefonokon (iPhone SE 2020)
+
+Marci egy valódi iPhone SE 2020-on (375×667) nyitotta meg az oldalt, és összecsúszva látta a nézeteket. Kiderült: minden popup az egész appban (GYT/SALES időpont-szerkesztők, hívás-részletek, megerősítő ablakok) egy közös alap-osztályt használ, aminek eddig nem volt magasság-korlátja — egy magasabb tartalmú popup egy alacsonyabb valódi képernyőn a középre-igazítás miatt MINDKÉT irányba túllógott a látható területen, görgetés nélkül (a fejléc fent, a gombok lent váltak elérhetetlenné).
+
+**Javítás:** a közös `.modal-fyb` osztály `max-height: calc(100dvh - 2rem)` + `overflow-y: auto`-t kapott — ha a tartalom belefér, semmi nem változik, ha nem, maga a popup görgethetővé válik. Mivel EGYETLEN közös osztályról van szó, ez egy helyen az összes fiók összes popupjára érvényes.
+
+**Tesztelve böngészőben:** 375×667px-en (iPhone SE 2020 pontos mérete) JS-sel mérve és képernyőképpel is igazolva: a GYT naptár teljes szerkesztője pontosan a látható területen belül fér el; a SALES legmagasabb popupja (új időpont, minden mezővel) ténylegesen görgetést igényelt, és görgetés után minden mező és gomb hibátlanul, átfedés nélkül látszott. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.

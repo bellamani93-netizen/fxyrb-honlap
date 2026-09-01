@@ -1162,6 +1162,22 @@ html[data-theme='dark'] .locked-overlay-card {
 .modal-fyb {
   max-width: 24rem;
   width: 100%;
+  /* Enélkül egy hosszabb tartalmú popup (pl. dátum/idő + ügyfél-választó +
+     meet-link szekció) egy ALACSONYABB, valódi képernyőn (pl. iPhone SE
+     2020, 375×667) a látható terület MINDKÉT szélén túllógott — a
+     .modal-backdrop-fyb középre igazítása nem vág, csak középre helyez,
+     ezért görgetés nélkül sem a fejléc, sem a lenti gombok nem voltak
+     elérhetők. A max-height a backdrop 1rem+1rem paddingjéhez igazodik; a
+     `dvh` a VALÓDI, épp látható (pl. a címsor miatt zsugorodott) mobil
+     viewport-magasságot veszi figyelembe, nem a böngésző-UI nélkülit, mint
+     a `vh` — a `vh`-s sor csak a `dvh`-t nem ismerő böngészőknek marad meg
+     (2026.09.01., Marci hibajelzésére: "összecsúsztak a nézetek" egy
+     iPhone SE 2020-on). Mindegyik popup ugyanezt az osztályt használja, így
+     ez az EGY javítás minden fiók minden ablakára/popupjára érvényes.
+  */
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
 }
 
 /* --- SALES ügyféllista: valódi rács, hogy az azonos oszlopok (név, email,
