@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { DEFAULT_VARIABLES, type Client } from '../data/initialClients'
 import { AdminModifiedBadge } from '../hooks/useAdminEditGuard'
-import { BUSINESS_HOURS, GYT_COLLEAGUES, addDays, formatDateOnly, getMondayOf, gytColorVar, type SalesCall } from '../data/calendarData'
+import { BUSINESS_HOURS, GYT_COLLEAGUES, addDays, getMondayOf, gytColorVar, type SalesCall } from '../data/calendarData'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
+import WeekNavHeader from '../components/WeekNavHeader'
 import AppointmentEditorModal, { type AppointmentEditorInitial, type AppointmentEditorResult, type ConflictInfo } from '../components/AppointmentEditorModal'
 import { useSalesData } from '../context/SalesDataContext'
 
@@ -234,7 +235,7 @@ export default function SalesHozzarendeles() {
   // foglalássá, hogy egy félbehagyott/törölt űrlap ne foglaljon le hiába egy sávot
   const [pendingFormSlot, setPendingFormSlot] = useState<{ gytId: string; dateISO: string; hour: number } | null>(null)
   const [calSelectedGyt, setCalSelectedGyt] = useState<string | null>(null) // null = összesített nézet
-  const [weekOffset, setWeekOffset] = useState<0 | 1>(0)
+  const [weekOffset, setWeekOffset] = useState(0)
   // "időpont választása a naptárból" mostantól ténylegesen átvált a "gyt
   // naptárak" fülre, "kiválasztás módban" (2026.08.28., 6. kör, Marci
   // kérésére — a korábbi, szöveges listás popup helyett a vizuális rácson
@@ -695,7 +696,7 @@ export default function SalesHozzarendeles() {
         )}
 
         {tab === 'gyt' && (
-          <div className="card-fyb">
+          <div className="card-fyb gyt-cal-card-mobile">
             {pickingMode && (
               <div className="picking-mode-banner mb-3">
                 <span>válassz egy szabad időpontot <strong>{form.name.trim() || 'az ügyfélnek'}</strong> számára</span>
@@ -705,36 +706,24 @@ export default function SalesHozzarendeles() {
               </div>
             )}
 
-            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-              <div className="auth-tabs d-none d-lg-flex" style={{ flexWrap: 'wrap' }}>
-                <button type="button" className={`auth-tab ${calSelectedGyt === null ? 'active' : ''}`} onClick={() => setCalSelectedGyt(null)}>
-                  összes
+            <div className="auth-tabs d-none d-lg-flex mb-3" style={{ flexWrap: 'wrap' }}>
+              <button type="button" className={`auth-tab ${calSelectedGyt === null ? 'active' : ''}`} onClick={() => setCalSelectedGyt(null)}>
+                összes
+              </button>
+              {GYT_COLLEAGUES.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  className={`auth-tab auth-tab--proper-case ${calSelectedGyt === g.id ? 'active' : ''}`}
+                  onClick={() => setCalSelectedGyt(g.id)}
+                >
+                  {g.name}
+                  <span className="auth-tab-color-dot" style={{ backgroundColor: gytColorVar(g.id) }} />
                 </button>
-                {GYT_COLLEAGUES.map((g) => (
-                  <button
-                    key={g.id}
-                    type="button"
-                    className={`auth-tab auth-tab--proper-case ${calSelectedGyt === g.id ? 'active' : ''}`}
-                    onClick={() => setCalSelectedGyt(g.id)}
-                  >
-                    {g.name}
-                    <span className="auth-tab-color-dot" style={{ backgroundColor: gytColorVar(g.id) }} />
-                  </button>
-                ))}
-              </div>
-
-              <div className="d-flex align-items-center gap-2">
-                <button type="button" className="btn-fyb btn-fyb-ghost" disabled={weekOffset === 0} onClick={() => setWeekOffset(0)}>
-                  ‹ ez a hét
-                </button>
-                <span className="small fw-bold">
-                  {formatDateOnly(weekStart)} – {formatDateOnly(addDays(weekStart, 6))}
-                </span>
-                <button type="button" className="btn-fyb btn-fyb-ghost" disabled={weekOffset === 1} onClick={() => setWeekOffset(1)}>
-                  következő hét ›
-                </button>
-              </div>
+              ))}
             </div>
+
+            <WeekNavHeader weekOffset={weekOffset} setWeekOffset={setWeekOffset} weekStart={weekStart} />
 
             <GytWeeklyCalendar
               weekStart={weekStart}

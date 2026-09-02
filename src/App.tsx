@@ -1,6 +1,7 @@
 import { Routes, Route, Outlet } from 'react-router-dom'
 import Layout from './components/Layout'
 import AppLayout, { type NavItem } from './components/AppLayout'
+import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 import Blog from './pages/Blog'
 import MiniKurzus from './pages/MiniKurzus'
@@ -66,7 +67,9 @@ function AppRoutes() {
   const gytNavItems = buildGytNavItems(newClientsCount)
 
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/blog" element={<Blog />} />
@@ -93,6 +96,7 @@ function AppRoutes() {
       <Route element={<AppLayout navItems={adminNavItems} userName="Anna" role="admin" />}>
         <Route path="/admin/munkatarsak" element={<AdminMunkatarsak />} />
       </Route>
-    </Routes>
+      </Routes>
+    </>
   )
 }

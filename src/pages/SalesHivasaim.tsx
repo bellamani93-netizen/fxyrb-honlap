@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { addDays, formatDateOnly, formatISODate, getMondayOf, gytColorVar, type SalesCall, type SalesCallOutcome, type TimeSlot } from '../data/calendarData'
+import { addDays, formatISODate, getMondayOf, gytColorVar, type SalesCall, type SalesCallOutcome, type TimeSlot } from '../data/calendarData'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
+import WeekNavHeader from '../components/WeekNavHeader'
 import CallDetailModal from '../components/CallDetailModal'
 import AppointmentEditorModal, { type AppointmentEditorResult, type ConflictInfo } from '../components/AppointmentEditorModal'
 import Icon from '../components/Icon'
@@ -40,7 +41,7 @@ type SubView = 'mai' | 'naptar'
 export default function SalesHivasaim() {
   const { salesCalls, setSalesCalls, setClients, removeBooking, today } = useSalesData()
   const [view, setView] = useState<SubView>('mai')
-  const [weekOffset, setWeekOffset] = useState<0 | 1>(0)
+  const [weekOffset, setWeekOffset] = useState(0)
   const [modifyingCall, setModifyingCall] = useState<SalesCall | null>(null)
   const [previewCall, setPreviewCall] = useState<SalesCall | null>(null)
   // egy üres sávra kattintva nyílik meg, új hívás/időpont felvételéhez a
@@ -187,18 +188,8 @@ export default function SalesHivasaim() {
         )}
 
         {view === 'naptar' && (
-          <div className="card-fyb">
-            <div className="d-flex align-items-center justify-content-end gap-2 mb-3">
-              <button type="button" className="btn-fyb btn-fyb-ghost" disabled={weekOffset === 0} onClick={() => setWeekOffset(0)}>
-                ‹ ez a hét
-              </button>
-              <span className="small fw-bold">
-                {formatDateOnly(weekStart)} – {formatDateOnly(addDays(weekStart, 6))}
-              </span>
-              <button type="button" className="btn-fyb btn-fyb-ghost" disabled={weekOffset === 1} onClick={() => setWeekOffset(1)}>
-                következő hét ›
-              </button>
-            </div>
+          <div className="card-fyb gyt-cal-card-mobile">
+            <WeekNavHeader weekOffset={weekOffset} setWeekOffset={setWeekOffset} weekStart={weekStart} />
 
             <GytWeeklyCalendar
               weekStart={weekStart}

@@ -90,6 +90,27 @@ export function formatDateOnly(date: Date) {
   return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}.`
 }
 
+const MONTH_NAMES = [
+  'január', 'február', 'március', 'április', 'május', 'június',
+  'július', 'augusztus', 'szeptember', 'október', 'november', 'december',
+]
+const MONTH_ABBR = ['jan', 'febr', 'márc', 'ápr', 'máj', 'jún', 'júl', 'aug', 'szept', 'okt', 'nov', 'dec']
+
+// egy heti naptár-nézet mobil fejlécének "év, hónap" felirata (2026.09.02.,
+// Marci kérésére) — a hét (7 nap) KEZDŐ napjának hónapját mutatja teljes
+// névvel, KIVÉVE ha a hét átnyúlik egy hónapváltáson: ilyenkor mindkét hónap
+// rövidítve, "/"-jellel elválasztva jelenik meg (pl. "2026 aug/szept"), év-
+// váltás esetén (dec./jan.) mindkét év kiírva a saját hónapja mellett.
+export function formatYearMonth(weekStart: Date): string {
+  const weekEnd = addDays(weekStart, 6)
+  const sameMonth = weekStart.getFullYear() === weekEnd.getFullYear() && weekStart.getMonth() === weekEnd.getMonth()
+  if (sameMonth) return `${weekStart.getFullYear()}. ${MONTH_NAMES[weekStart.getMonth()]}`
+  if (weekStart.getFullYear() === weekEnd.getFullYear()) {
+    return `${weekStart.getFullYear()} ${MONTH_ABBR[weekStart.getMonth()]}/${MONTH_ABBR[weekEnd.getMonth()]}`
+  }
+  return `${weekStart.getFullYear()} ${MONTH_ABBR[weekStart.getMonth()]} / ${weekEnd.getFullYear()} ${MONTH_ABBR[weekEnd.getMonth()]}`
+}
+
 // Egy stabil (ugyanarra a bemenetre mindig ugyanazt adó) álca-Google Meet link —
 // a valós Google Naptár/Meet-integráció a leendő programozó feladata, ez itt
 // csak a UI-terv szintjén mutatja be, hogy egy konzultációhoz tartozik egy link.

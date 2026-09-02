@@ -1140,3 +1140,15 @@ Marci jelezte, hogy telefonon a "videókiosztás" modul valamiért nem nyílik m
 **Javítás:** a néma átirányítás helyett a `/gyt/videokiosztas` oldal MARAD a "videókiosztás" címen, és egy egyértelmű üzenetet mutat ("előbb válassz ügyfelet...") egy "ügyfeleim megnyitása" gombbal — a felhasználó saját döntéséből navigál tovább, nem automatikusan. Ha már van kiválasztott ügyfél, a viselkedés változatlan.
 
 **Tesztelve böngészőben:** localhost dev szerveren, kiválasztott ügyfél nélkül és kiválasztott ügyféllel (Péter) is ellenőrizve — mindkét eset helyesen viselkedik. A hibát az éles GitHub Pages oldalon is megerősítettem a javítás előtt. `npm run build` hibamentes.
+
+## 2026.09.02. — Hónapváltás a naptár-fejlécben, görgetés-visszaállítás oldalváltáskor, naptár-korrekció minden fiókban
+
+Marci három további finomítást kért az előző (58. pontos) mobil-naptár korrekció után: (1) a mobil naptár-fejléc "év, hónap" felirata hónapváltós héten mutassa mindkét hónapot rövidítve ("2026 aug/szept"); (2) amikor egy oldal (ablak) először megnyílik, a tartalom teteje látszódjon, ne egy korábbi görgetési pozíció; (3) a GYT-naptáron alkalmazott telefonos korrekciókat vigyük át minden más fiók (SALES) naptárjára is, egységes megjelenésért.
+
+**(1) Hónapváltás:** `formatYearMonth()` és egy új `MONTH_ABBR` rövidítés-tömb átkerült a közös `calendarData.ts`-be — ha a hét kezdő és záró napja eltérő hónapban van, a felirat "{év} {hó1-rövid}/{hó2-rövid}" formában jelenik meg.
+
+**(2) Görgetés-visszaállítás:** react-router alapból nem nullázza a görgetést navigáláskor — új, globális `ScrollToTop.tsx` komponens minden útvonalváltáskor lenullázza a `window` görgetését ÉS a `.app-main` (asztali nézetben a tényleges görgetési konténer) `scrollTop`-ját.
+
+**(3) Egységes naptár-korrekció:** új, közös `WeekNavHeader.tsx` komponens váltja fel a 3 helyen (GYT saját naptára, SALES "hívásaim" saját naptára, SALES "gyt naptárak" kapacitás-áttekintője) korábban külön-külön megírt hét-navigációs fejlécet — mindhárom oldal most ugyanazt az asztali/mobil fejlécet és a mobil oldalpárnázás-csökkentést kapja.
+
+**Tesztelve böngészőben:** mindhárom naptár-oldal mobilon (375px) és asztalon (1280px) egyaránt ellenőrizve — hónapváltós hét helyesen "2026 aug/szept", tiszta hónap helyesen "2026. szeptember"; görgetés-visszaállítás JS-sel mérve mindkét scroll-kontextusban (window ÉS `.app-main`) működik; a hét-léptetés és a "ez a hét" visszaugrás mindhárom oldalon helyesen viselkedik. `npm run build` hibamentes.

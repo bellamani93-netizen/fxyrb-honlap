@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { BUSINESS_HOURS, addDays, formatDateOnly, formatISODate, getMondayOf } from '../data/calendarData'
+import { BUSINESS_HOURS, addDays, formatISODate, getMondayOf } from '../data/calendarData'
 import { useClients } from '../context/ClientsContext'
 import { LOGGED_IN_GYT_ID } from '../data/colleagues'
 import { useCalendar } from '../context/CalendarContext'
 import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
+import WeekNavHeader from '../components/WeekNavHeader'
 import GytAppointmentModal, {
   type GytAppointmentResult,
   type GytConflictInfo,
@@ -20,18 +21,6 @@ const OWN_ID = LOGGED_IN_GYT_ID
 const OWN_LIST = [{ id: OWN_ID, name: 'Kollé Gábor' }]
 
 type SubView = 'mai' | 'naptar'
-
-const MONTH_NAMES = [
-  'január', 'február', 'március', 'április', 'május', 'június',
-  'július', 'augusztus', 'szeptember', 'október', 'november', 'december',
-]
-
-// a mobil naptárfejléc középső "év, hó" felirata (2026.09.02., Marci
-// kérésére) — a hét KEZDŐ napjának (hétfő) hónapját mutatja, akkor is, ha a
-// hét átnyúlik a következő hónapba.
-function formatYearMonth(date: Date) {
-  return `${date.getFullYear()}. ${MONTH_NAMES[date.getMonth()]}`
-}
 
 export default function GytNaptar() {
   const {
@@ -269,32 +258,7 @@ export default function GytNaptar() {
 
         {view === 'naptar' && (
           <div className="card-fyb gyt-cal-card-mobile">
-            {/* asztalon változatlan: "ez a hét" mindig a 0. hétre ugrik,
-               "következő hét" pedig eggyel léptet előre. */}
-            <div className="d-none d-lg-flex align-items-center justify-content-end gap-2 mb-3">
-              <button type="button" className="btn-fyb btn-fyb-ghost" disabled={weekOffset === 0} onClick={() => setWeekOffset(0)}>
-                ‹ ez a hét
-              </button>
-              <span className="small fw-bold">
-                {formatDateOnly(weekStart)} – {formatDateOnly(addDays(weekStart, 6))}
-              </span>
-              <button type="button" className="btn-fyb btn-fyb-ghost" onClick={() => setWeekOffset((w) => w + 1)}>
-                következő hét ›
-              </button>
-            </div>
-
-            {/* mobilon egy soros fejléc: balra/jobbra nyíl, tetszőleges
-               számú hetet lehet léptetni, középen "év, hónap" felirat
-               (2026.09.02., Marci kérésére). */}
-            <div className="d-flex d-lg-none align-items-center justify-content-between mb-3">
-              <button type="button" className="circle-icon-btn circle-icon-btn--add" aria-label="előző hét" onClick={() => setWeekOffset((w) => w - 1)}>
-                ‹
-              </button>
-              <span className="fw-bold">{formatYearMonth(weekStart)}</span>
-              <button type="button" className="circle-icon-btn circle-icon-btn--add" aria-label="következő hét" onClick={() => setWeekOffset((w) => w + 1)}>
-                ›
-              </button>
-            </div>
+            <WeekNavHeader weekOffset={weekOffset} setWeekOffset={setWeekOffset} weekStart={weekStart} />
 
             <GytWeeklyCalendar
               weekStart={weekStart}
