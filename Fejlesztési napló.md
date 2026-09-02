@@ -1152,3 +1152,17 @@ Marci három további finomítást kért az előző (58. pontos) mobil-naptár k
 **(3) Egységes naptár-korrekció:** új, közös `WeekNavHeader.tsx` komponens váltja fel a 3 helyen (GYT saját naptára, SALES "hívásaim" saját naptára, SALES "gyt naptárak" kapacitás-áttekintője) korábban külön-külön megírt hét-navigációs fejlécet — mindhárom oldal most ugyanazt az asztali/mobil fejlécet és a mobil oldalpárnázás-csökkentést kapja.
 
 **Tesztelve böngészőben:** mindhárom naptár-oldal mobilon (375px) és asztalon (1280px) egyaránt ellenőrizve — hónapváltós hét helyesen "2026 aug/szept", tiszta hónap helyesen "2026. szeptember"; görgetés-visszaállítás JS-sel mérve mindkét scroll-kontextusban (window ÉS `.app-main`) működik; a hét-léptetés és a "ez a hét" visszaugrás mindhárom oldalon helyesen viselkedik. `npm run build` hibamentes.
+
+## 2026.09.02. — Sticky fejléc minden fiókban, javasolt-gomb 2 sorban, sárgás "javasolt csomag" gomb, naptár-popup típusválasztó egy sorban
+
+Négy további mobil-finomítást kért Marci a GYT-naptár korrekció után: (1) a sticky cím-fejléc minta terjedjen ki minden fiók minden almenüjére, ahol a tartalom mobilon jellemzően nem fér ki egy képernyőn; (2) a videókiosztás mobil lenyílt sorában a javasolt-gomb 2 sorra tördelve ("javasolt: S01" / gyakorlat neve), a dupla nyíl a doboz fölött, középen, lefelé mutatva, kicsit rálógva; (3) a "javasolt csomag alkalmazása" gomb kapja meg ugyanazt a sárgás hátteret, mint a többi "javasolt" gomb (eddig csak átlátszó hátterű, kattintható szöveg volt); (4) a GYT naptár-popup "időpont típusa" 3 opciója (szabad/terv/konzultáció) mindig férjen ki egy sorba mobilon.
+
+**(1) Sticky fejléc mindenhol:** `Gyakorlatok.tsx`, `UgyfelKonzultaciok.tsx` (ÜF), `SalesHivasaim.tsx`, `SalesHozzarendeles.tsx`, `SalesUzenetek.tsx` (SALES), `AdminMunkatarsak.tsx` (ADMIN) — mindegyik megkapta a cím (+ ahol releváns, a fülváltó/választó) sticky pozicionálását, ugyanazt a mintát követve, mint a GYT "ügyfeleim"/"videókiosztás" oldala.
+
+**(2) Javasolt-gomb 2 sorban:** `GytVideokiosztas.tsx` `LevelRow` komponensének mobil, lenyitható nézetében új `suggestedMobile` szerkezet — az asztali, egysoros `suggestedButton` változatlan marad.
+
+**(3) Sárgás gomb:** a "javasolt csomag alkalmazása" gomb class-a `btn-fyb-ghost`-ról `btn-fyb-suggested`-re váltott.
+
+**(4) Naptár-popup típusválasztó:** `GytAppointmentModal.tsx` — `.auth-tabs-sm` + tiltott sortörés, extra szűkítés a legkeskenyebb (≤380px) telefonokon.
+
+**Tesztelve böngészőben:** mind a 6 sticky-fejléces oldal 375px-en és 1280px-en is ellenőrizve (mobilon sticky, asztalon static); a javasolt-gomb 2 sorban jelent meg rövid és hosszú gyakorlatnévvel is; a "javasolt csomag alkalmazása" gomb sárgás hátterű; a naptár-popup 3 opciója egy sorban fért ki. `npm run build` hibamentes.

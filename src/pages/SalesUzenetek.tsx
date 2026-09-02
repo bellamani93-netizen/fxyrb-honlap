@@ -20,7 +20,7 @@ export default function SalesUzenetek() {
   return (
     <section className="py-3 py-lg-5">
       <div className="container-fluid" style={{ maxWidth: 900 }}>
-        <div className="app-page-header mb-3">
+        <div className="app-page-header mb-3 mobile-sticky-header">
           <h1 className="app-page-title mb-0">üzenetek</h1>
         </div>
 

@@ -84,6 +84,24 @@
   margin-right: 1.5rem;
 }
 
+/* mobil (lenyílt sor) 2-soros javasolt-gomb + fölötte, középen, lefelé
+   mutató, kicsit rálógó dupla nyíl (2026.09.02., Marci kérésére) — a nyílnak
+   negatív alsó margója "húzza rá" a gomb tetejére, a `position: relative` +
+   `z-index` pedig biztosítja, hogy a gomb kerek teteje ALATT, nem afölött
+   látszódjon (mintha a nyíl a dobozba mutatna). */
+.suggested-video-mobile-arrow {
+  height: 1.1rem;
+  margin-bottom: -0.45rem;
+  position: relative;
+  z-index: 1;
+}
+.suggested-video-btn-mobile {
+  flex-direction: column;
+  gap: 0.1rem;
+  text-align: center;
+  padding: 0.55rem 1.25rem;
+}
+
 /* piros "javítás" gomb — kiosztott videó utólagos korrekciójához (2026.08.27.) */
 .btn-fyb-danger {
   background-color: transparent;
@@ -547,6 +565,18 @@ html[data-theme='dark'] .signature-for-light { display: none; }
 .auth-tabs-sm .auth-tab {
   padding: 0.35rem 0.85rem;
   font-size: 0.8rem;
+}
+
+/* a GYT naptár-popup "időpont típusa" választója (szabad/terv/konzultáció)
+   mobilon is mindig 1 sorban férjen el, ne törjön 2 sorba (2026.09.02.,
+   Marci kérésére) — a legszűkebb telefonokon (iPhone SE 2020, 375px) az
+   `.auth-tabs-sm` mérete még mindig szoros lehet, ezért ott tovább
+   csökkentjük a paddingot/betűméretet. */
+@media (max-width: 380px) {
+  .gyt-booking-type-tabs .auth-tab {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.75rem;
+  }
 }
 
 /* --- form-elemek márkaszínezése (Bootstrap alapértelmezett kék helyett) --- */

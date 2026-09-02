@@ -76,7 +76,10 @@ export default function Gyakorlatok() {
   return (
     <section className="py-3 py-lg-5">
       <div className="container-fluid" style={{ maxWidth: 860 }}>
-        <div className="app-page-header mb-3">
+        {/* mobilon a cím+szint-választó fixen a tetején marad, a lenyitott
+           "gyakorlat részletei" tábla ettől függetlenül lejjebb görgethető
+           (2026.09.02., Marci kérésére, minden fiókra kiterjesztve). */}
+        <div className="app-page-header mb-3 mobile-sticky-header">
           <h1 className="app-page-title mb-0">szintjeid</h1>
 
           <div className={`level-select ${open ? 'is-open' : ''}`} ref={wrapRef}>

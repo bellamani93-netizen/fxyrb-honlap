@@ -161,7 +161,10 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
 
         <div className="mb-3">
           <span className="form-label small fw-bold d-block">időpont típusa</span>
-          <div className="auth-tabs" style={{ flexWrap: 'wrap' }}>
+          {/* a 3 opció mobilon is mindig egy sorba férjen ki, ne törjön 2
+             sorba (2026.09.02., Marci kérésére) — kisebb pirula-méret
+             (`.auth-tabs-sm`) + tiltott sortörés. */}
+          <div className="auth-tabs auth-tabs-sm gyt-booking-type-tabs" style={{ flexWrap: 'nowrap' }}>
             <button
               type="button"
               className={`auth-tab ${type === 'szabad' ? 'active' : ''}`}

@@ -146,22 +146,28 @@ export default function SalesHivasaim() {
          (2026.08.28., 7. kör, Marci kérésére — csak minimális szélső margóval),
          a "mai hívások" lista viszont megtartja az olvasható max-szélességet */}
       <div className="container-fluid" style={{ maxWidth: view === 'naptar' ? undefined : 900 }}>
-        <div className="app-page-header mb-3">
-          <h1 className="app-page-title mb-0">hívásaim</h1>
+        {/* mobilon a cím+fülváltó fixen a tetején marad, csak alatta (a
+           tájékoztató szöveg és a lista/naptár) görget — ugyanaz a minta,
+           mint a GYT "ügyfeleim"/"videókiosztás" oldalán (2026.09.02.,
+           Marci kérésére, minden fiókra kiterjesztve). */}
+        <div className="mobile-sticky-header">
+          <div className="app-page-header mb-3">
+            <h1 className="app-page-title mb-0">hívásaim</h1>
+          </div>
+
+          <div className="auth-tabs mb-3">
+            <button type="button" className={`auth-tab ${view === 'mai' ? 'active' : ''}`} onClick={() => setView('mai')}>
+              mai hívások
+            </button>
+            <button type="button" className={`auth-tab ${view === 'naptar' ? 'active' : ''}`} onClick={() => setView('naptar')}>
+              naptár
+            </button>
+          </div>
         </div>
 
-        <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
           a Calendly-foglalásokból érkező sales-hívások — a gyógytornászhoz rendeléshez a "hozzárendelések" oldal "adatok importálása" gombjával hozhatod be egy hívás adatait.
         </p>
-
-        <div className="auth-tabs mb-4">
-          <button type="button" className={`auth-tab ${view === 'mai' ? 'active' : ''}`} onClick={() => setView('mai')}>
-            mai hívások
-          </button>
-          <button type="button" className={`auth-tab ${view === 'naptar' ? 'active' : ''}`} onClick={() => setView('naptar')}>
-            naptár
-          </button>
-        </div>
 
         {view === 'mai' && (
           <div className="card-fyb">

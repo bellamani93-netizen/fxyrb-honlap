@@ -26,7 +26,7 @@ export default function UgyfelKonzultaciok() {
   return (
     <section className="py-3 py-lg-5">
       <div className="container-fluid" style={{ maxWidth: 860 }}>
-        <div className="app-page-header mb-3">
+        <div className="app-page-header mb-3 mobile-sticky-header">
           <h1 className="app-page-title mb-0">konzultációk</h1>
         </div>
 

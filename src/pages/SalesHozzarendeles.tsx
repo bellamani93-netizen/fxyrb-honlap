@@ -491,35 +491,40 @@ export default function SalesHozzarendeles() {
          szélső margóval), az "ügyfelek" fül megtartja az olvasható
          max-szélességet (form + lista) */}
       <div className="container-fluid" style={{ maxWidth: tab === 'gyt' ? undefined : 900 }}>
-        <div className="app-page-header mb-3">
-          <h1 className="app-page-title mb-0">ügyfél–GYT hozzárendelés</h1>
-        </div>
-
-        <div className="d-flex align-items-center gap-2 mb-4 flex-wrap">
-          <div className="auth-tabs">
-            <button type="button" className={`auth-tab ${tab === 'hozzarendeles' ? 'active' : ''}`} onClick={goToUgyfelek}>
-              ügyfelek
-            </button>
-            <button type="button" className={`auth-tab ${tab === 'gyt' ? 'active' : ''}`} onClick={() => setTab('gyt')}>
-              gyt naptárak
-            </button>
+        {/* mobilon a cím+fülváltó(+"+" gomb) fixen a tetején marad, csak
+           alatta (a form/lista/naptár) görget (2026.09.02., Marci kérésére,
+           minden fiókra kiterjesztve). */}
+        <div className="mobile-sticky-header">
+          <div className="app-page-header mb-3">
+            <h1 className="app-page-title mb-0">ügyfél–GYT hozzárendelés</h1>
           </div>
-          <button
-            type="button"
-            className="circle-icon-btn circle-icon-btn--add"
-            aria-label="új időpont létrehozása"
-            onClick={openNewBookingEditor}
-          >
-            +
-          </button>
-          {/* mobilon a gyt-választó pirula-sor helyett ez a kompakt legördülő
-             kerül a "+" mellé (2026.08.28., 7. kör) — a pirula-sor ilyenkor
-             lent (a naptár fölött) rejtve marad, ld. d-none d-lg-flex ott */}
-          {tab === 'gyt' && (
-            <div className="d-lg-none">
-              <MobileGytPicker value={calSelectedGyt} onChange={setCalSelectedGyt} gytList={GYT_COLLEAGUES} />
+
+          <div className="d-flex align-items-center gap-2 mb-3 flex-wrap">
+            <div className="auth-tabs">
+              <button type="button" className={`auth-tab ${tab === 'hozzarendeles' ? 'active' : ''}`} onClick={goToUgyfelek}>
+                ügyfelek
+              </button>
+              <button type="button" className={`auth-tab ${tab === 'gyt' ? 'active' : ''}`} onClick={() => setTab('gyt')}>
+                gyt naptárak
+              </button>
             </div>
-          )}
+            <button
+              type="button"
+              className="circle-icon-btn circle-icon-btn--add"
+              aria-label="új időpont létrehozása"
+              onClick={openNewBookingEditor}
+            >
+              +
+            </button>
+            {/* mobilon a gyt-választó pirula-sor helyett ez a kompakt legördülő
+               kerül a "+" mellé (2026.08.28., 7. kör) — a pirula-sor ilyenkor
+               lent (a naptár fölött) rejtve marad, ld. d-none d-lg-flex ott */}
+            {tab === 'gyt' && (
+              <div className="d-lg-none">
+                <MobileGytPicker value={calSelectedGyt} onChange={setCalSelectedGyt} gytList={GYT_COLLEAGUES} />
+              </div>
+            )}
+          </div>
         </div>
 
         {tab === 'hozzarendeles' && (

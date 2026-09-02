@@ -145,13 +145,19 @@ function LevelRow({
       <span className="fst-italic" style={{ color: 'var(--color-text-muted)' }}>-javasolt</span>
     </button>
   )
-  // mobilon a kisméretű nyíl a javasolt-gomb előtt jelenik meg, a mellette lévő szöveggel
-  // egyező magassággal (asztalon a nyíl a szint-szám jelvényén "lóg túl", ld. lent).
-  const suggestedInline = suggestedButton && (
-    <span className="d-flex align-items-center gap-2 flex-wrap">
-      <Chevron direction="right" double color="var(--lime)" className="chevron-svg--text-height" />
-      {suggestedButton}
-    </span>
+  // mobilon (lenyílt sor) a javasolt-gomb 2 sorra tördelve jelenik meg —
+  // 1. sor "javasolt: {kód}", 2. sor a gyakorlat neve — a dupla nyíl pedig a
+  // doboz FÖLÖTT, középen, lefelé mutatva, kicsit rálógva a gomb tetejére
+  // (2026.09.02., Marci kérésére; az asztali, egysoros `suggestedButton`
+  // változatlan marad, ld. lent a rács-nézetben).
+  const suggestedMobile = suggestedParsed && onAssign && (
+    <div className="d-flex flex-column align-items-center suggested-video-mobile">
+      <Chevron direction="down" double color="var(--lime)" className="suggested-video-mobile-arrow" />
+      <button type="button" className="btn-fyb btn-fyb-suggested suggested-video-btn-mobile" onClick={() => onAssign(suggested!)}>
+        <span className="fw-bold">javasolt: {suggestedParsed.code}</span>
+        <span style={{ color: 'var(--color-text-muted)' }}>{suggestedParsed.title}</span>
+      </button>
+    </div>
   )
 
   // Mobilon (és a "kiosztva" eset kódját/címét NEM külön oszlopba rendező, folyó szövegű megjelenítéshez) egyben.
@@ -249,7 +255,7 @@ function LevelRow({
 
         {expanded && (
           <div className="d-flex flex-column align-items-center gap-2 mt-2 pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
-            {isPending ? suggestedInline : flowContent}
+            {isPending ? suggestedMobile : flowContent}
             {isPending && onAssign ? (
               <VideoPickerInline onAssign={onAssign} />
             ) : (
@@ -691,7 +697,7 @@ function GytVideokiosztasInner({ clientId }: { clientId: string }) {
 
               <button
                 type="button"
-                className="btn-fyb btn-fyb-ghost mb-2"
+                className="btn-fyb btn-fyb-suggested mb-2"
                 onClick={() =>
                   adminGuard(
                     bulk.map((b) => `bulk-${b.num}`),
