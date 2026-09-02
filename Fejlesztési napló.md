@@ -1190,3 +1190,11 @@ Marci visszajelzése alapján az imént bevezetett új elrendezésben a nagy sor
 ## 2026.09.02. — Fázis-lezárás: mind a 4 szerepkör mobil-reszponzivitása és egységesített szabályai
 
 Marci jóváhagyta a 4 szerepkör (ÜF, GYT, SALES, ADMIN) eddigi mobil-reszponzív készültségi szintjét, és kérte a kialakult logikai/grafikai szabályok rögzítését. A "Design jegyzet.md" tetején lévő "Státusz" checkpoint-blokk (a korábbi fázis-lezárások mintáját követve) kiegészült egy új bejegyzéssel, ami összefoglalja és kötelezővé teszi a mostani körben (57-63. pont) kialakult, ismételten felhasználandó mintákat minden további fejlesztésre: `.mobile-sticky-header`, `ScrollToTop`, `WeekNavHeader` (+ hónapváltás-rövidítés), a mobil topbar 2-soros köszöntése + nagyobb hamburger-gomb, a "javasolt" gombok egységes sárgás háttere, a popup típus-választók mobil-egysoros kényszerítése, és a címsor nélküli, egyszerű listasorok mintája.
+
+## 2026.09.02. — "Blog" → "mélyedukáció": valódi tartalom, admin szerkesztő, kereső
+
+Marci a "blog" aloldalt átnevezte "mélyedukáció"-ra, és valódi tartalommal töltötte fel: megosztott egy mappát 11 db saját Facebook-poszttal/hírlevéllel (.docx), amiket a korábbi kamu posztok helyett a `src/data/blogPosts.ts`-be vezettünk át, 5 kategóriába sorolva. Emellett kérte egy admin szerkesztőoldalt (cím, kategória, szöveg mezőkkel, kategória-létrehozási lehetőséggel), és egy nagyító ikonos keresőt a mélyedukáció fülön.
+
+**Megvalósítás:** `Header.tsx`/`Footer.tsx`/`App.tsx` route-átnevezés (`/blog` → `/melyedukacio`); `MelyEdukacio.tsx` (lista+kereső) és `MelyEdukacioCikk.tsx` (részletező oldal, `/melyedukacio/:id`) váltja a korábbi `Blog.tsx`-et; új `BlogContext.tsx` osztja meg a bejegyzéseket/kategóriákat a nyilvános oldal és az admin szerkesztő (`AdminBlog.tsx`, `/admin/blog`, új admin nav-elem) között; új `ikon_nagyito.svg`.
+
+**Tesztelve böngészőben:** mind a 11 valódi cikk megjelent a helyes kategóriával; a kereső cím ÉS szöveg alapján is szűr; egy admin által létrehozott teszt-bejegyzés (új kategóriával) azonnal megjelent a nyilvános oldalon is. A forrás .docx fájlokat tartalmazó `blog/` mappa `.gitignore`-ba került (nem publikáljuk a repóban, a tartalma már átkerült a kódba). `npm run build` hibamentes.

@@ -6,7 +6,7 @@ import { withBase } from '../lib/assetUrl'
 
 const navItems = [
   { to: '/', label: 'főoldal' },
-  { to: '/blog', label: 'blog' },
+  { to: '/melyedukacio', label: 'mélyedukáció' },
   { to: '/mini-kurzus', label: 'mini-kurzus' },
   { to: '/idopontfoglalas', label: 'időpontfoglalás', locked: true },
 ]

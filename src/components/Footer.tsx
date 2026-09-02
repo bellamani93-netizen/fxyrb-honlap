@@ -18,7 +18,7 @@ export default function Footer() {
             <div className="fw-bold mb-2">oldal</div>
             <ul className="list-unstyled d-flex flex-column gap-2 small">
               <li><Link to="/">főoldal</Link></li>
-              <li><Link to="/blog">blog</Link></li>
+              <li><Link to="/melyedukacio">mélyedukáció</Link></li>
               <li><Link to="/mini-kurzus">mini-kurzus</Link></li>
               <li><Link to="/idopontfoglalas">időpontfoglalás</Link></li>
             </ul>

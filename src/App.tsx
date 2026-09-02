@@ -3,7 +3,8 @@ import Layout from './components/Layout'
 import AppLayout, { type NavItem } from './components/AppLayout'
 import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
-import Blog from './pages/Blog'
+import MelyEdukacio from './pages/MelyEdukacio'
+import MelyEdukacioCikk from './pages/MelyEdukacioCikk'
 import MiniKurzus from './pages/MiniKurzus'
 import Idopontfoglalas from './pages/Idopontfoglalas'
 import Belepes from './pages/Belepes'
@@ -16,9 +17,11 @@ import SalesHivasaim from './pages/SalesHivasaim'
 import SalesHozzarendeles from './pages/SalesHozzarendeles'
 import SalesUzenetek from './pages/SalesUzenetek'
 import AdminMunkatarsak from './pages/AdminMunkatarsak'
+import AdminBlog from './pages/AdminBlog'
 import { SalesDataProvider } from './context/SalesDataContext'
 import { CalendarProvider } from './context/CalendarContext'
 import { ClientsProvider, useClients } from './context/ClientsContext'
+import { BlogProvider } from './context/BlogContext'
 import { LOGGED_IN_GYT_ID } from './data/colleagues'
 
 function buildGytNavItems(newClientsCount: number): NavItem[] {
@@ -44,6 +47,7 @@ const salesNavItems: NavItem[] = [
 
 const adminNavItems: NavItem[] = [
   { to: '/admin/munkatarsak', label: 'munkatársak', icon: '/icons/ikon_kezdolap.svg' },
+  { to: '/admin/blog', label: 'blog', icon: '/icons/ikon_munkafuzet.svg' },
   { label: 'statisztikák', icon: '/icons/ikon_csillag.svg', locked: true },
 ]
 
@@ -51,7 +55,9 @@ export default function App() {
   return (
     <ClientsProvider>
       <CalendarProvider>
-        <AppRoutes />
+        <BlogProvider>
+          <AppRoutes />
+        </BlogProvider>
       </CalendarProvider>
     </ClientsProvider>
   )
@@ -72,7 +78,8 @@ function AppRoutes() {
       <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
-        <Route path="/blog" element={<Blog />} />
+        <Route path="/melyedukacio" element={<MelyEdukacio />} />
+        <Route path="/melyedukacio/:id" element={<MelyEdukacioCikk />} />
         <Route path="/mini-kurzus" element={<MiniKurzus />} />
         <Route path="/idopontfoglalas" element={<Idopontfoglalas />} />
         <Route path="/belepes" element={<Belepes />} />
@@ -95,6 +102,7 @@ function AppRoutes() {
       </Route>
       <Route element={<AppLayout navItems={adminNavItems} userName="Anna" role="admin" />}>
         <Route path="/admin/munkatarsak" element={<AdminMunkatarsak />} />
+        <Route path="/admin/blog" element={<AdminBlog />} />
       </Route>
       </Routes>
     </>

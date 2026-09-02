@@ -579,6 +579,25 @@ html[data-theme='dark'] .signature-for-light { display: none; }
   }
 }
 
+/* --- "mélyedukáció" nagyító ikonos kereső (2026.09.02., Marci kérésére) --- */
+.mely-edu-search {
+  position: relative;
+  max-width: 22rem;
+}
+.mely-edu-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.9rem;
+  transform: translateY(-50%);
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.mely-edu-search .form-control {
+  padding-left: 2.5rem;
+}
+
 /* --- form-elemek márkaszínezése (Bootstrap alapértelmezett kék helyett) --- */
 .form-control:focus {
   border-color: var(--color-primary);

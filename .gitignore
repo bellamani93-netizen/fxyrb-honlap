@@ -1,6 +1,11 @@
 .claude/settings.local.json
 .DS_Store
 
+# Marci által megosztott nyers blog/hírlevél .docx fájlok — a tartalmuk
+# átkerült a src/data/blogPosts.ts-be, magukat a fájlokat nem publikáljuk a
+# (publikus) repóban.
+/blog/
+
 # Node / Vite
 node_modules
 dist
