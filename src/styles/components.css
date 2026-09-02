@@ -1401,6 +1401,24 @@ html[data-theme='dark'] .sales-delete-icon {
   }
 }
 
+/* --- ÜF "konzultációk" lista — címsor nélkül, egyszerű sorok (2026.09.02.,
+   Marci kérésére): balra a dátum+időpont (alatta a meet link), jobbra egy
+   nagy, jól látható sorszám. Minden méretnél ugyanez az elrendezés, nincs
+   külön mobil/asztali változat. --- */
+.consultation-row-uf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.consultation-row-uf-num {
+  flex-shrink: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--color-primary);
+}
+
 /* a GYT saját "naptáram" doboza mobilon a lehető legszélesebb legyen — a
    .gyt-cal-grid oszlopai "1fr"-esek, tehát ténylegesen ki tudják használni a
    felszabaduló helyet, nem csak kozmetikai a változás (2026.09.02., Marci

@@ -1174,3 +1174,11 @@ Marci kérésére a mobil felső sáv köszöntése ("Szia, {név}!") 2 sorra t�
 **Megvalósítás:** mindkét változtatás az `AppLayout.tsx` közös komponensében történt, ami minden szerepkör (ÜF, GYT, SALES, ADMIN) minden oldalán ugyanazt a mobil fejlécet rendereli — a javítás egy helyen, automatikusan minden fiókra és képernyőre érvényes, külön oldalankénti módosítás nélkül.
 
 **Tesztelve böngészőben:** 375px szélességben ÜF és GYT szerepkörben is ellenőrizve — a név most teljesen, vágás nélkül látszik 2 sorban, a hamburger-ikon nagyobb. Asztali nézetre nincs hatása. `npm run build` hibamentes.
+
+## 2026.09.02. — ÜF "konzultációk" kártya újrarendezve
+
+Marci kérésére a ÜF "konzultációk" oldal listája új elrendezést kapott: nincs többé címsor, minden sor egyszerűen mutatja balra a dátum+időpontot (egy sorban), alatta a meet linket, jobbra pedig egy nagy, jól látható sorszámot ("1.", "2." stb., teal színnel, nagy betűmérettel). Ugyanaz az elrendezés mobilon és asztalon is.
+
+**Megvalósítás:** `UgyfelKonzultaciok.tsx` — a korábbi 4 oszlopos `.consultation-row-grid` táblázat lecserélve egy egyszerű flex-sorra (`.consultation-row-uf`), a GYT "mai konzultációk" oldal (ami még a régi grid-osztályt használja) változatlan maradt.
+
+**Tesztelve böngészőben:** react-router SPA-navigációval (nem teljes újratöltéssel, hogy az in-memory demo-adat ne vesszen el) két valódi konzultációt hoztam létre Péternek, majd ellenőriztem, hogy mindkettő helyesen, a kért elrendezésben jelenik meg — mobilon (375px) és asztalon (1280px) egyaránt. `npm run build` hibamentes.

@@ -35,39 +35,31 @@ export default function UgyfelKonzultaciok() {
             <p className="mb-0 text-center" style={{ color: 'var(--color-text-muted)' }}>
               még nincs elérhető konzultációd — értékesítő kollégánk hamarosan felveszi veled a kapcsolatot.
             </p>
+          ) : consultations.length === 0 ? (
+            <p className="mb-0 text-center" style={{ color: 'var(--color-text-muted)' }}>
+              még nincs rögzített konzultációd.
+            </p>
           ) : (
-            <>
-              <div
-                className="consultation-row-grid pb-2 mb-1 small fw-bold text-uppercase"
-                style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
-              >
-                <span>alkalom</span>
-                <span>dátum</span>
-                <span>időpont</span>
-                <span>hívás linkje</span>
+            // címsor nélkül, egyszerű sorok: balra a dátum+időpont (alatta a meet
+            // link), jobbra egy nagy, jól látható sorszám (2026.09.02., Marci
+            // kérésére).
+            consultations.map((c) => (
+              <div key={c.alkalom} className="consultation-row-uf py-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <span style={{ minWidth: 0 }}>
+                  <span className="fw-bold d-block">
+                    {formatDateOnly(parseISODateLocal(c.dateISO))} · {formatHourMinute(c.hour, c.minute)}
+                  </span>
+                  {c.meetLink ? (
+                    <a href={`https://${c.meetLink}`} target="_blank" rel="noreferrer" className="small d-block text-truncate" style={{ color: 'var(--color-primary)' }}>
+                      {c.meetLink}
+                    </a>
+                  ) : (
+                    <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>—</span>
+                  )}
+                </span>
+                <span className="consultation-row-uf-num">{c.alkalom}.</span>
               </div>
-
-              {consultations.length === 0 ? (
-                <p className="mb-0 text-center" style={{ color: 'var(--color-text-muted)' }}>
-                  még nincs rögzített konzultációd.
-                </p>
-              ) : (
-                consultations.map((c) => (
-                  <div key={c.alkalom} className="consultation-row-grid py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <span className="fw-bold">{c.alkalom}.</span>
-                    <span>{formatDateOnly(parseISODateLocal(c.dateISO))}</span>
-                    <span>{formatHourMinute(c.hour, c.minute)}</span>
-                    {c.meetLink ? (
-                      <a href={`https://${c.meetLink}`} target="_blank" rel="noreferrer" className="small text-truncate" style={{ color: 'var(--color-primary)' }}>
-                        {c.meetLink}
-                      </a>
-                    ) : (
-                      <span className="small" style={{ color: 'var(--color-text-muted)' }}>—</span>
-                    )}
-                  </div>
-                ))
-              )}
-            </>
+            ))
           )}
         </div>
       </div>
