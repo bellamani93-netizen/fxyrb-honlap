@@ -1186,3 +1186,7 @@ Marci kérésére a ÜF "konzultációk" oldal listája új elrendezést kapott:
 ## 2026.09.02. — Korrekció: ÜF konzultációk sorszáma balra került
 
 Marci visszajelzése alapján az imént bevezetett új elrendezésben a nagy sorszám a sor JOBB oldalára került — Marci kérésére ez a BAL oldalra cserélve (a dátum+időpont/meet link pedig jobbra). Egyszerű JSX-sorrendcsere (`UgyfelKonzultaciok.tsx`), a `.consultation-row-uf` flex-sor `justify-content: space-between`-je változatlan. Tesztelve böngészőben (375px), `npm run build` hibamentes.
+
+## 2026.09.02. — Fázis-lezárás: mind a 4 szerepkör mobil-reszponzivitása és egységesített szabályai
+
+Marci jóváhagyta a 4 szerepkör (ÜF, GYT, SALES, ADMIN) eddigi mobil-reszponzív készültségi szintjét, és kérte a kialakult logikai/grafikai szabályok rögzítését. A "Design jegyzet.md" tetején lévő "Státusz" checkpoint-blokk (a korábbi fázis-lezárások mintáját követve) kiegészült egy új bejegyzéssel, ami összefoglalja és kötelezővé teszi a mostani körben (57-63. pont) kialakult, ismételten felhasználandó mintákat minden további fejlesztésre: `.mobile-sticky-header`, `ScrollToTop`, `WeekNavHeader` (+ hónapváltás-rövidítés), a mobil topbar 2-soros köszöntése + nagyobb hamburger-gomb, a "javasolt" gombok egységes sárgás háttere, a popup típus-választók mobil-egysoros kényszerítése, és a címsor nélküli, egyszerű listasorok mintája.
