@@ -40,11 +40,12 @@ export default function UgyfelKonzultaciok() {
               még nincs rögzített konzultációd.
             </p>
           ) : (
-            // címsor nélkül, egyszerű sorok: balra a dátum+időpont (alatta a meet
-            // link), jobbra egy nagy, jól látható sorszám (2026.09.02., Marci
-            // kérésére).
+            // címsor nélkül, egyszerű sorok: balra egy nagy, jól látható sorszám,
+            // jobbra a dátum+időpont (alatta a meet link) — 2026.09.02., Marci
+            // kérésére (előzőleg a sorszám jobbra volt, ezt korrigáltuk).
             consultations.map((c) => (
               <div key={c.alkalom} className="consultation-row-uf py-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <span className="consultation-row-uf-num">{c.alkalom}.</span>
                 <span style={{ minWidth: 0 }}>
                   <span className="fw-bold d-block">
                     {formatDateOnly(parseISODateLocal(c.dateISO))} · {formatHourMinute(c.hour, c.minute)}
@@ -57,7 +58,6 @@ export default function UgyfelKonzultaciok() {
                     <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>—</span>
                   )}
                 </span>
-                <span className="consultation-row-uf-num">{c.alkalom}.</span>
               </div>
             ))
           )}

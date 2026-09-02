@@ -1182,3 +1182,7 @@ Marci kérésére a ÜF "konzultációk" oldal listája új elrendezést kapott:
 **Megvalósítás:** `UgyfelKonzultaciok.tsx` — a korábbi 4 oszlopos `.consultation-row-grid` táblázat lecserélve egy egyszerű flex-sorra (`.consultation-row-uf`), a GYT "mai konzultációk" oldal (ami még a régi grid-osztályt használja) változatlan maradt.
 
 **Tesztelve böngészőben:** react-router SPA-navigációval (nem teljes újratöltéssel, hogy az in-memory demo-adat ne vesszen el) két valódi konzultációt hoztam létre Péternek, majd ellenőriztem, hogy mindkettő helyesen, a kért elrendezésben jelenik meg — mobilon (375px) és asztalon (1280px) egyaránt. `npm run build` hibamentes.
+
+## 2026.09.02. — Korrekció: ÜF konzultációk sorszáma balra került
+
+Marci visszajelzése alapján az imént bevezetett új elrendezésben a nagy sorszám a sor JOBB oldalára került — Marci kérésére ez a BAL oldalra cserélve (a dátum+időpont/meet link pedig jobbra). Egyszerű JSX-sorrendcsere (`UgyfelKonzultaciok.tsx`), a `.consultation-row-uf` flex-sor `justify-content: space-between`-je változatlan. Tesztelve böngészőben (375px), `npm run build` hibamentes.
