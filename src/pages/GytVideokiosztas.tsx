@@ -488,16 +488,35 @@ function VariablesPanel({
 }
 
 // ha még nincs (érvényesen) kiválasztott ügyfél, ne a fallback első ügyféllel
-// dolgozzunk — irányítsuk a GYT-et az "ügyfeleim" oldalra, ott válasszon
+// dolgozzunk. KORÁBBAN ez egy néma átirányítás volt az "ügyfeleim" oldalra
+// (`navigate(..., { replace: true })`) — mobilon, ha valaki a hamburger-
+// menüből egyenesen a "videókiosztás" pontra koppintott anélkül, hogy előtte
+// kiválasztott volna egy ügyfelet, ez úgy nézett ki, mintha a modul EGYÁLTALÁN
+// NEM NYÍLNA MEG (a koppintás után "semmi sem történt", csak egy másik oldal
+// jelent meg magyarázat nélkül) — Marci hibajelzésére (2026.09.02.) inkább
+// MARADUNK ezen az oldalon, és egy egyértelmű üzenetet + gombot mutatunk.
 export default function GytVideokiosztas() {
   const navigate = useNavigate()
   const [clientId] = useState(getSelectedClientId)
 
-  useEffect(() => {
-    if (!clientId) navigate('/gyt/ugyfelek', { replace: true })
-  }, [clientId, navigate])
-
-  if (!clientId) return null
+  if (!clientId) {
+    return (
+      <section className="py-3 py-lg-5">
+        <div className="container-fluid" style={{ maxWidth: 900 }}>
+          <div className="app-page-header mb-3">
+            <h1 className="app-page-title mb-0">videókiosztás</h1>
+          </div>
+          <div className="select-client-notice mb-3">
+            <Icon src="/icons/ikon_csengo.svg" style={{ width: '1.4rem', height: '1.4rem', flexShrink: 0 }} />
+            <span>előbb válassz ügyfelet — a videókiosztás egy konkrét ügyfélhez tartozik.</span>
+          </div>
+          <button type="button" className="btn-fyb btn-fyb-primary" onClick={() => navigate('/gyt/ugyfelek')}>
+            ügyfeleim megnyitása
+          </button>
+        </div>
+      </section>
+    )
+  }
   return <GytVideokiosztasInner clientId={clientId} />
 }
 
