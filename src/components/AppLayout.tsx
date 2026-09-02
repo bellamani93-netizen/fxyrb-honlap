@@ -69,8 +69,11 @@ export default function AppLayout({ navItems = ufNavItems, userName = 'Péter', 
             <img src={withBase("/images/logo-light-bg.png")} alt="Fix Your Back" className="brand-logo-img logo-for-light" />
             <img src={withBase("/images/logo-dark-bg.png")} alt="Fix Your Back" className="brand-logo-img logo-for-dark" />
           </div>
-          <div className="app-topbar-greeting">Szia, {displayName}!</div>
-          <button type="button" className="btn-fyb btn-fyb-ghost" aria-label="menü" onClick={() => setOpen(true)}>
+          <div className="app-topbar-greeting">
+            <span>Szia</span>
+            <span className="app-topbar-greeting-name">{displayName}!</span>
+          </div>
+          <button type="button" className="btn-fyb btn-fyb-ghost app-topbar-menu-btn" aria-label="menü" onClick={() => setOpen(true)}>
             ☰
           </button>
         </div>

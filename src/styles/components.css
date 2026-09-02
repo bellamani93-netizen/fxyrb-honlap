@@ -691,13 +691,31 @@ html[data-theme='dark'] .locked-overlay-card {
 .app-topbar-row > button {
   justify-self: end;
 }
+/* 2 sorban: "Szia" fent, a név lent (2026.09.02., Marci kérésére) — így egy
+   hosszabb név is olvashatóan elfér, nem csúszik egybe a "Szia,"-val. */
 .app-topbar-greeting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
   font-family: var(--font-heading);
   font-weight: 700;
   text-align: center;
+  line-height: 1.2;
+}
+.app-topbar-greeting-name {
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* a hamburger-gomb kicsit nagyobb, könnyebben eltalálható (2026.09.02.,
+   Marci kérésére) — minden fiókban ugyanez az egy komponens (AppLayout.tsx)
+   adja a mobil fejlécet, ezért ez a módosítás automatikusan mindenhol
+   érvényes. */
+.app-topbar-menu-btn {
+  font-size: 1.35rem;
+  padding: 0.55rem 1rem;
 }
 .app-sidebar {
   width: 260px;

@@ -1166,3 +1166,11 @@ Négy további mobil-finomítást kért Marci a GYT-naptár korrekció után: (1
 **(4) Naptár-popup típusválasztó:** `GytAppointmentModal.tsx` — `.auth-tabs-sm` + tiltott sortörés, extra szűkítés a legkeskenyebb (≤380px) telefonokon.
 
 **Tesztelve böngészőben:** mind a 6 sticky-fejléces oldal 375px-en és 1280px-en is ellenőrizve (mobilon sticky, asztalon static); a javasolt-gomb 2 sorban jelent meg rövid és hosszú gyakorlatnévvel is; a "javasolt csomag alkalmazása" gomb sárgás hátterű; a naptár-popup 3 opciója egy sorban fért ki. `npm run build` hibamentes.
+
+## 2026.09.02. — Mobil fejléc: köszöntés 2 sorban, nagyobb hamburger-gomb
+
+Marci kérésére a mobil felső sáv köszöntése ("Szia, {név}!") 2 sorra tördelve jelenik meg (1. sor "Szia", 2. sor a név) — eddig egy sorban, ellipsis-szel vágva jelent meg hosszabb neveknél. A hamburger-menü gombja is kicsit nagyobb lett.
+
+**Megvalósítás:** mindkét változtatás az `AppLayout.tsx` közös komponensében történt, ami minden szerepkör (ÜF, GYT, SALES, ADMIN) minden oldalán ugyanazt a mobil fejlécet rendereli — a javítás egy helyen, automatikusan minden fiókra és képernyőre érvényes, külön oldalankénti módosítás nélkül.
+
+**Tesztelve böngészőben:** 375px szélességben ÜF és GYT szerepkörben is ellenőrizve — a név most teljesen, vágás nélkül látszik 2 sorban, a hamburger-ikon nagyobb. Asztali nézetre nincs hatása. `npm run build` hibamentes.
