@@ -21,6 +21,18 @@ const OWN_LIST = [{ id: OWN_ID, name: 'Kollé Gábor' }]
 
 type SubView = 'mai' | 'naptar'
 
+const MONTH_NAMES = [
+  'január', 'február', 'március', 'április', 'május', 'június',
+  'július', 'augusztus', 'szeptember', 'október', 'november', 'december',
+]
+
+// a mobil naptárfejléc középső "év, hó" felirata (2026.09.02., Marci
+// kérésére) — a hét KEZDŐ napjának (hétfő) hónapját mutatja, akkor is, ha a
+// hét átnyúlik a következő hónapba.
+function formatYearMonth(date: Date) {
+  return `${date.getFullYear()}. ${MONTH_NAMES[date.getMonth()]}`
+}
+
 export default function GytNaptar() {
   const {
     today,
@@ -33,7 +45,13 @@ export default function GytNaptar() {
   } = useCalendar()
   const { clients } = useClients()
   const [view, setView] = useState<SubView>('mai')
-  const [weekOffset, setWeekOffset] = useState<0 | 1>(0)
+  // eredetileg csak 0/1 (ez a hét / következő hét) volt megengedve — a mobil
+  // naptárfejléc nyilai viszont tetszőleges hetet léptethetnek (2026.09.02.,
+  // Marci kérésére: "több hetet is lehessen léptetni, ne csak egyet"); a
+  // demó-adatréteg (getBaseDaySlots) már eddig is biztonságosan kezelte a
+  // 0/1-en kívüli heteket (üres/felvehető sávokként), ezért ez a bővítés
+  // önmagában nem igényelt változtatást az adatrétegen.
+  const [weekOffset, setWeekOffset] = useState(0)
   // isNew: a modal EGY ÚJ időpont felvételére nyílt-e (pl. "+" gomb, üres/szabad
   // sávra kattintás), szemben egy MEGLÉVŐ bejegyzés szerkesztésével — ezt
   // KÜLÖN kell jelölni (nem a dateISO/hour-ból visszafejteni), mert a "+" gomb
@@ -162,7 +180,9 @@ export default function GytNaptar() {
       {/* a naptár-nézet a teljes rendelkezésre álló szélességet használja, mint a
          SALES oldalon — a "mai konzultációk" lista viszont olvasható max-szélességű */}
       <div className="container-fluid" style={{ maxWidth: view === 'naptar' ? undefined : 900 }}>
-        <div className="app-page-header mb-3">
+        {/* a "naptár" címsor mobilon felesleges hely, a fülek önmagukban is
+           egyértelműek (2026.09.02., Marci kérésére) — asztalon változatlan. */}
+        <div className="app-page-header mb-3 d-none d-lg-flex">
           <h1 className="app-page-title mb-0">naptár</h1>
         </div>
 
@@ -175,55 +195,104 @@ export default function GytNaptar() {
               naptáram
             </button>
           </div>
-          <button type="button" className="circle-icon-btn circle-icon-btn--add" aria-label="új időpont létrehozása" onClick={handleCreateNew}>
+          {/* a "+" gomb mobilon felesleges — a heti rácsban bármelyik üres
+             sávra kattintva is fel lehet venni új időpontot (2026.09.02.,
+             Marci kérésére). */}
+          <button
+            type="button"
+            className="circle-icon-btn circle-icon-btn--add d-none d-lg-inline-flex"
+            aria-label="új időpont létrehozása"
+            onClick={handleCreateNew}
+          >
             <Icon src="/icons/ikon_plusz.svg" />
           </button>
         </div>
 
         {view === 'mai' && (
           <div className="card-fyb">
-            <div
-              className="consultation-row-grid pb-2 mb-1 small fw-bold text-uppercase"
-              style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
-            >
-              <span>időpont</span>
-              <span>név</span>
-              <span>alkalom</span>
-              <span>hívás linkje</span>
-            </div>
-
             {todaysConsultations.length === 0 ? (
               <p className="mb-0 text-center" style={{ color: 'var(--color-text-muted)' }}>ma nincs konzultáció.</p>
             ) : (
-              todaysConsultations.map((c) => (
-                <div key={c.hour} className="consultation-row-grid py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  <span className="fw-bold">{c.hour}:{String(c.minute).padStart(2, '0')}</span>
-                  <span>{c.name}</span>
-                  <span style={{ color: 'var(--color-text-muted)' }}>{c.alkalom ?? '—'}</span>
-                  {c.meetLink ? (
-                    <a href={`https://${c.meetLink}`} target="_blank" rel="noreferrer" className="small text-truncate" style={{ color: 'var(--color-primary)' }}>
-                      {c.meetLink}
-                    </a>
-                  ) : (
-                    <span className="small" style={{ color: 'var(--color-text-muted)' }}>—</span>
-                  )}
+              <>
+                {/* asztalon a megszokott 4 oszlopos táblázat, címsorral */}
+                <div className="d-none d-lg-block">
+                  <div
+                    className="consultation-row-grid pb-2 mb-1 small fw-bold text-uppercase"
+                    style={{ color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}
+                  >
+                    <span>időpont</span>
+                    <span>név</span>
+                    <span>alkalom</span>
+                    <span>hívás linkje</span>
+                  </div>
+                  {todaysConsultations.map((c) => (
+                    <div key={c.hour} className="consultation-row-grid py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                      <span className="fw-bold">{c.hour}:{String(c.minute).padStart(2, '0')}</span>
+                      <span>{c.name}</span>
+                      <span style={{ color: 'var(--color-text-muted)' }}>{c.alkalom ?? '—'}</span>
+                      {c.meetLink ? (
+                        <a href={`https://${c.meetLink}`} target="_blank" rel="noreferrer" className="small text-truncate" style={{ color: 'var(--color-primary)' }}>
+                          {c.meetLink}
+                        </a>
+                      ) : (
+                        <span className="small" style={{ color: 'var(--color-text-muted)' }}>—</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))
+
+                {/* mobilon nincs helye a 4 oszlopos táblázatnak/címsornak —
+                   balról jobbra: alkalom, időpont, név (a meet-link a név
+                   alatt) — 2026.09.02., Marci kérésére. */}
+                <div className="d-lg-none">
+                  {todaysConsultations.map((c) => (
+                    <div key={c.hour} className="d-flex align-items-start gap-2 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                      <span className="fw-bold" style={{ minWidth: '1.5rem', color: 'var(--color-text-muted)' }}>{c.alkalom ?? '—'}.</span>
+                      <span className="fw-bold" style={{ minWidth: '3.5rem' }}>{c.hour}:{String(c.minute).padStart(2, '0')}</span>
+                      <span className="flex-grow-1" style={{ minWidth: 0 }}>
+                        <span className="d-block text-truncate">{c.name}</span>
+                        {c.meetLink ? (
+                          <a href={`https://${c.meetLink}`} target="_blank" rel="noreferrer" className="small d-block text-truncate" style={{ color: 'var(--color-primary)' }}>
+                            {c.meetLink}
+                          </a>
+                        ) : (
+                          <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>—</span>
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
 
         {view === 'naptar' && (
-          <div className="card-fyb">
-            <div className="d-flex align-items-center justify-content-end gap-2 mb-3">
+          <div className="card-fyb gyt-cal-card-mobile">
+            {/* asztalon változatlan: "ez a hét" mindig a 0. hétre ugrik,
+               "következő hét" pedig eggyel léptet előre. */}
+            <div className="d-none d-lg-flex align-items-center justify-content-end gap-2 mb-3">
               <button type="button" className="btn-fyb btn-fyb-ghost" disabled={weekOffset === 0} onClick={() => setWeekOffset(0)}>
                 ‹ ez a hét
               </button>
               <span className="small fw-bold">
                 {formatDateOnly(weekStart)} – {formatDateOnly(addDays(weekStart, 6))}
               </span>
-              <button type="button" className="btn-fyb btn-fyb-ghost" disabled={weekOffset === 1} onClick={() => setWeekOffset(1)}>
+              <button type="button" className="btn-fyb btn-fyb-ghost" onClick={() => setWeekOffset((w) => w + 1)}>
                 következő hét ›
+              </button>
+            </div>
+
+            {/* mobilon egy soros fejléc: balra/jobbra nyíl, tetszőleges
+               számú hetet lehet léptetni, középen "év, hónap" felirat
+               (2026.09.02., Marci kérésére). */}
+            <div className="d-flex d-lg-none align-items-center justify-content-between mb-3">
+              <button type="button" className="circle-icon-btn circle-icon-btn--add" aria-label="előző hét" onClick={() => setWeekOffset((w) => w - 1)}>
+                ‹
+              </button>
+              <span className="fw-bold">{formatYearMonth(weekStart)}</span>
+              <button type="button" className="circle-icon-btn circle-icon-btn--add" aria-label="következő hét" onClick={() => setWeekOffset((w) => w + 1)}>
+                ›
               </button>
             </div>
 

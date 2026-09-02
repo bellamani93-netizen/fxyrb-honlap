@@ -297,7 +297,13 @@ function VideoPickerRow({
 
   return (
     <div className="py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-      <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+      {/* mobilon MINDIG egymás alá kerül a szint-címke és a videó-választó,
+         függetlenül attól, hogy a kiválasztott videó neve rövid vagy hosszú —
+         korábban ez tartalom-függő flex-wrap volt, ezért soronként hol egy,
+         hol két sorba tört, "össze-vissza" hatást keltve (2026.09.01., Marci
+         kérésére: "szintenként az elemeket egymás alá rakja"). Asztalon
+         (lg+) változatlanul egy sorban, széthúzva. */}
+      <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between gap-2">
         <span className="d-flex align-items-center gap-2 fw-bold">
           <AssignmentDot done={!!assigned} />
           {label}
@@ -405,7 +411,9 @@ function VariablesPanel({
       >
         <Icon src="/icons/ikon_beallitasok.svg" />
         <strong>limitációk</strong>
-        <span className="small" style={{ color: 'var(--color-text-muted)' }}>(ideiglenes — a felvételi kérdőívig kézzel állítva, egyszer az elején)</span>
+        {/* mobilon elhagyva, hogy a doboz összecsukva alacsony maradjon, és a
+           szint-lista görgetés nélkül beleférjen (2026.09.01., Marci kérésére) */}
+        <span className="small d-none d-lg-inline" style={{ color: 'var(--color-text-muted)' }}>(ideiglenes — a felvételi kérdőívig kézzel állítva, egyszer az elején)</span>
         {modified && <AdminModifiedBadge />}
         <span className="level-select-chevron ms-auto" style={{ transform: expanded ? 'rotate(180deg)' : 'none' }}>▾</span>
       </button>
@@ -545,12 +553,21 @@ function GytVideokiosztasInner({ clientId }: { clientId: string }) {
 
   const [bulk, setBulk] = useState(() => clients.find((c) => c.id === 'peter')!.bulkLevels!)
 
+  // a "kiosztás mentése" gomb is a VariablesPanel-nél már megszokott
+  // zár/mentés mintát követi: mentés után a gomb "módosítás"-ra vált, mellette
+  // pedig megjelenik egy külön "mentve" felirat (2026.09.01., Marci kérésére).
+  const [bulkLockedByClient, setBulkLockedByClient] = useState<Record<string, boolean>>({})
+  const bulkLocked = !!bulkLockedByClient[clientId]
+  const setBulkLocked = (locked: boolean) => setBulkLockedByClient((prev) => ({ ...prev, [clientId]: locked }))
+
   const { guard: adminGuard, isModified, modal: adminModal } = useAdminEditGuard('gyt')
 
   return (
     <section className="py-3 py-lg-5">
       <div className="container-fluid" style={{ maxWidth: 900 }}>
-        <div className="app-page-header mb-3">
+        {/* mobilon a cím+ügyfélnév fixen a tetején marad, csak a limitációk/
+           szintek görgetnek alatta (2026.09.01., Marci kérésére). */}
+        <div className="app-page-header mb-3 mobile-sticky-header">
           <h1 className="app-page-title mb-0">videókiosztás</h1>
           <span className="fw-bold">{client.name}</span>
         </div>
@@ -686,9 +703,17 @@ function GytVideokiosztasInner({ clientId }: { clientId: string }) {
                 ))}
               </div>
 
-              <button type="button" className="btn-fyb btn-fyb-primary mt-3" disabled={bulk.some((b) => !b.video)}>
-                kiosztás mentése
-              </button>
+              <div className="d-flex align-items-center gap-2 mt-3">
+                <button
+                  type="button"
+                  className="btn-fyb btn-fyb-primary"
+                  disabled={!bulkLocked && bulk.some((b) => !b.video)}
+                  onClick={() => setBulkLocked(!bulkLocked)}
+                >
+                  {bulkLocked ? 'módosítás' : 'kiosztás mentése'}
+                </button>
+                {bulkLocked && <span className="fw-bold" style={{ color: 'var(--color-success)' }}>mentve</span>}
+              </div>
             </div>
           </>
         )}

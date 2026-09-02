@@ -1000,6 +1000,24 @@ html[data-theme='dark'] .locked-overlay-card {
   }
 }
 
+/* egy oldal fejléce (cím + esetleg keresés/ügyfélnév) fixen a tetején marad
+   mobilon, amíg alatta a tényleges tartalom (lista, szint-kiosztás stb.)
+   görgethető — asztalon nincs hatása, ott a teljes oldal amúgy is egyszerűen
+   görgethető (2026.09.01., Marci kérésére: "ügyfeleim"/"videókiosztás"
+   oldal). A `top` a `.app-topbar` ténylegesen renderelt magasságához igazít
+   (mért érték mobilon, ld. Design jegyzet), hogy ne fedjék egymást, és ne
+   maradjon rés sem. */
+@media (max-width: 991.98px) {
+  .mobile-sticky-header {
+    position: sticky;
+    top: 4.65rem;
+    z-index: 40;
+    background-color: var(--color-bg);
+    padding-top: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+}
+
 /* --- app-oldali kártyák és videó-előnézet kompaktabbak mobilon, hogy a teljes
    nézet görgetés nélkül elférjen (ld. Design jegyzet 10.) --- */
 @media (max-width: 991.98px) {
@@ -1332,6 +1350,19 @@ html[data-theme='dark'] .sales-delete-icon {
        "NÉV" oszlopba (2026.08.31., böngészős teszt közben derült ki). 2 oszlop,
        a 4 mező 2×2-es elrendezésbe rendeződik (időpont+név, alkalom+link). */
     grid-template-columns: auto 1fr;
+  }
+}
+
+/* a GYT saját "naptáram" doboza mobilon a lehető legszélesebb legyen — a
+   .gyt-cal-grid oszlopai "1fr"-esek, tehát ténylegesen ki tudják használni a
+   felszabaduló helyet, nem csak kozmetikai a változás (2026.09.02., Marci
+   kérésére: "fölöslegesen szűkíti a helyet... oldalra is van margó"). Csak a
+   doboz saját oldalpárnázását vesszük el — az oldal többi része (fülek,
+   fejléc) változatlan marad. */
+@media (max-width: 991.98px) {
+  .gyt-cal-card-mobile {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 }
 

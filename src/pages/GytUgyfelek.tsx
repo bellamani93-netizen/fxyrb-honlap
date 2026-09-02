@@ -48,8 +48,22 @@ export default function GytUgyfelek() {
   return (
     <section className="py-3 py-lg-5">
       <div className="container-fluid" style={{ maxWidth: 900 }}>
-        <div className="app-page-header mb-3">
-          <h1 className="app-page-title mb-0">ügyfeleim</h1>
+        {/* mobilon a cím + keresés fixen a tetején marad, csak a lista (és a
+           fölötte lévő tájékoztató szövegek) görgetnek alatta — asztalon
+           változatlan, egyszerű dokumentum-görgetés (2026.09.01., Marci
+           kérésére). */}
+        <div className="mobile-sticky-header">
+          <div className="app-page-header mb-3">
+            <h1 className="app-page-title mb-0">ügyfeleim</h1>
+          </div>
+          <input
+            type="search"
+            className="form-control mb-3"
+            style={{ maxWidth: '16rem' }}
+            placeholder="keresés név szerint…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
 
         {noSelection && (
@@ -62,15 +76,6 @@ export default function GytUgyfelek() {
         <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>
           válaszd ki, melyik ügyféllel szeretnél most dolgozni — a további almenük (videókiosztás, dokumentáció stb.) innentől erre az ügyfélre vonatkoznak.
         </p>
-
-        <input
-          type="search"
-          className="form-control mb-3"
-          style={{ maxWidth: '16rem' }}
-          placeholder="keresés név szerint…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
 
         <div className="card-fyb">
           {filtered.length === 0 ? (
