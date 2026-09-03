@@ -20,6 +20,10 @@ import {
 // "valós" nyilvántartásba.
 
 const TOTAL_STEPS = 11
+/** "mutasd meg" — a body chart lapja: itt nincs cím/alcím és a padding is
+ * minimális, hogy a testábra kapja a lehető legtöbb helyet (2026.09.04.,
+ * Marci kérésére). */
+const BODY_CHART_STEP = 4
 
 const CURRENT_YEAR = new Date().getFullYear()
 const BIRTH_YEARS = Array.from({ length: 76 }, (_, i) => String(CURRENT_YEAR - 14 - i))
@@ -239,8 +243,13 @@ function MarkIcon() {
 function BodyChartStep() {
   const { adatok, setAdatok } = useAllapotfelmero()
   const [armed, setArmed] = useState(false)
+  const imageSrc = withBase(BODYCHART_IMAGES[adatok.bodyChartNezet])
 
-  function handleImgClick(e: React.MouseEvent<HTMLImageElement>) {
+  // a kattintás a KERETEN (nem a képen) történik, mert a jelöléseket tartó
+  // maszk-div a kép TETEJÉN fedi ugyanazt a területet (ld. lent) — a keret
+  // mérete viszont pontosan megegyezik a képével (a kép az egyetlen normál-
+  // flow gyermeke benne), ezért a számítás változatlan marad.
+  function handleFrameClick(e: React.MouseEvent<HTMLDivElement>) {
     if (!armed) return
     const rect = e.currentTarget.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
@@ -253,8 +262,8 @@ function BodyChartStep() {
   }
 
   return (
-    <div className="bodychart-layout">
-      <div className="bodychart-frame-wrap">
+    <div className="bodychart-full">
+      <div className="bodychart-controls-col">
         <div className="bodychart-view-toggle">
           <span className={adatok.bodyChartNezet === 'hat' ? 'is-active' : ''}>hát</span>
           <ToggleSwitch
@@ -264,14 +273,50 @@ function BodyChartStep() {
           />
           <span className={adatok.bodyChartNezet === 'rtg' ? 'is-active' : ''}>röntgen</span>
         </div>
-        <div className="bodychart-frame">
-          <img
-            src={withBase(BODYCHART_IMAGES[adatok.bodyChartNezet])}
-            alt="testábra"
-            className={`bodychart-img ${armed ? 'is-armed' : ''}`}
-            onClick={handleImgClick}
-            draggable={false}
-          />
+
+        <div>
+          <span className="bodychart-group-label">méret</span>
+          <div className="bodychart-btn-group">
+            {(Object.keys(MERET_LABELS) as BodyChartMeret[]).map((m) => (
+              <button key={m} type="button" className={`auth-tab ${adatok.bodyChartMeret === m ? 'active' : ''}`} onClick={() => setAdatok({ bodyChartMeret: m })}>
+                {MERET_LABELS[m]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <span className="bodychart-group-label">hely</span>
+          <div className="bodychart-btn-group">
+            {(Object.keys(HELY_LABELS) as BodyChartHely[]).map((h) => (
+              <button key={h} type="button" className={`auth-tab ${adatok.bodyChartHely === h ? 'active' : ''}`} onClick={() => setAdatok({ bodyChartHely: h })}>
+                {HELY_LABELS[h]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className={`bodychart-pin-btn ${armed ? 'is-armed' : ''}`}
+          onClick={() => setArmed((a) => !a)}
+          aria-label="jelölés bekapcsolása a testábrán"
+          title={armed ? 'koppints az ábrára, ahol fáj — egy meglévő jelre koppintva törölheted.' : 'a gombbal jelölhetsz be területet az ábrán.'}
+        >
+          <MarkIcon />
+        </button>
+      </div>
+
+      <div className={`bodychart-frame ${armed ? 'is-armed' : ''}`} onClick={handleFrameClick}>
+        <img src={imageSrc} alt="testábra" className="bodychart-img" draggable={false} />
+        {/* a jelölések maszkja maga a testábra-kép (alfa-csatorna) — így egy
+           folt sose lóghat túl a test kontúrjain, mert ahol a kép átlátszó,
+           ott a maszk is elrejti a folt-tartalmat (2026.09.04., Marci
+           kérésére). */}
+        <div
+          className="bodychart-marks-mask"
+          style={{ WebkitMaskImage: `url(${imageSrc})`, maskImage: `url(${imageSrc})` }}
+        >
           {adatok.bodyChartJelek.map((jel, i) => (
             <button
               key={i}
@@ -284,41 +329,6 @@ function BodyChartStep() {
             />
           ))}
         </div>
-      </div>
-
-      <div className="bodychart-controls">
-        <div className="mb-3">
-          <span className="small fw-bold d-block mb-2">tünet mérete</span>
-          <div className="auth-tabs auth-tabs-sm flex-wrap">
-            {(Object.keys(MERET_LABELS) as BodyChartMeret[]).map((m) => (
-              <button key={m} type="button" className={`auth-tab ${adatok.bodyChartMeret === m ? 'active' : ''}`} onClick={() => setAdatok({ bodyChartMeret: m })}>
-                {MERET_LABELS[m]}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="mb-3">
-          <span className="small fw-bold d-block mb-2">tünet helye</span>
-          <div className="auth-tabs auth-tabs-sm flex-wrap">
-            {(Object.keys(HELY_LABELS) as BodyChartHely[]).map((h) => (
-              <button key={h} type="button" className={`auth-tab ${adatok.bodyChartHely === h ? 'active' : ''}`} onClick={() => setAdatok({ bodyChartHely: h })}>
-                {HELY_LABELS[h]}
-              </button>
-            ))}
-          </div>
-        </div>
-        <button
-          type="button"
-          className={`bodychart-pin-btn ${armed ? 'is-armed' : ''}`}
-          onClick={() => setArmed((a) => !a)}
-          aria-label="jelölés bekapcsolása a testábrán"
-          title="jelölés bekapcsolása a testábrán"
-        >
-          <MarkIcon />
-        </button>
-        <p className="small mt-2 mb-0" style={{ color: 'var(--color-text-muted)' }}>
-          {armed ? 'koppints az ábrára, ahol fáj — egy meglévő jelre koppintva törölheted.' : 'a gombbal jelölhetsz be területet az ábrán.'}
-        </p>
       </div>
     </div>
   )
@@ -376,8 +386,6 @@ function StepContent({ step }: { step: number }) {
           </div>
         </>
       )
-    case 4:
-      return <BodyChartStep />
     case 5:
       return (
         <>
@@ -476,12 +484,18 @@ export default function Allapotfelmero() {
 
   return (
     <div className="allapotfelmero-shell" style={{ height: availableHeight }}>
-      <div className={`allapotfelmero-content ${step === TOTAL_STEPS ? 'allapotfelmero-content--scrollable' : ''}`}>
-        <div className="container-fluid" style={{ maxWidth: 560 }}>
-          <h1 className="allapotfelmero-title mb-1">{meta.title}</h1>
-          {meta.subtitle && <p className="allapotfelmero-subtitle mb-4">{meta.subtitle}</p>}
-          <StepContent step={step} />
-        </div>
+      <div
+        className={`allapotfelmero-content ${step === TOTAL_STEPS ? 'allapotfelmero-content--scrollable' : ''} ${step === BODY_CHART_STEP ? 'allapotfelmero-content--full' : ''}`}
+      >
+        {step === BODY_CHART_STEP ? (
+          <BodyChartStep />
+        ) : (
+          <div className="container-fluid" style={{ maxWidth: 560 }}>
+            <h1 className="allapotfelmero-title mb-1">{meta.title}</h1>
+            {meta.subtitle && <p className="allapotfelmero-subtitle mb-4">{meta.subtitle}</p>}
+            <StepContent step={step} />
+          </div>
+        )}
       </div>
 
       <div className="allapotfelmero-pager">
