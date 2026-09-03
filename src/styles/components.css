@@ -190,16 +190,22 @@ html[data-theme='dark'] .card-fyb {
   -webkit-user-drag: none;
 }
 /* színezhető változat (ld. Chevron.tsx `color` prop) — a chevron.png alfa-csatornáját
-   maszkként használva, ugyanaz a technika, mint az Icon.tsx .icon-mask-jénél. */
+   maszkként használva, ugyanaz a technika, mint az Icon.tsx .icon-mask-jénél.
+   Az `aspect-ratio` a `chevron.png` (egyetlen nyíl-egység) valódi arányát adja
+   vissza — a `chevron-double.png` (kész dupla nyíl) ETTŐL ELTÉRŐ arányú kép,
+   ezért a `chevron-unit--mask-double` módosító felülírja (2026.09.03.). */
 .chevron-unit--mask {
   height: 100%;
-  aspect-ratio: 30 / 41;
+  aspect-ratio: 70 / 100;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
   mask-position: center;
   -webkit-mask-size: contain;
   mask-size: contain;
+}
+.chevron-unit--mask-double {
+  aspect-ratio: 140 / 100;
 }
 
 /* --- folyamat-lépések --- */

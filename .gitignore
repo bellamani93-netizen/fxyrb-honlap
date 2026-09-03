@@ -6,6 +6,12 @@
 # (publikus) repóban.
 /blog/
 
+# Marci nyers grafikai forrásfájljai (Figma/Design exportok) — csak
+# referenciaként szolgálnak, a ténylegesen használt, feldolgozott asset-ek a
+# public/ mappában vannak; a (publikus) repóban nem publikáljuk a nyers
+# forrásokat.
+/Design elemek/
+
 # Node / Vite
 node_modules
 dist
