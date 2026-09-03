@@ -1198,3 +1198,13 @@ Marci a "blog" aloldalt átnevezte "mélyedukáció"-ra, és valódi tartalommal
 **Megvalósítás:** `Header.tsx`/`Footer.tsx`/`App.tsx` route-átnevezés (`/blog` → `/melyedukacio`); `MelyEdukacio.tsx` (lista+kereső) és `MelyEdukacioCikk.tsx` (részletező oldal, `/melyedukacio/:id`) váltja a korábbi `Blog.tsx`-et; új `BlogContext.tsx` osztja meg a bejegyzéseket/kategóriákat a nyilvános oldal és az admin szerkesztő (`AdminBlog.tsx`, `/admin/blog`, új admin nav-elem) között; új `ikon_nagyito.svg`.
 
 **Tesztelve böngészőben:** mind a 11 valódi cikk megjelent a helyes kategóriával; a kereső cím ÉS szöveg alapján is szűr; egy admin által létrehozott teszt-bejegyzés (új kategóriával) azonnal megjelent a nyilvános oldalon is. A forrás .docx fájlokat tartalmazó `blog/` mappa `.gitignore`-ba került (nem publikáljuk a repóban, a tartalma már átkerült a kódba). `npm run build` hibamentes.
+
+## 2026.09.02. — Hibajavítás: SALES naptár szürke háttere világos módban
+
+Marci jelezte, hogy az értékesítő "hívásaim" naptárának háttere világos módban szürke, a GYT naptár narancssárga "szabad" színéhez képest, és kérte, hogy az admin-nézetben (kolléga nevében belépve) is a frissített design látszódjon.
+
+**Ok és javítás:** a `SalesHivasaim.tsx` üres sávjainak színét egy `gytColorVar('sajat', ...)` hívás adta, ami — mivel a "sajat" azonosító nincs a színkód-térképben — mindig a szürkés "default" tartalék színre esett vissza. Javítva: az üres sávok mostantól a GYT naptár "szabad" színét (`var(--pale-orange)`) kapják.
+
+**Admin-nézet:** ellenőriztem, hogy az admin "belépés a nevében" funkciója a VALÓDI GYT/SALES oldalakra navigál (nem egy külön admin-specifikus másolatra), ezért minden korábbi és mostani fejléc-/naptár-javítás automatikusan érvényes admin-nézetben is — a szürke-háttér hiba pontosan ugyanúgy jelentkezett, és a javítás után pontosan ugyanúgy meg is szűnt admin-nézetben, mint közvetlen SALES-bejelentkezéssel. Külön admin-specifikus módosításra nem volt szükség.
+
+**Tesztelve böngészőben:** világos módban, 375px és 1280px szélességben, közvetlen SALES-bejelentkezéssel és admin-impersonációval is. `npm run build` hibamentes.

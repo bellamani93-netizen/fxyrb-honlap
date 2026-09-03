@@ -70,9 +70,13 @@ export default function SalesHivasaim() {
   // sagegray) szín minden más MÚLTBELI időpontnál; türkiz (a márka elsődleges
   // színe) minden JÖVŐBELI időpontnál. A sorrend fontos: a sárga megelőzi a
   // múlt/jövő megkülönböztetést, mert egy "nem jött" jelölés mindig erősebb.
-  // Az üres (még nem foglalt) sávok mindig a semleges alap-szín halvány
-  // tintjét kapják, időtől függetlenül — ez csak azt jelzi, hogy ide LEHET
-  // időpontot felvenni, nem egy tényleges hívás állapotát mutatja.
+  // Az üres (még nem foglalt) sávok a GYT saját naptárának "szabad" színét
+  // kapják (`--pale-orange`) — korábban `gytColorVar(OWN_ID, ...)` adta ezt a
+  // színt, de mivel a "sajat" azonosító nincs benne a `GYT_COLOR_VAR`
+  // térképben, ez mindig a szürkés "default" (sagegray) fallback-re esett
+  // vissza, ezért világos módban feltűnően szürkének látszott a naptár
+  // háttere a GYT sárgás-narancsos "szabad" színéhez képest (2026.09.02.,
+  // Marci hibajelzésére).
   // Technikai megjegyzés (2026.08.28., 7. kör): a GytWeeklyCalendar SlotBlock-ja
   // a "szabad" státusznál a `solid`, "foglalt"-nál a `tint` mezőt olvassa ki
   // (ld. ott a fordított logikát a GYT-kapacitás-nézet élénkítéséhez) — itt,
@@ -82,8 +86,7 @@ export default function SalesHivasaim() {
   function getOwnSlotColor(_id: string, dateISO: string, hour: number) {
     const match = findCallAt(dateISO, hour)
     if (!match) {
-      const empty = gytColorVar(OWN_ID, 0.15)
-      return { solid: empty, tint: empty }
+      return { solid: 'var(--pale-orange)', tint: 'var(--pale-orange)', textSolid: 'var(--navy)', textTint: 'var(--navy)' }
     }
     if (match.outcome === 'nem_jelent_meg') {
       const yellow = 'var(--macos-yellow)'
