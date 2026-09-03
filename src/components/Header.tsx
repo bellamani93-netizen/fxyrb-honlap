@@ -3,16 +3,23 @@ import { NavLink } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
 import Icon from './Icon'
 import { withBase } from '../lib/assetUrl'
+import { useMiniKurzusModal } from '../context/MiniKurzusModalContext'
 
-const navItems = [
+// a "mini-kurzus" még nincs kész (2026.09.03., Marci kérésére) — a rá mutató
+// nav-elem `to` helyett `comingSoon`-t kap, és a "hamarosan" popupot nyitja
+// meg navigáció helyett (ld. MiniKurzusModalContext).
+type NavItem = { label: string; locked?: boolean } & ({ to: string; comingSoon?: false } | { to?: undefined; comingSoon: true })
+
+const navItems: NavItem[] = [
   { to: '/', label: 'főoldal' },
   { to: '/melyedukacio', label: 'mélyedukáció' },
-  { to: '/mini-kurzus', label: 'mini-kurzus' },
+  { comingSoon: true, label: 'mini-kurzus' },
   { to: '/idopontfoglalas', label: 'időpontfoglalás', locked: true },
 ]
 
 export default function Header() {
   const [open, setOpen] = useState(false)
+  const { open: openMiniKurzusModal } = useMiniKurzusModal()
 
   return (
     <header className="site-header">
@@ -38,19 +45,34 @@ export default function Header() {
         <nav
           className={`site-nav ${open ? 'd-flex' : 'd-none'} d-lg-flex flex-column flex-lg-row align-items-start align-items-lg-center gap-1 order-lg-2`}
         >
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className="nav-link-fyb d-flex align-items-center gap-1"
-              onClick={() => setOpen(false)}
-            >
-              {item.label}
-              {item.locked && (
-                <Icon src="/icons/ikon_lakat.svg" style={{ width: '0.85em', height: '0.85em', opacity: 0.7 }} label="feltételes hozzáférés" />
-              )}
-            </NavLink>
-          ))}
+          {navItems.map((item) =>
+            item.comingSoon ? (
+              <button
+                key={item.label}
+                type="button"
+                className="nav-link-fyb d-flex align-items-center gap-1"
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                onClick={() => {
+                  setOpen(false)
+                  openMiniKurzusModal()
+                }}
+              >
+                {item.label}
+              </button>
+            ) : (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className="nav-link-fyb d-flex align-items-center gap-1"
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+                {item.locked && (
+                  <Icon src="/icons/ikon_lakat.svg" style={{ width: '0.85em', height: '0.85em', opacity: 0.7 }} label="feltételes hozzáférés" />
+                )}
+              </NavLink>
+            )
+          )}
           <NavLink to="/belepes" className="nav-link-fyb" onClick={() => setOpen(false)}>
             belépés
           </NavLink>

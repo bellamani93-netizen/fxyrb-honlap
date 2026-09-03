@@ -1244,3 +1244,11 @@ Marci szerint a korábbi, magunk vágta chevron-grafika nem volt elég precíz (
 **Megvalósítás:** az új forrás már egy kész "dupla nyíl" — pontosan félbevágva adta a két végleges asset-et: `chevron.png` (egyetlen egység, ugyanaz a fájlnév, mint eddig) és az új `chevron-double.png` (a teljes dupla nyíl). `Chevron.tsx` egyszerűsödött: a `double` prop már csak a megfelelő kész képfájlt választja ki, nem rak egymás mellé két egységet futásidőben. A színezhető (mask) változatnál egy új CSS-osztály (`.chevron-unit--mask-double`) kezeli a két kép eltérő arányát.
 
 **Tesztelve böngészőben:** eyebrow dupla nyilak, lábléc-minta, folyamat-szekció egyszeres nyilai, és a GYT videókiosztás lime dupla nyilai (asztali + mobil) is vizuálisan pontosan ugyanott, ugyanakkora méretben jelentek meg, csak élesebb rajzolattal. A "Design elemek" nyers forrásmappa `.gitignore`-ba került. `npm run build` hibamentes.
+
+## 2026.09.03. — Mini-kurzus/gyorsítósáv: "hamarosan" popup navigáció helyett
+
+A mini-kurzus oldal még nincs kész. Marci kérésére minden rá mutató belépési pont (fejléc, lábléc, főoldal 2 "gyorsítósáv" gombja, időpontfoglalás oldal gombja) mostantól egy popupot nyit navigáció helyett — elmondja, hogy a mini-kurzus még készül, és a Derekas Levelek hírlevélre / Facebookra irányít.
+
+**Megvalósítás:** új `MiniKurzusModalContext` (a publikus `Layout.tsx`-ben élő Provider, hogy minden érintett oldal — Header, Footer, Home, Idopontfoglalas — ugyanazt a popupot tudja megnyitni) és `MiniKurzusComingSoonModal.tsx` (a megszokott modal-minta, egy UI-terv szintű e-mail feliratkozó mini-formával + Facebook-említéssel, link nélkül egyelőre, mert nincs megadva az URL). Az érintett `<Link>`-ek `<button onClick={...}>`-ra váltottak, vizuálisan változatlan stílussal. A `/mini-kurzus` route és oldal maga változatlan (közvetlen URL-lel továbbra is elérhető).
+
+**Tesztelve böngészőben:** mind az 5 belépési pont helyesen popupot nyit navigáció nélkül; az e-mail-mező kitöltése és elküldése a visszajelzést helyesen mutatja. Asztali és mobil nézetben is ellenőrizve. `npm run build` hibamentes.

@@ -445,6 +445,18 @@ html[data-theme='dark'] .app-topbar {
 }
 .site-footer a { color: var(--offwhite); text-decoration: none; }
 .site-footer a:hover { color: var(--mint); }
+/* a "mini-kurzus" lábléc-link gombként viselkedik (popup nyit navigáció
+   helyett, ld. MiniKurzusModalContext, 2026.09.03.) — vizuálisan a többi
+   lábléc-linkkel egyezzen. */
+.footer-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--offwhite);
+  cursor: pointer;
+}
+.footer-link-btn:hover { color: var(--mint); }
 
 /* a lábléc-blokk TETEJÉN futó, a logó nyilaival egyező forma ismétlődő mintája */
 .footer-chevron-strip {

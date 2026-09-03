@@ -1,8 +1,8 @@
 import { Fragment } from 'react'
-import { Link } from 'react-router-dom'
 import Chevron from '../components/Chevron'
 import Icon from '../components/Icon'
 import { withBase } from '../lib/assetUrl'
+import { useMiniKurzusModal } from '../context/MiniKurzusModalContext'
 
 const helpCards = [
   {
@@ -47,6 +47,8 @@ const testimonials = [
 ]
 
 export default function Home() {
+  const { open: openMiniKurzusModal } = useMiniKurzusModal()
+
   return (
     <>
       {/* HERO */}
@@ -62,7 +64,7 @@ export default function Home() {
                 kellene edzenem gyakorolnod.
               </p>
               <div className="d-flex flex-wrap gap-3">
-                <Link to="/mini-kurzus" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow">gyorsítósáv</Link>
+                <button type="button" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow" onClick={openMiniKurzusModal}>gyorsítósáv</button>
               </div>
             </div>
             <div className="col-lg-5 align-self-end">
@@ -172,7 +174,7 @@ export default function Home() {
           <p className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
             nézd meg a 4 videós gyorsítósávot — pár perc alatt megérted, mi okozza a fájdalmad, és mit tehetsz ellene.
           </p>
-          <Link to="/mini-kurzus" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow">gyorsítósáv</Link>
+          <button type="button" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow" onClick={openMiniKurzusModal}>gyorsítósáv</button>
         </div>
       </section>
 

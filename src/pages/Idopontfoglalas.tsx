@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom'
 import Chevron from '../components/Chevron'
 import Icon from '../components/Icon'
+import { useMiniKurzusModal } from '../context/MiniKurzusModalContext'
 
 const testimonials = [
   {
@@ -12,6 +12,8 @@ const testimonials = [
 ]
 
 export default function Idopontfoglalas() {
+  const { open: openMiniKurzusModal } = useMiniKurzusModal()
+
   return (
     <section className="py-5">
       <div className="container">
@@ -68,7 +70,7 @@ export default function Idopontfoglalas() {
                 kérdést engedj meg: ha tényleg érted a dolgokat, akkor miért is vagy itt? Ha elég jó lenne a
                 modelled, akkor már megoldotta volna a problémát...
               </p>
-              <Link to="/mini-kurzus" className="btn-fyb btn-fyb-highlight">oké, nézzük miről van szó</Link>
+              <button type="button" className="btn-fyb btn-fyb-highlight" onClick={openMiniKurzusModal}>oké, nézzük miről van szó</button>
             </div>
           </div>
         </div>
