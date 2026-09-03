@@ -6,6 +6,7 @@ import Icon from './Icon'
 // ami elmondja, hogy addig is a Derekas Levelek hírlevélen és a Facebookon
 // kommunikálunk. A hírlevél-feliratkozás itt is csak UI-terv (nincs valódi
 // backend), ugyanúgy, ahogy a főoldali hírlevél-blokké sem az.
+const FACEBOOK_URL = 'https://www.facebook.com/profile.php?id=100089450116040'
 export default function MiniKurzusComingSoonModal({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
@@ -45,7 +46,7 @@ export default function MiniKurzusComingSoonModal({ onClose }: { onClose: () => 
         )}
 
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <span className="small" style={{ color: 'var(--color-text-muted)' }}>vagy kövess a Facebookon</span>
+          <a href={FACEBOOK_URL} target="_blank" rel="noreferrer" className="small" style={{ color: 'var(--color-primary)' }}>vagy kövess a Facebookon</a>
           <button type="button" className="btn-fyb btn-fyb-ghost" onClick={onClose}>bezár</button>
         </div>
       </div>

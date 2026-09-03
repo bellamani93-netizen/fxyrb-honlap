@@ -1252,3 +1252,5 @@ A mini-kurzus oldal még nincs kész. Marci kérésére minden rá mutató belé
 **Megvalósítás:** új `MiniKurzusModalContext` (a publikus `Layout.tsx`-ben élő Provider, hogy minden érintett oldal — Header, Footer, Home, Idopontfoglalas — ugyanazt a popupot tudja megnyitni) és `MiniKurzusComingSoonModal.tsx` (a megszokott modal-minta, egy UI-terv szintű e-mail feliratkozó mini-formával + Facebook-említéssel, link nélkül egyelőre, mert nincs megadva az URL). Az érintett `<Link>`-ek `<button onClick={...}>`-ra váltottak, vizuálisan változatlan stílussal. A `/mini-kurzus` route és oldal maga változatlan (közvetlen URL-lel továbbra is elérhető).
 
 **Tesztelve böngészőben:** mind az 5 belépési pont helyesen popupot nyit navigáció nélkül; az e-mail-mező kitöltése és elküldése a visszajelzést helyesen mutatja. Asztali és mobil nézetben is ellenőrizve. `npm run build` hibamentes.
+
+**Kiegészítés (ugyanaznap):** Marci megadta a Facebook-oldal linkjét (facebook.com/profile.php?id=100089450116040) — a popup "vagy kövess a Facebookon" szövege mostantól valódi, új lapon nyíló link erre az oldalra.
