@@ -1216,3 +1216,15 @@ Marci pontosította az előző (grey-háttér) javítást: a "szabad" (narancss�
 **Javítás:** `getOwnSlot()` egy foglalatlan órára mostantól `status` nélküli (színezetlen, fehér) sávot ad vissza — ugyanaz, mint a GYT naptárában egy még nem meghirdetett óra. A kattinthatóság megmaradt: `onFreeSlotClick` helyett `onEmptySlotClick` nyitja az "új hívás" popupot.
 
 **Tesztelve böngészőben:** 375px és 1280px szélességben — fehér háttér, csak a valódi hívások színezettek; üres órára kattintva az új-hívás popup, meglévő hívásra kattintva az előnézet popup változatlanul működik. `npm run build` hibamentes.
+
+## 2026.09.02. — Limitációk doboz mentéskor becsukódik, bulk videó-választó nem lóg ki a képernyőről
+
+Marci két korrekciót kért a GYT videókiosztás oldalon: (1) új ügyfélnél a limitációk beállítása után "mentés"-re kattintva a doboz csukódjon be automatikusan; (2) a "lezárult együttműködés" tömeges videókiosztás listájában néhány legördülő menü mobilon kilóg a képernyőről.
+
+**(1)** `VariablesPanel` "mentés" gombja mostantól a zárolás mellett `setExpanded(false)`-t is hív.
+
+**(2)** `VideoPickerRow` gyökerén új `bulk-video-row` osztály + mobil média-lekérdezés, ami balról-kinövőre állítja a legördülőt (`left:0, right:auto`), ugyanaz a minta, mint a `LevelRow`-nál már bevált korrekció.
+
+**Tesztelve böngészőben:** mindkettő megerősítve mobil nézetben (375px) — a panel automatikusan csukódik mentéskor, a legördülő menü geometriailag a viewporton belül marad.
+
+**Egy harmadik, jelzett hiba** (egy "terv" időpont "konzultáció"-ra visszaállítva lime színt kap türkiz helyett) 7 különböző böngészős teszt-forgatókönyvvel sem volt reprodukálható — a dinamikus alkalom-számítás minden esetben helyesen működött. Pontosítást kértem Marcitól a pontos reprodukálási lépésekről.

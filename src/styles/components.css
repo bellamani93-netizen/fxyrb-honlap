@@ -987,6 +987,20 @@ html[data-theme='dark'] .locked-overlay-card {
     right: auto;
   }
 }
+/* a "lezárult együttműködés" tömeges videókiosztás listájának sorai
+   (`VideoPickerRow`) mobilon a kártya bal széléhez közel kezdődnek (a
+   szint-címke és a videó-választó egymás alá kerül, ld. ott) — a
+   jobbról-kinövő alapértelmezett legördülő emiatt néhány, keskenyebb
+   választó-gombnál a képernyő BAL szélén túlra lógott ki, mert a
+   min-szélesség (12rem) nagyobb volt, mint amennyi hely balra maradt
+   (2026.09.02., Marci hibajelzésére) — ugyanaz a korrekció, mint a
+   `.level-row`-nál: balról-kinőve nyílik. */
+@media (max-width: 991.98px) {
+  .bulk-video-row .level-select-menu {
+    left: 0;
+    right: auto;
+  }
+}
 /* a mobil gyt-választó a képernyő bal szélén ül (a "+" gomb mellett) — a
    jobbról-kinövő alapértelmezés itt a képernyőn KÍVÜLRE lógna, ezért balról
    kell nyílnia (2026.08.28., 7. kör) */

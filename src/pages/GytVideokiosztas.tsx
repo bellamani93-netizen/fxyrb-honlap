@@ -302,7 +302,7 @@ function VideoPickerRow({
   }, [])
 
   return (
-    <div className="py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
+    <div className="py-2 bulk-video-row" style={{ borderBottom: '1px solid var(--color-border)' }}>
       {/* mobilon MINDIG egymás alá kerül a szint-címke és a videó-választó,
          függetlenül attól, hogy a kiválasztott videó neve rövid vagy hosszú —
          korábban ez tartalom-függő flex-wrap volt, ezért soronként hol egy,
@@ -482,7 +482,14 @@ function VariablesPanel({
           type="button"
           className={`btn-fyb ${locked ? 'btn-fyb-outline' : 'btn-fyb-primary'}`}
           style={{ padding: '0.5rem 1.25rem' }}
-          onClick={() => onLockedChange(!locked)}
+          onClick={() => {
+            const next = !locked
+            onLockedChange(next)
+            // mentéskor (nem módosításkor) a doboz automatikusan becsukódik —
+            // 2026.09.02., Marci kérésére, hogy egy vadonatúj ügyfélnél a
+            // limitációk beállítása után ne maradjon feleslegesen nyitva.
+            if (next) setExpanded(false)
+          }}
         >
           {locked ? 'módosítás' : 'mentés'}
         </button>
