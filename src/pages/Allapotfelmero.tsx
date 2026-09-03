@@ -19,7 +19,7 @@ import {
 // itt csak a Context-ben élnek, mentés/beküldés nem ír vissza semmilyen
 // "valós" nyilvántartásba.
 
-const TOTAL_STEPS = 13
+const TOTAL_STEPS = 11
 
 const CURRENT_YEAR = new Date().getFullYear()
 const BIRTH_YEARS = Array.from({ length: 76 }, (_, i) => String(CURRENT_YEAR - 14 - i))
@@ -49,14 +49,12 @@ const STEP_META: Record<number, { title: string; subtitle?: string }> = {
   3: { title: 'Állapotfelmérő kérdőív', subtitle: 'tünetek' },
   4: { title: 'mutasd meg', subtitle: 'jelöld be, hol és mekkora területen érzed a fájdalmat' },
   5: { title: 'Állapotfelmérő kérdőív', subtitle: 'történet' },
-  6: { title: 'Állapotfelmérő kérdőív', subtitle: 'mi esik jól, amikor fáj?' },
-  7: { title: 'Állapotfelmérő kérdőív', subtitle: 'mikor érzed leginkább?' },
-  8: { title: 'Állapotfelmérő kérdőív', subtitle: 'szerinted mi lehet az oka?' },
-  9: { title: 'rizikófaktorok I', subtitle: 'van-e ezek közül valamelyik?' },
-  10: { title: 'rizikófaktorok II', subtitle: 'van-e ezek közül valamelyik?' },
-  11: { title: 'mozgékonyság', subtitle: 'a tornát érintő kérdések — ne csalj! 🙂' },
-  12: { title: 'Állapotfelmérő kérdőív', subtitle: 'személyes célod' },
-  13: { title: 'gerincterhelés kalkulátor' },
+  6: { title: 'Állapotfelmérő kérdőív', subtitle: 'néhány további kérdés' },
+  7: { title: 'rizikófaktorok I', subtitle: 'van-e ezek közül valamelyik?' },
+  8: { title: 'rizikófaktorok II', subtitle: 'van-e ezek közül valamelyik?' },
+  9: { title: 'mozgékonyság', subtitle: 'a tornát érintő kérdések — ne csalj! 🙂' },
+  10: { title: 'Állapotfelmérő kérdőív', subtitle: 'személyes célod' },
+  11: { title: 'gerincterhelés kalkulátor' },
 }
 
 function getSessionName(fallback: string): string {
@@ -147,22 +145,29 @@ function TextField({
 }
 
 function TextAreaField({
+  label,
   value,
   onChange,
   placeholder,
+  rows = 3,
 }: {
+  label?: string
   value: string
   onChange: (v: string) => void
   placeholder?: string
+  rows?: number
 }) {
   return (
-    <textarea
-      className="form-control"
-      rows={3}
-      value={value}
-      placeholder={placeholder}
-      onChange={(e) => onChange(e.target.value)}
-    />
+    <div className="mb-3">
+      {label && <FieldLabel>{label}</FieldLabel>}
+      <textarea
+        className="form-control"
+        rows={rows}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
   )
 }
 
@@ -381,12 +386,14 @@ function StepContent({ step }: { step: number }) {
         </>
       )
     case 6:
-      return <TextAreaField value={adatok.miEsikJol} onChange={(v) => setAdatok({ miEsikJol: v })} placeholder="pl. pihentetés, nyújtás, meleg…" />
+      return (
+        <>
+          <TextAreaField label="mi esik jól, amikor fáj?" rows={2} value={adatok.miEsikJol} onChange={(v) => setAdatok({ miEsikJol: v })} placeholder="pl. pihentetés, nyújtás, meleg…" />
+          <TextAreaField label="mikor érzed leginkább? (helyzet, mozdulat, napszak)" rows={2} value={adatok.mikorErzedLegjobban} onChange={(v) => setAdatok({ mikorErzedLegjobban: v })} placeholder="helyzet, mozdulat, napszak…" />
+          <TextAreaField label="szerinted mi lehet az oka?" rows={2} value={adatok.szerintedMiOka} onChange={(v) => setAdatok({ szerintedMiOka: v })} placeholder="a saját megérzésed is számít" />
+        </>
+      )
     case 7:
-      return <TextAreaField value={adatok.mikorErzedLegjobban} onChange={(v) => setAdatok({ mikorErzedLegjobban: v })} placeholder="helyzet, mozdulat, napszak…" />
-    case 8:
-      return <TextAreaField value={adatok.szerintedMiOka} onChange={(v) => setAdatok({ szerintedMiOka: v })} placeholder="a saját megérzésed is számít" />
-    case 9:
       return (
         <RiskCheckboxList
           options={RIZIKO_I_OPTIONS}
@@ -398,7 +405,7 @@ function StepContent({ step }: { step: number }) {
           })}
         />
       )
-    case 10:
+    case 8:
       return (
         <RiskCheckboxList
           options={RIZIKO_II_OPTIONS}
@@ -410,7 +417,7 @@ function StepContent({ step }: { step: number }) {
           })}
         />
       )
-    case 11:
+    case 9:
       return (
         <>
           <TraitToggleRow
@@ -431,9 +438,9 @@ function StepContent({ step }: { step: number }) {
           )}
         </>
       )
-    case 12:
+    case 10:
       return <TextAreaField value={adatok.szemelyesCel} onChange={(v) => setAdatok({ szemelyesCel: v })} placeholder="mit szeretnél elérni a programmal?" />
-    case 13:
+    case 11:
       return (
         <div className="card-fyb text-center py-5" style={{ border: '2px dashed var(--color-border)' }}>
           <Icon src="/icons/ikon_szintek.svg" className="mx-auto mb-3" style={{ width: '2.5rem', height: '2.5rem' }} />

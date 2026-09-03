@@ -1804,10 +1804,16 @@ html[data-theme='dark'] .sales-delete-icon {
   color: var(--color-text);
   font-weight: 700;
 }
+/* FONTOS: `height` kell ide, nem `max-height` — a `.bodychart-img`
+   `height: 100%`-a csak egy MEGHATÁROZOTT (nem csak felső korlátos) szülő-
+   magassághoz tud viszonyulni. `max-height`-tal a kép a saját natív
+   pixelméretében (pl. 166×529) jelent meg, ami messze lelógott a
+   képernyőről — emiatt Marci szerint "nem látszott" a kép (2026.09.04.,
+   Marci hibajelzésére javítva). */
 .bodychart-frame {
   position: relative;
   display: inline-flex;
-  max-height: 38vh;
+  height: clamp(180px, 34vh, 380px);
 }
 .bodychart-img {
   height: 100%;
@@ -1866,7 +1872,7 @@ html[data-theme='dark'] .sales-delete-icon {
     justify-content: center;
   }
   .bodychart-frame {
-    max-height: 52vh;
+    height: clamp(280px, 50vh, 520px);
   }
   .bodychart-controls {
     text-align: left;

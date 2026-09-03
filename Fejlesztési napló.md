@@ -1284,3 +1284,11 @@ Marci elindította a 2. fázist: egy 13 lapos, egyképernyős (nem görgetett, h
 **Fontos, Marci kifejezett kérése:** ebben a körben KIZÁRÓLAG a design/UI készült el — a válaszok logikáját és a generált eredménylapot egy következő fázisban dolgozzuk ki.
 
 **Tesztelve böngészőben:** ÜF teszt-fiókkal belépve a rendszer helyesen az állapotfelmérőre irányított; mind a 13 lap, minden mezőtípus (legördülő, csúszka, szöveg, jelölőnégyzet, auth-tab váltó) és a body chart jelölés/törlés (mindkét nézetben, mindhárom méretben) helyesen működött. A "mentés" gomb helyesen zárta le a kérdőívet és oldotta fel a többi menüpontot (DOM-szinten ellenőrizve). `npm run build` hibamentes.
+
+## 2026.09.04. — Hibajavítás: body chart kép nem látszott + 13→11 lap összevonással
+
+Marci jelezte, hogy az állapotfelmérő "mutasd meg" lapján sem a hát, sem a röntgen kép nem látszott. Ok: a `.bodychart-frame`-en csak `max-height` volt beállítva, `height` nem, ezért a képen lévő `height: 100%` nem tudott érvényesülni — a kép a saját natív, nagy pixelméretében (166×529 / 224×587) jelent meg, messze lelógva a látható területről. Javítva: `height: clamp(180px, 34vh, 380px)` (mobil) / `clamp(280px, 50vh, 520px)` (asztali) a korábbi `max-height` helyett.
+
+Emellett Marci megkérte, hogy vizsgáljam át mind a 13 lapot: egyszerűsíthető-e összevonással, tartalom-kihagyás és túlzsúfoltság nélkül. A 6-7-8. lap (3 önálló, egy-egy mezős, tematikusan összefüggő rövid kérdés: mi esik jól / mikor érzed leginkább / szerinted mi az oka) volt az egyetlen egyértelmű jelölt — ezeket egyetlen lapra vontam össze, saját címkével minden mező felett. A rizikófaktor-listákat (9-10. lap, összesen 15 jelölőnégyzet) és a többi lapot szándékosan NEM vontam össze — ezt a döntést a Design jegyzet.md 72. pontjában részletesen indokoltam. A kérdőív innentől 11 lapos.
+
+**Tesztelve böngészőben:** a body chart mindkét nézetben helyesen, arányosan jelent meg mobil és asztali szélességben is; az összevont lap mindhárom kérdése egy képernyőn, görgetés nélkül elfért; a teljes 11 lapos flow (számozás, mentés, menüfeloldás) újra végigtesztelve helyesen működött. `npm run build` hibamentes.
