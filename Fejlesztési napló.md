@@ -1262,3 +1262,11 @@ Marci több szövegrészt pontosított: a mélyedukáció oldal címe és alcím
 ## 2026.09.03. — Második Google-értékelés hozzáadva a főoldalhoz
 
 Marci kérésére a "visszajelzések" szekció megkapta a második, valódi Google-értékelést (Peter Csurgay, 5/5) az eddigi egy (Tóth Barnabás) mellé — a pontos szöveget Marci küldte át. A kártyák rácsa `col-md-7`-ről `col-md-6`-ra váltott, hogy 2 értékelés asztali nézetben egymás mellett, egyenlő magassággal jelenjen meg (mobilon változatlanul egymás alatt). `npm run build` hibamentes, mobil és asztali nézetben is ellenőrizve.
+
+## 2026.09.03. — PROJEKT-SZINTŰ MÉRFÖLDKŐ: az 1. fázis (teljes UI-terv) lezárva, átadás a programozónak
+
+Marci lezárta a projekt 1. fázisát: a klikkelhető UI-terv (mind a 4 szerepkör, a nyilvános oldalak, a mobil-reszponzivitás és a mélyedukáció tartalma) készen áll, innentől egy programozó veszi át és valósítja meg élesben, valódi backenddel.
+
+Ennek a commitnak a pontja lesz a `fazis-1-lezarva` git tag — a programozó számára rögzített, stabil referenciapont. A `main` ág ettől a ponttól nem folytatódik automatikusan tovább a napi tervezői munkával: a további fázisok/funkciók fejlesztése egy külön branch-en zajlik majd, hogy (1) a programozó munkáját ne zavarja egy folyamatosan változó `main`, és (2) a GitHub Pages-en élő demó (amit a programozó is referenciaként használhat) stabil maradjon, amíg Marci tudatosan nem dönt egy új fázis visszaolvasztásáról.
+
+Ez tisztán szervezési/dokumentációs mérföldkő, kódváltozás nélkül.
