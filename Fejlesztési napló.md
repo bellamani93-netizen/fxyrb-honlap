@@ -1258,3 +1258,7 @@ A mini-kurzus oldal még nincs kész. Marci kérésére minden rá mutató belé
 ## 2026.09.03. — Főoldal és mélyedukáció szövegezés frissítve
 
 Marci több szövegrészt pontosított: a mélyedukáció oldal címe és alcíme ("ezeket neked írtam: tippek és trükkök helyett információ-rendszerezés" / "a derékfájás kezelése egyszerűbb, mint gondolnád, de bonyolultabb, mint hitted."); a főoldal hero címe ("...ne csak a tüneteit") és bevezető szövege; a "kinek segítünk" 1. és 3. dobozának szövege (a 2. változatlan). Tisztán tartalmi/szövegezési változtatás, `npm run build` hibamentes, mobil és asztali nézetben is ellenőrizve.
+
+## 2026.09.03. — Második Google-értékelés hozzáadva a főoldalhoz
+
+Marci kérésére a "visszajelzések" szekció megkapta a második, valódi Google-értékelést (Peter Csurgay, 5/5) az eddigi egy (Tóth Barnabás) mellé — a pontos szöveget Marci küldte át. A kártyák rácsa `col-md-7`-ről `col-md-6`-ra váltott, hogy 2 értékelés asztali nézetben egymás mellett, egyenlő magassággal jelenjen meg (mobilon változatlanul egymás alatt). `npm run build` hibamentes, mobil és asztali nézetben is ellenőrizve.

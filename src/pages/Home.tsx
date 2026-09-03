@@ -44,6 +44,12 @@ const testimonials = [
     quote: 'Hiánypótló! Sokkal több ehhez hasonló kezdeményezésnek kellene lenni. Remélem még sok derékfájósnak tudtok irányt mutatni a gyógyulás felé.',
     initials: 'T',
   },
+  {
+    name: 'Peter Csurgay',
+    role: 'Google-értékelés · 5/5',
+    quote: 'Ülőmunkával, tenisszel, következetesen nyírtam ki a gerincemet egészen a beszakadt sérvig és műtét kapujáig. Próbáltam mindent, ez a program az első, ami tartós javulást hozott. A cél itt nem a tüneti kezelés, hanem a probléma megértése és megszűntetése.',
+    initials: 'P',
+  },
 ]
 
 export default function Home() {
@@ -150,7 +156,7 @@ export default function Home() {
           <h2 className="mb-4">nem csak mi mondjuk</h2>
           <div className="row gy-4 justify-content-center">
             {testimonials.map((t) => (
-              <div className="col-md-7" key={t.name}>
+              <div className="col-md-6" key={t.name}>
                 <div className="card-fyb testimonial-fyb h-100">
                   <div className="stars mb-2">★★★★★</div>
                   <p className="mb-3">„{t.quote}”</p>
