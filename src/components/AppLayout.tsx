@@ -4,6 +4,7 @@ import ThemeToggle from './ThemeToggle'
 import Icon from './Icon'
 import { getAdminView, setAdminView } from '../hooks/useAdminEditGuard'
 import { withBase } from '../lib/assetUrl'
+import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
 
 export type NavItem = {
   to?: string
@@ -14,16 +15,21 @@ export type NavItem = {
   badge?: number
 }
 
-const ufNavItems: NavItem[] = [
-  { to: '/gyakorlatok', label: 'gyakorlatok', icon: '/icons/ikon_torna.svg' },
-  { to: '/konzultacioim', label: 'konzultációk', icon: '/icons/ikon_naptar.svg' },
-  { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
-  { label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: true },
-  { label: 'oktatóanyag', icon: '/icons/ikon_tanulas.svg', locked: true },
-  { label: 'eredményeim', icon: '/icons/ikon_csillag.svg', locked: true },
-  { label: 'állapotfelmérő', icon: '/icons/ikon_kerdoiv.svg', locked: true },
-  { label: 'kérdéseim', icon: '/icons/ikon_csengo.svg', locked: true },
-]
+// az "állapotfelmérő" a fiók LEGELSŐ, kötelező pontja (2026.09.03., Marci
+// kérésére, 2. fázis) — amíg nincs kitöltve és elmentve, a többi menüpont
+// zárolt marad (ld. App.tsx UgyfelGate, ami a tényleges útvonal-tiltást adja).
+function buildUfNavItems(felmeresKesz: boolean): NavItem[] {
+  return [
+    { to: '/allapotfelmero', label: 'állapotfelmérő', icon: '/icons/ikon_kerdoiv.svg' },
+    { to: '/gyakorlatok', label: 'gyakorlatok', icon: '/icons/ikon_torna.svg', locked: !felmeresKesz },
+    { to: '/konzultacioim', label: 'konzultációk', icon: '/icons/ikon_naptar.svg', locked: !felmeresKesz },
+    { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
+    { label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: true },
+    { label: 'oktatóanyag', icon: '/icons/ikon_tanulas.svg', locked: true },
+    { label: 'eredményeim', icon: '/icons/ikon_csillag.svg', locked: true },
+    { label: 'kérdéseim', icon: '/icons/ikon_csengo.svg', locked: true },
+  ]
+}
 
 type AppLayoutProps = {
   navItems?: NavItem[]
@@ -49,9 +55,11 @@ function sessionName(role: 'ugyfel' | 'gyt' | 'sales' | 'admin' | undefined, fal
   }
 }
 
-export default function AppLayout({ navItems = ufNavItems, userName = 'Péter', role }: AppLayoutProps) {
+export default function AppLayout({ navItems, userName = 'Péter', role }: AppLayoutProps) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const { completed: felmeresKesz } = useAllapotfelmero()
+  const items = navItems ?? buildUfNavItems(felmeresKesz)
   const displayName = sessionName(role, userName)
   const adminView = (role === 'gyt' || role === 'sales') ? getAdminView() : null
   const isAdminImpersonating = !!adminView && adminView.role === role
@@ -100,7 +108,7 @@ export default function AppLayout({ navItems = ufNavItems, userName = 'Péter', 
         </div>
 
         <nav className="app-sidebar-nav">
-          {navItems.map((item) =>
+          {items.map((item) =>
             item.locked ? (
               <span key={item.label} className="app-sidebar-link is-locked">
                 <Icon src={item.icon} />

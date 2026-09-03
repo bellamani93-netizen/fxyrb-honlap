@@ -1,4 +1,4 @@
-import { Routes, Route, Outlet } from 'react-router-dom'
+import { Routes, Route, Outlet, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import AppLayout, { type NavItem } from './components/AppLayout'
 import ScrollToTop from './components/ScrollToTop'
@@ -8,6 +8,7 @@ import MelyEdukacioCikk from './pages/MelyEdukacioCikk'
 import MiniKurzus from './pages/MiniKurzus'
 import Idopontfoglalas from './pages/Idopontfoglalas'
 import Belepes from './pages/Belepes'
+import Allapotfelmero from './pages/Allapotfelmero'
 import Gyakorlatok from './pages/Gyakorlatok'
 import UgyfelKonzultaciok from './pages/UgyfelKonzultaciok'
 import GytUgyfelek from './pages/GytUgyfelek'
@@ -22,6 +23,7 @@ import { SalesDataProvider } from './context/SalesDataContext'
 import { CalendarProvider } from './context/CalendarContext'
 import { ClientsProvider, useClients } from './context/ClientsContext'
 import { BlogProvider } from './context/BlogContext'
+import { AllapotfelmeroProvider, useAllapotfelmero } from './context/AllapotfelmeroContext'
 import { LOGGED_IN_GYT_ID } from './data/colleagues'
 
 function buildGytNavItems(newClientsCount: number): NavItem[] {
@@ -56,11 +58,23 @@ export default function App() {
     <ClientsProvider>
       <CalendarProvider>
         <BlogProvider>
-          <AppRoutes />
+          <AllapotfelmeroProvider>
+            <AppRoutes />
+          </AllapotfelmeroProvider>
         </BlogProvider>
       </CalendarProvider>
     </ClientsProvider>
   )
+}
+
+// az ÜF fiók állapotfelmérője a fiók LEGELSŐ, kötelező pontja (2026.09.03.,
+// Marci kérésére) — amíg nincs kitöltve és elmentve, a többi ÜF-oldali
+// útvonal közvetlen megnyitása (URL-be írva, vagy vissza-gombbal) is ide
+// irányít, nem csak a menüsáv zárolt megjelenése tiltja (ld. AppLayout.tsx).
+function UgyfelGate() {
+  const { completed } = useAllapotfelmero()
+  if (!completed) return <Navigate to="/allapotfelmero" replace />
+  return <Outlet />
 }
 
 // külön komponens, hogy a nav-menü "új ügyfél" pöttye REAKTÍVAN kövesse a
@@ -85,8 +99,11 @@ function AppRoutes() {
         <Route path="/belepes" element={<Belepes />} />
       </Route>
       <Route element={<AppLayout role="ugyfel" />}>
-        <Route path="/gyakorlatok" element={<Gyakorlatok />} />
-        <Route path="/konzultacioim" element={<UgyfelKonzultaciok />} />
+        <Route path="/allapotfelmero" element={<Allapotfelmero />} />
+        <Route element={<UgyfelGate />}>
+          <Route path="/gyakorlatok" element={<Gyakorlatok />} />
+          <Route path="/konzultacioim" element={<UgyfelKonzultaciok />} />
+        </Route>
       </Route>
       <Route element={<AppLayout navItems={gytNavItems} userName="Judit" role="gyt" />}>
         <Route path="/gyt/ugyfelek" element={<GytUgyfelek />} />

@@ -1270,3 +1270,17 @@ Marci lezárta a projekt 1. fázisát: a klikkelhető UI-terv (mind a 4 szerepk�
 Ennek a commitnak a pontja lesz a `fazis-1-lezarva` git tag — a programozó számára rögzített, stabil referenciapont. A `main` ág ettől a ponttól nem folytatódik automatikusan tovább a napi tervezői munkával: a további fázisok/funkciók fejlesztése egy külön branch-en zajlik majd, hogy (1) a programozó munkáját ne zavarja egy folyamatosan változó `main`, és (2) a GitHub Pages-en élő demó (amit a programozó is referenciaként használhat) stabil maradjon, amíg Marci tudatosan nem dönt egy új fázis visszaolvasztásáról.
 
 Ez tisztán szervezési/dokumentációs mérföldkő, kódváltozás nélkül.
+
+## 2026.09.03. — Pontosítás: a további fázisok is a `main`-en folytatódnak
+
+Marci átgondolta az előző pontban felvetett "külön branch" lehetőséget, és úgy döntött, NEM választja el — mivel a programozó a `fazis-1-lezarva` TAG-ből (nem a mindenkori `main` állapotból) dolgozik tovább, egyetlen ágon (a `main`-en) folytatva a tervezést Marci több eszközről is mindig az aktuális, élő GitHub Pages demót tudja tesztelni, anélkül hogy ez zavarná a programozó munkáját. A `Design jegyzet.md` "PROJEKT-SZINTŰ STÁTUSZ" bekezdése ennek megfelelően pontosítva.
+
+## 2026.09.03. — ÜF "állapotfelmérő" kérdőív — 2. fázis indítása
+
+Marci elindította a 2. fázist: egy 13 lapos, egyképernyős (nem görgetett, hanem lapozott) állapotfelmérő kérdőívet az ÜF fiókban, telefonos látványtervek (`Design elemek/bodychart/f1-f11.png`) alapján, a projekt eddigi design-nyelvét követve. Ez a fiók LEGELSŐ, kötelező pontja: amíg nincs kitöltve és elmentve, semelyik más ÜF menüpont (jelenlegi és jövőbeli sem) nem nyitható meg.
+
+**Megvalósítás:** új `Allapotfelmero.tsx` oldal (`/allapotfelmero`) chevron-lapozóval és haladás-sávval; új `AllapotfelmeroContext.tsx` (munkamenet-szintű állapot, a `ClientsContext` mintáját követve); új, újrahasználható `ToggleSwitch.tsx`. A 13 lap: üdvözlés, alap adatok, tünetek (intenzitás-csúszkával), "mutasd meg" body chart (két kép — hát/röntgen — közötti váltás, koppintással élénkpiros, elmosott folt elhelyezése/törlése, méret- és hely-választóval), történet, 3 rövid szöveges kérdés, 2 rizikófaktor-lista (jelölőnégyzetek), "mozgékonyság" (a GYT-oldali ideiglenes "limitációk" panel kérdéseinek 2. személyű újrafelhasználása), személyes cél, és egy placeholder a később beillesztendő gerincterhelés-kalkulátornak (ez az egyetlen görgethető lap). A menüzárat két szinten oldottuk meg: az `AppLayout.tsx` sidebar-ja vizuálisan is zárolva mutatja a többi ÜF menüpontot, az `App.tsx` új `UgyfelGate` route-ja pedig közvetlen URL-lel/vissza-gombbal történő elérést is visszairányít, amíg a kérdőív nincs mentve.
+
+**Fontos, Marci kifejezett kérése:** ebben a körben KIZÁRÓLAG a design/UI készült el — a válaszok logikáját és a generált eredménylapot egy következő fázisban dolgozzuk ki.
+
+**Tesztelve böngészőben:** ÜF teszt-fiókkal belépve a rendszer helyesen az állapotfelmérőre irányított; mind a 13 lap, minden mezőtípus (legördülő, csúszka, szöveg, jelölőnégyzet, auth-tab váltó) és a body chart jelölés/törlés (mindkét nézetben, mindhárom méretben) helyesen működött. A "mentés" gomb helyesen zárta le a kérdőívet és oldotta fel a többi menüpontot (DOM-szinten ellenőrizve). `npm run build` hibamentes.
