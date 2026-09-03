@@ -1208,3 +1208,11 @@ Marci jelezte, hogy az értékesítő "hívásaim" naptárának háttere világo
 **Admin-nézet:** ellenőriztem, hogy az admin "belépés a nevében" funkciója a VALÓDI GYT/SALES oldalakra navigál (nem egy külön admin-specifikus másolatra), ezért minden korábbi és mostani fejléc-/naptár-javítás automatikusan érvényes admin-nézetben is — a szürke-háttér hiba pontosan ugyanúgy jelentkezett, és a javítás után pontosan ugyanúgy meg is szűnt admin-nézetben, mint közvetlen SALES-bejelentkezéssel. Külön admin-specifikus módosításra nem volt szükség.
 
 **Tesztelve böngészőben:** világos módban, 375px és 1280px szélességben, közvetlen SALES-bejelentkezéssel és admin-impersonációval is. `npm run build` hibamentes.
+
+## 2026.09.02. — Korrekció: SALES saját naptára valóban üres (fehér), nem "szabad"
+
+Marci pontosította az előző (grey-háttér) javítást: a "szabad" (narancssárga) jelzés a GYT naptárában egy TÉNYLEGESEN meghirdetett időpontot jelent, nem minden foglalatlan órát. A `SalesHivasaim.tsx` viszont eddig minden üres órát "szabad"-nak jelölt, ezért az előző javítás után a teljes rács tömören narancssárga lett.
+
+**Javítás:** `getOwnSlot()` egy foglalatlan órára mostantól `status` nélküli (színezetlen, fehér) sávot ad vissza — ugyanaz, mint a GYT naptárában egy még nem meghirdetett óra. A kattinthatóság megmaradt: `onFreeSlotClick` helyett `onEmptySlotClick` nyitja az "új hívás" popupot.
+
+**Tesztelve böngészőben:** 375px és 1280px szélességben — fehér háttér, csak a valódi hívások színezettek; üres órára kattintva az új-hívás popup, meglévő hívásra kattintva az előnézet popup változatlanul működik. `npm run build` hibamentes.
