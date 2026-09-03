@@ -1227,4 +1227,12 @@ Marci két korrekciót kért a GYT videókiosztás oldalon: (1) új ügyfélnél
 
 **Tesztelve böngészőben:** mindkettő megerősítve mobil nézetben (375px) — a panel automatikusan csukódik mentéskor, a legördülő menü geometriailag a viewporton belül marad.
 
-**Egy harmadik, jelzett hiba** (egy "terv" időpont "konzultáció"-ra visszaállítva lime színt kap türkiz helyett) 7 különböző böngészős teszt-forgatókönyvvel sem volt reprodukálható — a dinamikus alkalom-számítás minden esetben helyesen működött. Pontosítást kértem Marcitól a pontos reprodukálási lépésekről.
+**Egy harmadik, jelzett hiba** (egy "terv" időpont "konzultáció"-ra visszaállítva lime színt kap türkiz helyett) elsőre 7 forgatókönyvvel sem volt reprodukálható. Marci pontosítására (egy MÁR RÉGÓTA LÉTEZŐ, demo-eredetű, addig sosem szerkesztett időponttal jelentkezik) sikerült reprodukálni és megjavítani — ld. külön bejegyzés alább.
+
+## 2026.09.02. — Hibajavítás: demo-narratívás ügyfél első valós foglalása tévesen 1. alkalomként jelent meg
+
+A reprodukálás kulcsa: egy már régóta futó (mode: 'kozben'/'utana') ügyfél naptárában egy addig sosem szerkesztett, demo-eredetű sávot kell "terv"-re, majd vissza "konzultáció"-ra állítani. Ha ez volt az ügyfél EGYETLEN valódi (overlay) foglalása, a dinamikus alkalom-számítás (55/C pont) tévesen elsőként (lime) sorolta be, mert nem ismeri a demo-narratíva korábbi, sosem rögzített "alkalmait".
+
+**Javítás:** `CalendarContext.tsx` új `baselineForClient()` függvénye az ügyfél legkorábbi valódi foglalásának dátum/óra/GYT hármasára lekérdezi, mit mutatott VOLNA a demo-naptár eredetileg (ugyanazzal a szint-haladás-alapú felülbírálással, mint amit a GYT ténylegesen látott) — ha a névvel egyezik, ez mínusz 1 lesz a dinamikus számítás kiindulási eltolása. Az ÜF "konzultációk" oldala szándékosan változatlan maradt (az már eddig is tudatosan a demo-narratívától független, saját számozást használ).
+
+**Tesztelve böngészőben:** a pontos reprodukálást (egy addig sosem szerkesztett demo-sáv terv→konzultáció váltása) `data-test-marker` attribútummal azonosított, garantáltan ugyanazon cellán megismételve a javítás után helyesen a türkiz színt és az eredeti alkalom-számot mutatta (korábban lime + hibás "1." volt). További valódi foglalások hozzáadásával a számozás helyesen folytatódott (3→4→5); két korábban már helyesen működő forgatókönyv (friss ügyfél, köztes elem váltása) regresszió nélkül, változatlanul helyesen viselkedett. `npm run build` hibamentes.

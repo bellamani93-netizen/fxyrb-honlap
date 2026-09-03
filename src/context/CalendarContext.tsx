@@ -169,14 +169,48 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     return entries
   }
 
+  // Egy már régóta futó (mode: 'kozben'/'utana') ügyfélnek a demo-narratíva
+  // szerint gyakran TÖBB "korábbi alkalma" van, mint ahány VALÓDI (overlay)
+  // foglalás valaha létezett — a korábbi alkalmak sosem lettek ténylegesen
+  // rögzítve, csak a demo-naptár (`getBaseDaySlots`) címkéjeként léteztek.
+  // Ha az ügyfél LEGKORÁBBI valódi foglalása pont egy ilyen, addig demo-
+  // címkés sávot vált fel (pl. "terv"-re, majd onnan vissza "konzultáció"-ra
+  // állítva — a "terv" állapot idejére kiesik a lenti sorból, ld.
+  // sortedConsultationsForClient), a tisztán index-alapú (index+1) számozás
+  // tévesen 1-től kezdené újra, holott a demo-narratíva szerint ez már pl. a
+  // 3. alkalom volt (2026.09.02., Marci hibajelzésére — "terv"-ről vissza
+  // "konzultáció"-ra állítva lime színt kapott türkiz helyett). A demo-
+  // címke EREDETI számát használjuk kiindulási alapként — de csak akkor, ha
+  // a névhez tartozó demo-címke TÉNYLEG erre az ügyfélre mutat (különben egy
+  // véletlenül egybeeső, más ügyfélnek szóló demo-címke torzítaná el).
+  function baselineForClient(sorted: ReturnType<typeof sortedConsultationsForClient>): number {
+    if (sorted.length === 0) return 0
+    const earliest = sorted[0]
+    const [gytId, dateISO, hourStr] = earliest.key.split('__')
+    const base = getBaseDaySlots(gytId, parseISODateLocal(dateISO), today).find((s) => s.hour === Number(hourStr))
+    if (!base?.label) return 0
+    const { name, alkalom: rawAlkalom } = parseLabel(base.label)
+    if (name !== earliest.booking.name) return 0
+    // ugyanaz a felülbírálás, mint amit a GYT ténylegesen LÁTOTT a demo-sáv
+    // felnyitásakor (ld. getEffectiveSlot/getBookingMeta demo-ága) — egy
+    // valós, ismert ügyfélnél a nyers demo-címke számát a szint-haladásból
+    // számolt `realNextAlkalom` írja felül, nem a nyers érték a mérvadó.
+    const matchedClient = clients.find((c) => c.name === name && (!c.assignedGytId || c.assignedGytId === gytId))
+    const alkalom = realNextAlkalom(matchedClient) ?? rawAlkalom
+    if (!alkalom) return 0
+    return Math.max(0, alkalom - 1)
+  }
+
   // a konkrét (gytId/dateISO/hour) sávon lévő bejegyzés hányadik alkalom a
-  // saját, időrendbe rendezett sorában — `undefined`, ha nincs feloldható
+  // saját, időrendbe rendezett sorában (a demo-narratíva korábbi alkalmaival
+  // eltolva, ld. baselineForClient) — `undefined`, ha nincs feloldható
   // clientId (pl. filler demo-ügyfél), ilyenkor a hívó a régi, tárolt
   // `b.alkalom` értékre esik vissza.
   function dynamicAlkalomFor(clientId: string | undefined, key: string): number | undefined {
     if (!clientId) return undefined
-    const idx = sortedConsultationsForClient(clientId).findIndex((e) => e.key === key)
-    return idx === -1 ? undefined : idx + 1
+    const sorted = sortedConsultationsForClient(clientId)
+    const idx = sorted.findIndex((e) => e.key === key)
+    return idx === -1 ? undefined : idx + 1 + baselineForClient(sorted)
   }
 
   function isBooked(gytId: string, dateISO: string, hour: number) {
