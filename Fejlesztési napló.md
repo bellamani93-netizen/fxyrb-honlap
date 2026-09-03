@@ -1254,3 +1254,7 @@ A mini-kurzus oldal még nincs kész. Marci kérésére minden rá mutató belé
 **Tesztelve böngészőben:** mind az 5 belépési pont helyesen popupot nyit navigáció nélkül; az e-mail-mező kitöltése és elküldése a visszajelzést helyesen mutatja. Asztali és mobil nézetben is ellenőrizve. `npm run build` hibamentes.
 
 **Kiegészítés (ugyanaznap):** Marci megadta a Facebook-oldal linkjét (facebook.com/profile.php?id=100089450116040) — a popup "vagy kövess a Facebookon" szövege mostantól valódi, új lapon nyíló link erre az oldalra.
+
+## 2026.09.03. — Főoldal és mélyedukáció szövegezés frissítve
+
+Marci több szövegrészt pontosított: a mélyedukáció oldal címe és alcíme ("ezeket neked írtam: tippek és trükkök helyett információ-rendszerezés" / "a derékfájás kezelése egyszerűbb, mint gondolnád, de bonyolultabb, mint hitted."); a főoldal hero címe ("...ne csak a tüneteit") és bevezető szövege; a "kinek segítünk" 1. és 3. dobozának szövege (a 2. változatlan). Tisztán tartalmi/szövegezési változtatás, `npm run build` hibamentes, mobil és asztali nézetben is ellenőrizve.

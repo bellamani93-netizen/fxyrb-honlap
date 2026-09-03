@@ -27,9 +27,9 @@ export default function MelyEdukacio() {
     <section className="py-5">
       <div className="container">
         <span className="eyebrow-fyb">mélyedukáció <Chevron double /></span>
-        <h1 className="mb-2">cikkek és hírlevelek a gerinced egészségéről</h1>
+        <h1 className="mb-2">ezeket neked írtam: tippek és trükkök helyett információ-rendszerezés</h1>
         <p className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
-          válogatás a Facebook-posztjainkból és a Derekas Levelek hírlevél korábbi számaiból.
+          a derékfájás kezelése egyszerűbb, mint gondolnád, de bonyolultabb, mint hitted.
         </p>
 
         <div className="mely-edu-search mb-5">

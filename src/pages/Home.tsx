@@ -8,7 +8,7 @@ const helpCards = [
   {
     icon: '/icons/ikon_tanulas.svg',
     title: 'ülőmunkát végző férfiaknak',
-    text: 'irodai, home office-os, sofőr — ha napi 6+ órát ülsz, ez a program neked szól.',
+    text: 'mérnök, IT, iroda, HO, sofőr — ha főleg ülőmunkát dolgozol, akkor ez a program neked szól.',
   },
   {
     icon: '/icons/ikon_villanykorte.svg',
@@ -18,7 +18,7 @@ const helpCards = [
   {
     icon: '/icons/ikon_torna.svg',
     title: 'akik szeretnék végre legyőzni',
-    text: 'saját tempóban haladó, 10+14 hetes program, ami tényleg beépül a mindennapjaidba.',
+    text: 'benned az eltökéltség, mi adjuk a rendszert. Egyszer végigkísérünk nagyon precízen, onnantól a tiéd — működik, ha működteted.',
   },
 ]
 
@@ -57,11 +57,12 @@ export default function Home() {
           <div className="row align-items-center gy-4">
             <div className="col-lg-7 pb-5">
               <span className="eyebrow-fyb">ülőmunkát végző férfiaknak <Chevron double /></span>
-              <h1 className="display-5 mb-3">szüntesd meg a derékfájásod okát, ne csak a tünetét</h1>
+              <h1 className="display-5 mb-3">szüntesd meg a derékfájásod okát, ne csak a tüneteit</h1>
               <p className="lead mb-4" style={{ color: 'var(--color-text-muted)' }}>
-                Szia, Bella Márton vagyok, gyógytornász. A HÁTrendben módszerrel megmutatom, miért fáj a derekad,
-                és lépésről lépésre megtanítalak, hogyan építsd vissza a gerinced terhelhetőségét — anélkül, hogy órákat
-                kellene edzenem gyakorolnod.
+                A derékfájás, sőt porckorongsérv is önerőből legyőzhető. Egyetlen feltétellel: ha az önerőd egy
+                világos, érthető, logikus rendszert követ. Ha nem akarsz kiszolgáltatott lenni vagy a fájdalomnak,
+                vagy valamilyen terapeutának, akkor meg kell értened a gerinced működését, és azt, hogyan tudsz rá a
+                legprecízebben hatni. Ebben segítünk.
               </p>
               <div className="d-flex flex-wrap gap-3">
                 <button type="button" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow" onClick={openMiniKurzusModal}>gyorsítósáv</button>
