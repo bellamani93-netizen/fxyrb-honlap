@@ -1683,14 +1683,67 @@ html[data-theme='dark'] .sales-delete-icon {
 /* --- ÜF állapotfelmérő — egyképernyős, lapozható kérdőív (2026.09.03.,
    Marci kérésére, 2. fázis indítása). Nem görgetünk, hanem lapozunk: a
    `.allapotfelmero-shell` a rendelkezésre álló magasságot tölti ki (ld.
-   Allapotfelmero.tsx useAvailableHeight), a tartalom és a lapozó-sáv két
-   egymás alatti sáv. Az `overflow-y: auto` a tartalmon csak biztonsági háló
-   egy nagyon alacsony/szűk képernyőn — a fő navigáció a chevronokkal
-   történik, nem görgetéssel. */
+   Allapotfelmero.tsx useAvailableHeight). A haladás-sáv és a lapozó-gombok a
+   TETEJÉN ülnek (2026.09.04., Marci kérésére — korábban lent voltak), majd
+   alattuk a tartalom tölti ki a maradék helyet. Az `overflow-y: auto` a
+   tartalmon csak biztonsági háló egy nagyon alacsony/szűk képernyőn — a fő
+   navigáció a chevronokkal történik, nem görgetéssel. */
 .allapotfelmero-shell {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+/* a haladás-sáv közvetlenül a fejléc (mobilon az app-topbar) ALJÁHOZ
+   illeszkedik, lime színnel, enyhe derengéssel, mintha világítana (2026.09.04.,
+   Marci kérésére) — ezért nincs `border`/`background`, ami elválasztaná a
+   fejléctől, a derengés maga adja a vizuális hangsúlyt. */
+.allapotfelmero-progress {
+  flex: 0 0 auto;
+  height: 4px;
+  background-color: rgba(215, 232, 52, 0.18);
+}
+.allapotfelmero-progress span {
+  display: block;
+  height: 100%;
+  background-color: var(--lime);
+  box-shadow: 0 0 6px 1px rgba(215, 232, 52, 0.7), 0 0 14px 3px rgba(215, 232, 52, 0.35);
+  transition: width 0.2s ease;
+}
+/* a lapozó-gombok is a tetejére kerültek, kerek gombokként, számláló nélkül
+   (2026.09.04., Marci kérésére). */
+.allapotfelmero-topnav {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.9rem;
+}
+.allapotfelmero-nav-btn {
+  width: 2.35rem;
+  height: 2.35rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--color-bg-alt);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.allapotfelmero-nav-btn:disabled {
+  opacity: 0.3;
+}
+.allapotfelmero-nav-btn .chevron-svg {
+  height: 0.95em;
+}
+.allapotfelmero-nav-btn--save {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+.allapotfelmero-nav-btn--save .icon-fyb {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--color-primary-contrast);
 }
 .allapotfelmero-content {
   flex: 1 1 auto;
@@ -1718,51 +1771,6 @@ html[data-theme='dark'] .sales-delete-icon {
   color: var(--color-primary);
   font-weight: 700;
   text-transform: lowercase;
-}
-/* a lapozó-sáv MINDEN lapon egységesen nagyon vékony (2026.09.04., Marci
-   kérésére) — a navigáció csak egy apró chevron+szám, nem egy teli magasságú
-   toolbar, hogy a tényleges tartalomnak (különösen a body chartnak) jusson a
-   lehető legtöbb hely. */
-.allapotfelmero-pager {
-  flex: 0 0 auto;
-  border-top: 1px solid var(--color-border);
-  background-color: var(--color-bg);
-}
-.allapotfelmero-progress {
-  height: 3px;
-  background-color: var(--color-border);
-}
-.allapotfelmero-progress span {
-  display: block;
-  height: 100%;
-  background-color: var(--color-primary);
-  transition: width 0.2s ease;
-}
-.allapotfelmero-pager-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.2rem 0.9rem;
-}
-.allapotfelmero-pager-btn {
-  background: none;
-  border: none;
-  padding: 0.25rem;
-  color: var(--color-text);
-  line-height: 1;
-  font-size: 0.8rem;
-}
-.allapotfelmero-pager-btn:disabled {
-  opacity: 0.3;
-}
-.allapotfelmero-pager-count {
-  font-weight: 700;
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-}
-.allapotfelmero-save-btn {
-  padding: 0.25rem 1.1rem;
-  font-size: 0.85rem;
 }
 
 /* --- általános csúszka-kapcsoló (ToggleSwitch.tsx) --- */
@@ -1813,25 +1821,21 @@ html[data-theme='dark'] .sales-delete-icon {
   width: 6.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  justify-content: center;
+  gap: 1rem;
   overflow-y: auto;
 }
+/* vízszintes, alapból kikapcsolt kapcsoló (hát nézet), rajta "rtg" felirat
+   (2026.09.04., Marci kérésére — korábban két oldalsó szöveg volt,
+   függőlegesen elforgatva). */
 .bodychart-view-toggle {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
-  font-size: 0.7rem;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--color-text-muted);
   flex: 0 0 auto;
-}
-.bodychart-view-toggle .is-active {
-  color: var(--color-text);
-  font-weight: 700;
-}
-.bodychart-view-toggle .toggle-switch {
-  transform: rotate(90deg);
-  margin: 0.3rem 0;
 }
 .bodychart-group-label {
   font-size: 0.65rem;
@@ -1856,7 +1860,11 @@ html[data-theme='dark'] .sales-delete-icon {
 }
 /* a képet TARTALMAZÓ keret pontosan a kép saját, natív arányú dobozára
    szűkül (a kép az egyetlen normál-flow gyermeke) — a jelölés-maszk div
-   emiatt `position:absolute; inset:0`-val pixelre pontosan ráillik. */
+   emiatt `position:absolute; inset:0`-val pixelre pontosan ráillik. A halvány
+   radiális "színpad"-háttér (`--color-surface`) mindkét témában kontrasztot
+   ad a kép mögé — sötét módban ez világosabb, mint az oldal navy háttere,
+   így a röntgen-kép sötétkék kitöltése nem mosódik bele (2026.09.04., Marci
+   kérésére: "jó kontraszttal legyenek a háttérhez"). */
 .bodychart-frame {
   position: relative;
   flex: 1 1 auto;
@@ -1864,6 +1872,7 @@ html[data-theme='dark'] .sales-delete-icon {
   align-items: stretch;
   justify-content: center;
   min-width: 0;
+  background: radial-gradient(ellipse 65% 90% at center, var(--color-surface) 0%, transparent 72%);
 }
 .bodychart-img {
   height: 100%;
@@ -1872,9 +1881,35 @@ html[data-theme='dark'] .sales-delete-icon {
   display: block;
   user-select: none;
   pointer-events: none;
+  position: relative;
+  /* enyhe kontúr-derengés — világos módban visszafogott sötét árnyék, sötét
+     módban mint-színű rim-light, hogy a testábra mindkét témában jól
+     elváljon a háttértől (2026.09.04., Marci kérésére). */
+  filter: drop-shadow(0 2px 6px rgba(26, 38, 52, 0.25));
+}
+html[data-theme='dark'] .bodychart-img {
+  filter: drop-shadow(0 0 10px rgba(var(--mint-rgb), 0.4));
 }
 .bodychart-frame.is-armed {
   cursor: crosshair;
+}
+/* szabálytalan, éles kontúrú árnyékfolt a talp alatt (FootShadow, ld.
+   Allapotfelmero.tsx) — hogy az alak ne tűnjön lebegőnek. A képhez képest
+   kicsit HÁTRÉBB (a DOM-ban előbb, tehát vizuálisan alatta) és kicsit
+   beljebb helyezkedik el. */
+.bodychart-foot-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 1%;
+  transform: translateX(-50%);
+  width: 55%;
+  max-width: 9rem;
+  height: auto;
+  fill: rgba(26, 38, 52, 0.3);
+  z-index: 0;
+}
+html[data-theme='dark'] .bodychart-foot-shadow {
+  fill: rgba(0, 0, 0, 0.45);
 }
 /* A jelölések ide kerülnek, NEM közvetlenül a frame-be — ennek a divnek a
    `mask-image`-e maga a testábra-kép (alfa-csatorna alapján), ezért egy

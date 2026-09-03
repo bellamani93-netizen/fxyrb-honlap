@@ -9,7 +9,6 @@ import { createContext, useContext, useState, type ReactNode } from 'react'
 // (React state), oldal-frissítéskor elvész, ahogy a többi Context-nél is.
 
 export type BodyChartMeret = 'pontszeru' | 'kis' | 'nagy'
-export type BodyChartHely = 'kozepen' | 'ketoldalt' | 'egyikoldalt'
 export type BodyChartNezet = 'hat' | 'rtg'
 
 export type BodyChartJel = { x: number; y: number; meret: BodyChartMeret }
@@ -26,7 +25,6 @@ export type AllapotfelmeroAdatok = {
   intenzitas: number
   bodyChartNezet: BodyChartNezet
   bodyChartMeret: BodyChartMeret
-  bodyChartHely: BodyChartHely | ''
   bodyChartJelek: BodyChartJel[]
   kezdodesIdo: string
   voltMarKorabban: string
@@ -55,7 +53,6 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   intenzitas: 5,
   bodyChartNezet: 'hat',
   bodyChartMeret: 'pontszeru',
-  bodyChartHely: '',
   bodyChartJelek: [],
   kezdodesIdo: '',
   voltMarKorabban: '',

@@ -6,7 +6,6 @@ import ToggleSwitch from '../components/ToggleSwitch'
 import { withBase } from '../lib/assetUrl'
 import {
   useAllapotfelmero,
-  type BodyChartHely,
   type BodyChartMeret,
   type BodyChartNezet,
 } from '../context/AllapotfelmeroContext'
@@ -229,8 +228,17 @@ function TraitToggleRow({
 }
 
 const MERET_LABELS: Record<BodyChartMeret, string> = { pontszeru: 'pontszerű', kis: 'kis terület', nagy: 'nagy terület' }
-const HELY_LABELS: Record<BodyChartHely, string> = { kozepen: 'pont középen', ketoldalt: 'kétoldalt', egyikoldalt: 'egyik oldalt' }
 const BODYCHART_IMAGES: Record<BodyChartNezet, string> = { hat: '/images/bodychart-hat.png', rtg: '/images/bodychart-rtg.png' }
+
+/** szabálytalan, éles kontúrú árnyékfolt a talp alá, hogy a testábra ne
+ * "lebegjen" (2026.09.04., Marci kérésére) — sarkos, nem elmosott path. */
+function FootShadow() {
+  return (
+    <svg className="bodychart-foot-shadow" viewBox="0 0 200 34" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M6,20 C10,8 34,4 58,9 C80,3 118,2 142,10 C168,5 194,12 196,21 C198,29 170,32 138,30 C104,34 62,33 34,30 C12,31 3,27 6,20 Z" />
+    </svg>
+  )
+}
 
 function MarkIcon() {
   return (
@@ -263,51 +271,8 @@ function BodyChartStep() {
 
   return (
     <div className="bodychart-full">
-      <div className="bodychart-controls-col">
-        <div className="bodychart-view-toggle">
-          <span className={adatok.bodyChartNezet === 'hat' ? 'is-active' : ''}>hát</span>
-          <ToggleSwitch
-            checked={adatok.bodyChartNezet === 'rtg'}
-            onChange={(checked) => setAdatok({ bodyChartNezet: checked ? 'rtg' : 'hat' })}
-            label="nézet váltása hát és röntgen nézet között"
-          />
-          <span className={adatok.bodyChartNezet === 'rtg' ? 'is-active' : ''}>röntgen</span>
-        </div>
-
-        <div>
-          <span className="bodychart-group-label">méret</span>
-          <div className="bodychart-btn-group">
-            {(Object.keys(MERET_LABELS) as BodyChartMeret[]).map((m) => (
-              <button key={m} type="button" className={`auth-tab ${adatok.bodyChartMeret === m ? 'active' : ''}`} onClick={() => setAdatok({ bodyChartMeret: m })}>
-                {MERET_LABELS[m]}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <span className="bodychart-group-label">hely</span>
-          <div className="bodychart-btn-group">
-            {(Object.keys(HELY_LABELS) as BodyChartHely[]).map((h) => (
-              <button key={h} type="button" className={`auth-tab ${adatok.bodyChartHely === h ? 'active' : ''}`} onClick={() => setAdatok({ bodyChartHely: h })}>
-                {HELY_LABELS[h]}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className={`bodychart-pin-btn ${armed ? 'is-armed' : ''}`}
-          onClick={() => setArmed((a) => !a)}
-          aria-label="jelölés bekapcsolása a testábrán"
-          title={armed ? 'koppints az ábrára, ahol fáj — egy meglévő jelre koppintva törölheted.' : 'a gombbal jelölhetsz be területet az ábrán.'}
-        >
-          <MarkIcon />
-        </button>
-      </div>
-
       <div className={`bodychart-frame ${armed ? 'is-armed' : ''}`} onClick={handleFrameClick}>
+        <FootShadow />
         <img src={imageSrc} alt="testábra" className="bodychart-img" draggable={false} />
         {/* a jelölések maszkja maga a testábra-kép (alfa-csatorna) — így egy
            folt sose lóghat túl a test kontúrjain, mert ahol a kép átlátszó,
@@ -329,6 +294,38 @@ function BodyChartStep() {
             />
           ))}
         </div>
+      </div>
+
+      <div className="bodychart-controls-col">
+        <div className="bodychart-view-toggle">
+          <ToggleSwitch
+            checked={adatok.bodyChartNezet === 'rtg'}
+            onChange={(checked) => setAdatok({ bodyChartNezet: checked ? 'rtg' : 'hat' })}
+            label="nézet váltása hát és röntgen nézet között"
+          />
+          <span>rtg</span>
+        </div>
+
+        <div>
+          <span className="bodychart-group-label">méret</span>
+          <div className="bodychart-btn-group">
+            {(Object.keys(MERET_LABELS) as BodyChartMeret[]).map((m) => (
+              <button key={m} type="button" className={`auth-tab ${adatok.bodyChartMeret === m ? 'active' : ''}`} onClick={() => setAdatok({ bodyChartMeret: m })}>
+                {MERET_LABELS[m]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className={`bodychart-pin-btn ${armed ? 'is-armed' : ''}`}
+          onClick={() => setArmed((a) => !a)}
+          aria-label="jelölés bekapcsolása a testábrán"
+          title={armed ? 'koppints az ábrára, ahol fáj — egy meglévő jelre koppintva törölheted.' : 'a gombbal jelölhetsz be területet az ábrán.'}
+        >
+          <MarkIcon />
+        </button>
       </div>
     </div>
   )
@@ -484,6 +481,25 @@ export default function Allapotfelmero() {
 
   return (
     <div className="allapotfelmero-shell" style={{ height: availableHeight }}>
+      <div className="allapotfelmero-progress">
+        <span style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
+      </div>
+
+      <div className="allapotfelmero-topnav">
+        <button type="button" className="allapotfelmero-nav-btn" onClick={handlePrev} disabled={step === 1} aria-label="előző lap">
+          <Chevron direction="left" />
+        </button>
+        {step < TOTAL_STEPS ? (
+          <button type="button" className="allapotfelmero-nav-btn" onClick={handleNext} aria-label="következő lap">
+            <Chevron direction="right" />
+          </button>
+        ) : (
+          <button type="button" className="allapotfelmero-nav-btn allapotfelmero-nav-btn--save" onClick={handleNext} aria-label="mentés" title="mentés">
+            <Icon src="/icons/ikon_pipa.svg" />
+          </button>
+        )}
+      </div>
+
       <div
         className={`allapotfelmero-content ${step === TOTAL_STEPS ? 'allapotfelmero-content--scrollable' : ''} ${step === BODY_CHART_STEP ? 'allapotfelmero-content--full' : ''}`}
       >
@@ -496,27 +512,6 @@ export default function Allapotfelmero() {
             <StepContent step={step} />
           </div>
         )}
-      </div>
-
-      <div className="allapotfelmero-pager">
-        <div className="allapotfelmero-progress">
-          <span style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
-        </div>
-        <div className="allapotfelmero-pager-row">
-          <button type="button" className="allapotfelmero-pager-btn" onClick={handlePrev} disabled={step === 1} aria-label="előző lap">
-            <Chevron direction="left" />
-          </button>
-          <span className="allapotfelmero-pager-count">{TOTAL_STEPS}/{step}.</span>
-          {step < TOTAL_STEPS ? (
-            <button type="button" className="allapotfelmero-pager-btn" onClick={handleNext} aria-label="következő lap">
-              <Chevron direction="right" />
-            </button>
-          ) : (
-            <button type="button" className="btn-fyb btn-fyb-highlight allapotfelmero-save-btn" onClick={handleNext}>
-              mentés
-            </button>
-          )}
-        </div>
       </div>
     </div>
   )
