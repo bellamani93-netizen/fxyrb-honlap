@@ -1789,6 +1789,14 @@ html[data-theme='dark'] .sales-delete-icon {
   display: flex;
   align-items: center;
 }
+/* a form-mezőket tartó doboz — mobilon (a "telefon nézet fix", 2026.09.04.)
+   változatlanul egy 560px-es, a tartalmi terület bal szélén induló doboz;
+   táblagépen/asztalin lásd a lenti @media (min-width:768px) blokkot, ahol
+   KÖZÉPRE kerül és szélesebb lesz, hogy jobban kihasználja a rendelkezésre
+   álló helyet (2026.09.04., Marci kérésére). */
+.allapotfelmero-form {
+  max-width: 560px;
+}
 /* középre igazítva, hogy a fölötte lebegő lapozó-gombok (2026.09.04.,
    Marci kérésére) sose takarják ki a feliratot — a bal/jobb szélen lévő
    gombok így mindig a cím mellett, nem a cím fölött/szövegén futnak. */
@@ -1827,8 +1835,10 @@ html[data-theme='dark'] .sales-delete-icon {
   justify-content: center;
 }
 .allapotfelmero-welcome-badge .icon-fyb {
-  width: 2rem;
-  height: 2rem;
+  /* a villanykörte a kör 75%-át töltse ki (2026.09.04., Marci kérésére) —
+     a jelvény 4rem átmérőjű, ennek 75%-a 3rem. */
+  width: 3rem;
+  height: 3rem;
   color: var(--navy);
 }
 .allapotfelmero-welcome-title {
@@ -1841,6 +1851,71 @@ html[data-theme='dark'] .sales-delete-icon {
   line-height: 1.6;
   max-width: 32rem;
   margin: 0 auto;
+}
+/* táblagépen/asztalin jobb térkihasználás (2026.09.04., Marci kérésére) —
+   a fentebbi bázis-szabályok UTÁN kell állnia (azonos specificitásnál a
+   forráson belüli sorrend dönt), különben a lentebbi @media felülíródna a
+   fenti .allapotfelmero-title/-subtitle/-welcome-* alap-szabályoktól. */
+@media (min-width: 768px) {
+  /* a rövidebb lapok (pl. "mozgékonyság", ahol csak 4 sor van) eddig a
+     terület TETEJÉHEZ tapadtak, alattuk üresen maradt a hely — függőlegesen
+     is középre igazítva arányosabb, kiegyensúlyozottabb a kihasználás (a
+     body chart/kalkulátor lapja, amelyik saját maga tölti ki a teret, ettől
+     nem változik, hiszen náluk a gyerek-elem már eleve 100%-os magasságú). */
+  .allapotfelmero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  /* a form-doboz középre kerül és szélesebb lesz — nem tapad a bal szélhez,
+     jobban arányos a sidebar melletti, gyakran jóval szélesebb területhez
+     képest. */
+  .allapotfelmero-form {
+    max-width: 640px;
+    margin-inline: auto;
+    /* a puszta (saját rem-méret nélküli) szövegek — pl. a TraitToggleRow
+       kérdés-felirata — öröklik ezt, mert az öröklés a KISZÁMOLT px-értéket
+       adja tovább, nem a rem-kifejezést (2026.09.04., Marci kérésére:
+       "kicsit nagyobb betűméretek"). */
+    font-size: 1.05rem;
+  }
+  /* a Bootstrap-mezők SAJÁT rem-méretét külön felül kell írni, mert a rem
+     mindig a gyökér (html) betűméretéhez, nem a szülőéhez igazodik. */
+  .allapotfelmero-form .form-label {
+    font-size: 1.05rem;
+  }
+  .allapotfelmero-form .form-control,
+  .allapotfelmero-form .form-select {
+    font-size: 1.05rem;
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+  }
+  .allapotfelmero-title {
+    font-size: 1.75rem;
+  }
+  .allapotfelmero-subtitle {
+    font-size: 1.1rem;
+  }
+  .allapotfelmero-welcome-title {
+    font-size: 2rem;
+  }
+  .allapotfelmero-welcome-text {
+    font-size: 1.15rem;
+  }
+  /* a jobbra-balra lapozó-gombok (és a végén a pipa-gomb) fent takarásba
+     kerülhettek a fejléccel/címmel — táblagépen/asztalin lentre, a tartalom
+     ALÁ kerülnek lebegőnek (2026.09.04., Marci kérésére: "a jobbra-balra
+     nyilakat tedd lentre lebegőre a fönti helyett"). Telefonon (a "telefon
+     nézet fix" kérésre) változatlanul fent maradnak. */
+  .allapotfelmero-nav-btn--float {
+    top: auto;
+    bottom: 1rem;
+  }
+}
+@media (min-width: 992px) {
+  .allapotfelmero-form {
+    max-width: 720px;
+  }
 }
 
 /* --- általános csúszka-kapcsoló (ToggleSwitch.tsx) --- */

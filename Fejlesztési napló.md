@@ -1381,3 +1381,15 @@ A "mozgékonyság" lapon a "hason tudsz feküdni" kérdés kiegészült: "hason 
 Marci jelezte, hogy a 4. lapról (body chart) nem lehet söpréssel továbblépni. Az előző körben ez szándékosan teljesen ki volt kapcsolva ott (a rajzoláshoz szükséges vízszintes húzással való összeakadás elkerülésére), de ez túl szigorúnak bizonyult. Javítás: a söprés-lapozás a body chart lapon mostantól csak akkor kapcsol ki, ha az érintés a rajzoló-felületen (a testábra képén) indul — minden más területen (keret üres része, gombok-oszlop) ugyanúgy lehet söpréssel lapozni, mint bármelyik más lapon. A kalkulátor lapján a söprés-lapozás továbbra is teljesen kikapcsolt marad.
 
 **Tesztelve böngészőben:** mobilon, a rajzoló-felületen indított söprés nem lapozott (a rajzolás elsőbbséget élvez), a gombok-oszlopon indított söprés mindkét irányban helyesen lapozott. `npm run build` hibamentes.
+
+## 2026.09.04. — Villanykörte-ikon nagyítása, táblagép/asztali nézet átdolgozása
+
+Marci megerősítette, hogy a telefonos nézet kész ("telefon nézet fix, mentsük"), és a fókusz mostantól a táblagép/asztali nézetre kerül.
+
+Egy apró mobilos ráadás: a villanykörte ikon mérete 2rem→3rem, hogy a jelvény-kör 75%-át töltse ki.
+
+A táblagép/asztali (≥768px) átdolgozás: a lapok tartalma mostantól függőlegesen középre igazodik (a rövidebb lapok, pl. "mozgékonyság", eddig a terület tetejéhez tapadtak, alattuk üres hellyel); a form-doboz (korábban egy fixen 560px-es, JSX inline style-lal beállított, bal-igazított doboz) középre kerül és szélesebbé válik (640px táblagépen, 720px asztalin); a betűméretek (cím, alcím, mezőcímkék, mezők, üdvözlő szöveg) kicsit megnövekedtek; a jobbra-balra lapozó-nyilak (és a "mentés" gomb) a tartalom TETEJE helyett az ALJÁRA kerültek lebegőnek. Mobilon mindez változatlan maradt.
+
+**Hiba menet közben:** az új `@media (min-width:768px)` szabályokat elsőre a célzott alap-szabályok (`.allapotfelmero-title` stb.) ELÉ írtam a CSS-fájlban — mivel azonos specificitásnál a forráson belüli későbbi szabály nyer, ez érvénytelenítette a felülírást (DOM-méréssel kiderült: a cím mérete asztali nézetben is a mobilos maradt). Javítva a blokk átmozgatásával az érintett alap-szabályok utánra.
+
+**Tesztelve böngészőben:** mobilon minden változatlan; táblagépen és asztalin, világos és sötét módban — a form-doboz szélessége és középre igazítása, a nagyobb betűméretek, a függőlegesen középre igazított rövid lapok és a lent lebegő nyilak mind DOM-méréssel megerősítve; a body chart lap változatlanul teljes magasságú maradt. `npm run build` hibamentes.

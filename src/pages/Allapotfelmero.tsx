@@ -784,7 +784,7 @@ export default function Allapotfelmero() {
         ) : isCalculatorStep ? (
           <GerincterhelesKalkulator onHoursChange={setCalcHours} />
         ) : (
-          <div className="container-fluid" style={{ maxWidth: 560 }}>
+          <div className="container-fluid allapotfelmero-form">
             {meta.title && <h1 className="allapotfelmero-title mb-1">{meta.title}</h1>}
             {meta.subtitle && <p className="allapotfelmero-subtitle mb-4">{meta.subtitle}</p>}
             <StepContent step={step} />
