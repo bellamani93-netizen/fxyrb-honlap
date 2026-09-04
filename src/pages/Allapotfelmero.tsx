@@ -42,6 +42,7 @@ const WEIGHTS = Array.from({ length: 121 }, (_, i) => String(40 + i))
 const GYAKORISAG_OPTIONS = ['napi szinten', 'heti szinten', 'havi szinten', 'félévente', 'évente', 'néhány évente']
 const IDOTARTAM_OPTIONS = ['kevesebb, mint 1 óra', '1–2 óra', '3–5 óra', '6–8 óra', 'szinte egész nap']
 const TORTENET_OPTIONS = ['sose', 'volt egyszer', 'volt többször is']
+const KEZDODES_OPTIONS = ['Most', 'pár napja', 'néhány hete', 'hónapokkal ezelőtt', 'évekkel ezelőtt']
 
 const RIZIKO_I_OPTIONS = [
   'láz', 'rosszullét', 'asztma', 'aktív daganatos betegség', 'korábbi daganatos betegség',
@@ -62,6 +63,7 @@ const STEP_META: Record<number, { title?: string; subtitle?: string }> = {
   6: { title: 'rizikófaktorok I', subtitle: 'van-e ezek közül valamelyik?' },
   7: { title: 'rizikófaktorok II', subtitle: 'van-e ezek közül valamelyik?' },
   8: { title: 'mozgékonyság', subtitle: 'a tornát érintő kérdések — ne csalj! 🙂' },
+  9: { title: 'Személyes célod' },
 }
 
 function getSessionName(fallback: string): string {
@@ -194,6 +196,26 @@ function TextAreaField({
   )
 }
 
+/** a fájdalom-intenzitás csúszka ugyanúgy nézzen ki, mint a gerincterhelés
+ * kalkulátor csúszkái (2026.09.04., Marci kérésére) — a kitöltött szakasz
+ * (teal→mint gradiens) a natív range input nem tudja CSS-ből egyedül
+ * kiszámolni, ezért az aktuális értékből itt, inline style-ban számoljuk,
+ * ugyanúgy, ahogy a kalkulátor saját `updateSliderGradient`-je teszi. */
+function IntensityRange({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const pct = (value / 10) * 100
+  return (
+    <input
+      type="range"
+      className="intensity-range"
+      min={0}
+      max={10}
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      style={{ background: `linear-gradient(to right, var(--teal) 0%, var(--mint) ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)` }}
+    />
+  )
+}
+
 function RiskCheckboxList({
   options,
   selected,
@@ -251,44 +273,40 @@ const MERET_LABELS: Record<BodyChartMeret, string> = { pontszeru: 'pontszerű', 
 /** rövidebb feliratok a mobil popupban, hogy a 3 opció kiférjen egy sorban
  * (2026.09.04., Marci kérésére: "pontszerű, kicsi, nagy"). */
 const MOBIL_MERET_LABELS: Record<BodyChartMeret, string> = { pontszeru: 'pontszerű', kis: 'kicsi', nagy: 'nagy' }
-const BODYCHART_IMAGES: Record<BodyChartNezet, string> = { hat: '/images/bodychart-hat.png', rtg: '/images/bodychart-rtg.png' }
+const BODYCHART_IMAGES: Record<BodyChartNezet, string> = { hat: '/images/bodychart-hat.svg', rtg: '/images/bodychart-rtg.svg' }
 
-// a hát és a röntgen kép mostantól PONTOSAN ugyanakkora (202×564) — ez a
-// natív pixelméretük, ami egyben a jelölés-SVG viewBox-a is, hogy a
-// pontok/vonalak torzítás nélkül, kör/egyenletes vastagságúak legyenek.
-// (2026.09.04., 2. korrekció: a korábbi 166×529 a röntgen ÉLES kontúrjához
-// igazított vágás volt, ami levágta a röntgen halvány derengésének a szélét
-// — Marci hibajelzésére most a röntgen TELJES derengését megtartó, nagyobb
-// vászonra igazítottunk, a hát-képet pedig ugyanerre a vászonra kipárnázva,
-// hogy a két alak mérete/aránya továbbra is megegyezzen, ld. Design jegyzet.) */
-const CHART_W = 202
-const CHART_H = 564
+// 2026.09.04., 3. korrekció: Marci saját, kézzel rajzolt SVG-t adott mindkét
+// nézethez (tűéles, bármilyen felbontáson) — ezekbe MÁR bele van rajzolva a
+// talp alatti árnyék is, ami a két kép közötti illesztés REFERENCIAPONTJA.
+// A két fájl viewBox-át egy közös, megosztott vászonra igazítottuk (Python
+// szkripttel, a shadow-elem saját SVG-koordinátáit lekérdezve mindkét
+// fájlban, majd egy `translate`-tel eltolva a tartalmat úgy, hogy a két
+// árnyék PONTOSAN ugyanoda essen a közös vásznon) — ez a CHART_W/CHART_H a
+// közös vászon mérete, ami egyben a jelölés-SVG viewBox-a is.
+const CHART_W = 265.52844
+const CHART_H = 553.0808792114258
 
 // 2026.09.04., Marci kérésére: "a rajzolós vonal/pont vastagságok legyenek
 // kisebbek, mindegyik a mostani 75%-a" — az előző (9/20/34, ill. 12/22/36)
 // értékek 75%-a.
 const DOT_RADIUS: Record<BodyChartMeret, number> = { pontszeru: 7, kis: 15, nagy: 26 }
 const LINE_WIDTH: Record<BodyChartMeret, number> = { pontszeru: 9, kis: 17, nagy: 27 }
-/** a lágy, elmosott szélű hatás 3 egymásra rétegzett, csökkenő átlátszóságú
- * réteggel — ugyanaz a vizuális nyelv pontnál és vonalnál is. 2026.09.04.,
- * 2. korrekció: a nem-átlátszó mag vékonyabb (2.2→1-ről csökkentve MÉG
- * jobban, most a legkülső réteghez képest arányaiban kisebb), a kifelé
- * egyre átlátszóbb körvonalak pedig szélesebbek (Marci kérésére). */
-const SOFT_LAYERS = [
+/** a húzott VONAL lágy, elmosott szélű hatása — 3 egymásra rétegzett,
+ * csökkenő átlátszóságú réteg, a nem-átlátszó mag vékony, a kifelé egyre
+ * halványodó körvonalak szélesebbek (2026.09.04., Marci kérésére). */
+const LINE_SOFT_LAYERS = [
   { scale: 2.3, opacity: 0.14 },
   { scale: 1.7, opacity: 0.3 },
   { scale: 0.65, opacity: 0.9 },
 ]
-
-/** szabálytalan, éles kontúrú árnyékfolt a talp alá, hogy a testábra ne
- * "lebegjen" (2026.09.04., Marci kérésére) — sarkos, nem elmosott path. */
-function FootShadow() {
-  return (
-    <svg className="bodychart-foot-shadow" viewBox="0 0 200 34" preserveAspectRatio="none" aria-hidden="true">
-      <path d="M6,20 C10,8 34,4 58,9 C80,3 118,2 142,10 C168,5 194,12 196,21 C198,29 170,32 138,30 C104,34 62,33 34,30 C12,31 3,27 6,20 Z" />
-    </svg>
-  )
-}
+/** a koppintással felvett PONT/folt lágy széle — Marci szerint a fenti
+ * (vonalakhoz igazított) arány pontnál túl nagyra nőtt, itt visszaálltunk a
+ * korábbi, jól bevált arányra (2026.09.04., 3. korrekció). */
+const DOT_SOFT_LAYERS = [
+  { scale: 1.9, opacity: 0.16 },
+  { scale: 1.4, opacity: 0.32 },
+  { scale: 1, opacity: 0.88 },
+]
 
 function MarkIcon() {
   return (
@@ -329,7 +347,7 @@ function BodyChartMarksLayer({ jelek, maskSrc }: { jelek: BodyChartJel[]; maskSr
           const r = DOT_RADIUS[jel.meret]
           return (
             <g key={i}>
-              {SOFT_LAYERS.map((layer, li) => (
+              {DOT_SOFT_LAYERS.map((layer, li) => (
                 <circle key={li} cx={(p.x / 100) * CHART_W} cy={(p.y / 100) * CHART_H} r={r * layer.scale} style={{ fill: 'var(--symptom-red)' }} opacity={layer.opacity} />
               ))}
             </g>
@@ -339,7 +357,7 @@ function BodyChartMarksLayer({ jelek, maskSrc }: { jelek: BodyChartJel[]; maskSr
         const d = jel.points.map((p, pi) => `${pi === 0 ? 'M' : 'L'} ${(p.x / 100) * CHART_W} ${(p.y / 100) * CHART_H}`).join(' ')
         return (
           <g key={i}>
-            {SOFT_LAYERS.map((layer, li) => (
+            {LINE_SOFT_LAYERS.map((layer, li) => (
               <path key={li} d={d} fill="none" style={{ stroke: 'var(--symptom-red)' }} strokeWidth={w * layer.scale} strokeLinecap="round" strokeLinejoin="round" opacity={layer.opacity} />
             ))}
           </g>
@@ -445,7 +463,6 @@ function BodyChartStep() {
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
         >
-          <FootShadow />
           <img src={imageSrc} alt="testábra" className="bodychart-img" draggable={false} />
           <BodyChartMarksLayer jelek={adatok.bodyChartJelek} maskSrc={imageSrc} />
         </div>
@@ -541,7 +558,7 @@ function StepContent({ step }: { step: number }) {
       return (
         <div className="allapotfelmero-welcome">
           <div className="allapotfelmero-welcome-badge">
-            <Icon src="/icons/ikon_kerdoiv.svg" />
+            <Icon src="/icons/ikon_villanykorte.svg" />
           </div>
           <h1 className="allapotfelmero-welcome-title">Szia, {displayName}!</h1>
           <p className="allapotfelmero-welcome-text">
@@ -569,23 +586,16 @@ function StepContent({ step }: { step: number }) {
     case 3:
       return (
         <>
-          <TextField label="mit érzel?" value={adatok.tunetLeiras} onChange={(v) => setAdatok({ tunetLeiras: v })} placeholder="pl. nyilalló fájdalom derékban" hint="max. 15 szó" />
+          <TextField label="Tünet: mit érzel?" value={adatok.tunetLeiras} onChange={(v) => setAdatok({ tunetLeiras: v })} placeholder="pl: fájdalom/húzódás/nyilallás stb." hint="max. 15 szó" />
           <SelectField label="gyakoriság" value={adatok.gyakorisag} onChange={(v) => setAdatok({ gyakorisag: v })} options={GYAKORISAG_OPTIONS} />
           <SelectField label="időtartam (óra/nap)" value={adatok.idotartam} onChange={(v) => setAdatok({ idotartam: v })} options={IDOTARTAM_OPTIONS} />
           <div className="mb-2">
             <FieldLabel>intenzitás</FieldLabel>
-            <input
-              type="range"
-              className="form-range"
-              min={1}
-              max={10}
-              value={adatok.intenzitas}
-              onChange={(e) => setAdatok({ intenzitas: Number(e.target.value) })}
-            />
+            <IntensityRange value={adatok.intenzitas} onChange={(v) => setAdatok({ intenzitas: v })} />
             <div className="d-flex justify-content-between small" style={{ color: 'var(--color-text-muted)' }}>
-              <span>1 — alig érezhető</span>
+              <span>0 — semmi</span>
               <span className="fw-bold" style={{ color: 'var(--color-primary)' }}>{adatok.intenzitas}</span>
-              <span>10 — elviselhetetlen</span>
+              <span>10 — max. intenzitás</span>
             </div>
           </div>
         </>
@@ -597,7 +607,7 @@ function StepContent({ step }: { step: number }) {
       // "elbeszéléséről" szól, ezért tematikusan is összeillik.
       return (
         <>
-          <TextField label="mikor kezdődött?" value={adatok.kezdodesIdo} onChange={(v) => setAdatok({ kezdodesIdo: v })} placeholder="pl. kb. 3 hónapja" />
+          <SelectField label="mikor kezdődött?" value={adatok.kezdodesIdo} onChange={(v) => setAdatok({ kezdodesIdo: v })} options={KEZDODES_OPTIONS} />
           <SelectField label="volt már ehhez hasonló korábban is?" value={adatok.voltMarKorabban} onChange={(v) => setAdatok({ voltMarKorabban: v })} options={TORTENET_OPTIONS} />
           <TextAreaField label="mi esik jól, amikor fáj?" rows={2} value={adatok.miEsikJol} onChange={(v) => setAdatok({ miEsikJol: v })} placeholder="pl. pihentetés, nyújtás, meleg…" />
           <TextAreaField label="mikor érzed leginkább? (helyzet, mozdulat, napszak)" rows={2} value={adatok.mikorErzedLegjobban} onChange={(v) => setAdatok({ mikorErzedLegjobban: v })} placeholder="helyzet, mozdulat, napszak…" />
@@ -657,8 +667,14 @@ export default function Allapotfelmero() {
   const navigate = useNavigate()
   const { complete } = useAllapotfelmero()
   const [step, setStep] = useState(1)
+  const [calcHours, setCalcHours] = useState(0)
   const availableHeight = useAvailableHeight()
   const meta = STEP_META[step] ?? {}
+  const isCalculatorStep = step === TOTAL_STEPS
+  // az utolsó (kalkulátor) lapon a továbblépés csak akkor jelenik meg, ha a
+  // kitöltő csík elérte a 24/24 órát — minden más lapon mindig elérhető
+  // (2026.09.04., Marci kérésére).
+  const nextAvailable = !isCalculatorStep || calcHours >= 23.999
 
   function handleNext() {
     if (step === TOTAL_STEPS) {
@@ -679,26 +695,34 @@ export default function Allapotfelmero() {
         <span style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
       </div>
 
-      <div className="allapotfelmero-topnav">
-        <button type="button" className="allapotfelmero-nav-btn" onClick={handlePrev} disabled={step === 1} aria-label="előző lap">
+      {/* a lapozó-gombok szabadon LEBEGNEK a tartalom fölött, nincs saját
+         fejléc-sávjuk (2026.09.04., Marci kérésére) — az 1. lapon nincs
+         "előző" (nincs hova visszalépni), a kalkulátor lapján a
+         "következő"/"mentés" csak 24/24 óránál jelenik meg. */}
+      {step > 1 && (
+        <button type="button" className="allapotfelmero-nav-btn allapotfelmero-nav-btn--float allapotfelmero-nav-btn--prev" onClick={handlePrev} aria-label="előző lap">
           <Chevron direction="left" />
         </button>
-        {step < TOTAL_STEPS ? (
-          <button type="button" className="allapotfelmero-nav-btn" onClick={handleNext} aria-label="következő lap">
+      )}
+      {nextAvailable && (
+        step < TOTAL_STEPS ? (
+          <button type="button" className="allapotfelmero-nav-btn allapotfelmero-nav-btn--float allapotfelmero-nav-btn--next" onClick={handleNext} aria-label="következő lap">
             <Chevron direction="right" />
           </button>
         ) : (
-          <button type="button" className="allapotfelmero-nav-btn allapotfelmero-nav-btn--save" onClick={handleNext} aria-label="mentés" title="mentés">
+          <button type="button" className="allapotfelmero-nav-btn allapotfelmero-nav-btn--save allapotfelmero-nav-btn--float allapotfelmero-nav-btn--next" onClick={handleNext} aria-label="mentés" title="mentés">
             <Icon src="/icons/ikon_pipa.svg" />
           </button>
-        )}
-      </div>
+        )
+      )}
 
       <div
-        className={`allapotfelmero-content ${step === TOTAL_STEPS ? 'allapotfelmero-content--scrollable' : ''} ${step === BODY_CHART_STEP ? 'allapotfelmero-content--full' : ''} ${step === WELCOME_STEP ? 'allapotfelmero-content--center' : ''}`}
+        className={`allapotfelmero-content ${step === TOTAL_STEPS ? 'allapotfelmero-content--scrollable allapotfelmero-content--calc' : ''} ${step === BODY_CHART_STEP ? 'allapotfelmero-content--full' : ''} ${step === WELCOME_STEP ? 'allapotfelmero-content--center' : ''}`}
       >
         {step === BODY_CHART_STEP ? (
           <BodyChartStep />
+        ) : isCalculatorStep ? (
+          <GerincterhelesKalkulator onHoursChange={setCalcHours} />
         ) : (
           <div className="container-fluid" style={{ maxWidth: 560 }}>
             {meta.title && <h1 className="allapotfelmero-title mb-1">{meta.title}</h1>}

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { memo, useEffect, useRef } from 'react'
 
 // Az állapotfelmérő utolsó (görgethető) lapja — Marci a "kalkulator.odt"
 // fájlban adta át a kész, működő gerincterhelés-kalkulátort (2026.09.04.).
@@ -527,8 +527,25 @@ const CALCULATOR_HTML = `
 </style>
 `
 
-export default function GerincterhelesKalkulator() {
+type GerincterhelesKalkulatorProps = {
+  /** minden újraszámoláskor meghívva az aktuális "összes idő" (óra) értékkel
+   * — az állapotfelmérő ezzel dönti el, mikor jelenjen meg a továbblépés
+   * lehetősége (2026.09.04., Marci kérésére: csak 24/24 óránál). */
+  onHoursChange?: (hours: number) => void
+}
+
+// React.memo: az onHoursChange (a szülő állandó setCalcHours-referenciája)
+// kivételével nincs propja, és MINDEN saját állapotát nyers DOM-on/refeken
+// tartja — ha a szülő mégis újrarenderelne (pl. a calcHours state-je miatt),
+// react.memo nélkül ez a dangerouslySetInnerHTML-t is újra "diffelné", ami
+// (React 19-es kísérlet alapján) VISSZAÁLLÍTOTTA a kalkulátor DOM-ját az
+// üres kiinduló sablonra — törölve a mount-effektus által felépített
+// sorokat/csúszkákat. A memo garantálja, hogy a szülő re-renderje ezt a
+// komponenst egyáltalán ne érintse (2026.09.04., hibajavítás).
+export default memo(function GerincterhelesKalkulator({ onHoursChange }: GerincterhelesKalkulatorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const onHoursChangeRef = useRef(onHoursChange)
+  onHoursChangeRef.current = onHoursChange
 
   // A <script> EREDETI logikája — szó szerint átemelve (Marci kifejezett
   // kérése: "minden logikája maradjon az eredeti"). Az egyetlen eltérés a
@@ -793,6 +810,7 @@ export default function GerincterhelesKalkulator() {
         updateSliderGradient(slider)
         if (h > 0) { totalLoad += h * t; totalAct += h * a }
       })
+      onHoursChangeRef.current?.(totalHours)
       byId('loadScore')!.textContent = fmt(totalLoad)
       byId('actScore')!.textContent = fmt(totalAct)
       const lc = loadCategory(totalLoad)
@@ -829,4 +847,4 @@ export default function GerincterhelesKalkulator() {
   }, [])
 
   return <div ref={containerRef} dangerouslySetInnerHTML={{ __html: CALCULATOR_HTML }} />
-}
+})

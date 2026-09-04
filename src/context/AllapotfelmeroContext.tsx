@@ -55,7 +55,7 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   tunetLeiras: '',
   gyakorisag: '',
   idotartam: '',
-  intenzitas: 5,
+  intenzitas: 0,
   bodyChartNezet: 'hat',
   bodyChartMeret: 'pontszeru',
   bodyChartJelek: [],
