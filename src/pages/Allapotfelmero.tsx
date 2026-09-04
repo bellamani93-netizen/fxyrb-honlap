@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Chevron from '../components/Chevron'
+import GerincterhelesKalkulator from '../components/GerincterhelesKalkulator'
 import Icon from '../components/Icon'
 import ToggleSwitch from '../components/ToggleSwitch'
 import { withBase } from '../lib/assetUrl'
@@ -19,11 +20,15 @@ import {
 // itt csak a Context-ben élnek, mentés/beküldés nem ír vissza semmilyen
 // "valós" nyilvántartásba.
 
-const TOTAL_STEPS = 11
+const TOTAL_STEPS = 10
 /** "mutasd meg" — a body chart lapja: itt nincs cím/alcím és a padding is
  * minimális, hogy a testábra kapja a lehető legtöbb helyet (2026.09.04.,
  * Marci kérésére). */
 const BODY_CHART_STEP = 4
+/** az üdvözlő lap saját, középre igazított elrendezést kap (2026.09.04.,
+ * Marci kérésére: "legyen esztétikusabb"), nem a szokásos balra-igazított
+ * form-mezős sablont. */
+const WELCOME_STEP = 1
 
 const CURRENT_YEAR = new Date().getFullYear()
 const BIRTH_YEARS = Array.from({ length: 76 }, (_, i) => String(CURRENT_YEAR - 14 - i))
@@ -47,18 +52,16 @@ const RIZIKO_II_OPTIONS = [
   'szívbetegség', 'COPD', 'vizelettartási problémák', 'széklettartási problémák',
 ]
 
-const STEP_META: Record<number, { title: string; subtitle?: string }> = {
-  1: { title: 'Állapotfelmérő kérdőív' },
-  2: { title: 'Állapotfelmérő kérdőív', subtitle: 'alap adatok' },
-  3: { title: 'Állapotfelmérő kérdőív', subtitle: 'tünetek' },
-  4: { title: 'mutasd meg', subtitle: 'jelöld be, hol és mekkora területen érzed a fájdalmat' },
-  5: { title: 'Állapotfelmérő kérdőív', subtitle: 'történet' },
-  6: { title: 'Állapotfelmérő kérdőív', subtitle: 'néhány további kérdés' },
-  7: { title: 'rizikófaktorok I', subtitle: 'van-e ezek közül valamelyik?' },
-  8: { title: 'rizikófaktorok II', subtitle: 'van-e ezek közül valamelyik?' },
-  9: { title: 'mozgékonyság', subtitle: 'a tornát érintő kérdések — ne csalj! 🙂' },
-  10: { title: 'Állapotfelmérő kérdőív', subtitle: 'személyes célod' },
-  11: { title: 'gerincterhelés kalkulátor' },
+// 2026.09.04., Marci kérésére: a generikus "Állapotfelmérő kérdőív" cím +
+// alatta a türkiz alcím MINDEN lapról eltűnt, KIVÉVE a rizikófaktorok és a
+// mozgékonyság lapját (ott a saját, egyedi címük marad — ezek nem a
+// generikus sablon-cím voltak, hanem mindig is saját nevük volt). A többi
+// lapon a mezők önmagukban, cím-keret nélkül állnak — ez egyben helyet is
+// szabadított fel (ld. lent, a 6. pontban a 6-7. lap ezért is vonható össze).
+const STEP_META: Record<number, { title?: string; subtitle?: string }> = {
+  6: { title: 'rizikófaktorok I', subtitle: 'van-e ezek közül valamelyik?' },
+  7: { title: 'rizikófaktorok II', subtitle: 'van-e ezek közül valamelyik?' },
+  8: { title: 'mozgékonyság', subtitle: 'a tornát érintő kérdések — ne csalj! 🙂' },
 }
 
 function getSessionName(fallback: string): string {
@@ -250,11 +253,16 @@ const MERET_LABELS: Record<BodyChartMeret, string> = { pontszeru: 'pontszerű', 
 const MOBIL_MERET_LABELS: Record<BodyChartMeret, string> = { pontszeru: 'pontszerű', kis: 'kicsi', nagy: 'nagy' }
 const BODYCHART_IMAGES: Record<BodyChartNezet, string> = { hat: '/images/bodychart-hat.png', rtg: '/images/bodychart-rtg.png' }
 
-// a hát és a röntgen kép mostantól PONTOSAN ugyanakkora (ld. Design jegyzet
-// 74. pont) — ez a natív pixelméretük, ami egyben a jelölés-SVG viewBox-a is,
-// hogy a pontok/vonalak torzítás nélkül, kör/egyenletes vastagságúak legyenek.
-const CHART_W = 166
-const CHART_H = 529
+// a hát és a röntgen kép mostantól PONTOSAN ugyanakkora (202×564) — ez a
+// natív pixelméretük, ami egyben a jelölés-SVG viewBox-a is, hogy a
+// pontok/vonalak torzítás nélkül, kör/egyenletes vastagságúak legyenek.
+// (2026.09.04., 2. korrekció: a korábbi 166×529 a röntgen ÉLES kontúrjához
+// igazított vágás volt, ami levágta a röntgen halvány derengésének a szélét
+// — Marci hibajelzésére most a röntgen TELJES derengését megtartó, nagyobb
+// vászonra igazítottunk, a hát-képet pedig ugyanerre a vászonra kipárnázva,
+// hogy a két alak mérete/aránya továbbra is megegyezzen, ld. Design jegyzet.) */
+const CHART_W = 202
+const CHART_H = 564
 
 // 2026.09.04., Marci kérésére: "a rajzolós vonal/pont vastagságok legyenek
 // kisebbek, mindegyik a mostani 75%-a" — az előző (9/20/34, ill. 12/22/36)
@@ -262,11 +270,14 @@ const CHART_H = 529
 const DOT_RADIUS: Record<BodyChartMeret, number> = { pontszeru: 7, kis: 15, nagy: 26 }
 const LINE_WIDTH: Record<BodyChartMeret, number> = { pontszeru: 9, kis: 17, nagy: 27 }
 /** a lágy, elmosott szélű hatás 3 egymásra rétegzett, csökkenő átlátszóságú
- * réteggel — ugyanaz a vizuális nyelv pontnál és vonalnál is. */
+ * réteggel — ugyanaz a vizuális nyelv pontnál és vonalnál is. 2026.09.04.,
+ * 2. korrekció: a nem-átlátszó mag vékonyabb (2.2→1-ről csökkentve MÉG
+ * jobban, most a legkülső réteghez képest arányaiban kisebb), a kifelé
+ * egyre átlátszóbb körvonalak pedig szélesebbek (Marci kérésére). */
 const SOFT_LAYERS = [
-  { scale: 1.9, opacity: 0.16 },
-  { scale: 1.4, opacity: 0.32 },
-  { scale: 1, opacity: 0.88 },
+  { scale: 2.3, opacity: 0.14 },
+  { scale: 1.7, opacity: 0.3 },
+  { scale: 0.65, opacity: 0.9 },
 ]
 
 /** szabálytalan, éles kontúrú árnyékfolt a talp alá, hogy a testábra ne
@@ -528,10 +539,16 @@ function StepContent({ step }: { step: number }) {
   switch (step) {
     case 1:
       return (
-        <p className="lead">
-          Szia {displayName}! Üdv a FIXYOURBACK fedélzetén. Első lépés: haladj végig az Állapotfelmérő lépésein!
-          Minden válaszodnak jelentősége van, a lehető legpontosabban és legtömörebben válaszolj.
-        </p>
+        <div className="allapotfelmero-welcome">
+          <div className="allapotfelmero-welcome-badge">
+            <Icon src="/icons/ikon_kerdoiv.svg" />
+          </div>
+          <h1 className="allapotfelmero-welcome-title">Szia, {displayName}!</h1>
+          <p className="allapotfelmero-welcome-text">
+            Üdv a FIXYOURBACK fedélzetén. Első lépés: haladj végig az Állapotfelmérő lépésein!
+            Minden válaszodnak jelentősége van, a lehető legpontosabban és legtömörebben válaszolj.
+          </p>
+        </div>
       )
     case 2:
       return (
@@ -574,21 +591,20 @@ function StepContent({ step }: { step: number }) {
         </>
       )
     case 5:
+      // a korábbi "történet" (5.) és "néhány további kérdés" (6.) lap
+      // összevonva (2026.09.04., Marci kérésére — a fejléc/alcím eltűnése
+      // után felszabadult helyet kihasználva): mindegyik a tünet
+      // "elbeszéléséről" szól, ezért tematikusan is összeillik.
       return (
         <>
           <TextField label="mikor kezdődött?" value={adatok.kezdodesIdo} onChange={(v) => setAdatok({ kezdodesIdo: v })} placeholder="pl. kb. 3 hónapja" />
           <SelectField label="volt már ehhez hasonló korábban is?" value={adatok.voltMarKorabban} onChange={(v) => setAdatok({ voltMarKorabban: v })} options={TORTENET_OPTIONS} />
-        </>
-      )
-    case 6:
-      return (
-        <>
           <TextAreaField label="mi esik jól, amikor fáj?" rows={2} value={adatok.miEsikJol} onChange={(v) => setAdatok({ miEsikJol: v })} placeholder="pl. pihentetés, nyújtás, meleg…" />
           <TextAreaField label="mikor érzed leginkább? (helyzet, mozdulat, napszak)" rows={2} value={adatok.mikorErzedLegjobban} onChange={(v) => setAdatok({ mikorErzedLegjobban: v })} placeholder="helyzet, mozdulat, napszak…" />
           <TextAreaField label="szerinted mi lehet az oka?" rows={2} value={adatok.szerintedMiOka} onChange={(v) => setAdatok({ szerintedMiOka: v })} placeholder="a saját megérzésed is számít" />
         </>
       )
-    case 7:
+    case 6:
       return (
         <RiskCheckboxList
           options={RIZIKO_I_OPTIONS}
@@ -600,7 +616,7 @@ function StepContent({ step }: { step: number }) {
           })}
         />
       )
-    case 8:
+    case 7:
       return (
         <RiskCheckboxList
           options={RIZIKO_II_OPTIONS}
@@ -612,16 +628,11 @@ function StepContent({ step }: { step: number }) {
           })}
         />
       )
-    case 9:
+    case 8:
+      // a "fájdalom helye" sor törölve (2026.09.04., Marci kérésére: "ez nem
+      // kell") — a body chart (4. lap) már pontosan rögzíti a helyet.
       return (
         <>
-          <TraitToggleRow
-            label="fájdalom helye"
-            value={adatok.painLocation === 'also'}
-            onChange={(v) => setAdatok({ painLocation: v ? 'also' : 'felso' })}
-            trueLabel="alsó lumbális"
-            falseLabel="felső lumbális / háti"
-          />
           <TraitToggleRow label="hason tudsz feküdni" value={adatok.proneOk} onChange={(v) => setAdatok({ proneOk: v })} trueLabel="igen" falseLabel="nem" />
           <TraitToggleRow label="a karodat váll fölé tudod emelni" value={adatok.shoulderOk} onChange={(v) => setAdatok({ shoulderOk: v })} trueLabel="igen" falseLabel="nem" />
           <TraitToggleRow label="van térdfájdalmad (négykézláb helyzetekhez)" value={!adatok.kneePain} onChange={(v) => setAdatok({ kneePain: !v })} trueLabel="nincs" falseLabel="van" />
@@ -633,17 +644,10 @@ function StepContent({ step }: { step: number }) {
           )}
         </>
       )
-    case 10:
+    case 9:
       return <TextAreaField value={adatok.szemelyesCel} onChange={(v) => setAdatok({ szemelyesCel: v })} placeholder="mit szeretnél elérni a programmal?" />
-    case 11:
-      return (
-        <div className="card-fyb text-center py-5" style={{ border: '2px dashed var(--color-border)' }}>
-          <Icon src="/icons/ikon_szintek.svg" className="mx-auto mb-3" style={{ width: '2.5rem', height: '2.5rem' }} />
-          <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>
-            ide kerül majd a gerincterhelés kalkulátor — a végleges kód beillesztése és design-illesztése egy következő körben történik.
-          </p>
-        </div>
-      )
+    case 10:
+      return <GerincterhelesKalkulator />
     default:
       return null
   }
@@ -654,7 +658,7 @@ export default function Allapotfelmero() {
   const { complete } = useAllapotfelmero()
   const [step, setStep] = useState(1)
   const availableHeight = useAvailableHeight()
-  const meta = STEP_META[step]
+  const meta = STEP_META[step] ?? {}
 
   function handleNext() {
     if (step === TOTAL_STEPS) {
@@ -691,13 +695,13 @@ export default function Allapotfelmero() {
       </div>
 
       <div
-        className={`allapotfelmero-content ${step === TOTAL_STEPS ? 'allapotfelmero-content--scrollable' : ''} ${step === BODY_CHART_STEP ? 'allapotfelmero-content--full' : ''}`}
+        className={`allapotfelmero-content ${step === TOTAL_STEPS ? 'allapotfelmero-content--scrollable' : ''} ${step === BODY_CHART_STEP ? 'allapotfelmero-content--full' : ''} ${step === WELCOME_STEP ? 'allapotfelmero-content--center' : ''}`}
       >
         {step === BODY_CHART_STEP ? (
           <BodyChartStep />
         ) : (
           <div className="container-fluid" style={{ maxWidth: 560 }}>
-            <h1 className="allapotfelmero-title mb-1">{meta.title}</h1>
+            {meta.title && <h1 className="allapotfelmero-title mb-1">{meta.title}</h1>}
             {meta.subtitle && <p className="allapotfelmero-subtitle mb-4">{meta.subtitle}</p>}
             <StepContent step={step} />
           </div>

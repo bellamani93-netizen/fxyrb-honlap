@@ -12,6 +12,11 @@
 # forrásokat.
 /Design elemek/
 
+# Marci nyers .odt forrásfájlja a gerincterhelés kalkulátorhoz — a tartalma
+# (HTML/CSS/JS) átkerült a src/components/GerincterhelesKalkulator.tsx-be,
+# magát a fájlt nem publikáljuk a (publikus) repóban.
+/kalkulator.odt
+
 # Node / Vite
 node_modules
 dist

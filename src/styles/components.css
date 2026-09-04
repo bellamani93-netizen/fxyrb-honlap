@@ -1654,12 +1654,15 @@ html[data-theme='dark'] .sales-delete-icon {
 .circle-icon-btn--warning { background-color: var(--macos-yellow); color: var(--navy); font-weight: 700; }
 .circle-icon-btn--success { background-color: var(--macos-green); }
 .circle-icon-btn--success .icon-fyb { color: var(--offwhite); }
-/* állapotfelmérő "mutasd meg" lap — visszafogott, semleges kör-gomb a
-   legutóbbi jelölés visszavonásához, ugyanabban a méretben mint a "+"
-   (2026.09.04., Marci kérésére: "ugyanúgy egy kör alakú gombban legyen"). */
+/* állapotfelmérő "mutasd meg" lap — semleges, de mindkét témában jól
+   kontrasztos kör-gomb a legutóbbi jelölés visszavonásához, PONTOSAN
+   ugyanakkora méretben, mint a "+" (`.circle-icon-btn` alap, 2.2rem)
+   (2026.09.04., Marci kérésére — a `--color-bg-alt` háttér korábban túl
+   halvány volt a "kontrasztosabb legyen" kéréshez képest; a `--sagegray`
+   FIX tónusú mindkét témában, ezért mindkettőben jól elválik a háttértől). */
 .circle-icon-btn--undo {
-  background-color: var(--color-bg-alt);
-  color: var(--color-text);
+  background-color: var(--sagegray);
+  color: var(--offwhite);
 }
 
 /* a hívás utólagos kimenete ("nem jelent meg" / "rendben") — 2026.08.28.,
@@ -1768,6 +1771,13 @@ html[data-theme='dark'] .sales-delete-icon {
   display: flex;
   padding: 0.5rem 0.75rem;
 }
+/* az üdvözlő (1.) lap függőlegesen középre igazítva, cím-keret nélkül —
+   önálló, esztétikus "üdvözlő pillanat", nem a szokásos form-sablon
+   (2026.09.04., Marci kérésére). */
+.allapotfelmero-content--center {
+  display: flex;
+  align-items: center;
+}
 .allapotfelmero-title {
   font-size: 1.5rem;
   padding-bottom: 0.6rem;
@@ -1778,6 +1788,37 @@ html[data-theme='dark'] .sales-delete-icon {
   color: var(--color-primary);
   font-weight: 700;
   text-transform: lowercase;
+}
+/* --- üdvözlő lap (1.) --- */
+.allapotfelmero-welcome {
+  text-align: center;
+  padding: 1rem 0.5rem;
+}
+.allapotfelmero-welcome-badge {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.allapotfelmero-welcome-badge .icon-fyb {
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-primary-contrast);
+}
+.allapotfelmero-welcome-title {
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+}
+.allapotfelmero-welcome-text {
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  max-width: 32rem;
+  margin: 0 auto;
 }
 
 /* --- általános csúszka-kapcsoló (ToggleSwitch.tsx) --- */

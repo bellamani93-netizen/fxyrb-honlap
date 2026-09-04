@@ -1328,3 +1328,20 @@ Marci jelezte: a kép mögötti derengés egy éles, téglalap-határral végző
 Emellett: a talp alatti árnyékfolt 1,5x szélesebb lett; világos módban a kép mögötti fény helyett egy világosító `brightness` szűrő került magára a képre; a "+" és "visszavonás" gomb a projekt megszokott `.circle-icon-btn` kör-gomb stílusára váltott (mint a SALES/GYT "+" gombok); a visszavonás-ikon egy teljes hurkú (majdnem teljes kör) nyílra cserélődött; a rajzolás vonal/pont vastagsága a korábbi 75%-ára csökkent.
 
 **Tesztelve böngészőben:** mobilon, világos és sötét módban, mindkét nézetben (hát/röntgen) — a doboz-határ eltűnt, az árnyék nagyobb, a gombok a megszokott stílust kapták, a vonal vékonyabb. Asztali nézet változatlan, csak a visszavonás-gomb váltott stílust. `npm run build` hibamentes.
+
+## 2026.09.04. — Nagy kör: rajzolás finomhangolása, röntgen-derengés végleges javítása, kalkulátor beépítve
+
+Marci egy nagyobb, több részes visszajelzést küldött a helyi teszt után:
+
+1. **Rajzolás:** a vonal/pont nem-átlátszó magja legyen vékonyabb, a kifelé halványodó körvonalak vastagabbak — a `SOFT_LAYERS` arányai átalakítva.
+2. **"+"/"visszavonás" gomb:** ugyanakkora méretű legyen mindkettő (már így volt), a visszavonás háttere legyen kontrasztosabb — `--sagegray` háttér, fehér ikon.
+3. **Sötét mód / röntgen-derengés:** a röntgen-kép halvány, kifelé elhalványuló derengése továbbra is élesen levágódott. Kiderült: a képek az ÉLES kontúrra voltak vágva (166×529), ami levágta a leghalványabb glow-pixeleket. Új vágás: a röntgen a TELJES derengést megtartó, nagyobb (202×564) vászonra került, a hát-kép pedig ugyanerre a vászonra kipárnázva — a két kép mérete továbbra is megegyezik, de a derengés most szabadon elhalványul.
+4. **Lap 1 (üdvözlés):** esztétikusabb, középre igazított elrendezés (ikon-jelvény, nagy cím, szöveg).
+5. **Fejlécek:** a generikus "Állapotfelmérő kérdőív" cím + türkiz alcím eltűnt minden lapról, kivéve a rizikófaktorok I-II és a mozgékonyság lapját (ezeknek mindig is saját címük volt).
+6. **Mozgékonyság:** a "fájdalom helye" sor törölve (redundáns a body charttal).
+7. **További lap-összevonás:** a felszabadult hely miatt a "történet" lap beolvadt a "további kérdések" lapba — a kérdőív 11-ről 10 laposra csökkent. A többit (rizikófaktorok, body chart, kalkulátor, üdvözlés) szándékosan nem vontuk össze — vagy túlzsúfolt, vagy egyedi interakciójú, vagy szándékosan önálló maradna.
+8. **Gerincterhelés kalkulátor:** Marci a `kalkulator.odt`-ben adta át a kész HTML/CSS/JS kódot. Új `GerincterhelesKalkulator.tsx` — a teljes számítási logika (tevékenységek, szorzók, zóna-határok, óra-limit) szó szerint átemelve, csak a DOM-elérés (`document.getElementById` → container-scope) változott. A design a projekt saját CSS-változóira lett átkötve, ezért sötét módban is automatikusan helyesen jelenik meg, külön kód nélkül — a terhelési/aktivitási zóna-színek (piros→zöld skála) szándékosan változatlanok maradtak (saját, jelentéssel bíró adatvizualizációs skála).
+
+**Nyitott kérdés:** Marci szerint a testábra-képek asztali gépen kicsit pixelesek. A `Design elemek` mappában nincs nagyobb felbontású vagy SVG-forrás — a natív méret (166×529 / 224×587) a projekt eddigi legkisebb felbontású grafikai eleme, ami asztali/retina nézetben ~3-4×-ös felskálázást jelent. Ezt kódból nem lehet valódi élességgé javítani — nagyobb felbontású PNG vagy SVG-forrás kell Marcitól.
+
+**Tesztelve böngészőben:** mobilon és asztalin, világos és sötét módban — a röntgen-derengés sehol nem vágódik le; a rajzolt vonal vékonyabb, lágyabb szélű; a gombok egyforma méretűek, a visszavonás jól kontrasztos; az üdvözlő lap és a fejléc-eltávolítás minden érintett lapon helyesen jelenik meg; a kalkulátor "Példa nap" gombja helyesen számolt (kézzel is ellenőrizve), "Új számítás" nullázott, sötét módban is a projekt palettáját követte. `npm run build` hibamentes.
