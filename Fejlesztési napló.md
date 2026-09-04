@@ -1375,3 +1375,9 @@ Marci megkérte, hogy a "Hogyan szólítsunk?", "Tünet: mit érzel?" és "Mikor
 A "mozgékonyság" lapon a "hason tudsz feküdni" kérdés kiegészült: "hason tudsz feküdni kemény felületen?" — pontosabb kérdés.
 
 **Tesztelve böngészőben:** mobilon, mindhárom megjelölt mező pontosan középre került, a lapon lévő többi mező változatlanul bal-igazítva maradt; a "mozgékonyság" lap frissített szövege helyesen jelent meg. `npm run build` hibamentes.
+
+## 2026.09.04. — Hibajavítás: söpréses lapozás a body chart (4.) lapon
+
+Marci jelezte, hogy a 4. lapról (body chart) nem lehet söpréssel továbblépni. Az előző körben ez szándékosan teljesen ki volt kapcsolva ott (a rajzoláshoz szükséges vízszintes húzással való összeakadás elkerülésére), de ez túl szigorúnak bizonyult. Javítás: a söprés-lapozás a body chart lapon mostantól csak akkor kapcsol ki, ha az érintés a rajzoló-felületen (a testábra képén) indul — minden más területen (keret üres része, gombok-oszlop) ugyanúgy lehet söpréssel lapozni, mint bármelyik más lapon. A kalkulátor lapján a söprés-lapozás továbbra is teljesen kikapcsolt marad.
+
+**Tesztelve böngészőben:** mobilon, a rajzoló-felületen indított söprés nem lapozott (a rajzolás elsőbbséget élvez), a gombok-oszlopon indított söprés mindkét irányban helyesen lapozott. `npm run build` hibamentes.

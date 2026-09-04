@@ -705,14 +705,24 @@ export default function Allapotfelmero() {
   }
 
   // telefonon söpréssel is lapozható a kérdőív (2026.09.04., Marci kérésére)
-  // — a body chart (rajzolás) és a kalkulátor (csúszka-húzás) lapján a
-  // vízszintes mozdulatnak MÁR van jelentése, ott a söprés-lapozás kikapcsol,
-  // nehogy összeakadjon a rajzolással/csúszka-állítással.
-  const swipeEnabled = isMobile && step !== BODY_CHART_STEP && !isCalculatorStep
+  // — a kalkulátor (csúszka-húzás) lapján a vízszintes mozdulatnak MÁR van
+  // jelentése, ott a söprés-lapozás teljesen kikapcsol. A body chart (4.)
+  // lapon Marci kérte, hogy ONNAN IS lehessen söpréssel lapozni — ott csak
+  // azt kell elkerülni, hogy a RAJZOLÓ-FELÜLETEN induló húzás (vonalhúzás)
+  // véletlenül lapozzon: ezt a `handleTouchStart` dönti el, a `.bodychart-
+  // img-wrap`-on induló érintést figyelmen kívül hagyva, minden más induló
+  // érintés (keret, gombok-oszlop, üres terület) viszont söprés-lapozásra
+  // jogosult (2026.09.04., Marci visszajelzésére — "a 4. lapról nem lehet
+  // söpréssel továbbmenni").
+  const swipeEnabled = isMobile && !isCalculatorStep
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
 
   function handleTouchStart(e: React.TouchEvent) {
     if (!swipeEnabled) return
+    if (step === BODY_CHART_STEP && (e.target as HTMLElement).closest('.bodychart-img-wrap')) {
+      touchStartRef.current = null
+      return
+    }
     const t = e.touches[0]
     touchStartRef.current = { x: t.clientX, y: t.clientY }
   }
