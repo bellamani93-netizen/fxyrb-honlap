@@ -1318,3 +1318,13 @@ Marci kérésére, KIZÁRÓLAG telefonos nézetben (az asztali elrendezés vált
 Emellett a sötét mód megjelenését is tovább finomítottam Marci visszajelzésére: a mint-színű derengés helyett egy semleges, fehér "reflektorfény"-hatás — esztétikusabb, jobban illik az összképhez.
 
 **Tesztelve böngészőben:** telefonos nézetben a teljes popup+rajzolás folyamat helyesen működött (húzással valódi, elmosott szélű vonal jött létre, a kontúrhoz vágva), a visszavonás törölte az utolsó jelölést. Asztali nézetben ugyanazt a húzásos gesztust szimulálva a régi, csak-pont viselkedés maradt — nincs regresszió. Sötét módban a finomított háttér esztétikusabban választja el a testábrát a navy alaptól. `npm run build` hibamentes.
+
+**Utólagos jelzés:** Marci "nem látta a frissítést" iPhone SE 2020-on — Safari gyorsítótárazta a régi oldalt, privát böngészésben már friss volt. Nem kódhiba.
+
+## 2026.09.04. — Korrekciók: "láthatatlan doboz" hiba, nagyobb árnyék, világos módú kép-szűrő
+
+Marci jelezte: a kép mögötti derengés egy éles, téglalap-határral végződött, mintha egy láthatatlan dobozba lenne zárva a kép. Ok: a `.bodychart-frame` (kép + gombok-oszlop) `background`-ja egy radiális gradiens volt, de a CSS `background` mindig az elem SAJÁT (a képnél szélesebb) dobozára van vágva — a derengés ott ért véget, ahol a FRAME széle volt, nem a képé. Javítás: a frame háttere törölve, a kontraszt-javítás mostantól a KÉPRE alkalmazott `filter`-rel történik (aminek nincs a képnél szélesebb doboza).
+
+Emellett: a talp alatti árnyékfolt 1,5x szélesebb lett; világos módban a kép mögötti fény helyett egy világosító `brightness` szűrő került magára a képre; a "+" és "visszavonás" gomb a projekt megszokott `.circle-icon-btn` kör-gomb stílusára váltott (mint a SALES/GYT "+" gombok); a visszavonás-ikon egy teljes hurkú (majdnem teljes kör) nyílra cserélődött; a rajzolás vonal/pont vastagsága a korábbi 75%-ára csökkent.
+
+**Tesztelve böngészőben:** mobilon, világos és sötét módban, mindkét nézetben (hát/röntgen) — a doboz-határ eltűnt, az árnyék nagyobb, a gombok a megszokott stílust kapták, a vonal vékonyabb. Asztali nézet változatlan, csak a visszavonás-gomb váltott stílust. `npm run build` hibamentes.

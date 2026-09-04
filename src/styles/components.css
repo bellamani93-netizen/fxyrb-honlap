@@ -1654,6 +1654,13 @@ html[data-theme='dark'] .sales-delete-icon {
 .circle-icon-btn--warning { background-color: var(--macos-yellow); color: var(--navy); font-weight: 700; }
 .circle-icon-btn--success { background-color: var(--macos-green); }
 .circle-icon-btn--success .icon-fyb { color: var(--offwhite); }
+/* állapotfelmérő "mutasd meg" lap — visszafogott, semleges kör-gomb a
+   legutóbbi jelölés visszavonásához, ugyanabban a méretben mint a "+"
+   (2026.09.04., Marci kérésére: "ugyanúgy egy kör alakú gombban legyen"). */
+.circle-icon-btn--undo {
+  background-color: var(--color-bg-alt);
+  color: var(--color-text);
+}
 
 /* a hívás utólagos kimenete ("nem jelent meg" / "rendben") — 2026.08.28.,
    6. kör: Marci kérésére szöveg nélküli, kis színes pötty (a korábbi
@@ -1825,6 +1832,12 @@ html[data-theme='dark'] .sales-delete-icon {
   gap: 1rem;
   overflow-y: auto;
 }
+/* a kör-gombok (+ / visszavonás) nem width:100%-osak, mint a méret-gombok —
+   a szülő oszlop alapértelmezett `align-items: stretch`-je nélkülük balra
+   tolná őket, ezért középre igazítjuk (2026.09.04.). */
+.bodychart-controls-col .circle-icon-btn {
+  align-self: center;
+}
 /* vízszintes, alapból kikapcsolt kapcsoló (hát nézet), rajta "rtg" felirat
    (2026.09.04., Marci kérésére — korábban két oldalsó szöveg volt,
    függőlegesen elforgatva). Asztali elrendezés. */
@@ -1869,13 +1882,12 @@ html[data-theme='dark'] .sales-delete-icon {
 }
 /* a KERET (frame) középre igazítja a benne lévő wrapot, de saját maga
    szélesebb is lehet nála (a gombok-oszlop mellett tölti ki a maradék
-   helyet) — a halvány radiális "színpad"-háttér (`--color-surface`)
-   mindkét témában kontrasztot ad a kép mögé; sötét módban ez világosabb,
-   mint az oldal navy háttere, így a röntgen-kép sötétkék kitöltése nem
-   mosódik bele (2026.09.04., Marci kérésére: "jó kontraszttal legyenek a
-   háttérhez" — 2. körben tovább finomítva, mert a sötét mód még nem
-   tetszett: erősebb, világosabb "reflektorfény"-háttér + semleges fehér
-   derengés a mint helyett). */
+   helyet). FONTOS: NINCS itt háttér-derengés — korábban egy radiális
+   gradienst tettünk a frame `background`-jára, de mivel a CSS `background`
+   MINDIG az elem saját (a képnél jóval szélesebb) dobozára van vágva, a
+   derengés ott ért véget egy éles, "láthatatlan doboz" szerű határral, ahol
+   a frame szélei voltak (2026.09.04., Marci hibajelzésére javítva) — a
+   kontraszt helyette a képre alkalmazott `filter`-rel készül, ld. lent. */
 .bodychart-frame {
   position: relative;
   flex: 1 1 auto;
@@ -1883,10 +1895,6 @@ html[data-theme='dark'] .sales-delete-icon {
   align-items: stretch;
   justify-content: center;
   min-width: 0;
-  background: radial-gradient(ellipse 65% 90% at center, var(--color-surface) 0%, transparent 72%);
-}
-html[data-theme='dark'] .bodychart-frame {
-  background: radial-gradient(ellipse 70% 95% at center 42%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 45%, transparent 75%);
 }
 /* a kép SAJÁT, szoros doboza — pontosan a kép méretére szűkül (`inline-flex`
    + `height:100%`, a kép a natív arányát megtartva számolja ki a szélességét)
@@ -1903,6 +1911,11 @@ html[data-theme='dark'] .bodychart-frame {
 .bodychart-frame.is-armed .bodychart-img-wrap {
   cursor: crosshair;
 }
+/* Világos módban a kontraszt-javítás a KÉPEN magán történik: egy világosító
+   szűrő minden színt egy árnyalattal világosabbá tesz (2026.09.04., Marci
+   kérésére — a korábbi, a kép MÖGÖTTI halvány fényt kivéve, mert az okozta a
+   fenti hard-edge hibát). Sötét módban a képen egy semleges fehér rim-light
+   (`drop-shadow`) választja el a testábrát a navy háttértől. */
 .bodychart-img {
   height: 100%;
   width: auto;
@@ -1911,25 +1924,22 @@ html[data-theme='dark'] .bodychart-frame {
   user-select: none;
   pointer-events: none;
   position: relative;
-  /* enyhe kontúr-derengés — világos módban visszafogott sötét árnyék, sötét
-     módban semleges fehér rim-light, hogy a testábra mindkét témában jól
-     elváljon a háttértől. */
-  filter: drop-shadow(0 2px 6px rgba(26, 38, 52, 0.25));
+  filter: brightness(1.16) drop-shadow(0 2px 6px rgba(26, 38, 52, 0.2));
 }
 html[data-theme='dark'] .bodychart-img {
-  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.3)) brightness(1.08);
+  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.3)) brightness(1.1);
 }
 /* szabálytalan, éles kontúrú árnyékfolt a talp alatt (FootShadow, ld.
    Allapotfelmero.tsx) — hogy az alak ne tűnjön lebegőnek. Mérete a
    (szoros) `.bodychart-img-wrap` szélességéhez van rögzítve, ezért mindig a
-   képpel arányosan skálázódik (2026.09.04., Marci kérésére: nagyobb legyen,
-   és a mérete legyen a képhez rögzítve). */
+   képpel arányosan skálázódik (2026.09.04., Marci kérésére: legyen a korábbi
+   1,5-szöröse). */
 .bodychart-foot-shadow {
   position: absolute;
   left: 50%;
   bottom: -1%;
   transform: translateX(-50%);
-  width: 85%;
+  width: 127.5%;
   height: auto;
   fill: rgba(26, 38, 52, 0.32);
   z-index: 0;
@@ -1977,27 +1987,6 @@ html[data-theme='dark'] .bodychart-foot-shadow {
   background-color: var(--color-primary);
   border-color: var(--color-primary);
   color: var(--color-primary-contrast);
-}
-/* "utolsó jelölés visszavonása" — kisebb, visszafogottabb kerek gomb a
-   jelölés-gomb(ok) alatt, csak akkor jelenik meg, ha van mit visszavonni
-   (2026.09.04., Marci kérésére). */
-.bodychart-undo-btn {
-  align-self: center;
-  width: 2.1rem;
-  height: 2.1rem;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  border: none;
-  background: none;
-  color: var(--color-text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.bodychart-undo-btn:hover {
-  color: var(--color-text);
-  background-color: var(--color-bg-alt);
 }
 @media (min-width: 768px) {
   .bodychart-controls-col {

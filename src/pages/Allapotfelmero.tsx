@@ -256,8 +256,11 @@ const BODYCHART_IMAGES: Record<BodyChartNezet, string> = { hat: '/images/bodycha
 const CHART_W = 166
 const CHART_H = 529
 
-const DOT_RADIUS: Record<BodyChartMeret, number> = { pontszeru: 9, kis: 20, nagy: 34 }
-const LINE_WIDTH: Record<BodyChartMeret, number> = { pontszeru: 12, kis: 22, nagy: 36 }
+// 2026.09.04., Marci kérésére: "a rajzolós vonal/pont vastagságok legyenek
+// kisebbek, mindegyik a mostani 75%-a" — az előző (9/20/34, ill. 12/22/36)
+// értékek 75%-a.
+const DOT_RADIUS: Record<BodyChartMeret, number> = { pontszeru: 7, kis: 15, nagy: 26 }
+const LINE_WIDTH: Record<BodyChartMeret, number> = { pontszeru: 9, kis: 17, nagy: 27 }
 /** a lágy, elmosott szélű hatás 3 egymásra rétegzett, csökkenő átlátszóságú
  * réteggel — ugyanaz a vizuális nyelv pontnál és vonalnál is. */
 const SOFT_LAYERS = [
@@ -284,12 +287,15 @@ function MarkIcon() {
   )
 }
 
+/** teljes visszafordulást ábrázoló nyíl — a hurok szinte a teljes kört
+ * bejárja, a nyílhegy balról indul és balra mutat (2026.09.04., Marci
+ * pontosítására — a korábbi ikon csak egy negyed-fordulatot mutatott). */
 function UndoIcon() {
   return (
     <svg viewBox="0 0 24 24" width="1.2em" height="1.2em" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"
+        d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
       />
     </svg>
   )
@@ -466,7 +472,7 @@ function BodyChartStep() {
           <MarkIcon />
         </button>
         {hasMarks && (
-          <button type="button" className="bodychart-undo-btn" onClick={undoLastBodyChartStroke} aria-label="utolsó jelölés visszavonása" title="utolsó jelölés visszavonása">
+          <button type="button" className="circle-icon-btn circle-icon-btn--undo" onClick={undoLastBodyChartStroke} aria-label="utolsó jelölés visszavonása" title="utolsó jelölés visszavonása">
             <UndoIcon />
           </button>
         )}
@@ -484,9 +490,12 @@ function BodyChartStep() {
         </div>
 
         <span className="bodychart-group-label">jelöld be</span>
+        {/* a "korábbi fázisok" megszokott kör-gombja (ld. SALES/GYT "+" gombok,
+           .circle-icon-btn--add), nem az egyedi bodychart-stílus (2026.09.04.,
+           Marci kérésére). */}
         <button
           type="button"
-          className="bodychart-pin-btn"
+          className="circle-icon-btn circle-icon-btn--add"
           onClick={() => setPopupOpen(true)}
           aria-label="tünet bejelölése"
           title="tünet bejelölése"
@@ -494,7 +503,7 @@ function BodyChartStep() {
           <Icon src="/icons/ikon_plusz.svg" />
         </button>
         {hasMarks && (
-          <button type="button" className="bodychart-undo-btn" onClick={undoLastBodyChartStroke} aria-label="utolsó jelölés visszavonása" title="utolsó jelölés visszavonása">
+          <button type="button" className="circle-icon-btn circle-icon-btn--undo" onClick={undoLastBodyChartStroke} aria-label="utolsó jelölés visszavonása" title="utolsó jelölés visszavonása">
             <UndoIcon />
           </button>
         )}
