@@ -1393,3 +1393,11 @@ A táblagép/asztali (≥768px) átdolgozás: a lapok tartalma mostantól függ�
 **Hiba menet közben:** az új `@media (min-width:768px)` szabályokat elsőre a célzott alap-szabályok (`.allapotfelmero-title` stb.) ELÉ írtam a CSS-fájlban — mivel azonos specificitásnál a forráson belüli későbbi szabály nyer, ez érvénytelenítette a felülírást (DOM-méréssel kiderült: a cím mérete asztali nézetben is a mobilos maradt). Javítva a blokk átmozgatásával az érintett alap-szabályok utánra.
 
 **Tesztelve böngészőben:** mobilon minden változatlan; táblagépen és asztalin, világos és sötét módban — a form-doboz szélessége és középre igazítása, a nagyobb betűméretek, a függőlegesen középre igazított rövid lapok és a lent lebegő nyilak mind DOM-méréssel megerősítve; a body chart lap változatlanul teljes magasságú maradt. `npm run build` hibamentes.
+
+## 2026.09.04. — Léptető- és bodychart-gombok nagyítása, egységes mobil/asztali bodychart-vezérlők
+
+Marci további finomítást kért a táblagép/asztali nézethez: nagyobb léptető (lapozó) gombok; a body chart lap gombsora vegye át a telefonos nézet egyszerűbb, popup-alapú megoldását (a korábbi, külön asztali sáv helyett), szintén nagyobb gombokkal és nagyobb margóval a szélektől; és a telefonra optimalizált, középre-igazított mezők (79. pont) táblagépen/asztalin NE legyenek középre igazítva, hanem a többi mezőhöz hasonlóan balra/teljes szélességben álljanak.
+
+A lapozó-gombok mérete 2.35rem→3.2rem nőtt táblagépen/asztalin. A body chart lap két külön (asztali és mobil) gombsora egyetlen, univerzálisan használt elrendezéssé vonódott össze — ezzel egy csomó duplikált kód (JSX és CSS egyaránt) törölhetővé vált. A body chart gombjai (a "+" és "visszavonás" kör-gomb) táblagépen/asztalin 2.2rem→3.4rem-re nőttek, a terület paddingja is megnőtt. A mező-középre-igazítás inline style-ból CSS-osztállyá alakult át, hogy egy médialekérdezés vissza tudja állítani a normál elrendezést szélesebb nézetben.
+
+**Tesztelve böngészőben:** mobilon minden pixelre a korábbi maradt; táblagépen és asztalin, világos és sötét módban — a nagyobb gombméretek DOM-méréssel megerősítve, a body chart lap teljes popup-folyamata (méret-választás, rajzolás, visszavonás) hibátlanul működött, a korábban középre igazított mezők most balra, teljes szélességben állnak. `npm run build` hibamentes.

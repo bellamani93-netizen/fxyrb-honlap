@@ -1797,6 +1797,19 @@ html[data-theme='dark'] .sales-delete-icon {
 .allapotfelmero-form {
   max-width: 560px;
 }
+/* egy-egy mező (a lap elsődleges, "címszerű" kérdése) középre igazítva —
+   ez KIFEJEZETTEN telefonra optimalizált (2026.09.04., Marci kérésére);
+   táblagépen/asztalin a lenti @media (min-width:768px) blokk visszaállítja
+   a normál, bal-igazított/teljes szélességű elrendezést ("minden szépen
+   sorkizárt legyen"), hogy ne lógjon ki a többi mező közül. */
+.allapotfelmero-field-centered {
+  text-align: center;
+}
+.allapotfelmero-field-centered-control {
+  max-width: 320px;
+  margin-inline: auto;
+  text-align: center;
+}
 /* középre igazítva, hogy a fölötte lebegő lapozó-gombok (2026.09.04.,
    Marci kérésére) sose takarják ki a feliratot — a bal/jobb szélen lévő
    gombok így mindig a cím mellett, nem a cím fölött/szövegén futnak. */
@@ -1911,6 +1924,29 @@ html[data-theme='dark'] .sales-delete-icon {
     top: auto;
     bottom: 1rem;
   }
+  /* a léptető (lapozó) gombok nagyobbak táblagépen/asztalin (2026.09.04.,
+     Marci kérésére) — a `font-size` a benne lévő em-alapú chevront
+     (`.chevron-svg`) is arányosan felnagyítja. */
+  .allapotfelmero-nav-btn {
+    width: 3.2rem;
+    height: 3.2rem;
+    font-size: 1.3rem;
+  }
+  .allapotfelmero-nav-btn--save .icon-fyb {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  /* a telefonra optimalizált középre-igazítás táblagépen/asztalin
+     megszűnik — minden mező balra igazított, teljes szélességű, mint a
+     többi (2026.09.04., Marci kérésére: "minden szépen sorkizárt legyen"). */
+  .allapotfelmero-field-centered {
+    text-align: left;
+  }
+  .allapotfelmero-field-centered-control {
+    max-width: none;
+    margin-inline: 0;
+    text-align: left;
+  }
 }
 @media (min-width: 992px) {
   .allapotfelmero-form {
@@ -1976,20 +2012,9 @@ html[data-theme='dark'] .sales-delete-icon {
 .bodychart-controls-col .circle-icon-btn {
   align-self: center;
 }
-/* vízszintes, alapból kikapcsolt kapcsoló (hát nézet), rajta "rtg" felirat
-   (2026.09.04., Marci kérésére — korábban két oldalsó szöveg volt,
-   függőlegesen elforgatva). Asztali elrendezés. */
-.bodychart-view-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-text-muted);
-  flex: 0 0 auto;
-}
-/* mobil elrendezés: "nézet" felirat FENT, a kapcsoló ALATTA (2026.09.04.,
-   Marci kérésére — korábban a kapcsoló mellett volt az "rtg" felirat). */
+/* a gombsor "nézet" felirat FENT, a kapcsoló ALATTA elrendezése — eredetileg
+   csak mobilon, most MINDEN felbontáson (2026.09.04., Marci kérésére: "a
+   bodychart melletti részt vegyük át a telefonos nézetből"). */
 .bodychart-view-toggle-block {
   display: flex;
   flex-direction: column;
@@ -2005,18 +2030,6 @@ html[data-theme='dark'] .sales-delete-icon {
   color: var(--color-text-muted);
   display: block;
   margin-bottom: 0.2rem;
-}
-.bodychart-btn-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-.bodychart-btn-group .auth-tab {
-  width: 100%;
-  text-align: center;
-  padding: 0.3rem 0.3rem;
-  font-size: 0.68rem;
-  line-height: 1.15;
 }
 /* a KERET (frame) középre igazítja a benne lévő wrapot, de saját maga
    szélesebb is lehet nála (a gombok-oszlop mellett tölti ki a maradék
@@ -2088,33 +2101,30 @@ html[data-theme='dark'] .bodychart-img {
   -webkit-mask-mode: alpha;
   mask-mode: alpha;
 }
-.bodychart-pin-btn {
-  align-self: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  border: 2px solid var(--color-border);
-  background-color: var(--color-bg-alt);
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-.bodychart-pin-btn.is-armed {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-primary-contrast);
-}
+/* táblagépen/asztalin a bodychart melletti gombsor a telefonos elrendezést
+   követi (ld. Allapotfelmero.tsx BodyChartStep), de nagyobb gombokkal és
+   nagyobb margóval a szélektől (2026.09.04., Marci kérésére: "itt is
+   nagyobb gombok legyenek és nagyobb margó alul, oldalt a szélektől"). */
 @media (min-width: 768px) {
-  .bodychart-controls-col {
-    width: 8rem;
+  .allapotfelmero-content--full {
+    padding: 1.5rem 2rem 2rem;
   }
-  .bodychart-btn-group .auth-tab {
+  .bodychart-controls-col {
+    width: 9rem;
+    gap: 1.5rem;
+  }
+  .bodychart-group-label {
     font-size: 0.75rem;
-    padding: 0.4rem 0.4rem;
+  }
+  .bodychart-controls-col .circle-icon-btn {
+    width: 3.4rem;
+    height: 3.4rem;
+    /* az UndoIcon em-alapú SVG-je (1.2em) ezzel nő arányosan nagyobbra. */
+    font-size: 1.2rem;
+  }
+  .bodychart-controls-col .circle-icon-btn--add .icon-fyb {
+    width: 2rem;
+    height: 2rem;
   }
 }
 

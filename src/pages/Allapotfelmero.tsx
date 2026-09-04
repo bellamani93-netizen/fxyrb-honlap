@@ -117,10 +117,13 @@ function FieldLabel({ children }: { children: ReactNode }) {
   return <label className="form-label fw-bold">{children}</label>
 }
 
-// néhány mező (a lap ELSŐDLEGES, "címszerű" kérdése) középre igazítva jelenik
-// meg, Marci kifejezett kérésére (2026.09.04.) — a `centered` prop a
-// címkét és magát a mezőt is középre rendezi, egy visszafogott max-width-tel
-// (hogy a mező ne nyúljon a teljes tartalmi szélességre).
+// néhány mező (a lap ELSŐDLEGES, "címszerű" kérdése) középre igazítva
+// jelenik meg — de EZ CSAK TELEFONON kívánatos (2026.09.04., Marci
+// kérésére: "a telefonra optimalizált középre zárt első sor+űrlapmező
+// [táblagépen/asztalin] ne legyen, minden szépen sorkizárt legyen") — a
+// `centered` prop ezért CSS-osztályt ad (nem inline style-t), hogy a
+// `components.css`-ben egy `@media (min-width:768px)` felül tudja írni
+// balra/teljes szélességre táblagépen/asztalin.
 function SelectField({
   label,
   value,
@@ -135,11 +138,10 @@ function SelectField({
   centered?: boolean
 }) {
   return (
-    <div className={`mb-4 ${centered ? 'text-center' : ''}`}>
+    <div className={`mb-4 ${centered ? 'allapotfelmero-field-centered' : ''}`}>
       <FieldLabel>{label}</FieldLabel>
       <select
-        className="form-select"
-        style={centered ? { maxWidth: 320, marginInline: 'auto', textAlign: 'center' } : undefined}
+        className={`form-select ${centered ? 'allapotfelmero-field-centered-control' : ''}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >
@@ -168,12 +170,11 @@ function TextField({
   centered?: boolean
 }) {
   return (
-    <div className={`mb-4 ${centered ? 'text-center' : ''}`}>
+    <div className={`mb-4 ${centered ? 'allapotfelmero-field-centered' : ''}`}>
       <FieldLabel>{label}</FieldLabel>
       <input
         type="text"
-        className="form-control"
-        style={centered ? { maxWidth: 320, marginInline: 'auto', textAlign: 'center' } : undefined}
+        className={`form-control ${centered ? 'allapotfelmero-field-centered-control' : ''}`}
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
@@ -283,10 +284,10 @@ function TraitToggleRow({
   )
 }
 
-const MERET_LABELS: Record<BodyChartMeret, string> = { pontszeru: 'pontszerű', kis: 'kis terület', nagy: 'nagy terület' }
-/** rövidebb feliratok a mobil popupban, hogy a 3 opció kiférjen egy sorban
- * (2026.09.04., Marci kérésére: "pontszerű, kicsi, nagy"). */
-const MOBIL_MERET_LABELS: Record<BodyChartMeret, string> = { pontszeru: 'pontszerű', kis: 'kicsi', nagy: 'nagy' }
+/** rövid feliratok a méret-választó popupban, hogy a 3 opció kiférjen egy
+ * sorban (2026.09.04., Marci kérésére: "pontszerű, kicsi, nagy") — ez a
+ * popup mostantól minden felbontáson (nem csak mobilon) ez fut. */
+const MERET_LABELS: Record<BodyChartMeret, string> = { pontszeru: 'pontszerű', kis: 'kicsi', nagy: 'nagy' }
 const BODYCHART_IMAGES: Record<BodyChartNezet, string> = { hat: '/images/bodychart-hat.svg', rtg: '/images/bodychart-rtg.svg' }
 
 // 2026.09.04., 3. korrekció: Marci saját, kézzel rajzolt SVG-t adott mindkét
@@ -321,14 +322,6 @@ const DOT_SOFT_LAYERS = [
   { scale: 1.4, opacity: 0.32 },
   { scale: 1, opacity: 0.88 },
 ]
-
-function MarkIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="1.3em" height="1.3em" aria-hidden="true">
-      <path d="M5 3 L19 12 L12.5 13.2 L15.5 20 L12.8 21.2 L9.8 14.4 L5 19 Z" fill="currentColor" />
-    </svg>
-  )
-}
 
 /** teljes visszafordulást ábrázoló nyíl — a hurok szinte a teljes kört
  * bejárja, a nyílhegy balról indul és balra mutat (2026.09.04., Marci
@@ -399,7 +392,7 @@ function BodyChartSizePopup({
       <div className="modal-fyb card-fyb" style={{ maxWidth: 360 }} onClick={(e) => e.stopPropagation()}>
         <h2 className="h6 mb-3">tünet mérete</h2>
         <div className="auth-tabs mb-4" style={{ width: '100%' }}>
-          {(Object.keys(MOBIL_MERET_LABELS) as BodyChartMeret[]).map((m) => (
+          {(Object.keys(MERET_LABELS) as BodyChartMeret[]).map((m) => (
             <button
               key={m}
               type="button"
@@ -407,7 +400,7 @@ function BodyChartSizePopup({
               style={{ flex: 1 }}
               onClick={() => onSelectMeret(m)}
             >
-              {MOBIL_MERET_LABELS[m]}
+              {MERET_LABELS[m]}
             </button>
           ))}
         </div>
@@ -482,46 +475,16 @@ function BodyChartStep() {
         </div>
       </div>
 
-      {/* --- asztali gombsor (változatlan elrendezés, ld. Design jegyzet 73-74. pont) --- */}
-      <div className="bodychart-controls-col d-none d-lg-flex">
-        <div className="bodychart-view-toggle">
-          <ToggleSwitch
-            checked={adatok.bodyChartNezet === 'rtg'}
-            onChange={(checked) => setAdatok({ bodyChartNezet: checked ? 'rtg' : 'hat' })}
-            label="nézet váltása hát és röntgen nézet között"
-          />
-          <span>rtg</span>
-        </div>
-
-        <div>
-          <span className="bodychart-group-label">méret</span>
-          <div className="bodychart-btn-group">
-            {(Object.keys(MERET_LABELS) as BodyChartMeret[]).map((m) => (
-              <button key={m} type="button" className={`auth-tab ${adatok.bodyChartMeret === m ? 'active' : ''}`} onClick={() => setAdatok({ bodyChartMeret: m })}>
-                {MERET_LABELS[m]}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className={`bodychart-pin-btn ${armed ? 'is-armed' : ''}`}
-          onClick={() => setArmed((a) => !a)}
-          aria-label="jelölés bekapcsolása a testábrán"
-          title={armed ? 'koppints vagy húzz az ábrán, ahol fáj.' : 'a gombbal jelölhetsz be területet az ábrán.'}
-        >
-          <MarkIcon />
-        </button>
-        {hasMarks && (
-          <button type="button" className="circle-icon-btn circle-icon-btn--undo" onClick={undoLastBodyChartStroke} aria-label="utolsó jelölés visszavonása" title="utolsó jelölés visszavonása">
-            <UndoIcon />
-          </button>
-        )}
-      </div>
-
-      {/* --- mobil gombsor: nézet fent, "jelöld be" + gomb, popup, visszavonás (2026.09.04., Marci kérésére) --- */}
-      <div className="bodychart-controls-col d-flex d-lg-none">
+      {/* --- gombsor: nézet fent, "jelöld be" + gomb, popup, visszavonás —
+         eredetileg csak mobilon, most MINDEN felbontáson egységesen (2026.
+         09.04., Marci kérésére: "a bodychart melletti részt vegyük át a
+         telefonos nézetből, ... a telefonos nézet 4. lapján lévő gombokat és
+         funkciókat ide is emeljük át" — a korábbi, külön asztali sáv
+         [nézet-kapcsoló + hosszabb "méret" gombcsoport + önálló pin-gomb]
+         megszűnt, táblagépen/asztalin is ez az egyszerűbb, popup-alapú
+         elrendezés fut, csak nagyobb gombokkal/margóval, ld. components.css
+         @media (min-width:768px) blokkját). */}
+      <div className="bodychart-controls-col d-flex">
         <div className="bodychart-view-toggle-block">
           <span className="bodychart-group-label">nézet</span>
           <ToggleSwitch
