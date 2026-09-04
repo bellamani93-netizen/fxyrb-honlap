@@ -669,6 +669,7 @@ export default function Allapotfelmero() {
   const [step, setStep] = useState(1)
   const [calcHours, setCalcHours] = useState(0)
   const availableHeight = useAvailableHeight()
+  const isMobile = useIsMobile()
   const meta = STEP_META[step] ?? {}
   const isCalculatorStep = step === TOTAL_STEPS
   // az utolsó (kalkulátor) lapon a továbblépés csak akkor jelenik meg, ha a
@@ -689,8 +690,43 @@ export default function Allapotfelmero() {
     setStep((s) => Math.max(1, s - 1))
   }
 
+  // telefonon söpréssel is lapozható a kérdőív (2026.09.04., Marci kérésére)
+  // — a body chart (rajzolás) és a kalkulátor (csúszka-húzás) lapján a
+  // vízszintes mozdulatnak MÁR van jelentése, ott a söprés-lapozás kikapcsol,
+  // nehogy összeakadjon a rajzolással/csúszka-állítással.
+  const swipeEnabled = isMobile && step !== BODY_CHART_STEP && !isCalculatorStep
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+
+  function handleTouchStart(e: React.TouchEvent) {
+    if (!swipeEnabled) return
+    const t = e.touches[0]
+    touchStartRef.current = { x: t.clientX, y: t.clientY }
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (!swipeEnabled || !touchStartRef.current) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - touchStartRef.current.x
+    const dy = t.clientY - touchStartRef.current.y
+    touchStartRef.current = null
+    // csak egyértelműen vízszintes, kellően hosszú mozdulatra lapozunk —
+    // ne akadjon össze a görgetéssel (rizikófaktor-listák) vagy egy
+    // véletlen kis mozdulattal.
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return
+    if (dx < 0) {
+      if (step < TOTAL_STEPS) handleNext()
+    } else if (step > 1) {
+      handlePrev()
+    }
+  }
+
   return (
-    <div className="allapotfelmero-shell" style={{ height: availableHeight }}>
+    <div
+      className="allapotfelmero-shell"
+      style={{ height: availableHeight }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="allapotfelmero-progress">
         <span style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
       </div>

@@ -1789,16 +1789,23 @@ html[data-theme='dark'] .sales-delete-icon {
   display: flex;
   align-items: center;
 }
+/* középre igazítva, hogy a fölötte lebegő lapozó-gombok (2026.09.04.,
+   Marci kérésére) sose takarják ki a feliratot — a bal/jobb szélen lévő
+   gombok így mindig a cím mellett, nem a cím fölött/szövegén futnak. */
 .allapotfelmero-title {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 0.6rem;
   font-size: 1.5rem;
   padding-bottom: 0.6rem;
   border-bottom: 3px solid var(--color-text);
-  display: inline-block;
+  text-align: center;
 }
 .allapotfelmero-subtitle {
   color: var(--color-primary);
   font-weight: 700;
   text-transform: lowercase;
+  text-align: center;
 }
 /* --- üdvözlő lap (1.) --- */
 .allapotfelmero-welcome {

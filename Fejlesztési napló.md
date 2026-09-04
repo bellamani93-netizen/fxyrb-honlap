@@ -1357,3 +1357,13 @@ További változtatások: a pontszerű koppintás elhalványulása visszaállít
 **Tesztelve böngészőben:** a teljes 10 lapos kérdőív mobilon és asztalin, világos és sötét módban is végiglapozva — az SVG-k tűéles megjelenése és a stabil árnyék-pozíció mindkét nézetben/témában megerősítve, a tartalmi finomítások mind helyesen jelentek meg, a kalkulátor teljes képernyős elrendezése és a 24 órás gate (a memo-javítás UTÁN, hiba nélkül) is működött. `npm run build` hibamentes.
 
 **Nyitott kérdés Marci felé:** a "hogyan szólítsunk?" mezőhöz a legutóbbi visszajelzésben nem érkezett konkrét változtatási igény — egyelőre változatlanul hagyva, amíg Marci pontosítja.
+
+## 2026.09.04. — Lap-címek középre igazítva, söpréses lapozás telefonon
+
+Marci két rövid kérést küldött: a lap-címeket a lebegő gombok ne takarhassák ki, és telefonon söpréssel is lehessen lapozni.
+
+A címek (és alcímek) `text-align: center`-t kaptak, a cím aláhúzása pedig `margin: 0 auto`-val középre igazítva — a bal/jobb szélen lebegő gombok mostantól sosem érnek a felirathoz.
+
+A söpréses lapozáshoz új érintés-kezelés került az `Allapotfelmero` komponensbe: egy kellően hosszú, egyértelműen vízszintes mozdulat balra/jobbra lapoz, csak telefonos nézetben aktív, és kikapcsol a body chart (rajzolás) és a kalkulátor (csúszka-húzás) lapján, hogy ne akadjon össze azok saját vízszintes gesztusaival.
+
+**Tesztelve böngészőben:** mobilon és asztalin, világos és sötét módban — a cím pontosan középre került (DOM-mérés alapján), a szimulált söprés-gesztusok mindkét irányban helyesen lapoztak, a body chart és a kalkulátor lapján pedig helyesen nem reagáltak söprésre. `npm run build` hibamentes.
