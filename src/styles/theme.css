@@ -67,7 +67,6 @@
      (mint a macOS-színek), és elkülönítve a --color-danger UI-jelzésszíntől,
      mert ez itt "tinta" a testábrán, nem állapot-visszajelzés. */
   --symptom-red: #E63946;
-  --symptom-red-rgb: 230, 57, 70;
 
   /* GYT "naptáram" — saját (nem SALES-kapacitás-) színkódolás (2026.08.31.,
      Marci kérésére) — MINDEN gyt a saját naptárában ezt látja, függetlenül

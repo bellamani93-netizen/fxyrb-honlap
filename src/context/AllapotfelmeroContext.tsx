@@ -11,7 +11,12 @@ import { createContext, useContext, useState, type ReactNode } from 'react'
 export type BodyChartMeret = 'pontszeru' | 'kis' | 'nagy'
 export type BodyChartNezet = 'hat' | 'rtg'
 
-export type BodyChartJel = { x: number; y: number; meret: BodyChartMeret }
+export type BodyChartPont = { x: number; y: number }
+
+/** egy "jelölés" mostantól egy PONTSOR (nem csak egyetlen x/y) — 1 pont =
+ * pontszerű koppintás, 2+ pont = kézzel húzott vonal (2026.09.04., Marci
+ * kérésére: "rajzolni pontszerű rákoppintással, és vonalhúzással is lehet"). */
+export type BodyChartJel = { points: BodyChartPont[]; meret: BodyChartMeret }
 
 export type AllapotfelmeroAdatok = {
   megszolitas: string
@@ -74,6 +79,14 @@ type AllapotfelmeroContextValue = {
   adatok: AllapotfelmeroAdatok
   setAdatok: (patch: Partial<AllapotfelmeroAdatok>) => void
   complete: () => void
+  /** új jelölés indítása egy ponttal (koppintás VAGY egy húzás kezdete). */
+  addBodyChartStroke: (meret: BodyChartMeret, point: BodyChartPont) => void
+  /** a LEGUTOLSÓ jelöléshez ad hozzá egy pontot (húzás közben, pointermove-onként) —
+   * mindig a friss állapotból indul (funkcionális setState), hogy gyors, egymást
+   * követő pointermove-eseményeknél se maradjon le pont. */
+  extendLastBodyChartStroke: (point: BodyChartPont) => void
+  /** a legutóbbi jelölés (pont vagy vonal) törlése — "visszavonás" gomb. */
+  undoLastBodyChartStroke: () => void
 }
 
 const AllapotfelmeroContext = createContext<AllapotfelmeroContextValue | null>(null)
@@ -92,8 +105,28 @@ export function AllapotfelmeroProvider({ children }: { children: ReactNode }) {
     setAdatokState((prev) => ({ ...prev, ...patch }))
   }
 
+  function addBodyChartStroke(meret: BodyChartMeret, point: BodyChartPont) {
+    setAdatokState((prev) => ({ ...prev, bodyChartJelek: [...prev.bodyChartJelek, { points: [point], meret }] }))
+  }
+
+  function extendLastBodyChartStroke(point: BodyChartPont) {
+    setAdatokState((prev) => {
+      if (prev.bodyChartJelek.length === 0) return prev
+      const jelek = prev.bodyChartJelek.slice()
+      const last = jelek[jelek.length - 1]
+      jelek[jelek.length - 1] = { ...last, points: [...last.points, point] }
+      return { ...prev, bodyChartJelek: jelek }
+    })
+  }
+
+  function undoLastBodyChartStroke() {
+    setAdatokState((prev) => ({ ...prev, bodyChartJelek: prev.bodyChartJelek.slice(0, -1) }))
+  }
+
   return (
-    <AllapotfelmeroContext.Provider value={{ completed, adatok, setAdatok, complete: () => setCompleted(true) }}>
+    <AllapotfelmeroContext.Provider
+      value={{ completed, adatok, setAdatok, complete: () => setCompleted(true), addBodyChartStroke, extendLastBodyChartStroke, undoLastBodyChartStroke }}
+    >
       {children}
     </AllapotfelmeroContext.Provider>
   )

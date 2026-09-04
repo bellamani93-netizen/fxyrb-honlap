@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Chevron from '../components/Chevron'
 import Icon from '../components/Icon'
@@ -6,6 +6,7 @@ import ToggleSwitch from '../components/ToggleSwitch'
 import { withBase } from '../lib/assetUrl'
 import {
   useAllapotfelmero,
+  type BodyChartJel,
   type BodyChartMeret,
   type BodyChartNezet,
 } from '../context/AllapotfelmeroContext'
@@ -89,6 +90,22 @@ function useAvailableHeight(): number | undefined {
   }, [])
 
   return height
+}
+
+/** a "mutasd meg" lap gomb-elrendezése/rajzolási módja csak TELEFONOS
+ * nézetben más (2026.09.04., Marci kérésére) — a törésponthoz igazítva,
+ * ahol a body chart oldalsávja is vált (ld. components.css @media 768px). */
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 767.98px)').matches)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767.98px)')
+    const onChange = () => setIsMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  return isMobile
 }
 
 function FieldLabel({ children }: { children: ReactNode }) {
@@ -228,7 +245,26 @@ function TraitToggleRow({
 }
 
 const MERET_LABELS: Record<BodyChartMeret, string> = { pontszeru: 'pontszerű', kis: 'kis terület', nagy: 'nagy terület' }
+/** rövidebb feliratok a mobil popupban, hogy a 3 opció kiférjen egy sorban
+ * (2026.09.04., Marci kérésére: "pontszerű, kicsi, nagy"). */
+const MOBIL_MERET_LABELS: Record<BodyChartMeret, string> = { pontszeru: 'pontszerű', kis: 'kicsi', nagy: 'nagy' }
 const BODYCHART_IMAGES: Record<BodyChartNezet, string> = { hat: '/images/bodychart-hat.png', rtg: '/images/bodychart-rtg.png' }
+
+// a hát és a röntgen kép mostantól PONTOSAN ugyanakkora (ld. Design jegyzet
+// 74. pont) — ez a natív pixelméretük, ami egyben a jelölés-SVG viewBox-a is,
+// hogy a pontok/vonalak torzítás nélkül, kör/egyenletes vastagságúak legyenek.
+const CHART_W = 166
+const CHART_H = 529
+
+const DOT_RADIUS: Record<BodyChartMeret, number> = { pontszeru: 9, kis: 20, nagy: 34 }
+const LINE_WIDTH: Record<BodyChartMeret, number> = { pontszeru: 12, kis: 22, nagy: 36 }
+/** a lágy, elmosott szélű hatás 3 egymásra rétegzett, csökkenő átlátszóságú
+ * réteggel — ugyanaz a vizuális nyelv pontnál és vonalnál is. */
+const SOFT_LAYERS = [
+  { scale: 1.9, opacity: 0.16 },
+  { scale: 1.4, opacity: 0.32 },
+  { scale: 1, opacity: 0.88 },
+]
 
 /** szabálytalan, éles kontúrú árnyékfolt a talp alá, hogy a testábra ne
  * "lebegjen" (2026.09.04., Marci kérésére) — sarkos, nem elmosott path. */
@@ -248,55 +284,158 @@ function MarkIcon() {
   )
 }
 
-function BodyChartStep() {
-  const { adatok, setAdatok } = useAllapotfelmero()
-  const [armed, setArmed] = useState(false)
-  const imageSrc = withBase(BODYCHART_IMAGES[adatok.bodyChartNezet])
+function UndoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="1.2em" height="1.2em" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"
+      />
+    </svg>
+  )
+}
 
-  // a kattintás a KERETEN (nem a képen) történik, mert a jelöléseket tartó
-  // maszk-div a kép TETEJÉN fedi ugyanazt a területet (ld. lent) — a keret
-  // mérete viszont pontosan megegyezik a képével (a kép az egyetlen normál-
-  // flow gyermeke benne), ezért a számítás változatlan marad.
-  function handleFrameClick(e: React.MouseEvent<HTMLDivElement>) {
-    if (!armed) return
+/** a jelölések (pontok ÉS húzott vonalak) egységes rétege — egy maszkolt SVG,
+ * aminek a mask-image-e maga a testábra-kép, ezért semmi nem lóghat túl a
+ * kontúron (ld. korábbi, 2026.09.04-i javítás, ld. Design jegyzet 73. pont). */
+function BodyChartMarksLayer({ jelek, maskSrc }: { jelek: BodyChartJel[]; maskSrc: string }) {
+  return (
+    <svg
+      className="bodychart-marks-svg"
+      viewBox={`0 0 ${CHART_W} ${CHART_H}`}
+      style={{ WebkitMaskImage: `url(${maskSrc})`, maskImage: `url(${maskSrc})` }}
+      aria-hidden="true"
+    >
+      {jelek.map((jel, i) => {
+        if (jel.points.length <= 1) {
+          const p = jel.points[0]
+          const r = DOT_RADIUS[jel.meret]
+          return (
+            <g key={i}>
+              {SOFT_LAYERS.map((layer, li) => (
+                <circle key={li} cx={(p.x / 100) * CHART_W} cy={(p.y / 100) * CHART_H} r={r * layer.scale} style={{ fill: 'var(--symptom-red)' }} opacity={layer.opacity} />
+              ))}
+            </g>
+          )
+        }
+        const w = LINE_WIDTH[jel.meret]
+        const d = jel.points.map((p, pi) => `${pi === 0 ? 'M' : 'L'} ${(p.x / 100) * CHART_W} ${(p.y / 100) * CHART_H}`).join(' ')
+        return (
+          <g key={i}>
+            {SOFT_LAYERS.map((layer, li) => (
+              <path key={li} d={d} fill="none" style={{ stroke: 'var(--symptom-red)' }} strokeWidth={w * layer.scale} strokeLinecap="round" strokeLinejoin="round" opacity={layer.opacity} />
+            ))}
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+/** mobil popup: méret-választás + felszólítás + "rajzolás" gomb (2026.09.04.,
+ * Marci kérésére) — a szokásos modal-mintát követi (ld. MiniKurzusComingSoonModal.tsx). */
+function BodyChartSizePopup({
+  meret,
+  onSelectMeret,
+  onStartDrawing,
+  onClose,
+}: {
+  meret: BodyChartMeret
+  onSelectMeret: (m: BodyChartMeret) => void
+  onStartDrawing: () => void
+  onClose: () => void
+}) {
+  return (
+    <div className="modal-backdrop-fyb" onClick={onClose}>
+      <div className="modal-fyb card-fyb" style={{ maxWidth: 360 }} onClick={(e) => e.stopPropagation()}>
+        <h2 className="h6 mb-3">tünet mérete</h2>
+        <div className="auth-tabs mb-4" style={{ width: '100%' }}>
+          {(Object.keys(MOBIL_MERET_LABELS) as BodyChartMeret[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              className={`auth-tab ${meret === m ? 'active' : ''}`}
+              style={{ flex: 1 }}
+              onClick={() => onSelectMeret(m)}
+            >
+              {MOBIL_MERET_LABELS[m]}
+            </button>
+          ))}
+        </div>
+        <p className="mb-4">Rajzold be az ábrán a legerősebb tüneted helyét!</p>
+        <button type="button" className="btn-fyb btn-fyb-highlight w-100" onClick={onStartDrawing}>
+          rajzolás
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function BodyChartStep() {
+  const { adatok, setAdatok, addBodyChartStroke, extendLastBodyChartStroke, undoLastBodyChartStroke } = useAllapotfelmero()
+  const [armed, setArmed] = useState(false)
+  const [popupOpen, setPopupOpen] = useState(false)
+  const isMobile = useIsMobile()
+  const isDrawingRef = useRef(false)
+  const imageSrc = withBase(BODYCHART_IMAGES[adatok.bodyChartNezet])
+  const hasMarks = adatok.bodyChartJelek.length > 0
+
+  function pointFromEvent(e: React.PointerEvent<HTMLDivElement>) {
     const rect = e.currentTarget.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
-    setAdatok({ bodyChartJelek: [...adatok.bodyChartJelek, { x, y, meret: adatok.bodyChartMeret }] })
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100))
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100))
+    return { x, y }
   }
 
-  function removeMark(index: number) {
-    setAdatok({ bodyChartJelek: adatok.bodyChartJelek.filter((_, i) => i !== index) })
+  // Telefonon húzással vonal rajzolható (pointermove pontokat gyűjt), asztalon
+  // csak koppintás/kattintás számít (a pointermove figyelmen kívül marad) —
+  // 2026.09.04., Marci kérésére: "rajzolni pontszerű rákoppintással, és
+  // vonalhúzással is lehet" (ez csak telefonos nézetben elérhető funkció).
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (!armed) return
+    // a capture hibája (pl. nem-elsődleges/szintetikus pointer) ne akadályozza
+    // meg magát a jelölés felvételét — húzás közben csak a folyamatos
+    // pointermove-követés esne el, ami koppintásnál (1 pontos jel) nem számít.
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {
+      // szándékosan elnyelve
+    }
+    isDrawingRef.current = true
+    addBodyChartStroke(adatok.bodyChartMeret, pointFromEvent(e))
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!isDrawingRef.current || !isMobile) return
+    extendLastBodyChartStroke(pointFromEvent(e))
+  }
+
+  function handlePointerUp() {
+    isDrawingRef.current = false
   }
 
   return (
     <div className="bodychart-full">
-      <div className={`bodychart-frame ${armed ? 'is-armed' : ''}`} onClick={handleFrameClick}>
-        <FootShadow />
-        <img src={imageSrc} alt="testábra" className="bodychart-img" draggable={false} />
-        {/* a jelölések maszkja maga a testábra-kép (alfa-csatorna) — így egy
-           folt sose lóghat túl a test kontúrjain, mert ahol a kép átlátszó,
-           ott a maszk is elrejti a folt-tartalmat (2026.09.04., Marci
-           kérésére). */}
+      <div className={`bodychart-frame ${armed ? 'is-armed' : ''}`}>
+        {/* a pontosvessző/koordináta-számítás (pointFromEvent) a WRAP saját
+           dobozához viszonyít, ami PONTOSAN a kép mérete — a `.bodychart-frame`
+           ennél szélesebb is lehet (a gombok-oszlop mellett középre igazítva),
+           ezért a kezelők ide, nem a frame-re kerülnek (2026.09.04.). */}
         <div
-          className="bodychart-marks-mask"
-          style={{ WebkitMaskImage: `url(${imageSrc})`, maskImage: `url(${imageSrc})` }}
+          className="bodychart-img-wrap"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
         >
-          {adatok.bodyChartJelek.map((jel, i) => (
-            <button
-              key={i}
-              type="button"
-              className={`bodychart-mark bodychart-mark--${jel.meret}`}
-              style={{ left: `${jel.x}%`, top: `${jel.y}%` }}
-              onClick={(e) => { e.stopPropagation(); removeMark(i) }}
-              aria-label="jelölés törlése"
-              title="koppints a törléshez"
-            />
-          ))}
+          <FootShadow />
+          <img src={imageSrc} alt="testábra" className="bodychart-img" draggable={false} />
+          <BodyChartMarksLayer jelek={adatok.bodyChartJelek} maskSrc={imageSrc} />
         </div>
       </div>
 
-      <div className="bodychart-controls-col">
+      {/* --- asztali gombsor (változatlan elrendezés, ld. Design jegyzet 73-74. pont) --- */}
+      <div className="bodychart-controls-col d-none d-lg-flex">
         <div className="bodychart-view-toggle">
           <ToggleSwitch
             checked={adatok.bodyChartNezet === 'rtg'}
@@ -322,11 +461,53 @@ function BodyChartStep() {
           className={`bodychart-pin-btn ${armed ? 'is-armed' : ''}`}
           onClick={() => setArmed((a) => !a)}
           aria-label="jelölés bekapcsolása a testábrán"
-          title={armed ? 'koppints az ábrára, ahol fáj — egy meglévő jelre koppintva törölheted.' : 'a gombbal jelölhetsz be területet az ábrán.'}
+          title={armed ? 'koppints vagy húzz az ábrán, ahol fáj.' : 'a gombbal jelölhetsz be területet az ábrán.'}
         >
           <MarkIcon />
         </button>
+        {hasMarks && (
+          <button type="button" className="bodychart-undo-btn" onClick={undoLastBodyChartStroke} aria-label="utolsó jelölés visszavonása" title="utolsó jelölés visszavonása">
+            <UndoIcon />
+          </button>
+        )}
       </div>
+
+      {/* --- mobil gombsor: nézet fent, "jelöld be" + gomb, popup, visszavonás (2026.09.04., Marci kérésére) --- */}
+      <div className="bodychart-controls-col d-flex d-lg-none">
+        <div className="bodychart-view-toggle-block">
+          <span className="bodychart-group-label">nézet</span>
+          <ToggleSwitch
+            checked={adatok.bodyChartNezet === 'rtg'}
+            onChange={(checked) => setAdatok({ bodyChartNezet: checked ? 'rtg' : 'hat' })}
+            label="nézet váltása hát és röntgen nézet között"
+          />
+        </div>
+
+        <span className="bodychart-group-label">jelöld be</span>
+        <button
+          type="button"
+          className="bodychart-pin-btn"
+          onClick={() => setPopupOpen(true)}
+          aria-label="tünet bejelölése"
+          title="tünet bejelölése"
+        >
+          <Icon src="/icons/ikon_plusz.svg" />
+        </button>
+        {hasMarks && (
+          <button type="button" className="bodychart-undo-btn" onClick={undoLastBodyChartStroke} aria-label="utolsó jelölés visszavonása" title="utolsó jelölés visszavonása">
+            <UndoIcon />
+          </button>
+        )}
+      </div>
+
+      {popupOpen && (
+        <BodyChartSizePopup
+          meret={adatok.bodyChartMeret}
+          onSelectMeret={(m) => setAdatok({ bodyChartMeret: m })}
+          onStartDrawing={() => { setArmed(true); setPopupOpen(false) }}
+          onClose={() => setPopupOpen(false)}
+        />
+      )}
     </div>
   )
 }
