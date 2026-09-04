@@ -117,21 +117,32 @@ function FieldLabel({ children }: { children: ReactNode }) {
   return <label className="form-label fw-bold">{children}</label>
 }
 
+// néhány mező (a lap ELSŐDLEGES, "címszerű" kérdése) középre igazítva jelenik
+// meg, Marci kifejezett kérésére (2026.09.04.) — a `centered` prop a
+// címkét és magát a mezőt is középre rendezi, egy visszafogott max-width-tel
+// (hogy a mező ne nyúljon a teljes tartalmi szélességre).
 function SelectField({
   label,
   value,
   onChange,
   options,
+  centered,
 }: {
   label: string
   value: string
   onChange: (v: string) => void
   options: string[]
+  centered?: boolean
 }) {
   return (
-    <div className="mb-4">
+    <div className={`mb-4 ${centered ? 'text-center' : ''}`}>
       <FieldLabel>{label}</FieldLabel>
-      <select className="form-select" value={value} onChange={(e) => onChange(e.target.value)}>
+      <select
+        className="form-select"
+        style={centered ? { maxWidth: 320, marginInline: 'auto', textAlign: 'center' } : undefined}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
         <option value="" disabled>válassz</option>
         {options.map((o) => (
           <option key={o} value={o}>{o}</option>
@@ -147,19 +158,22 @@ function TextField({
   onChange,
   placeholder,
   hint,
+  centered,
 }: {
   label: string
   value: string
   onChange: (v: string) => void
   placeholder?: string
   hint?: string
+  centered?: boolean
 }) {
   return (
-    <div className="mb-4">
+    <div className={`mb-4 ${centered ? 'text-center' : ''}`}>
       <FieldLabel>{label}</FieldLabel>
       <input
         type="text"
         className="form-control"
+        style={centered ? { maxWidth: 320, marginInline: 'auto', textAlign: 'center' } : undefined}
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
@@ -570,7 +584,7 @@ function StepContent({ step }: { step: number }) {
     case 2:
       return (
         <>
-          <TextField label="hogyan szólítsunk" value={adatok.megszolitas} onChange={(v) => setAdatok({ megszolitas: v })} placeholder="pl. Peti" />
+          <TextField label="hogyan szólítsunk" value={adatok.megszolitas} onChange={(v) => setAdatok({ megszolitas: v })} placeholder="pl. Peti" centered />
           <div className="row gx-3">
             <div className="col-7">
               <SelectField label="születési év" value={adatok.szuletesiEv} onChange={(v) => setAdatok({ szuletesiEv: v })} options={BIRTH_YEARS} />
@@ -586,7 +600,7 @@ function StepContent({ step }: { step: number }) {
     case 3:
       return (
         <>
-          <TextField label="Tünet: mit érzel?" value={adatok.tunetLeiras} onChange={(v) => setAdatok({ tunetLeiras: v })} placeholder="pl: fájdalom/húzódás/nyilallás stb." hint="max. 15 szó" />
+          <TextField label="Tünet: mit érzel?" value={adatok.tunetLeiras} onChange={(v) => setAdatok({ tunetLeiras: v })} placeholder="pl: fájdalom/húzódás/nyilallás stb." hint="max. 15 szó" centered />
           <SelectField label="gyakoriság" value={adatok.gyakorisag} onChange={(v) => setAdatok({ gyakorisag: v })} options={GYAKORISAG_OPTIONS} />
           <SelectField label="időtartam (óra/nap)" value={adatok.idotartam} onChange={(v) => setAdatok({ idotartam: v })} options={IDOTARTAM_OPTIONS} />
           <div className="mb-2">
@@ -607,7 +621,7 @@ function StepContent({ step }: { step: number }) {
       // "elbeszéléséről" szól, ezért tematikusan is összeillik.
       return (
         <>
-          <SelectField label="mikor kezdődött?" value={adatok.kezdodesIdo} onChange={(v) => setAdatok({ kezdodesIdo: v })} options={KEZDODES_OPTIONS} />
+          <SelectField label="mikor kezdődött?" value={adatok.kezdodesIdo} onChange={(v) => setAdatok({ kezdodesIdo: v })} options={KEZDODES_OPTIONS} centered />
           <SelectField label="volt már ehhez hasonló korábban is?" value={adatok.voltMarKorabban} onChange={(v) => setAdatok({ voltMarKorabban: v })} options={TORTENET_OPTIONS} />
           <TextAreaField label="mi esik jól, amikor fáj?" rows={2} value={adatok.miEsikJol} onChange={(v) => setAdatok({ miEsikJol: v })} placeholder="pl. pihentetés, nyújtás, meleg…" />
           <TextAreaField label="mikor érzed leginkább? (helyzet, mozdulat, napszak)" rows={2} value={adatok.mikorErzedLegjobban} onChange={(v) => setAdatok({ mikorErzedLegjobban: v })} placeholder="helyzet, mozdulat, napszak…" />
@@ -643,7 +657,7 @@ function StepContent({ step }: { step: number }) {
       // kell") — a body chart (4. lap) már pontosan rögzíti a helyet.
       return (
         <>
-          <TraitToggleRow label="hason tudsz feküdni" value={adatok.proneOk} onChange={(v) => setAdatok({ proneOk: v })} trueLabel="igen" falseLabel="nem" />
+          <TraitToggleRow label="hason tudsz feküdni kemény felületen?" value={adatok.proneOk} onChange={(v) => setAdatok({ proneOk: v })} trueLabel="igen" falseLabel="nem" />
           <TraitToggleRow label="a karodat váll fölé tudod emelni" value={adatok.shoulderOk} onChange={(v) => setAdatok({ shoulderOk: v })} trueLabel="igen" falseLabel="nem" />
           <TraitToggleRow label="van térdfájdalmad (négykézláb helyzetekhez)" value={!adatok.kneePain} onChange={(v) => setAdatok({ kneePain: !v })} trueLabel="nincs" falseLabel="van" />
           <TraitToggleRow label="van magas vérnyomásod" value={!adatok.highBloodPressure} onChange={(v) => setAdatok({ highBloodPressure: !v })} trueLabel="nincs" falseLabel="van" />

@@ -1367,3 +1367,11 @@ A címek (és alcímek) `text-align: center`-t kaptak, a cím aláhúzása pedig
 A söpréses lapozáshoz új érintés-kezelés került az `Allapotfelmero` komponensbe: egy kellően hosszú, egyértelműen vízszintes mozdulat balra/jobbra lapoz, csak telefonos nézetben aktív, és kikapcsol a body chart (rajzolás) és a kalkulátor (csúszka-húzás) lapján, hogy ne akadjon össze azok saját vízszintes gesztusaival.
 
 **Tesztelve böngészőben:** mobilon és asztalin, világos és sötét módban — a cím pontosan középre került (DOM-mérés alapján), a szimulált söprés-gesztusok mindkét irányban helyesen lapoztak, a body chart és a kalkulátor lapján pedig helyesen nem reagáltak söprésre. `npm run build` hibamentes.
+
+## 2026.09.04. — Három mező középre igazítva, "mozgékonyság" lap egy sorának pontosítása
+
+Marci megkérte, hogy a "Hogyan szólítsunk?", "Tünet: mit érzel?" és "Mikor kezdődött?" mező kerüljön középre — ez a lap ELSŐDLEGES, "címszerű" kérdése mindhárom esetben, a lapon lévő többi mező szándékosan bal-igazítva marad. A `TextField`/`SelectField` komponensek egy új, opcionális `centered` propot kaptak: bekapcsolva a címke és a mező (szűkebb, középre igazított szélességgel) is középre kerül.
+
+A "mozgékonyság" lapon a "hason tudsz feküdni" kérdés kiegészült: "hason tudsz feküdni kemény felületen?" — pontosabb kérdés.
+
+**Tesztelve böngészőben:** mobilon, mindhárom megjelölt mező pontosan középre került, a lapon lévő többi mező változatlanul bal-igazítva maradt; a "mozgékonyság" lap frissített szövege helyesen jelent meg. `npm run build` hibamentes.
