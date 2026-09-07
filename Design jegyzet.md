@@ -891,3 +891,8 @@ Marci jelezte: "az 'utazás' és 'szabadidős tevékenység' dobozban is tegyél
 Sötét módban, MINDEN nézetben (mobil/tablet/asztali) a body chart (4.) lap tartalmi területének háttere `html[data-theme='dark'] .allapotfelmero-content--full { background-color: var(--color-bg-alt); }` — ugyanaz a design-token, amit a `.app-sidebar` (menüsáv) is használ sötét módban, ezért a két felület színe pixelre azonos. Világos módban nincs változás (a szabály `html[data-theme='dark']`-ra szűkítve, a `--color-bg-alt` token világos módban egy teljesen más, világos szürke érték).  
 
 **Böngészős tesztelés (2026.09.04.):** mobilon (375px) és asztalin (1200px), sötét módban, DOM-méréssel — a 4. lap tartalmi területének és a menüsáv (asztalin közvetlenül látható) háttérszíne pontosan megegyezik (`rgb(51, 71, 95)` mindkét helyen). Világos módban a tartalmi terület háttere változatlanul átlátszó (`rgba(0,0,0,0)`), a szabály nem lép életbe. `npm run build` hibamentes.
+
+93\. A 3. LAP INTENZITÁS-SZÁMA KÖZÉPRE IGAZÍTVA (2026.09.04., Marci pontosítására)  
+A 91. pontban a csúszka fölé került szám még az "intenzitás" felirattal egy sorban, jobbra igazítva állt. Marci kérésére a szám lekerült saját sorba, a `.text-center` osztállyal középre igazítva, közvetlenül a csúszka fölött — az "intenzitás" felirat változatlanul, önálló sorban marad felette.  
+
+**Böngészős tesztelés (2026.09.04.):** mobilon (375px) és asztalin (1200px), DOM-méréssel — a szám vízszintes közepe pixelre megegyezik a csúszka vízszintes közepével mindkét felbontáson. `npm run build` hibamentes.

@@ -600,11 +600,12 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
           <SelectField label="gyakoriság" value={adatok.gyakorisag} onChange={(v) => setAdatok({ gyakorisag: v })} options={GYAKORISAG_OPTIONS} />
           <SelectField label="időtartam (óra/nap)" value={adatok.idotartam} onChange={(v) => setAdatok({ idotartam: v })} options={IDOTARTAM_OPTIONS} />
           <div className="mb-2">
+            <FieldLabel>intenzitás</FieldLabel>
             {/* a jelenlegi érték nagyobb, jól látható száma a csúszka
-               FÖLÖTT (2026.09.04., Marci kérésére — korábban alatta,
-               a "0 — semmi"/"10 — max." sorban volt). */}
-            <div className="d-flex justify-content-between align-items-end mb-1">
-              <FieldLabel>intenzitás</FieldLabel>
+               FÖLÖTT, középre igazítva (2026.09.04., Marci kérésére —
+               korábban a "intenzitás" felirattal egy sorban, jobbra
+               igazítva volt). */}
+            <div className="text-center mb-1">
               <span className="fw-bold" style={{ color: 'var(--color-primary)', fontSize: '1.75rem', lineHeight: 1 }}>{adatok.intenzitas}</span>
             </div>
             <IntensityRange value={adatok.intenzitas} onChange={(v) => setAdatok({ intenzitas: v })} />

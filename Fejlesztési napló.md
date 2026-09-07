@@ -1479,3 +1479,9 @@ Marci hat, egymástól független korrekciót kért egyszerre:
 Marci kérte, hogy a body chart (4.) lap háttere sötét módban, minden nézetben a menüsáv kékjére váltson. Egyetlen CSS-szabály, ami a menüsáv (`.app-sidebar`) saját design-tokenjét (`--color-bg-alt`) újrahasznosítja a 4. lap tartalmi területén, kizárólag sötét módban.
 
 **Tesztelve böngészőben:** mobilon és asztalin, sötét módban — a 4. lap háttere és a menüsáv színe DOM-méréssel pixelre megegyezik. Világos módban nincs változás. `npm run build` hibamentes.
+
+## 2026.09.04. — A 3. lap intenzitás-száma középre igazítva
+
+Marci pontosította az előző körben bevezetett elrendezést: a csúszka fölötti szám ne az "intenzitás" felirattal egy sorban, jobbra igazítva álljon, hanem saját sorban, középen, közvetlenül a csúszka fölött.
+
+**Tesztelve böngészőben:** mobilon és asztalin, DOM-méréssel — a szám vízszintes közepe pixelre megegyezik a csúszka közepével. `npm run build` hibamentes.
