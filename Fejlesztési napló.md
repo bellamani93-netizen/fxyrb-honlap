@@ -1401,3 +1401,17 @@ Marci további finomítást kért a táblagép/asztali nézethez: nagyobb lépte
 A lapozó-gombok mérete 2.35rem→3.2rem nőtt táblagépen/asztalin. A body chart lap két külön (asztali és mobil) gombsora egyetlen, univerzálisan használt elrendezéssé vonódott össze — ezzel egy csomó duplikált kód (JSX és CSS egyaránt) törölhetővé vált. A body chart gombjai (a "+" és "visszavonás" kör-gomb) táblagépen/asztalin 2.2rem→3.4rem-re nőttek, a terület paddingja is megnőtt. A mező-középre-igazítás inline style-ból CSS-osztállyá alakult át, hogy egy médialekérdezés vissza tudja állítani a normál elrendezést szélesebb nézetben.
 
 **Tesztelve böngészőben:** mobilon minden pixelre a korábbi maradt; táblagépen és asztalin, világos és sötét módban — a nagyobb gombméretek DOM-méréssel megerősítve, a body chart lap teljes popup-folyamata (méret-választás, rajzolás, visszavonás) hibátlanul működött, a korábban középre igazított mezők most balra, teljes szélességben állnak. `npm run build` hibamentes.
+
+## 2026.09.04. — Léptető-gombok kontrasztosabbak, bodychart-gombok újrarendezve, "kezdjük" gomb, kalkulátor-mutatók elrejtve
+
+Marci öt korrekciót kért egyszerre:
+
+1. A lapozó-nyilak háttere táblagépen/asztalin legyen kontrasztosabb (mint a "visszavonás" gomb), kerüljön távolabb az aljától/szélétől, és a jobb/bal gomb legyen egy magasságban a bodychart gombsorával, szimmetrikusan. Megoldás: `bottom`-alapú pozíció helyett függőleges középre igazítás (`top:50%` + `translateY`), ami mindkét kérést egyszerre teljesíti (a középre igazított bodychart-gombsorral is automatikusan egy magasságba kerül), plusz `--sagegray`/`--offwhite` háttérszín (a "mentés" gomb saját színét kizárva).
+2. A bodychart gombsor (jelöld be/nézet/visszavonás) legyen egy vonalban, felirat mindhárom fölött, sorrend: jelöld be, nézet, visszavonás. Egységes `.bodychart-control-group` osztály mindhárom vezérlőre.
+3. Az 1. lapon egy lime hátterű "kezdjük" gomb, jobbra nyíllal — ez helyettesíti a lebegő "következő" nyilat ezen a lapon (a kettő redundáns lett volna).
+4. A 6-9. lap címe alól törölve a vastag aláhúzás.
+5. A beágyazott gerincterhelés kalkulátor mutatói (a két gauge-kártya), a "Példa nap"/"Új számítás" gombsor és a lábléc elrejtve — csak a fejléc-szöveg, a 24 órás sáv és a csúszkák látszanak. Az elemek a HTML-ben MARADTAK (csak `display:none`), hogy a `recalc()` logikája (ami ezekre az elemekre `byId`-vel hivatkozik) ne törjön el — ez a logika/megjelenítés később, az eredményjelző lapon és egy önálló kalkulátorban újra elő fog kerülni.
+
+**Hiba menet közben:** az (5) pont CSS-kommentjében használt backtick-jelek idő előtt lezárták a kalkulátor HTML-jét tartalmazó JS template literalt, TypeScript build-hibát okozva — javítva a backtickek eltávolításával a kommentből.
+
+**Tesztelve böngészőben:** mobilon — a "kezdjük" gomb megjelenik és működik, a duplikált nyíl eltűnt, a cím-vonal eltűnt a megfelelő lapokon, a bodychart gombsor új sorrendje és feliratai DOM-méréssel megerősítve, a kalkulátor csak a kért 3 elemet mutatja, a `recalc()` logika (csúszka-mozgatás, "Példa nap") hiba nélkül fut az elrejtett elemekkel is. Táblagépen/asztalin, világos és sötét módban — a lapozó-nyilak pontosan egy magasságban a bodychart gombsorával, színük pixel-pontosan egyezik a "visszavonás" gombéval. `npm run build` hibamentes.

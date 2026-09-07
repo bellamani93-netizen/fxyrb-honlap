@@ -524,6 +524,24 @@ const CALCULATOR_HTML = `
   text-align: center !important;
   line-height: 1.4 !important;
 }
+/* Az állapotfelmérőbe ágyazott kalkulátor CSAK a rövid fejléc-szöveget, a
+   24 órás sávot és a csúszkákat mutatja — a mutatók (gerincterhelés/
+   aktivitás óra-grafikonok), a "Példa nap"/"Új számítás" gombsor és a lábléc
+   NEM jelenik meg itt (2026.09.04., Marci kérésére: "a gerincterhelés
+   kalkulátor mutatói ne jelenjenek meg, ezeket majd később az
+   eredményjelző lapon és egy külön megnyitható kalkulátorban használjuk").
+   SZÁNDÉKOSAN display:none, NEM eltávolítás a HTML-ből — a recalc() a
+   byId(...) hívásokkal ezekre az elemekre is hivatkozik (pl. loadScore,
+   actScore), a logika ("minden logikája maradjon az eredeti") emiatt
+   változatlanul, hiba nélkül lefut, csak a kimenetük nem látszik. A
+   .sticky-panel saját paddingje/kerete (ami a csúszkák dobozperemtől
+   való távolságát is adja) ettől nem változik — csak a benne lévő
+   .summary esik ki a folyásból. */
+.gt-calc-container .actions,
+.gt-calc-container .summary,
+.gt-calc-container footer {
+  display: none !important;
+}
 </style>
 `
 

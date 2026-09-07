@@ -1814,12 +1814,14 @@ html[data-theme='dark'] .sales-delete-icon {
    Marci kérésére) sose takarják ki a feliratot — a bal/jobb szélen lévő
    gombok így mindig a cím mellett, nem a cím fölött/szövegén futnak. */
 .allapotfelmero-title {
+  /* a vastag aláhúzás törölve (2026.09.04., Marci kérésére: "a 6. 7. 8. 9.
+     lapon a cím alá nem kell a vastag vonal") — csak ezen a 4 lapon van
+     egyáltalán cím (ld. STEP_META), a margó a korábbi padding+border
+     helyén maradt, hogy a tartalomtól való távolság ne változzon. */
   display: block;
   width: fit-content;
   margin: 0 auto 0.6rem;
   font-size: 1.5rem;
-  padding-bottom: 0.6rem;
-  border-bottom: 3px solid var(--color-text);
   text-align: center;
 }
 .allapotfelmero-subtitle {
@@ -1919,10 +1921,26 @@ html[data-theme='dark'] .sales-delete-icon {
      kerülhettek a fejléccel/címmel — táblagépen/asztalin lentre, a tartalom
      ALÁ kerülnek lebegőnek (2026.09.04., Marci kérésére: "a jobbra-balra
      nyilakat tedd lentre lebegőre a fönti helyett"). Telefonon (a "telefon
-     nézet fix" kérésre) változatlanul fent maradnak. */
+     nézet fix" kérésre) változatlanul fent maradnak.
+     KORREKCIÓ (ugyanaznap): a `bottom`-alapú pozíció túl közel volt az oldal
+     aljához — függőlegesen KÖZÉPRE igazítva (`top:50%` + `translateY`) ez
+     magától távolabb kerül az aljától, ÉS pontosan ugyanoda esik, mint a
+     bodychart lap gombsorának függőleges közepe (az is a teljes magasságon
+     belül középre igazított — ld. .bodychart-controls-col), a bal/jobb gomb
+     pedig emiatt is szimmetrikus egymással (2026.09.04., Marci kérésére: "a
+     jobbra gomb legyen függőlegesen a többi gombhoz igazítva, a balra gomb
+     pedig kövesse ezt a mintát szimmetrikusan"). Az oldalsó margó is nőtt
+     (0.75rem→2rem), hogy a szélektől is távolabb kerüljön. */
   .allapotfelmero-nav-btn--float {
-    top: auto;
-    bottom: 1rem;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+  .allapotfelmero-nav-btn--prev {
+    left: 2rem;
+  }
+  .allapotfelmero-nav-btn--next {
+    right: 2rem;
   }
   /* a léptető (lapozó) gombok nagyobbak táblagépen/asztalin (2026.09.04.,
      Marci kérésére) — a `font-size` a benne lévő em-alapú chevront
@@ -1931,6 +1949,14 @@ html[data-theme='dark'] .sales-delete-icon {
     width: 3.2rem;
     height: 3.2rem;
     font-size: 1.3rem;
+  }
+  /* kontrasztosabb háttér — ugyanaz a szín, mint a bodychart lap
+     "visszavonás" gombjáé (2026.09.04., Marci kérésére) — a "mentés"
+     (pipa) gomb saját, elsődleges-szín hátterét ez NEM érinti (`:not`). */
+  .allapotfelmero-nav-btn--prev,
+  .allapotfelmero-nav-btn--next:not(.allapotfelmero-nav-btn--save) {
+    background-color: var(--sagegray);
+    color: var(--offwhite);
   }
   .allapotfelmero-nav-btn--save .icon-fyb {
     width: 1.5rem;
@@ -2006,16 +2032,13 @@ html[data-theme='dark'] .sales-delete-icon {
   gap: 1rem;
   overflow-y: auto;
 }
-/* a kör-gombok (+ / visszavonás) nem width:100%-osak, mint a méret-gombok —
-   a szülő oszlop alapértelmezett `align-items: stretch`-je nélkülük balra
-   tolná őket, ezért középre igazítjuk (2026.09.04.). */
-.bodychart-controls-col .circle-icon-btn {
-  align-self: center;
-}
-/* a gombsor "nézet" felirat FENT, a kapcsoló ALATTA elrendezése — eredetileg
-   csak mobilon, most MINDEN felbontáson (2026.09.04., Marci kérésére: "a
-   bodychart melletti részt vegyük át a telefonos nézetből"). */
-.bodychart-view-toggle-block {
+/* a 3 vezérlő (jelöld be / nézet / visszavonás) EGY VONALBAN, azonos
+   szerkezettel: felirat FENT (középre zárva), alatta a gomb/kapcsoló —
+   mindhárom ugyanezt az osztályt használja, ezért garantáltan egyforma az
+   igazításuk (2026.09.04., Marci kérésére: "a gombok legyenek egy
+   vonalban, a feliratszöveg legyen középre zárva, mindhárom gomb fölött
+   felirat"). */
+.bodychart-control-group {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2029,6 +2052,7 @@ html[data-theme='dark'] .sales-delete-icon {
   letter-spacing: 0.02em;
   color: var(--color-text-muted);
   display: block;
+  text-align: center;
   margin-bottom: 0.2rem;
 }
 /* a KERET (frame) középre igazítja a benne lévő wrapot, de saját maga

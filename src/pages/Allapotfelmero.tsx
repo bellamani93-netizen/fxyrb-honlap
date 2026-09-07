@@ -484,8 +484,28 @@ function BodyChartStep() {
          megszűnt, táblagépen/asztalin is ez az egyszerűbb, popup-alapú
          elrendezés fut, csak nagyobb gombokkal/margóval, ld. components.css
          @media (min-width:768px) blokkját). */}
+      {/* a 3 vezérlő (jelöld be / nézet / visszavonás) EGY VONALBAN, azonos
+         szerkezettel (felirat fent, középre zárva, alatta a gomb) — sorrend
+         fentről lefelé: jelöld be, nézet, visszavonás (2026.09.04., Marci
+         kérésére). */}
       <div className="bodychart-controls-col d-flex">
-        <div className="bodychart-view-toggle-block">
+        <div className="bodychart-control-group">
+          <span className="bodychart-group-label">jelöld be</span>
+          {/* a "korábbi fázisok" megszokott kör-gombja (ld. SALES/GYT "+" gombok,
+             .circle-icon-btn--add), nem az egyedi bodychart-stílus (2026.09.04.,
+             Marci kérésére). */}
+          <button
+            type="button"
+            className="circle-icon-btn circle-icon-btn--add"
+            onClick={() => setPopupOpen(true)}
+            aria-label="tünet bejelölése"
+            title="tünet bejelölése"
+          >
+            <Icon src="/icons/ikon_plusz.svg" />
+          </button>
+        </div>
+
+        <div className="bodychart-control-group">
           <span className="bodychart-group-label">nézet</span>
           <ToggleSwitch
             checked={adatok.bodyChartNezet === 'rtg'}
@@ -494,23 +514,13 @@ function BodyChartStep() {
           />
         </div>
 
-        <span className="bodychart-group-label">jelöld be</span>
-        {/* a "korábbi fázisok" megszokott kör-gombja (ld. SALES/GYT "+" gombok,
-           .circle-icon-btn--add), nem az egyedi bodychart-stílus (2026.09.04.,
-           Marci kérésére). */}
-        <button
-          type="button"
-          className="circle-icon-btn circle-icon-btn--add"
-          onClick={() => setPopupOpen(true)}
-          aria-label="tünet bejelölése"
-          title="tünet bejelölése"
-        >
-          <Icon src="/icons/ikon_plusz.svg" />
-        </button>
         {hasMarks && (
-          <button type="button" className="circle-icon-btn circle-icon-btn--undo" onClick={undoLastBodyChartStroke} aria-label="utolsó jelölés visszavonása" title="utolsó jelölés visszavonása">
-            <UndoIcon />
-          </button>
+          <div className="bodychart-control-group">
+            <span className="bodychart-group-label">visszavonás</span>
+            <button type="button" className="circle-icon-btn circle-icon-btn--undo" onClick={undoLastBodyChartStroke} aria-label="utolsó jelölés visszavonása" title="utolsó jelölés visszavonása">
+              <UndoIcon />
+            </button>
+          </div>
         )}
       </div>
 
@@ -526,7 +536,7 @@ function BodyChartStep() {
   )
 }
 
-function StepContent({ step }: { step: number }) {
+function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
   const { adatok, setAdatok } = useAllapotfelmero()
   const displayName = getSessionName('Péter')
 
@@ -542,6 +552,14 @@ function StepContent({ step }: { step: number }) {
             Üdv a FIXYOURBACK fedélzetén. Első lépés: haladj végig az Állapotfelmérő lépésein!
             Minden válaszodnak jelentősége van, a lehető legpontosabban és legtömörebben válaszolj.
           </p>
+          {/* a lebegő "következő" nyíl helyett az 1. lapon egy egyértelmű,
+             lime hátterű CTA-gomb indítja a kérdőívet (2026.09.04., Marci
+             kérésére) — a StepContent-en kívüli lebegő gomb ezen a lapon
+             emiatt el van rejtve (ld. Allapotfelmero() render, WELCOME_STEP). */}
+          <button type="button" className="btn-fyb btn-fyb-highlight btn-fyb-lg allapotfelmero-welcome-cta" onClick={onNext}>
+            kezdjük
+            <Chevron direction="right" color="var(--navy)" />
+          </button>
         </div>
       )
     case 2:
@@ -727,7 +745,10 @@ export default function Allapotfelmero() {
           <Chevron direction="left" />
         </button>
       )}
-      {nextAvailable && (
+      {/* az 1. lapon a saját, lime "kezdjük" gomb (ld. StepContent case 1)
+         helyettesíti ezt a lebegő nyilat — kettő ugyanarra a célra
+         redundáns lett volna (2026.09.04., Marci kérésére). */}
+      {nextAvailable && step !== WELCOME_STEP && (
         step < TOTAL_STEPS ? (
           <button type="button" className="allapotfelmero-nav-btn allapotfelmero-nav-btn--float allapotfelmero-nav-btn--next" onClick={handleNext} aria-label="következő lap">
             <Chevron direction="right" />
@@ -750,7 +771,7 @@ export default function Allapotfelmero() {
           <div className="container-fluid allapotfelmero-form">
             {meta.title && <h1 className="allapotfelmero-title mb-1">{meta.title}</h1>}
             {meta.subtitle && <p className="allapotfelmero-subtitle mb-4">{meta.subtitle}</p>}
-            <StepContent step={step} />
+            <StepContent step={step} onNext={handleNext} />
           </div>
         )}
       </div>
