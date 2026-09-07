@@ -2328,8 +2328,9 @@ html[data-theme='dark'] .bodychart-img {
   gap: 0.5rem;
 }
 
-/* --- Alapadatok: kompakt szöveg-oszlop (név+becenév, magasság) + a BMI
-   mutató mellette (2026.09.07., Marci kérésére: "kisebb helyen legyenek") */
+/* --- Alapadatok: kompakt szöveg-oszlop (név+becenév, alatta életkor, alatta
+   magasság) + a BMI mutató mellette (2026.09.07., Marci kérésére: "kisebb
+   helyen legyenek" / "alá kerüljön az életkor, az alatt a cm"). */
 .eredmeny-alapadatok-layout {
   display: flex;
   align-items: center;
@@ -2340,9 +2341,9 @@ html[data-theme='dark'] .bodychart-img {
   font-weight: 700;
   font-size: 1.1rem;
 }
-.eredmeny-alapadatok-height {
+.eredmeny-alapadatok-sub {
   color: var(--color-text-muted);
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
 }
 
 /* --- félkör-mutató (DialGauge) — a gerincterhelés kalkulátor saját
@@ -2445,13 +2446,24 @@ html[data-theme='dark'] .bodychart-img {
   border-top: 1px solid var(--color-border);
   padding-top: 0.25rem;
 }
-@media (max-width: 640px) {
+/* HIBAJAVÍTÁS (2026.09.07., Marci kérésére: "Telefon nézetben bekerült a
+   fájdalomskála a kép alá, ezt korrigáld") — a fő sor korábban telefonos
+   szélességen `flex-direction:column`-ra váltott (testábra fölé, intenzitás-
+   sáv alá), ez volt a hiba: a kérés a testábra ÉS az intenzitás-sáv EGYMÁS
+   MELLETT állását kéri MINDEN nézetben. A sor iránya innentől mindig `row`,
+   csak a méretek kisebbek keskeny (≤480px) képernyőn, hogy kiférjenek. */
+@media (max-width: 480px) {
   .eredmeny-tunet-main {
-    flex-direction: column;
-    align-items: center;
+    gap: 1rem;
   }
   .eredmeny-bodychart-large {
-    height: 280px;
+    height: 260px;
+  }
+  .eredmeny-intensity-vertical {
+    width: 70px;
+  }
+  .eredmeny-intensity-vertical-track {
+    width: 22px;
   }
 }
 
@@ -2507,11 +2519,6 @@ html[data-theme='dark'] .bodychart-img {
   border-radius: 999px;
   background: var(--color-border);
   overflow: hidden;
-}
-@media (max-width: 640px) {
-  .eredmeny-intensity-vertical {
-    height: 150px;
-  }
 }
 .eredmeny-intensity-vertical-fill {
   position: absolute;

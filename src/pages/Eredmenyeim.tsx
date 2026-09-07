@@ -5,7 +5,7 @@ import { withBase } from '../lib/assetUrl'
 import { getSessionName } from '../lib/session'
 import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
 import { BODYCHART_IMAGES, BodyChartMarksLayer } from './Allapotfelmero'
-import { calculateBmi, bmiCategory, type BmiCategory } from '../lib/allapotfelmeroEredmeny'
+import { calculateAge, calculateBmi, bmiCategory, type BmiCategory } from '../lib/allapotfelmeroEredmeny'
 
 // Az Eredménylap (2026.09.07., Marci kérésére, 2. fázis) — az "allapot
 // logika.odt" (Marci saját dokumentuma, NEM a repóban, ld. .gitignore) 13
@@ -217,6 +217,7 @@ export default function Eredmenyeim() {
 
   const teljesNev = getSessionName('Péter')
   const becenev = adatok.megszolitas
+  const eletkor = calculateAge(adatok.szuletesiEv, adatok.szuletesiHo)
   const bmi = calculateBmi(adatok.magassag, adatok.suly)
   const bmiCat = bmi !== null ? bmiCategory(bmi) : null
 
@@ -236,7 +237,8 @@ export default function Eredmenyeim() {
             <div className="eredmeny-alapadatok-layout">
               <div className="eredmeny-alapadatok-text">
                 <div className="eredmeny-alapadatok-name">{becenev ? `${teljesNev} (${becenev})` : teljesNev}</div>
-                <div className="eredmeny-alapadatok-height">{adatok.magassag ? `${adatok.magassag} cm` : '—'}</div>
+                <div className="eredmeny-alapadatok-sub">{eletkor !== null ? `${eletkor} év` : '—'}</div>
+                <div className="eredmeny-alapadatok-sub">{adatok.magassag ? `${adatok.magassag} cm` : '—'}</div>
               </div>
               {bmi !== null && bmiCat && (
                 <DialGauge

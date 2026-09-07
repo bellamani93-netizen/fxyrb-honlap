@@ -1538,3 +1538,11 @@ Marci tovább pontosította a Tünet-szakaszt: a testábra mögötti helyi hátt
 A fő sor mostantól csak 2 elemet tartalmaz (testábra + intenzitás-sáv), a nézet-váltó és az időtartam-kördiagram (amiket Marci nem említett, tehát nem törlendők) egy új, a fő sor alá kerülő másodlagos sorba kerültek. A korábban törölt tünet-leírás visszakerült, a cím alatti első elemként.
 
 **Tesztelve böngészőben:** DOM-méréssel megerősítve, hogy a testábra és az intenzitás-sáv pontosan egyenlő magasságú, a testábra háttere átlátszó, és a mobil nézetben minden elem helyesen, egymás alatt jelenik meg. `npm run build` hibamentes.
+
+## 2026.09.07. — Alapadatok: életkor visszakerült; Tünet: a fájdalomskála mobilon is a kép mellett marad
+
+Marci két apró korrekciót kért: (1) az Alapadatok kártyán a névhez/becenévhez képest a magasság elé kerüljön vissza az életkor (a 97. pontban a kompaktság kedvéért törölve lett); (2) a Tünet-szakasz mobil nézetében a testábra és az intenzitás-sáv tévesen egymás alá került — ez a hiba, mert a kettőnek egymás mellett kell maradnia minden nézetben.
+
+A mobil hiba oka: a fő sor `≤640px`-en `flex-direction:column`-ra váltott. Javítás: a sor mindig `row` marad, csak a méretek (testábra magassága, a sáv szélessége) kisebbednek egy szűkebb (`≤480px`) törésponton, hogy egy telefonon is kiférjenek egymás mellett.
+
+**Tesztelve böngészőben:** mobilon (375px) screenshot-tal megerősítve, hogy a testábra és az intenzitás-sáv egymás mellett jelenik meg; asztalin az Alapadatok a kért 3-soros elrendezést mutatja. `npm run build` hibamentes.
