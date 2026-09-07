@@ -2399,8 +2399,14 @@ html[data-theme='dark'] .bodychart-img {
   flex-wrap: wrap;
 }
 
-/* --- Tünet-szakasz: minél nagyobb testábra + oldalsáv (nézet/időtartam/
-   intenzitás), alattuk a szöveges jegyzetek (2026.09.07., Marci kérésére) */
+/* --- Tünet-szakasz: cím alatt a tünet-leírás, alatta a testábra (bal) +
+   intenzitás-sáv (jobb, a testábra magasságára nyújtva), alattuk a
+   nézet-váltó/időtartam sor, legalul a szöveges jegyzetek (2026.09.07.,
+   Marci kérésére — a testábra mögötti helyi háttérdoboz is törölve). */
+.eredmeny-tunet-description {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
 .eredmeny-tunet-main {
   display: flex;
   align-items: stretch;
@@ -2413,9 +2419,6 @@ html[data-theme='dark'] .bodychart-img {
   flex: 0 0 auto;
   height: 440px;
   aspect-ratio: 265.52844 / 553.0808792114258;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  background: var(--color-bg-alt);
 }
 .eredmeny-bodychart-large-img,
 .eredmeny-bodychart-large .bodychart-marks-svg {
@@ -2425,14 +2428,12 @@ html[data-theme='dark'] .bodychart-img {
   height: 100%;
   object-fit: contain;
 }
-.eredmeny-tunet-side {
-  flex: 0 0 auto;
-  width: 180px;
+.eredmeny-tunet-secondary {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 1rem;
 }
 .eredmeny-tunet-nezet {
   display: flex;
@@ -2451,16 +2452,6 @@ html[data-theme='dark'] .bodychart-img {
   }
   .eredmeny-bodychart-large {
     height: 280px;
-  }
-  .eredmeny-tunet-side {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: flex-end;
-    width: 100%;
-  }
-  .eredmeny-intensity-vertical-track {
-    height: 90px !important;
   }
 }
 
@@ -2497,8 +2488,8 @@ html[data-theme='dark'] .bodychart-img {
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 1;
-  min-height: 80px;
+  flex: 0 0 auto;
+  width: 140px;
 }
 .eredmeny-intensity-vertical-caption {
   font-size: 0.72rem;
@@ -2510,12 +2501,17 @@ html[data-theme='dark'] .bodychart-img {
 }
 .eredmeny-intensity-vertical-track {
   position: relative;
-  width: 24px;
+  width: 32px;
   flex: 1;
   min-height: 60px;
   border-radius: 999px;
   background: var(--color-border);
   overflow: hidden;
+}
+@media (max-width: 640px) {
+  .eredmeny-intensity-vertical {
+    height: 150px;
+  }
 }
 .eredmeny-intensity-vertical-fill {
   position: absolute;

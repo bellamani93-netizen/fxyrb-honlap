@@ -1530,3 +1530,11 @@ A korábbi vízszintes `ScaleGauge` sáv lecserélve egy valódi félkör-mutat�
 **Egy elrendezési finomítás:** az első verzióban a testábra melletti oldalsáv feleslegesen sok üres helyet hagyott — a testábrát nagyobbra (440px), az oldalsávot fix szélességűre váltva, a sort középre igazítva ez megszűnt.
 
 **Tesztelve böngészőben:** a teljes kérdőívet újra végigjátszva (JS-alapú automatizálással, a munkamenet-szintű állapot elvesztése nélkül) — mindhárom kért változás helyesen jelent meg, mobilon és asztalin, világos és sötét módban is. `npm run build` hibamentes.
+
+## 2026.09.07. — Tünet-szakasz: helyi háttérdoboz törölve, testábra+intenzitás egy sorban, leírás felül
+
+Marci tovább pontosította a Tünet-szakaszt: a testábra mögötti helyi háttérdoboz törlendő; a testábra a doboz bal oldalán, mellette az intenzitás-sáv (a testábra magasságára nyújtva); legfelül, a cím alatt a tünet leírása.
+
+A fő sor mostantól csak 2 elemet tartalmaz (testábra + intenzitás-sáv), a nézet-váltó és az időtartam-kördiagram (amiket Marci nem említett, tehát nem törlendők) egy új, a fő sor alá kerülő másodlagos sorba kerültek. A korábban törölt tünet-leírás visszakerült, a cím alatti első elemként.
+
+**Tesztelve böngészőben:** DOM-méréssel megerősítve, hogy a testábra és az intenzitás-sáv pontosan egyenlő magasságú, a testábra háttere átlátszó, és a mobil nézetben minden elem helyesen, egymás alatt jelenik meg. `npm run build` hibamentes.

@@ -256,19 +256,20 @@ export default function Eredmenyeim() {
           </SectionCard>
 
           <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet">
+            <p className="eredmeny-tunet-description">{adatok.tunetLeiras || '—'}</p>
             <div className="eredmeny-tunet-main">
               <div className="eredmeny-bodychart-large">
                 <img src={imageSrc} alt="testábra" className="eredmeny-bodychart-large-img" draggable={false} />
                 <BodyChartMarksLayer jelek={adatok.bodyChartJelek} maskSrc={imageSrc} />
               </div>
-              <div className="eredmeny-tunet-side">
-                <div className="eredmeny-tunet-nezet">
-                  <span className="small" style={{ color: 'var(--color-text-muted)' }}>nézet</span>
-                  <ToggleSwitch checked={nezet === 'rtg'} onChange={(c) => setNezet(c ? 'rtg' : 'hat')} label="nézet váltása hát és röntgen nézet között" />
-                </div>
-                <DurationDonut label={adatok.idotartam} />
-                <VerticalIntensityBar value={adatok.intenzitas} />
+              <VerticalIntensityBar value={adatok.intenzitas} />
+            </div>
+            <div className="eredmeny-tunet-secondary">
+              <div className="eredmeny-tunet-nezet">
+                <span className="small" style={{ color: 'var(--color-text-muted)' }}>nézet</span>
+                <ToggleSwitch checked={nezet === 'rtg'} onChange={(c) => setNezet(c ? 'rtg' : 'hat')} label="nézet váltása hát és röntgen nézet között" />
               </div>
+              <DurationDonut label={adatok.idotartam} />
             </div>
             <div className="eredmeny-tunet-notes">
               <InfoRow label="Jól esik" value={adatok.miEsikJol} />
