@@ -363,7 +363,22 @@ const CALCULATOR_HTML = `
   display: flex !important;
   flex-direction: column !important;
 }
-.gt-calc-container .col-block:first-child {
+/* HIBAJAVÍTÁS (2026.09.04., Marci kérésére: "a 'munka' blokkban is legyen
+   középen egy vékony függőleges elválasztó, mint az 'utazás' és
+   'szabadidős tevékenység' blokkokban") — a :first-child sosem
+   illeszkedett, mert a .group első gyereke MINDIG a .group-title, nem a
+   .col-block (a "Munka" az egyetlen csoport, ami columns-szerkezetű,
+   ezért csak ott hiányzott az elválasztó — az "utazás"/"szabadidős" csoport
+   a MÁSIK, nth-child(even)-alapú szabályt használja, ami a group-title
+   miatti páros/páratlan eltolódás miatt véletlenül helyesen működött).
+   Első javításként :first-of-type-ra cseréltem, de az is hibás volt: a
+   :first-of-type a HTML ELEM TÍPUSÁT (itt: div) nézi, nem az osztályt — mivel
+   a .group-title IS egy div, ő marad az "első típusú" elem, a .col-block
+   emiatt SOSEM lehet :first-of-type. A végleges, helyes megoldás a
+   szomszéd-szelektor: mivel a .group-title MINDIG közvetlenül az első
+   .col-block előtt áll (a JS ebben a sorrendben építi fel), a "+" biztosan
+   csak az ELSŐ col-blockra illeszkedik, típustól függetlenül. */
+.gt-calc-container .group-title + .col-block {
   border-right: 1px solid var(--line) !important;
 }
 .gt-calc-container .col-block .row:last-child {

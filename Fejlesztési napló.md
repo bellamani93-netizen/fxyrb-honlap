@@ -1440,3 +1440,9 @@ Marci négy korrekciót kért, és eközben egy komoly, valós hibára is fény 
 Marci jelezte, hogy a gerincterhelés kalkulátor eleje (fejléc, első csúszka-sorok) telefonon látszik, de asztali gépen nem. Az ok: egy korábbi kör a lapok tartalmát táblagépen/asztalin függőlegesen középre igazította (`justify-content:center`), ami a body chart lapnál helyes volt (pontosan 100%-os magasságú gyerek), de a kalkulátornál — aminek a tartalma MAGASABB a konténerénél, görgethető — a túlcsorduló tartalmat a konténer közepére tolta, a tetejét a görgethető terület elérhetetlen (negatív scroll-pozíciójú) részére kényszerítve. Javítva: a kalkulátor lapján visszaállítva a normál, felülről induló elrendezés.
 
 **Tesztelve böngészőben:** asztali nézetben a fejléc és az első csoportok DOM-méréssel és page-text alapján is a tartalmi terület tetején, scrollTop:0 mellett láthatók. Mobilon a viselkedés változatlan. `npm run build` hibamentes.
+
+## 2026.09.04. — Hibajavítás: hiányzó középső elválasztó a "Munka" dobozban
+
+Marci jelezte, hogy a "Munka" dobozból hiányzik az a vékony középső elválasztó vonal, ami az "Utazás"/"Szabadidős tevékenység" dobozban megvan. A "Munka" más HTML-szerkezetet használ (két önálló oszlop-blokk a másik két doboz sima, egy tömbös soraival szemben), és a rá vonatkozó CSS-szabály (`:first-child`) sosem illeszkedett, mert a csoport címe mindig az első gyerek, sosem az oszlop-blokk. Egy első javítási kísérlet (`:first-of-type`) is hibás volt — az a HTML elem TÍPUSÁT nézi (itt: div), nem az osztályt, és a cím is div, szóval ugyanúgy nem illeszkedett. A végleges megoldás egy szomszéd-szelektor (`.group-title + .col-block`), ami mindig pontosan az első oszlop-blokkra illeszkedik, típustól függetlenül.
+
+**Tesztelve böngészőben:** DOM-méréssel — a "Munka" doboz első oszlopa most helyesen kapja az elválasztó vonalat, a jobb oszlop paddingje megegyezik a másik két dobozéval (24px). `npm run build` hibamentes.
