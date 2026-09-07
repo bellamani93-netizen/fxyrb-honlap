@@ -55,11 +55,12 @@ const RIZIKO_II_OPTIONS = [
 ]
 
 // 2026.09.04., Marci kérésére: a generikus "Állapotfelmérő kérdőív" cím +
-// alatta a türkiz alcím MINDEN lapról eltűnt, KIVÉVE a rizikófaktorok és a
-// mozgékonyság lapját (ott a saját, egyedi címük marad — ezek nem a
-// generikus sablon-cím voltak, hanem mindig is saját nevük volt). A többi
-// lapon a mezők önmagukban, cím-keret nélkül állnak — ez egyben helyet is
-// szabadított fel (ld. lent, a 6. pontban a 6-7. lap ezért is vonható össze).
+// alatta a türkiz alcím MINDEN lapról eltűnt, KIVÉVE a rizikófaktorok, a
+// mozgékonyság és a "Személyes célod" lapját (ott a saját, egyedi címük
+// marad — ezek nem a generikus sablon-cím voltak, hanem mindig is saját
+// nevük volt). A többi lapon a mezők önmagukban, cím-keret nélkül állnak —
+// ez egyben helyet is szabadított fel (ezért vonható össze pl. a "történet"
+// és a "további kérdések" lap egyetlen, 5. lappá).
 const STEP_META: Record<number, { title?: string; subtitle?: string }> = {
   6: { title: 'rizikófaktorok I', subtitle: 'van-e ezek közül valamelyik?' },
   7: { title: 'rizikófaktorok II', subtitle: 'van-e ezek közül valamelyik?' },
@@ -580,7 +581,7 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
     case 2:
       return (
         <>
-          <TextField label="hogyan szólítsunk" value={adatok.megszolitas} onChange={(v) => setAdatok({ megszolitas: v })} placeholder="pl. Peti" centered />
+          <TextField label="hogyan szólítsunk?" value={adatok.megszolitas} onChange={(v) => setAdatok({ megszolitas: v })} placeholder="pl. Peti" centered />
           <div className="row gx-3">
             <div className="col-7">
               <SelectField label="születési év" value={adatok.szuletesiEv} onChange={(v) => setAdatok({ szuletesiEv: v })} options={BIRTH_YEARS} />
@@ -676,9 +677,12 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
       )
     case 9:
       return <TextAreaField value={adatok.szemelyesCel} onChange={(v) => setAdatok({ szemelyesCel: v })} placeholder="mit szeretnél elérni a programmal?" />
-    case 10:
-      return <GerincterhelesKalkulator />
     default:
+      // a kalkulátor (10.) lapot az Allapotfelmero() felső szintű render-je
+      // saját magától kezeli (`isCalculatorStep` ág), StepContent-et arra a
+      // lépésre sosem hívja meg — ez az ág emiatt a body chart (4.) és a
+      // kalkulátor (10.) lapon fut le, de egyik esetben sem hívódik meg
+      // (mindkettő saját, StepContent-en kívüli JSX-et kap).
       return null
   }
 }

@@ -38,7 +38,6 @@ export type AllapotfelmeroAdatok = {
   szerintedMiOka: string
   rizikofaktorokI: string[]
   rizikofaktorokII: string[]
-  painLocation: 'also' | 'felso'
   proneOk: boolean
   /** korábban boolean (igen/nem) volt — Marci kérésére (2026.09.04.) egy
    * harmadik válasz-lehetőséggel bővült ("igen, de érzékeny"). */
@@ -69,7 +68,6 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   szerintedMiOka: '',
   rizikofaktorokI: [],
   rizikofaktorokII: [],
-  painLocation: 'also',
   proneOk: true,
   shoulderOk: 'igen',
   kneePain: false,

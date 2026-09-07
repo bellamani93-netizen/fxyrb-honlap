@@ -1491,3 +1491,14 @@ Marci pontosította az előző körben bevezetett elrendezést: a csúszka föl�
 Marci kérte a "van magas vérnyomásod" kérdés törlését a mozgékonyság (8.) lapról — a kapcsoló és a hozzá tartozó feltételes megjegyzés-szöveg is törölve. A rizikófaktor-listában szereplő, hasonló nevű, de önálló kérdés változatlan maradt. A mostantól sehol nem hivatkozott `highBloodPressure` mező is törölve a kontextusból — ismét ellenőrizve, hogy a GYT-oldali "torna szintek" rendszer saját, azonos nevű, de független mezőjét ez nem érinti.
 
 **Tesztelve böngészőben:** mobilon, a 8. lapon — a kérdés és a megjegyzés eltűnt, a többi sor változatlan. `npm run build` hibamentes.
+
+## 2026.09.04. — Záró átvizsgálás: tisztázatlan/fölösleges részletek kijavítva
+
+Marci lezártnak tekintette a flow-t, de kért egy utolsó, teljes átvizsgálást tisztázatlan/fölösleges részletek után. Négy valós problémát találtam:
+
+1. Halott kód: a kalkulátor (10.) lapra vonatkozó `StepContent case 10` sosem futott le (a felső szintű render külön, saját ágon kezeli azt a lapot) — törölve.
+2. Halott mező: a régen törölt "fájdalom helye" kérdéshez tartozó `painLocation` mező a Contextben bennragadt, sehol nem hivatkozott — törölve (a GYT-oldali, azonos nevű, de független mezőt nem érintve).
+3. Következetlen felirat: "hogyan szólítsunk" a többi kérdés-jellegű mezőtől eltérően nem végződött kérdőjellel — kiegészítve.
+4. Elavult kódkomment: a `STEP_META` fölötti magyarázat nem említette a később hozzáadott "Személyes célod" lapot — frissítve.
+
+**Tesztelve böngészőben:** a teljes 10 lapos kérdőívet egyetlen, folyamatos futásban végigjátszva mobilon — minden lap helyesen jelent meg, a kalkulátor kitöltése és a "beküldés" gomb is helyesen működött a folyamat végén. `npm run build` hibamentes, ami megerősíti, hogy a `painLocation` mező törlése biztonságos volt.
