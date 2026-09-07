@@ -353,6 +353,28 @@ const CALCULATOR_HTML = `
   padding: 13px 24px !important;
   border-bottom: 1px solid var(--line) !important;
 }
+/* HIBAJAVÍTÁS (2026.09.04., Marci kérésére: "az 'utazás' és 'szabadidős
+   tevékenység' dobozban is tegyél a középvonaltól jobbra margót a
+   csúszkák elé") — a doboz osztálynév (.row) EGYBEESIK a Bootstrap saját,
+   globális rács-osztályával, ami -12px oldalsó margót ad minden .row-nak,
+   a KÖZVETLEN gyerekeinek (itt: .row-top és maga a csúszka) pedig 12px
+   paddingot és max-width:100%-ot — ez a nem szándékos ütközés a bal
+   oszlopban 12px-szel a doboz szélén TÚLRA, a jobb oszlopban a
+   középvonalon TÚLRA (visszafelé) tolta ki a sorokat, 24px-es
+   átfedést okozva a két oszlop között, és 12px extra paddingot adva a
+   .row-top-nak is. Mindezt semlegesítve: a kalkulátor saját .row/.row-top
+   stílusai (amik amúgy is mind !important-tal, explicit módon állítják be
+   a saját margóikat/paddingjaikat) ettől nem változnak, csak a Bootstrap
+   véletlenül beszüremlett tulajdonságai törlődnek. */
+.gt-calc-container .row {
+  margin: 0 !important;
+}
+.gt-calc-container .row > * {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-top: 0 !important;
+  max-width: none !important;
+}
 .gt-calc-container .group > .row:nth-child(even) {
   border-right: 1px solid var(--line) !important;
 }
