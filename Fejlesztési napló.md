@@ -1473,3 +1473,9 @@ Marci hat, egymástól független korrekciót kért egyszerre:
 6. A 8. lapon új kapcsoló ("nyaki panaszod van?" igen/nem), és "a karodat váll fölé tudod emelni" kapcsolója háromállásúvá bővült (igen/nem/igen, de érzékeny) egy új, általános többopciós kapcsoló-komponenssel. Fontos, külön ellenőrzött részlet: a GYT-oldali "torna szintek" rendszerben létezik egy azonos nevű, de teljesen független `shoulderOk` mező — a típus-változtatás ezt nem érintette.
 
 **Tesztelve böngészőben:** mobilon és asztalin — a menü-ikon, az intenzitás-szám pozíciója, a törölt söprés-lapozás és a 8. lap új/módosított kapcsolói mind DOM-méréssel/page-text-tel megerősítve; asztali nézetben egy szimulált egér-húzás valódi vonalat (nem pontot) hozott létre a body chart lapon, a "beküldés" gomb pedig az új, vastagabb ikonra mutat. `npm run build` hibamentes.
+
+## 2026.09.04. — A 4. lap háttere sötét módban a menüsáv kékjére váltott
+
+Marci kérte, hogy a body chart (4.) lap háttere sötét módban, minden nézetben a menüsáv kékjére váltson. Egyetlen CSS-szabály, ami a menüsáv (`.app-sidebar`) saját design-tokenjét (`--color-bg-alt`) újrahasznosítja a 4. lap tartalmi területén, kizárólag sötét módban.
+
+**Tesztelve böngészőben:** mobilon és asztalin, sötét módban — a 4. lap háttere és a menüsáv színe DOM-méréssel pixelre megegyezik. Világos módban nincs változás. `npm run build` hibamentes.

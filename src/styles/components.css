@@ -1794,6 +1794,13 @@ html[data-theme='dark'] .sales-delete-icon {
   display: flex;
   padding: 0.5rem 0.75rem;
 }
+/* sötét módban, MINDEN nézetben (mobil/tablet/asztali) a 4. lap háttere a
+   menüsáv (.app-sidebar) kékjére vált (2026.09.04., Marci kérésére) —
+   ugyanaz a token (--color-bg-alt), amit a menüsáv is használ, ezért
+   pontosan ugyanaz a kék. */
+html[data-theme='dark'] .allapotfelmero-content--full {
+  background-color: var(--color-bg-alt);
+}
 /* a gerincterhelés kalkulátor a TELJES képernyőt tölti ki, saját belső
    paddinggel (`.gt-calc-container` már hoz sajátot) — a lapozó-gombok
    fölötte lebegnek (2026.09.04., Marci kérésére). */
