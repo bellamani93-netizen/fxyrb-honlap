@@ -672,12 +672,6 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
           />
           <TraitToggleRow label="nyaki panaszod van?" value={adatok.nyakiPanasz} onChange={(v) => setAdatok({ nyakiPanasz: v })} trueLabel="igen" falseLabel="nem" />
           <TraitToggleRow label="van térdfájdalmad (négykézláb helyzetekhez)" value={!adatok.kneePain} onChange={(v) => setAdatok({ kneePain: !v })} trueLabel="nincs" falseLabel="van" />
-          <TraitToggleRow label="van magas vérnyomásod" value={!adatok.highBloodPressure} onChange={(v) => setAdatok({ highBloodPressure: !v })} trueLabel="nincs" falseLabel="van" />
-          {adatok.highBloodPressure && (
-            <p className="small mb-0 mt-2" style={{ color: 'var(--color-text-muted)' }}>
-              megjegyzés: magas vérnyomásnál a napi megtartás-idő maximuma 4 mp (a szokásos 10 mp helyett).
-            </p>
-          )}
         </>
       )
     case 9:

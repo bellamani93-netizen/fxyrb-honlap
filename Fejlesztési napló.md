@@ -1485,3 +1485,9 @@ Marci kérte, hogy a body chart (4.) lap háttere sötét módban, minden nézet
 Marci pontosította az előző körben bevezetett elrendezést: a csúszka fölötti szám ne az "intenzitás" felirattal egy sorban, jobbra igazítva álljon, hanem saját sorban, középen, közvetlenül a csúszka fölött.
 
 **Tesztelve böngészőben:** mobilon és asztalin, DOM-méréssel — a szám vízszintes közepe pixelre megegyezik a csúszka közepével. `npm run build` hibamentes.
+
+## 2026.09.04. — A vérnyomás-kérdés törölve a 8. lapról
+
+Marci kérte a "van magas vérnyomásod" kérdés törlését a mozgékonyság (8.) lapról — a kapcsoló és a hozzá tartozó feltételes megjegyzés-szöveg is törölve. A rizikófaktor-listában szereplő, hasonló nevű, de önálló kérdés változatlan maradt. A mostantól sehol nem hivatkozott `highBloodPressure` mező is törölve a kontextusból — ismét ellenőrizve, hogy a GYT-oldali "torna szintek" rendszer saját, azonos nevű, de független mezőjét ez nem érinti.
+
+**Tesztelve böngészőben:** mobilon, a 8. lapon — a kérdés és a megjegyzés eltűnt, a többi sor változatlan. `npm run build` hibamentes.

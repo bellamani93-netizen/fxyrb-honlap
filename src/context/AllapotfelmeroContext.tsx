@@ -44,7 +44,6 @@ export type AllapotfelmeroAdatok = {
    * harmadik válasz-lehetőséggel bővült ("igen, de érzékeny"). */
   shoulderOk: 'igen' | 'nem' | 'erzekeny'
   kneePain: boolean
-  highBloodPressure: boolean
   /** új mező (2026.09.04., Marci kérésére) — "nyaki panaszod van?" igen/nem. */
   nyakiPanasz: boolean
   szemelyesCel: string
@@ -74,7 +73,6 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   proneOk: true,
   shoulderOk: 'igen',
   kneePain: false,
-  highBloodPressure: false,
   nyakiPanasz: false,
   szemelyesCel: '',
 }
