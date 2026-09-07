@@ -1555,3 +1555,13 @@ Marci arra kért, hogy javasoljak vizualizációs fejlesztéseket az Eredményla
 2. **Mozgékonyság ikon-rács** — a 4 szöveges "igen/nem" sor helyett egy 4 elemű ikon-rács (zöld pipa/piros X/narancs felkiáltójel), a meglévő zóna-színskálát újrahasznosítva.
 
 **Tesztelve böngészőben:** mobilon és asztalin, világos és sötét módban is — mindkét új elrendezés helyesen, a várt adatokkal jelenik meg. `npm run build` hibamentes.
+
+## 2026.09.07. — Alapadatok+Mutatók szétválasztva, kitöltés dátuma, nagyobb mutató-feliratok, szöveg-tördelés hiba javítva
+
+Marci az előző körben összevont "Áttekintés" kártyát 3 irányban pontosította: (1) az Alapadatok és a Mutatók legyen újra 2 külön doboz, az Alapadatokhoz pedig kerüljön egy "Kitöltés időpontja" sor is; (2) a Mutatók dobozban a feliratok (BMI, Gerincterhelés, Aktivitási szint) legyenek nagyobbak; (3) ha egy szabad szöveg beviteli mezőben túl hosszú a válasz, mindig tördelje több sorra, ne lógjon ki a dobozból.
+
+A "kitöltés időpontja" a "beküldés" pillanatában, kliens-oldalon rögzített dátum (nincs backend) — új `kitoltesDatuma` mező a Contextben, az `Allapotfelmero.tsx` `handleNext`-je állítja be. A mutató-feliratok mérete/vastagsága/színe megnőtt, a "Terhelés"/"Aktivitás" nevek pedig "Gerincterhelés"/"Aktivitási szint"-re cserélve.
+
+A szöveg-tördelés hibája két lépcsős volt: a flex-elrendezésű érték-oszlop nem tudott a tartalma alá zsugorodni (hiányzott a `min-width:0`), ezt pótolva viszont keskeny (telefonos) nézetben az így felszabaduló, de még mindig szűk hely miatt a szöveg SZÓN BELÜL kezdett törni. A végleges javítás: keskeny nézetben a címke+érték sor egymás alá rendeződik, az érték a teljes szélességet megkapja, így normál szóhatáron törik.
+
+**Tesztelve böngészőben:** szándékosan hosszú szabad szöveges válaszokkal újra végigjátszva a kérdőívet — a hiba előbb reprodukálva (screenshot-tal dokumentálva a szón belüli törést), majd a javítás után megerősítve, hogy a hosszú szöveg mostantól szóhatáron, a dobozon belül marad. `npm run build` hibamentes.

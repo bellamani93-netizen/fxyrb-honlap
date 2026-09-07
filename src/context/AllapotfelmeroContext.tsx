@@ -52,6 +52,10 @@ export type AllapotfelmeroAdatok = {
    * a logikával, amit a kalkulátor számolt (2026.09.07., Marci kérésére).
    * `null`, amíg a kalkulátor még nem futott le legalább egyszer. */
   gerincterhelesEredmeny: GerincterhelesEredmeny | null
+  /** a "beküldés" pillanatában rögzített dátum (ld. Allapotfelmero.tsx
+   * handleNext) — az Eredménylap "Kitöltés időpontja" sora ezt mutatja
+   * (2026.09.07., Marci kérésére). `null`, amíg nincs beküldve. */
+  kitoltesDatuma: string | null
 }
 
 export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
@@ -80,6 +84,7 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   nyakiPanasz: false,
   szemelyesCel: '',
   gerincterhelesEredmeny: null,
+  kitoltesDatuma: null,
 }
 
 type AllapotfelmeroContextValue = {

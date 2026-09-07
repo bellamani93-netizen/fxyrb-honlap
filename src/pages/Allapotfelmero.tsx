@@ -6,6 +6,7 @@ import Icon from '../components/Icon'
 import ToggleSwitch from '../components/ToggleSwitch'
 import { withBase } from '../lib/assetUrl'
 import { getSessionName } from '../lib/session'
+import { formatDateHu } from '../lib/allapotfelmeroEredmeny'
 import {
   useAllapotfelmero,
   type AllapotfelmeroAdatok,
@@ -701,6 +702,9 @@ export default function Allapotfelmero() {
   function handleNext() {
     if (step === TOTAL_STEPS) {
       complete()
+      // a beküldés PILLANATÁT rögzítjük — az Eredménylap "Kitöltés
+      // időpontja" sora ezt mutatja (2026.09.07., Marci kérésére).
+      setAdatok({ kitoltesDatuma: formatDateHu(new Date()) })
       // KÉSŐBB (Marci A)1 válasza, 2026.09.07.): a "beküldés" majd az
       // oktatóanyagra fog navigálni — egyelőre, amíg az oktatóanyag lapja
       // nem készül el, marad a /gyakorlatok.

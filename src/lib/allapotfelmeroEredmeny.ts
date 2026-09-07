@@ -26,6 +26,17 @@ export function calculateAge(birthYear: string, birthMonth: string): number | nu
   return age
 }
 
+/** "ÉÉÉÉ.HH.NN." — a projekt saját dokumentumaiban (Design jegyzet.md,
+ * Fejlesztési napló.md) is következetesen ezt a formátumot használjuk
+ * dátumra, ezért az Eredménylap "kitöltés időpontja" sora is ezt kapja
+ * (2026.09.07., Marci kérésére). */
+export function formatDateHu(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}.${m}.${d}.`
+}
+
 /** BMI = súly / (magasság/100)² — a "allapot logika" doksi szerinti
  * kategóriahatárokkal. */
 export function calculateBmi(heightCm: string, weightKg: string): number | null {

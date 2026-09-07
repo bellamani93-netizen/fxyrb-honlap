@@ -2317,9 +2317,34 @@ html[data-theme='dark'] .bodychart-img {
   color: var(--color-text-muted);
   flex-shrink: 0;
 }
+/* HIBAJAVÍTÁS (2026.09.07., Marci kérésére: "ha egy szabad szöveg beviteli
+   mezőben túl hosszú a szöveg, akkor az eredménylapon mindig tördelje több
+   sorrá, hogy beférjen a dobozba") — flex-gyerekek alapértelmezett
+   `min-width`-je a tartalom min-content szélessége, ami hosszú, szóköz
+   nélküli darabokat (pl. egy hosszabb összetett szó) NEM enged a doboz alá
+   zsugorodni, ezért az kilóghatott a kártyából. A `min-width:0` felszabadítja
+   ezt a korlátot, a `overflow-wrap`/`word-break` pedig garantálja, hogy
+   szükség esetén akár szón belül is törjön, sose lógjon ki. */
 .eredmeny-info-value {
   font-weight: 600;
   text-align: right;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+/* keskeny (telefonos) nézetben a címke+érték egymás MELLETT elrendezés
+   túl kevés helyet hagy az értéknek — szóhatáron belüli, csúnya törésekhez
+   vezetett. Ehelyett a sor EGYMÁS ALÁ rendeződik, az érték a teljes
+   szélességet megkapja, így a szöveg a normál szóhatárokon törik
+   (2026.09.07., hibajavítás, Marci jelzésére). */
+@media (max-width: 480px) {
+  .eredmeny-info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+  .eredmeny-info-value {
+    text-align: left;
+  }
 }
 
 .eredmeny-risk-tags {
@@ -2328,14 +2353,22 @@ html[data-theme='dark'] .bodychart-img {
   gap: 0.5rem;
 }
 
-/* --- Áttekintés: egysoros személyes-adat felirat + alatta a 3 mutató
-   (BMI/Terhelés/Aktivitás) egy közös sávban (2026.09.07., Marci kérésére:
-   "közös mutató-sáv felül" — a korábbi külön Alapadatok/Gerincterhelés
-   kártya összevonva, kevesebb cím/keret-overheaddel). */
-.eredmeny-overview-text {
+/* --- Alapadatok: kompakt szöveg-oszlop (2026.09.07., Marci kérésére: "Külön
+   doboz legyen... Név (becenév), alatta életkor, alatta cm. Kitöltés
+   időpontja") — önálló kártya, a mutatóktól (ld. lent) elválasztva. */
+.eredmeny-alapadatok-name {
   font-weight: 700;
-  font-size: 1.05rem;
-  text-align: center;
+  font-size: 1.1rem;
+}
+.eredmeny-alapadatok-sub {
+  color: var(--color-text-muted);
+  margin-top: 0.15rem;
+}
+.eredmeny-alapadatok-date {
+  color: var(--color-text-muted);
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
 }
 .eredmeny-overview-hours {
   text-align: center;
@@ -2389,19 +2422,24 @@ html[data-theme='dark'] .bodychart-img {
   text-align: center;
   flex-shrink: 0;
 }
+/* nagyobb, jobban látható felirat (2026.09.07., Marci kérésére: "a mutatók
+   felirata nagyobb legyen, hogy jobban látszódjon") — a korábbi 0.72rem-es,
+   halvány (muted) verzió helyett nagyobb és a fő szöveg-színt használja. */
 .eredmeny-dial-caption {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-text);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 0.2rem;
+  letter-spacing: 0.03em;
+  line-height: 1.15;
+  margin-bottom: 0.3rem;
 }
 .eredmeny-dial-svg {
   width: 100%;
   overflow: visible;
 }
-.eredmeny-dial--sm .eredmeny-dial-svg { max-width: 150px; }
+.eredmeny-dial--sm { width: 170px; }
+.eredmeny-dial--sm .eredmeny-dial-svg { max-width: 170px; }
 .eredmeny-dial--md .eredmeny-dial-svg { max-width: 200px; }
 .eredmeny-dial-readout {
   margin-top: 0.1rem;

@@ -255,17 +255,23 @@ export default function Eredmenyeim() {
         </div>
 
         <div className="eredmeny-cards">
-          {/* Áttekintés (2026.09.07., Marci kérésére: "közös mutató-sáv felül")
-             — a korábbi külön "Alapadatok" (BMI) és "Gerincterhelés" (Terhelés/
-             Aktivitás) kártya EGY közös "vitals" sávvá vonva össze, hogy a 3
-             legfontosabb szám egyetlen kártyán, egy pillantással látszódjon,
-             kevesebb ismétlődő cím/keret-overhead mellett. */}
-          <SectionCard icon="/icons/ikon_fiok.svg" title="Áttekintés">
-            <div className="eredmeny-overview-text">
-              {becenev ? `${teljesNev} (${becenev})` : teljesNev}
-              {eletkor !== null && ` · ${eletkor} év`}
-              {adatok.magassag && ` · ${adatok.magassag} cm`}
-            </div>
+          {/* Alapadatok — külön doboz (2026.09.07., Marci kérésére), a
+             mutatóktól elválasztva: név(becenév), alatta életkor, alatta
+             magasság, legalul a kitöltés dátuma (ld. Allapotfelmero.tsx
+             handleNext — a "beküldés" pillanatában rögzítve, a
+             AllapotfelmeroContext `kitoltesDatuma` mezőjében). */}
+          <SectionCard icon="/icons/ikon_fiok.svg" title="Alapadatok">
+            <div className="eredmeny-alapadatok-name">{becenev ? `${teljesNev} (${becenev})` : teljesNev}</div>
+            <div className="eredmeny-alapadatok-sub">{eletkor !== null ? `${eletkor} év` : '—'}</div>
+            <div className="eredmeny-alapadatok-sub">{adatok.magassag ? `${adatok.magassag} cm` : '—'}</div>
+            <div className="eredmeny-alapadatok-date">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</div>
+          </SectionCard>
+
+          {/* Mutatók — külön doboz (2026.09.07., Marci kérésére) a 3 dial
+             (BMI, Gerincterhelés, Aktivitási szint) számára, nagyobb
+             feliratokkal (ld. .eredmeny-dial-caption), hogy jobban
+             látszódjanak. */}
+          <SectionCard icon="/icons/ikon_szintek.svg" title="Mutatók">
             <div className="eredmeny-dial-row">
               {bmi !== null && bmiCat && (
                 <DialGauge
@@ -283,8 +289,8 @@ export default function Eredmenyeim() {
               )}
               {gt !== null && (
                 <>
-                  <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} caption="Terhelés" size="sm" />
-                  <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} caption="Aktivitás" size="sm" />
+                  <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} caption="Gerincterhelés" size="sm" />
+                  <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} caption="Aktivitási szint" size="sm" />
                 </>
               )}
             </div>
