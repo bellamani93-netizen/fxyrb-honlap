@@ -1520,3 +1520,13 @@ Mielőtt bármit írtam volna, mindhárom forrást (állapotfelmérő kód, "all
 **Hibajavítás a fejlesztés közben:** a `ScaleGauge` jelölő-csíkja kezdetben nem látszott, mert a track saját `overflow:hidden`-je levágta — a zóna-színezés lekerekített sarkait adó vágás egy külön, a markert nem tartalmazó rétegre került.
 
 **Tesztelve böngészőben:** a teljes 10 lapos kérdőívet végigjátszva (rizikófaktorral, háromállású váll-válasszal, nyaki panasszal, egy body chart jelöléssel, a kalkulátor 24/24 órára töltve), majd SPA-navigációval (nem teljes újratöltéssel, hogy a munkamenet-szintű állapot ne vesszen el) az "eredményeim" oldalra lépve — mind a 7 szakasz helyesen jelent meg. Mobilon és asztalin, világos és sötét módban is ellenőrizve. `npm run build` hibamentes.
+
+## 2026.09.07. — Eredménylap: valódi mutatós dial-ok, kompaktabb Alapadatok, átdolgozott Tünet-szakasz
+
+Marci az első verzió megtekintése után finomított a designon: (1) a BMI és a gerincterhelés/aktivitás konkrét mutatóval (dial-lal) jelenjen meg, mint az eredeti kalkulátorban; (2) az Alapadatok legyen kompaktabb — név(becenév) + magasság egy oszlopban, BMI mellette; (3) a Tünet-szakaszban a testábra legyen a lehető legnagyobb, mellette csak nézet-váltó + időtartam (kördiagrammal) + intenzitás (függőleges sáv), alattuk "jól esik"/"trigger".
+
+A korábbi vízszintes `ScaleGauge` sáv lecserélve egy valódi félkör-mutatóra (`DialGauge`): a gerincterhelés kalkulátor SVG-geometriáját (zóna-ívek, forgatott mutató-tű, min/közép/max feliratok) deklaratív React-komponensként írtam újra — statikus megjelenítésről lévén szó, nincs szükség a kalkulátor nyers DOM-építő megoldására. Ugyanez a komponens szolgálja ki a BMI-t és a gerincterhelés/aktivitás mutatókat is. Új `DurationDonut` (a kategorikus időtartam-válaszhoz rendelt óraszám 24 órához viszonyított aránya egy körívvel) és `VerticalIntensityBar` (a meglévő intenzitás-sáv függőleges változata) komponens is készült. A régi `ScaleGauge` és a hozzá tartozó CSS törölve.
+
+**Egy elrendezési finomítás:** az első verzióban a testábra melletti oldalsáv feleslegesen sok üres helyet hagyott — a testábrát nagyobbra (440px), az oldalsávot fix szélességűre váltva, a sort középre igazítva ez megszűnt.
+
+**Tesztelve böngészőben:** a teljes kérdőívet újra végigjátszva (JS-alapú automatizálással, a munkamenet-szintű állapot elvesztése nélkül) — mindhárom kért változás helyesen jelent meg, mobilon és asztalin, világos és sötét módban is. `npm run build` hibamentes.

@@ -2322,101 +2322,216 @@ html[data-theme='dark'] .bodychart-img {
   text-align: right;
 }
 
-/* Tünet-szakasz: mini testábra-előnézet + nézet-váltó, egymás mellett */
-.eredmeny-tunet-layout {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  margin-bottom: 0.75rem;
-}
-.eredmeny-bodychart-mini {
-  position: relative;
-  flex-shrink: 0;
-  width: 90px;
-  aspect-ratio: 265.52844 / 553.0808792114258;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  background: var(--color-bg-alt);
-}
-.eredmeny-bodychart-mini-img,
-.eredmeny-bodychart-mini .bodychart-marks-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.eredmeny-bodychart-toggle {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-/* olvasható (nem interaktív) intenzitás-sáv — ugyanaz a teal→mint
-   gradiens-logika, mint az .intensity-range csúszkáé, de statikus töltés */
-.eredmeny-intensity-track {
-  height: 8px;
-  border-radius: 999px;
-  background: var(--color-border);
-  overflow: hidden;
-}
-.eredmeny-intensity-fill {
-  display: block;
-  height: 100%;
-  background: linear-gradient(to right, var(--teal), var(--mint));
-  border-radius: 999px;
-}
-
 .eredmeny-risk-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
-/* vízszintes, zóna-színezett skála-sáv (ScaleGauge) — a gerincterhelés
-   kalkulátor félkör-műszeréhez HASONLÓ, nem azonos vizuális logika,
-   ugyanazokkal a --z1..z6/--a1..a5 zóna-színekkel (ld. theme.css). */
-.eredmeny-gauge-top {
+/* --- Alapadatok: kompakt szöveg-oszlop (név+becenév, magasság) + a BMI
+   mutató mellette (2026.09.07., Marci kérésére: "kisebb helyen legyenek") */
+.eredmeny-alapadatok-layout {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: baseline;
-  gap: 0.75rem;
-  margin-bottom: 0.35rem;
+  gap: 1.25rem;
 }
-.eredmeny-gauge-label {
+.eredmeny-alapadatok-name {
   font-weight: 700;
+  font-size: 1.1rem;
 }
-.eredmeny-gauge-value {
-  font-weight: 600;
+.eredmeny-alapadatok-height {
   color: var(--color-text-muted);
-  white-space: nowrap;
+  margin-top: 0.2rem;
 }
-/* a track maga NEM vághat (overflow:hidden), mert a marker-nek túl kell
-   lógnia a sávon (2026.09.07., hibajavítás — a lekerekített sarkú
-   zóna-színezést egy KÜLÖN, csak azt körbezáró .eredmeny-gauge-zones réteg
-   adja, a marker ennek TESTVÉRE, így nem vágja le semmi). */
-.eredmeny-gauge-track {
-  position: relative;
-  height: 10px;
-}
-.eredmeny-gauge-zones {
+
+/* --- félkör-mutató (DialGauge) — a gerincterhelés kalkulátor saját
+   dial-jával azonos vizuális nyelv (zóna-ívek, mutató-tű, pontszám +
+   kategória-felirat alatta), a BMI-hez ÉS a gerincterhelés/aktivitás
+   szakaszhoz is (2026.09.07., Marci kérésére: "mint az eredeti gerincterhelés
+   kalkulátorban"). */
+.eredmeny-dial {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex-shrink: 0;
+}
+.eredmeny-dial-caption {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.2rem;
+}
+.eredmeny-dial-svg {
+  width: 100%;
+  overflow: visible;
+}
+.eredmeny-dial--sm .eredmeny-dial-svg { max-width: 150px; }
+.eredmeny-dial--md .eredmeny-dial-svg { max-width: 200px; }
+.eredmeny-dial-readout {
+  margin-top: 0.1rem;
+}
+.eredmeny-dial-score {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.eredmeny-dial-unit {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin-left: 0.25rem;
+}
+.eredmeny-dial-category {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 0.2rem;
+}
+.eredmeny-dial-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* --- Tünet-szakasz: minél nagyobb testábra + oldalsáv (nézet/időtartam/
+   intenzitás), alattuk a szöveges jegyzetek (2026.09.07., Marci kérésére) */
+.eredmeny-tunet-main {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+.eredmeny-bodychart-large {
+  position: relative;
+  flex: 0 0 auto;
+  height: 440px;
+  aspect-ratio: 265.52844 / 553.0808792114258;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-bg-alt);
+}
+.eredmeny-bodychart-large-img,
+.eredmeny-bodychart-large .bodychart-marks-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
   height: 100%;
+  object-fit: contain;
+}
+.eredmeny-tunet-side {
+  flex: 0 0 auto;
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.eredmeny-tunet-nezet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+.eredmeny-tunet-notes {
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.25rem;
+}
+@media (max-width: 640px) {
+  .eredmeny-tunet-main {
+    flex-direction: column;
+    align-items: center;
+  }
+  .eredmeny-bodychart-large {
+    height: 280px;
+  }
+  .eredmeny-tunet-side {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    width: 100%;
+  }
+  .eredmeny-intensity-vertical-track {
+    height: 90px !important;
+  }
+}
+
+/* --- időtartam kördiagram (2026.09.07., Marci kérésére: "ahogy a mintában") */
+.eredmeny-donut {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.eredmeny-donut-caption {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.2rem;
+}
+.eredmeny-donut-svg {
+  width: 72px;
+  height: 72px;
+}
+.eredmeny-donut-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-top: 0.2rem;
+  max-width: 100px;
+}
+
+/* --- függőleges intenzitás-sáv (2026.09.07., Marci kérésére) — ugyanaz a
+   teal→mint gradiens-logika, mint a vízszintes .intensity-range csúszkáé,
+   alulról felfelé töltve */
+.eredmeny-intensity-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-height: 80px;
+}
+.eredmeny-intensity-vertical-caption {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.4rem;
+}
+.eredmeny-intensity-vertical-track {
+  position: relative;
+  width: 24px;
+  flex: 1;
+  min-height: 60px;
   border-radius: 999px;
+  background: var(--color-border);
   overflow: hidden;
 }
-.eredmeny-gauge-zone {
-  height: 100%;
-}
-.eredmeny-gauge-marker {
+.eredmeny-intensity-vertical-fill {
   position: absolute;
-  top: -3px;
-  width: 4px;
-  height: 16px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, var(--teal), var(--mint));
   border-radius: 999px;
-  background: var(--color-text);
-  border: 2px solid var(--color-surface);
-  transform: translateX(-50%);
-  box-shadow: var(--shadow-card);
+}
+.eredmeny-intensity-vertical-value {
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin-top: 0.4rem;
+}
+.eredmeny-intensity-vertical-value small {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
 }
