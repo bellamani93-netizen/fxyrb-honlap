@@ -484,10 +484,10 @@ function BodyChartStep() {
          megszűnt, táblagépen/asztalin is ez az egyszerűbb, popup-alapú
          elrendezés fut, csak nagyobb gombokkal/margóval, ld. components.css
          @media (min-width:768px) blokkját). */}
-      {/* a 3 vezérlő (jelöld be / nézet / visszavonás) EGY VONALBAN, azonos
+      {/* a 3 vezérlő (jelöld be / visszavonás / nézet) EGY VONALBAN, azonos
          szerkezettel (felirat fent, középre zárva, alatta a gomb) — sorrend
-         fentről lefelé: jelöld be, nézet, visszavonás (2026.09.04., Marci
-         kérésére). */}
+         fentről lefelé: jelöld be, visszavonás, nézet (2026.09.04., Marci
+         pontosítására). */}
       <div className="bodychart-controls-col d-flex">
         <div className="bodychart-control-group">
           <span className="bodychart-group-label">jelöld be</span>
@@ -505,15 +505,6 @@ function BodyChartStep() {
           </button>
         </div>
 
-        <div className="bodychart-control-group">
-          <span className="bodychart-group-label">nézet</span>
-          <ToggleSwitch
-            checked={adatok.bodyChartNezet === 'rtg'}
-            onChange={(checked) => setAdatok({ bodyChartNezet: checked ? 'rtg' : 'hat' })}
-            label="nézet váltása hát és röntgen nézet között"
-          />
-        </div>
-
         {hasMarks && (
           <div className="bodychart-control-group">
             <span className="bodychart-group-label">visszavonás</span>
@@ -522,6 +513,15 @@ function BodyChartStep() {
             </button>
           </div>
         )}
+
+        <div className="bodychart-control-group">
+          <span className="bodychart-group-label">nézet</span>
+          <ToggleSwitch
+            checked={adatok.bodyChartNezet === 'rtg'}
+            onChange={(checked) => setAdatok({ bodyChartNezet: checked ? 'rtg' : 'hat' })}
+            label="nézet váltása hát és röntgen nézet között"
+          />
+        </div>
       </div>
 
       {popupOpen && (
@@ -745,7 +745,7 @@ export default function Allapotfelmero() {
          "következő"/"mentés" csak 24/24 óránál jelenik meg. */}
       {step > 1 && (
         <button type="button" className="allapotfelmero-nav-btn allapotfelmero-nav-btn--float allapotfelmero-nav-btn--prev" onClick={handlePrev} aria-label="előző lap">
-          <Chevron direction="left" />
+          <Chevron direction="left" color="var(--navy)" />
         </button>
       )}
       {/* az 1. lapon a saját, lime "kezdjük" gomb (ld. StepContent case 1)
@@ -754,7 +754,7 @@ export default function Allapotfelmero() {
       {nextAvailable && step !== WELCOME_STEP && (
         step < TOTAL_STEPS ? (
           <button type="button" className="allapotfelmero-nav-btn allapotfelmero-nav-btn--float allapotfelmero-nav-btn--next" onClick={handleNext} aria-label="következő lap">
-            <Chevron direction="right" />
+            <Chevron direction="right" color="var(--navy)" />
           </button>
         ) : (
           <button type="button" className="allapotfelmero-nav-btn allapotfelmero-nav-btn--save allapotfelmero-nav-btn--float allapotfelmero-nav-btn--next" onClick={handleNext} aria-label="mentés" title="mentés">
@@ -772,7 +772,7 @@ export default function Allapotfelmero() {
           <GerincterhelesKalkulator onHoursChange={setCalcHours} />
         ) : (
           <div className="container-fluid allapotfelmero-form">
-            {meta.title && <h1 className="allapotfelmero-title mb-1">{meta.title}</h1>}
+            {meta.title && <h1 className="allapotfelmero-title">{meta.title}</h1>}
             {meta.subtitle && <p className="allapotfelmero-subtitle mb-4">{meta.subtitle}</p>}
             <StepContent step={step} onNext={handleNext} />
           </div>

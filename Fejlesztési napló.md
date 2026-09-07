@@ -1421,3 +1421,16 @@ Marci öt korrekciót kért egyszerre:
 Marci pontosította az előző körben bevezetett "kezdjük" gomb helyét: ne a szöveg alatt álljon a normál tartalom-folyásban, hanem lebegjen a jobb alsó sarokban — pontosan ott, ahol egy normál lapon a lebegő "következő" nyíl állna. A gomb `position:absolute`-tal a shell sarkához rögzítve, ugyanazokkal a margókkal, mint a többi lebegő gomb.
 
 **Tesztelve böngészőben:** mobilon és asztalin DOM-méréssel ellenőrizve — a gomb a várt margóval a jobb alsó sarokban lebeg, a lapozás továbbra is helyesen működik. `npm run build` hibamentes.
+
+## 2026.09.04. — Nyilak átszínezve + sarokba lebegve, bodychart-sorrend, cím alatti térköz, kalkulátor-margók + valós duplikációs hiba javítása
+
+Marci négy korrekciót kért, és eközben egy komoly, valós hibára is fény derült:
+
+1. Az összes balra-jobbra nyíl a "kezdjük" gomb színeire váltott (lime/navy), és MINDEN nézetben (nem csak asztalin) a bal/jobb alsó sarokban lebeg, kis margóval a szélektől — ezzel a korábbi, bonyolultabb "asztalin függőlegesen a bodychart-gombokhoz igazítva" logika megszűnt, egységes, egyszerű minta lett mindenhol.
+2. A body chart lap gombsora ismét átrendezve: jelöld be, visszavonás, nézet.
+3. A "Személyes célod" lap címe alatt eddig gyakorlatilag nem volt térköz — kiderült, hogy egy Bootstrap `mb-1` utility class felülírta a cím saját, nagyobb margóját (a többi, alcímes lapon ez nem tűnt fel). Eltávolítva, a margó megnövelve.
+4. A gerincterhelés kalkulátor csúszka-sorainak paddingje nagyobb (16px→24px) — mivel a kételoszlopos elrendezésben a doboz széle és a középső elválasztó vonal pontosan egy padding-értékből adódik, ez egyszerre garantálja mindkét margó egyenlőségét.
+
+**Valós hiba:** Marci jelezte, hogy az "alvás"/"szellemi munka" sorok "lemaradtak" asztali nézetben. A vizsgálat kiderítette: a kalkulátor mount-effektusa sosem törölte a csoportokat tartó konténer korábbi tartalmát újraépítés előtt. React fejlesztői módban (StrictMode) a mount-effektusokat szándékosan kétszer futtatja le — enélkül a második lefutás megduplázta az összes csoportot a DOM-ban (mérve: 46 csúszka a helyes 23 helyett). A duplikáció gyakorlatilag "eltűnésként" jelentkezett: a felhasználó az első (de a kódban már nem követett) sorozattal próbált interakcióba lépni, ami emiatt nem reagált látszólag. Javítva egy `replaceChildren()` hívással a csoportok felépítése előtt.
+
+**Tesztelve böngészőben:** mobilon és asztalin, világos és sötét módban — a nyilak színe/pozíciója DOM-méréssel megerősítve mindkét nézetben; a bodychart-sorrend és a cím alatti térköz helyes; a kalkulátor csoportjainak száma pontosan 5 (nem 10), a csúszkák száma pontosan 23 (nem 46), egy csúszka-mozgatás helyesen frissítette mind a saját, mind az összesített értéket. `npm run build` hibamentes.

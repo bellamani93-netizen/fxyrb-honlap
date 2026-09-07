@@ -341,8 +341,16 @@ const CALCULATOR_HTML = `
   letter-spacing: .04em !important;
   color: var(--ink) !important;
 }
+/* a csúszka-sorok vízszintes paddingje nagyobb (2026.09.04., Marci
+   kérésére: "a csúszkák margója nagyobb legyen a dobozhatártól, és a
+   középső elválasztó vonaltól is legyen ugyanekkora margó") — a .row
+   ugyanezt a paddingot kapja MINDKÉT oldalon, a kételoszlopos .group
+   grid-cellái pedig pontosan a doboz szélén és a középső elválasztó
+   vonalnál kezdődnek/érnek véget, ezért egyetlen padding-érték egyszerre
+   garantálja, hogy a két margó (dobozhatártól és a középvonaltól) mindig
+   egyenlő legyen. */
 .gt-calc-container .row {
-  padding: 13px 16px !important;
+  padding: 13px 24px !important;
   border-bottom: 1px solid var(--line) !important;
 }
 .gt-calc-container .group > .row:nth-child(even) {
@@ -718,6 +726,18 @@ export default memo(function GerincterhelesKalkulator({ onHoursChange }: Gerinct
     buildDial(loadDialSvg, loadZones, LOAD_MIN, LOAD_MAX)
     buildDial(actDialSvg, actZones, ACT_MIN, ACT_MAX)
     const groupsEl = byId('groups')!
+    // Fejlesztői (StrictMode) módban React a mount-effektust kétszer futtatja
+    // le ugyanarra a kezdeti mountra ("mount → cleanup → mount"), hogy az
+    // ehhez hasonló, nem idempotens effektusokat kiszűrje — enélkül a
+    // groupsEl.appendChild(...) hívások a második lefutáskor az ELSŐ menet
+    // sorait/csoportjait is a DOM-ban hagyva, DUPLIKÁLTÁK volna az összes
+    // csoportot (Marci hibajelzésére derült ki: "az alvás/szellemi munka
+    // lemaradtak" — valójában a duplikált, de az `inputs` objektum által már
+    // NEM követett, "árva" első példányokkal próbált interakcióba lépni,
+    // amik így nem reagáltak). A törlés biztosítja, hogy az effektus
+    // hányszori lefutástól függetlenül mindig pontosan egy, helyes
+    // csoport-készletet építsen fel (2026.09.04.).
+    groupsEl.replaceChildren()
     type ItemDef = { id: string; label: string; sub: string; t: number; a: number }
     const inputs: Record<string, { slider: HTMLInputElement; valueBadge: HTMLElement; t: number; a: number }> = {}
     function buildRow(item: ItemDef) {

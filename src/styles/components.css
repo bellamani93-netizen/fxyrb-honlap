@@ -1723,7 +1723,11 @@ html[data-theme='dark'] .sales-delete-icon {
 /* a lapozó-gombok szabadon LEBEGNEK a tartalom fölött (2026.09.04., Marci
    kérésére: "ez nem kell, a gombok csak lebegjenek") — nincs saját
    fejléc-sávjuk/hátterük, a `.allapotfelmero-shell` saját `position:
-   relative`-jéhez vannak rögzítve, ezért görgetéskor sem mozdulnak el. */
+   relative`-jéhez vannak rögzítve, ezért görgetéskor sem mozdulnak el.
+   Lent, a bal/jobb sarokban lebegnek, kis távolsággal a szélektől — UGYANOTT
+   és UGYANOLYAN margóval, mint a "kezdjük" CTA (ld. .allapotfelmero-
+   welcome-cta) — MINDEN felbontáson egységesen (2026.09.04., Marci
+   kérésére: "legyenek lent a bal illetve jobb sarokban"). */
 .allapotfelmero-nav-btn {
   width: 2.35rem;
   height: 2.35rem;
@@ -1738,7 +1742,7 @@ html[data-theme='dark'] .sales-delete-icon {
 }
 .allapotfelmero-nav-btn--float {
   position: absolute;
-  top: 0.6rem;
+  bottom: 0.75rem;
   z-index: 20;
   box-shadow: var(--shadow-card);
 }
@@ -1750,6 +1754,15 @@ html[data-theme='dark'] .sales-delete-icon {
 }
 .allapotfelmero-nav-btn .chevron-svg {
   height: 0.95em;
+}
+/* a balra-jobbra nyilak a "kezdjük" gombbal EGYEZŐ színt kaptak (2026.09.04.,
+   Marci kérésére: "színezd át a kezdjük gomb színeire") — a "mentés" (pipa)
+   gomb saját, elsődleges-szín háttere ettől függetlenül, `:not()`-tal
+   kizárva, változatlan maradt. */
+.allapotfelmero-nav-btn--prev,
+.allapotfelmero-nav-btn--next:not(.allapotfelmero-nav-btn--save) {
+  background-color: var(--lime);
+  color: var(--navy);
 }
 .allapotfelmero-nav-btn--save {
   background-color: var(--color-primary);
@@ -1816,11 +1829,15 @@ html[data-theme='dark'] .sales-delete-icon {
 .allapotfelmero-title {
   /* a vastag aláhúzás törölve (2026.09.04., Marci kérésére: "a 6. 7. 8. 9.
      lapon a cím alá nem kell a vastag vonal") — csak ezen a 4 lapon van
-     egyáltalán cím (ld. STEP_META), a margó a korábbi padding+border
-     helyén maradt, hogy a tartalomtól való távolság ne változzon. */
+     egyáltalán cím (ld. STEP_META). A "Személyes célod" (9.) lapnak nincs
+     alcíme, ezért a cím alatti egyetlen térköz-forrás ez a margó — a JSX-ben
+     korábban rajta lévő Bootstrap `mb-1` (0.25rem, `!important`-tal felülírva
+     ezt az értéket) miatt gyakorlatilag alig volt látható hézag; a `mb-1`
+     eltávolítva, a margó pedig 0.6rem-ről 1rem-re nőtt (2026.09.04., Marci
+     kérésére: "a cím alatt legyen térköz"). */
   display: block;
   width: fit-content;
-  margin: 0 auto 0.6rem;
+  margin: 0 auto 1rem;
   font-size: 1.5rem;
   text-align: center;
 }
@@ -1926,24 +1943,12 @@ html[data-theme='dark'] .sales-delete-icon {
   .allapotfelmero-welcome-text {
     font-size: 1.15rem;
   }
-  /* a jobbra-balra lapozó-gombok (és a végén a pipa-gomb) fent takarásba
-     kerülhettek a fejléccel/címmel — táblagépen/asztalin lentre, a tartalom
-     ALÁ kerülnek lebegőnek (2026.09.04., Marci kérésére: "a jobbra-balra
-     nyilakat tedd lentre lebegőre a fönti helyett"). Telefonon (a "telefon
-     nézet fix" kérésre) változatlanul fent maradnak.
-     KORREKCIÓ (ugyanaznap): a `bottom`-alapú pozíció túl közel volt az oldal
-     aljához — függőlegesen KÖZÉPRE igazítva (`top:50%` + `translateY`) ez
-     magától távolabb kerül az aljától, ÉS pontosan ugyanoda esik, mint a
-     bodychart lap gombsorának függőleges közepe (az is a teljes magasságon
-     belül középre igazított — ld. .bodychart-controls-col), a bal/jobb gomb
-     pedig emiatt is szimmetrikus egymással (2026.09.04., Marci kérésére: "a
-     jobbra gomb legyen függőlegesen a többi gombhoz igazítva, a balra gomb
-     pedig kövesse ezt a mintát szimmetrikusan"). Az oldalsó margó is nőtt
-     (0.75rem→2rem), hogy a szélektől is távolabb kerüljön. */
+  /* táblagépen/asztalin a sarok-margó nagyobb — ugyanaz az érték, mint a
+     "kezdjük" CTA-é (2026.09.04.). A pozíció (lent, bal/jobb sarok) és a
+     szín (lime/navy) MINDEN felbontáson egységes, ld. a bázis-szabályokat
+     feljebb — itt csak a nagyobb margó és a nagyobb gombméret tér el. */
   .allapotfelmero-nav-btn--float {
-    top: 50%;
-    bottom: auto;
-    transform: translateY(-50%);
+    bottom: 2rem;
   }
   .allapotfelmero-nav-btn--prev {
     left: 2rem;
@@ -1958,14 +1963,6 @@ html[data-theme='dark'] .sales-delete-icon {
     width: 3.2rem;
     height: 3.2rem;
     font-size: 1.3rem;
-  }
-  /* kontrasztosabb háttér — ugyanaz a szín, mint a bodychart lap
-     "visszavonás" gombjáé (2026.09.04., Marci kérésére) — a "mentés"
-     (pipa) gomb saját, elsődleges-szín hátterét ez NEM érinti (`:not`). */
-  .allapotfelmero-nav-btn--prev,
-  .allapotfelmero-nav-btn--next:not(.allapotfelmero-nav-btn--save) {
-    background-color: var(--sagegray);
-    color: var(--offwhite);
   }
   .allapotfelmero-nav-btn--save .icon-fyb {
     width: 1.5rem;
