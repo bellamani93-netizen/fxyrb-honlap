@@ -1867,6 +1867,15 @@ html[data-theme='dark'] .sales-delete-icon {
   max-width: 32rem;
   margin: 0 auto;
 }
+/* a "kezdjük" CTA a jobb alsó sarokban lebeg — ugyanoda, ahol egy normál
+   lapon a lebegő "következő" nyíl állna (2026.09.04., Marci kérésére: "1.
+   lap: kezdjük gomb bal alsó sarokban", majd pontosítva "jobb alsóban"). */
+.allapotfelmero-welcome-cta {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 20;
+}
 /* táblagépen/asztalin jobb térkihasználás (2026.09.04., Marci kérésére) —
    a fentebbi bázis-szabályok UTÁN kell állnia (azonos specificitásnál a
    forráson belüli sorrend dönt), különben a lentebbi @media felülíródna a
@@ -1961,6 +1970,12 @@ html[data-theme='dark'] .sales-delete-icon {
   .allapotfelmero-nav-btn--save .icon-fyb {
     width: 1.5rem;
     height: 1.5rem;
+  }
+  /* a "kezdjük" CTA is ugyanúgy távolabb kerül a sarokban lévő szélektől,
+     mint a többi lebegő gomb (2026.09.04.). */
+  .allapotfelmero-welcome-cta {
+    right: 2rem;
+    bottom: 2rem;
   }
   /* a telefonra optimalizált középre-igazítás táblagépen/asztalin
      megszűnik — minden mező balra igazított, teljes szélességű, mint a

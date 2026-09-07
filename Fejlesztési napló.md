@@ -1415,3 +1415,9 @@ Marci öt korrekciót kért egyszerre:
 **Hiba menet közben:** az (5) pont CSS-kommentjében használt backtick-jelek idő előtt lezárták a kalkulátor HTML-jét tartalmazó JS template literalt, TypeScript build-hibát okozva — javítva a backtickek eltávolításával a kommentből.
 
 **Tesztelve böngészőben:** mobilon — a "kezdjük" gomb megjelenik és működik, a duplikált nyíl eltűnt, a cím-vonal eltűnt a megfelelő lapokon, a bodychart gombsor új sorrendje és feliratai DOM-méréssel megerősítve, a kalkulátor csak a kért 3 elemet mutatja, a `recalc()` logika (csúszka-mozgatás, "Példa nap") hiba nélkül fut az elrejtett elemekkel is. Táblagépen/asztalin, világos és sötét módban — a lapozó-nyilak pontosan egy magasságban a bodychart gombsorával, színük pixel-pontosan egyezik a "visszavonás" gombéval. `npm run build` hibamentes.
+
+## 2026.09.04. — A "kezdjük" gomb a jobb alsó sarokban lebeg
+
+Marci pontosította az előző körben bevezetett "kezdjük" gomb helyét: ne a szöveg alatt álljon a normál tartalom-folyásban, hanem lebegjen a jobb alsó sarokban — pontosan ott, ahol egy normál lapon a lebegő "következő" nyíl állna. A gomb `position:absolute`-tal a shell sarkához rögzítve, ugyanazokkal a margókkal, mint a többi lebegő gomb.
+
+**Tesztelve böngészőben:** mobilon és asztalin DOM-méréssel ellenőrizve — a gomb a várt margóval a jobb alsó sarokban lebeg, a lapozás továbbra is helyesen működik. `npm run build` hibamentes.

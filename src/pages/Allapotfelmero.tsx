@@ -555,7 +555,10 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
           {/* a lebegő "következő" nyíl helyett az 1. lapon egy egyértelmű,
              lime hátterű CTA-gomb indítja a kérdőívet (2026.09.04., Marci
              kérésére) — a StepContent-en kívüli lebegő gomb ezen a lapon
-             emiatt el van rejtve (ld. Allapotfelmero() render, WELCOME_STEP). */}
+             emiatt el van rejtve (ld. Allapotfelmero() render, WELCOME_STEP).
+             A gomb a jobb alsó sarokban lebeg (2026.09.04., Marci
+             pontosítására — "jobb alsóban"), ugyanoda, ahol egy normál lapon
+             a "következő" nyíl állna. */}
           <button type="button" className="btn-fyb btn-fyb-highlight btn-fyb-lg allapotfelmero-welcome-cta" onClick={onNext}>
             kezdjük
             <Chevron direction="right" color="var(--navy)" />
