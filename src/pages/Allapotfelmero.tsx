@@ -7,6 +7,7 @@ import ToggleSwitch from '../components/ToggleSwitch'
 import { withBase } from '../lib/assetUrl'
 import {
   useAllapotfelmero,
+  type AllapotfelmeroAdatok,
   type BodyChartJel,
   type BodyChartMeret,
   type BodyChartNezet,
@@ -95,22 +96,6 @@ function useAvailableHeight(): number | undefined {
   }, [])
 
   return height
-}
-
-/** a "mutasd meg" lap gomb-elrendezése/rajzolási módja csak TELEFONOS
- * nézetben más (2026.09.04., Marci kérésére) — a törésponthoz igazítva,
- * ahol a body chart oldalsávja is vált (ld. components.css @media 768px). */
-function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 767.98px)').matches)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767.98px)')
-    const onChange = () => setIsMobile(mq.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-
-  return isMobile
 }
 
 function FieldLabel({ children }: { children: ReactNode }) {
@@ -284,6 +269,35 @@ function TraitToggleRow({
   )
 }
 
+/** olyan sor, ahol 2-nél TÖBB (itt: 3) válasz-lehetőség van — a
+ * TraitToggleRow-nál (fix igen/nem) általánosabb, tetszőleges string-érték +
+ * felirat párokat fogad (2026.09.04., Marci kérésére: "a karodat váll fölé
+ * tudod emelni" kapcsolója igen/nem/igen, de érzékeny lett). */
+function MultiToggleRow({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: { value: string; label: string }[]
+}) {
+  return (
+    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
+      <span>{label}</span>
+      <div className="auth-tabs auth-tabs-sm flex-shrink-0 flex-wrap">
+        {options.map((opt) => (
+          <button key={opt.value} type="button" className={`auth-tab ${value === opt.value ? 'active' : ''}`} onClick={() => onChange(opt.value)}>
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** rövid feliratok a méret-választó popupban, hogy a 3 opció kiférjen egy
  * sorban (2026.09.04., Marci kérésére: "pontszerű, kicsi, nagy") — ez a
  * popup mostantól minden felbontáson (nem csak mobilon) ez fut. */
@@ -417,7 +431,6 @@ function BodyChartStep() {
   const { adatok, setAdatok, addBodyChartStroke, extendLastBodyChartStroke, undoLastBodyChartStroke } = useAllapotfelmero()
   const [armed, setArmed] = useState(false)
   const [popupOpen, setPopupOpen] = useState(false)
-  const isMobile = useIsMobile()
   const isDrawingRef = useRef(false)
   const imageSrc = withBase(BODYCHART_IMAGES[adatok.bodyChartNezet])
   const hasMarks = adatok.bodyChartJelek.length > 0
@@ -429,10 +442,9 @@ function BodyChartStep() {
     return { x, y }
   }
 
-  // Telefonon húzással vonal rajzolható (pointermove pontokat gyűjt), asztalon
-  // csak koppintás/kattintás számít (a pointermove figyelmen kívül marad) —
-  // 2026.09.04., Marci kérésére: "rajzolni pontszerű rákoppintással, és
-  // vonalhúzással is lehet" (ez csak telefonos nézetben elérhető funkció).
+  // Húzással vonal rajzolható (pointermove pontokat gyűjt) — eredetileg csak
+  // telefonon volt elérhető, de Marci kérésére (2026.09.04.) asztali/tablet
+  // nézetben (egérrel húzva) is működik, ugyanazokkal a Pointer Events-ekkel.
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (!armed) return
     // a capture hibája (pl. nem-elsődleges/szintetikus pointer) ne akadályozza
@@ -448,7 +460,7 @@ function BodyChartStep() {
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (!isDrawingRef.current || !isMobile) return
+    if (!isDrawingRef.current) return
     extendLastBodyChartStroke(pointFromEvent(e))
   }
 
@@ -588,13 +600,16 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
           <SelectField label="gyakoriság" value={adatok.gyakorisag} onChange={(v) => setAdatok({ gyakorisag: v })} options={GYAKORISAG_OPTIONS} />
           <SelectField label="időtartam (óra/nap)" value={adatok.idotartam} onChange={(v) => setAdatok({ idotartam: v })} options={IDOTARTAM_OPTIONS} />
           <div className="mb-2">
-            <FieldLabel>intenzitás</FieldLabel>
-            <IntensityRange value={adatok.intenzitas} onChange={(v) => setAdatok({ intenzitas: v })} />
-            <div className="d-flex justify-content-between align-items-center small" style={{ color: 'var(--color-text-muted)' }}>
-              <span>0 — semmi</span>
-              {/* a jelenlegi érték nagyobb, jól látható szám (2026.09.04.,
-                 Marci kérésére: "a csúszka alatt a szám legyen nagyobb"). */}
+            {/* a jelenlegi érték nagyobb, jól látható száma a csúszka
+               FÖLÖTT (2026.09.04., Marci kérésére — korábban alatta,
+               a "0 — semmi"/"10 — max." sorban volt). */}
+            <div className="d-flex justify-content-between align-items-end mb-1">
+              <FieldLabel>intenzitás</FieldLabel>
               <span className="fw-bold" style={{ color: 'var(--color-primary)', fontSize: '1.75rem', lineHeight: 1 }}>{adatok.intenzitas}</span>
+            </div>
+            <IntensityRange value={adatok.intenzitas} onChange={(v) => setAdatok({ intenzitas: v })} />
+            <div className="d-flex justify-content-between small" style={{ color: 'var(--color-text-muted)' }}>
+              <span>0 — semmi</span>
               <span>10 — max. intenzitás</span>
             </div>
           </div>
@@ -644,7 +659,17 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
       return (
         <>
           <TraitToggleRow label="hason tudsz feküdni kemény felületen?" value={adatok.proneOk} onChange={(v) => setAdatok({ proneOk: v })} trueLabel="igen" falseLabel="nem" />
-          <TraitToggleRow label="a karodat váll fölé tudod emelni" value={adatok.shoulderOk} onChange={(v) => setAdatok({ shoulderOk: v })} trueLabel="igen" falseLabel="nem" />
+          <MultiToggleRow
+            label="a karodat váll fölé tudod emelni"
+            value={adatok.shoulderOk}
+            onChange={(v) => setAdatok({ shoulderOk: v as AllapotfelmeroAdatok['shoulderOk'] })}
+            options={[
+              { value: 'igen', label: 'igen' },
+              { value: 'nem', label: 'nem' },
+              { value: 'erzekeny', label: 'igen, de érzékeny' },
+            ]}
+          />
+          <TraitToggleRow label="nyaki panaszod van?" value={adatok.nyakiPanasz} onChange={(v) => setAdatok({ nyakiPanasz: v })} trueLabel="igen" falseLabel="nem" />
           <TraitToggleRow label="van térdfájdalmad (négykézláb helyzetekhez)" value={!adatok.kneePain} onChange={(v) => setAdatok({ kneePain: !v })} trueLabel="nincs" falseLabel="van" />
           <TraitToggleRow label="van magas vérnyomásod" value={!adatok.highBloodPressure} onChange={(v) => setAdatok({ highBloodPressure: !v })} trueLabel="nincs" falseLabel="van" />
           {adatok.highBloodPressure && (
@@ -669,7 +694,6 @@ export default function Allapotfelmero() {
   const [step, setStep] = useState(1)
   const [calcHours, setCalcHours] = useState(0)
   const availableHeight = useAvailableHeight()
-  const isMobile = useIsMobile()
   const meta = STEP_META[step] ?? {}
   const isCalculatorStep = step === TOTAL_STEPS
   // az utolsó (kalkulátor) lapon a továbblépés csak akkor jelenik meg, ha a
@@ -690,53 +714,8 @@ export default function Allapotfelmero() {
     setStep((s) => Math.max(1, s - 1))
   }
 
-  // telefonon söpréssel is lapozható a kérdőív (2026.09.04., Marci kérésére)
-  // — a kalkulátor (csúszka-húzás) lapján a vízszintes mozdulatnak MÁR van
-  // jelentése, ott a söprés-lapozás teljesen kikapcsol. A body chart (4.)
-  // lapon Marci kérte, hogy ONNAN IS lehessen söpréssel lapozni — ott csak
-  // azt kell elkerülni, hogy a RAJZOLÓ-FELÜLETEN induló húzás (vonalhúzás)
-  // véletlenül lapozzon: ezt a `handleTouchStart` dönti el, a `.bodychart-
-  // img-wrap`-on induló érintést figyelmen kívül hagyva, minden más induló
-  // érintés (keret, gombok-oszlop, üres terület) viszont söprés-lapozásra
-  // jogosult (2026.09.04., Marci visszajelzésére — "a 4. lapról nem lehet
-  // söpréssel továbbmenni").
-  const swipeEnabled = isMobile && !isCalculatorStep
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
-
-  function handleTouchStart(e: React.TouchEvent) {
-    if (!swipeEnabled) return
-    if (step === BODY_CHART_STEP && (e.target as HTMLElement).closest('.bodychart-img-wrap')) {
-      touchStartRef.current = null
-      return
-    }
-    const t = e.touches[0]
-    touchStartRef.current = { x: t.clientX, y: t.clientY }
-  }
-
-  function handleTouchEnd(e: React.TouchEvent) {
-    if (!swipeEnabled || !touchStartRef.current) return
-    const t = e.changedTouches[0]
-    const dx = t.clientX - touchStartRef.current.x
-    const dy = t.clientY - touchStartRef.current.y
-    touchStartRef.current = null
-    // csak egyértelműen vízszintes, kellően hosszú mozdulatra lapozunk —
-    // ne akadjon össze a görgetéssel (rizikófaktor-listák) vagy egy
-    // véletlen kis mozdulattal.
-    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return
-    if (dx < 0) {
-      if (step < TOTAL_STEPS) handleNext()
-    } else if (step > 1) {
-      handlePrev()
-    }
-  }
-
   return (
-    <div
-      className="allapotfelmero-shell"
-      style={{ height: availableHeight }}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="allapotfelmero-shell" style={{ height: availableHeight }}>
       <div className="allapotfelmero-progress">
         <span style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
       </div>
@@ -770,7 +749,10 @@ export default function Allapotfelmero() {
             aria-label="beküldés"
           >
             beküldés
-            <Icon src="/icons/ikon_pipa.svg" style={{ backgroundColor: 'var(--navy)' }} />
+            {/* külön, vastagabb vonalú pipa-ikon (2026.09.04., Marci
+               kérésére) — nem az eredeti, más 5 helyen (pl. Gyakorlatok,
+               GytVideokiosztas) is használt megosztott ikon módosítva. */}
+            <Icon src="/icons/ikon_pipa_vastag.svg" style={{ backgroundColor: 'var(--navy)' }} />
           </button>
         )
       )}

@@ -1460,3 +1460,16 @@ Marci három korrekciót kért: a kalkulátor kitöltése után megjelenő gomb 
 A "beküldés" gomb a "kezdjük" CTA-val azonos, lime pirula-stílust kapta, a pozícionáláshoz a meglévő lebegő-gomb osztályokat újrahasznosítva. A nyilak hover-árnyékához egy kettős osztály-feltételű szabály került be, hogy a pirula-CTA-k (amik ugyanazt a pozícionáló osztályt osztják meg a nyilakkal) ne kapják meg tévedésből ugyanezt a hover-effektet. Az intenzitás-szám mérete 1.75rem-re nőtt.
 
 **Tesztelve böngészőben:** mobilon és asztalin, világos és sötét módban — a "beküldés" gomb helyesen jelenik meg és navigál, a nagyobb intenzitás-szám DOM-méréssel megerősítve. A hover-szabály jelenléte a stíluslapban ellenőrizve (a szintetikus hover a tesztkörnyezetben nem váltotta ki megbízhatóan a `:hover` állapotot, ismert automatizálási korlát). `npm run build` hibamentes.
+
+## 2026.09.04. — Hat korrekció: menü-ikon, asztali vonalrajzolás, vastagabb pipa, intenzitás-szám áthelyezése, söprés törlése, új nyaki-panasz kapcsoló
+
+Marci hat, egymástól független korrekciót kért egyszerre:
+
+1. A menüsorban az "állapotfelmérő" ikonja villanykörte-ikonra cserélve (csak az ÜF-fiók valódi navigációjában — a GYT-oldali, egy másik sorhoz már villanykörtét használó locked-placeholder változatlan maradt, elkerülve az ikon-ütközést).
+2. A 4. lapon (body chart) a vonalhúzásos rajzolás mostantól asztali/tablet nézetben (egérrel húzva) is működik, nem csak telefonon — a korábbi mobil-only tiltás törölve.
+3. A "beküldés" gomb pipa-ikonja vastagabb vonalú — mivel az eredeti ikon 4 másik helyen is használt megosztott asset, egy új, kizárólag ehhez a gombhoz tartozó fájl készült.
+4. A 3. lapon az intenzitás-csúszka aktuális értéke a csúszka fölé került (korábban alatta volt).
+5. A telefonos söpréses lapozás teljesen törölve — mostantól kizárólag a lebegő nyíl-gombokkal lehet lapozni, minden nézetben.
+6. A 8. lapon új kapcsoló ("nyaki panaszod van?" igen/nem), és "a karodat váll fölé tudod emelni" kapcsolója háromállásúvá bővült (igen/nem/igen, de érzékeny) egy új, általános többopciós kapcsoló-komponenssel. Fontos, külön ellenőrzött részlet: a GYT-oldali "torna szintek" rendszerben létezik egy azonos nevű, de teljesen független `shoulderOk` mező — a típus-változtatás ezt nem érintette.
+
+**Tesztelve böngészőben:** mobilon és asztalin — a menü-ikon, az intenzitás-szám pozíciója, a törölt söprés-lapozás és a 8. lap új/módosított kapcsolói mind DOM-méréssel/page-text-tel megerősítve; asztali nézetben egy szimulált egér-húzás valódi vonalat (nem pontot) hozott létre a body chart lapon, a "beküldés" gomb pedig az új, vastagabb ikonra mutat. `npm run build` hibamentes.

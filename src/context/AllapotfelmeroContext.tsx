@@ -40,9 +40,13 @@ export type AllapotfelmeroAdatok = {
   rizikofaktorokII: string[]
   painLocation: 'also' | 'felso'
   proneOk: boolean
-  shoulderOk: boolean
+  /** korábban boolean (igen/nem) volt — Marci kérésére (2026.09.04.) egy
+   * harmadik válasz-lehetőséggel bővült ("igen, de érzékeny"). */
+  shoulderOk: 'igen' | 'nem' | 'erzekeny'
   kneePain: boolean
   highBloodPressure: boolean
+  /** új mező (2026.09.04., Marci kérésére) — "nyaki panaszod van?" igen/nem. */
+  nyakiPanasz: boolean
   szemelyesCel: string
 }
 
@@ -68,9 +72,10 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   rizikofaktorokII: [],
   painLocation: 'also',
   proneOk: true,
-  shoulderOk: true,
+  shoulderOk: 'igen',
   kneePain: false,
   highBloodPressure: false,
+  nyakiPanasz: false,
   szemelyesCel: '',
 }
 

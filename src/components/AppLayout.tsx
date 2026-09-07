@@ -20,7 +20,7 @@ export type NavItem = {
 // zárolt marad (ld. App.tsx UgyfelGate, ami a tényleges útvonal-tiltást adja).
 function buildUfNavItems(felmeresKesz: boolean): NavItem[] {
   return [
-    { to: '/allapotfelmero', label: 'állapotfelmérő', icon: '/icons/ikon_kerdoiv.svg' },
+    { to: '/allapotfelmero', label: 'állapotfelmérő', icon: '/icons/ikon_villanykorte.svg' },
     { to: '/gyakorlatok', label: 'gyakorlatok', icon: '/icons/ikon_torna.svg', locked: !felmeresKesz },
     { to: '/konzultacioim', label: 'konzultációk', icon: '/icons/ikon_naptar.svg', locked: !felmeresKesz },
     { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
