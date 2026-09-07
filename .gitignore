@@ -17,6 +17,11 @@
 # magát a fájlt nem publikáljuk a (publikus) repóban.
 /kalkulator.odt
 
+# Marci nyers .odt forrásfájlja az Eredménylap logikai kapcsolataihoz — a
+# tartalma a Design jegyzet.md-be/a kódba kerül, magát a fájlt nem
+# publikáljuk a (publikus) repóban.
+/allapot logika.odt
+
 # Node / Vite
 node_modules
 dist

@@ -1,12 +1,13 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import type { GerincterhelesEredmeny } from '../components/GerincterhelesKalkulator'
 
 // Az ÜF-oldali "állapotfelmérő" kérdőív közös állapota (2026.09.03., Marci
 // kérésére, 2. fázis indítása). Ez a fiók LEGELSŐ pontja: amíg nincs kitöltve
 // és elmentve, a többi ÜF menüpont nem nyitható meg (ld. AppLayout.tsx
-// buildUfNavItems + App.tsx UgyfelGate). Ebben a körben csak a design/UI
-// készül el — a válaszok logikája és a generált eredménylap KÉSŐBBI fázis
-// (Marci kérése). Nincs backend, ezért az állapot csak munkamenet-szintű
-// (React state), oldal-frissítéskor elvész, ahogy a többi Context-nél is.
+// buildUfNavItems + App.tsx UgyfelGate). Nincs backend, ezért az állapot
+// csak munkamenet-szintű (React state), oldal-frissítéskor elvész, ahogy a
+// többi Context-nél is — ez az Eredménylapra (ld. src/pages/Eredmenyeim.tsx,
+// 2026.09.07.) is érvényes.
 
 export type BodyChartMeret = 'pontszeru' | 'kis' | 'nagy'
 export type BodyChartNezet = 'hat' | 'rtg'
@@ -46,6 +47,11 @@ export type AllapotfelmeroAdatok = {
   /** új mező (2026.09.04., Marci kérésére) — "nyaki panaszod van?" igen/nem. */
   nyakiPanasz: boolean
   szemelyesCel: string
+  /** a gerincterhelés kalkulátor (10. lap) legutóbbi eredménye — az
+   * Eredménylap "Gerincterhelés szakasza" ezt jeleníti meg újra, ugyanazzal
+   * a logikával, amit a kalkulátor számolt (2026.09.07., Marci kérésére).
+   * `null`, amíg a kalkulátor még nem futott le legalább egyszer. */
+  gerincterhelesEredmeny: GerincterhelesEredmeny | null
 }
 
 export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
@@ -73,6 +79,7 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   kneePain: false,
   nyakiPanasz: false,
   szemelyesCel: '',
+  gerincterhelesEredmeny: null,
 }
 
 type AllapotfelmeroContextValue = {
@@ -102,15 +109,24 @@ export function AllapotfelmeroProvider({ children }: { children: ReactNode }) {
   const [completed, setCompleted] = useState(false)
   const [adatok, setAdatokState] = useState<AllapotfelmeroAdatok>(DEFAULT_ALLAPOTFELMERO_ADATOK)
 
-  function setAdatok(patch: Partial<AllapotfelmeroAdatok>) {
+  // Mindegyik `useCallback`-kel STABIL referenciájú (üres függőségi tömb) —
+  // egyik sem hivatkozik a `completed`/`adatok` külső változóra, mindig a
+  // funkcionális `setAdatokState((prev) => ...)` formát használják. Ez
+  // fontos: a GerincterhelesKalkulator `React.memo`-ba van csomagolva (ld.
+  // ott a jegyzetet), és ha a neki átadott `onResultChange` callback minden
+  // render alkalmával ÚJ függvény-referenciát kapna (mert pl. `setAdatok`
+  // maga instabil), a memo hiába van, a szülő újrarenderelése MÉGIS
+  // érintené — pontosan az a hiba térne vissza, amit korábban ez a memo
+  // orvosolt (2026.09.07.).
+  const setAdatok = useCallback((patch: Partial<AllapotfelmeroAdatok>) => {
     setAdatokState((prev) => ({ ...prev, ...patch }))
-  }
+  }, [])
 
-  function addBodyChartStroke(meret: BodyChartMeret, point: BodyChartPont) {
+  const addBodyChartStroke = useCallback((meret: BodyChartMeret, point: BodyChartPont) => {
     setAdatokState((prev) => ({ ...prev, bodyChartJelek: [...prev.bodyChartJelek, { points: [point], meret }] }))
-  }
+  }, [])
 
-  function extendLastBodyChartStroke(point: BodyChartPont) {
+  const extendLastBodyChartStroke = useCallback((point: BodyChartPont) => {
     setAdatokState((prev) => {
       if (prev.bodyChartJelek.length === 0) return prev
       const jelek = prev.bodyChartJelek.slice()
@@ -118,15 +134,17 @@ export function AllapotfelmeroProvider({ children }: { children: ReactNode }) {
       jelek[jelek.length - 1] = { ...last, points: [...last.points, point] }
       return { ...prev, bodyChartJelek: jelek }
     })
-  }
+  }, [])
 
-  function undoLastBodyChartStroke() {
+  const undoLastBodyChartStroke = useCallback(() => {
     setAdatokState((prev) => ({ ...prev, bodyChartJelek: prev.bodyChartJelek.slice(0, -1) }))
-  }
+  }, [])
+
+  const complete = useCallback(() => setCompleted(true), [])
 
   return (
     <AllapotfelmeroContext.Provider
-      value={{ completed, adatok, setAdatok, complete: () => setCompleted(true), addBodyChartStroke, extendLastBodyChartStroke, undoLastBodyChartStroke }}
+      value={{ completed, adatok, setAdatok, complete, addBodyChartStroke, extendLastBodyChartStroke, undoLastBodyChartStroke }}
     >
       {children}
     </AllapotfelmeroContext.Provider>

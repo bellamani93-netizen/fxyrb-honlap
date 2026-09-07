@@ -94,10 +94,11 @@ const CALCULATOR_HTML = `
   --shadow-sm: var(--shadow-card);
   --grad-start: var(--teal);
   --grad-end: var(--mint);
-  /* terhelési/aktivitási zóna-skála — szándékosan fix, nem a projekt
-     márkaszíneiből jön (ld. a fájl tetején lévő megjegyzést) */
-  --z1: #C0392B; --z2: #E07A3F; --z3: #E8B94A; --z4: #8FC2B8; --z5: #3FA79B; --z6: #28B463;
-  --a1: #C0392B; --a2: #E07A3F; --a3: #E8B94A; --a4: #8FC2B8; --a5: #28B463;
+  /* a terhelési/aktivitási zóna-skála (--z1..z6/--a1..a5) mostantól
+     GLOBÁLIS token (ld. theme.css) — 2026.09.07-től az Eredménylap is
+     ugyanezekkel a színekkel jeleníti meg a kalkulátor visszaadott
+     eredményét, ezért nem itt, csak a projekt szintjén van definiálva
+     (a CSS-változó öröklődés miatt itt is elérhető, csak nem duplikáljuk). */
   background: var(--bg) !important;
   color: var(--ink) !important;
   padding: 28px 20px 60px !important;
@@ -590,11 +591,32 @@ const CALCULATOR_HTML = `
 </style>
 `
 
+/** a kalkulátor VÉGEREDMÉNYE — a két mutató (gerincterhelés/aktivitás)
+ * pontszáma és kategória-szövege/színe, ugyanaz, amit a (jelenleg elrejtett,
+ * ld. `.gt-calc-container .summary { display:none }`) gauge-kártyák
+ * mutatnának. Az Eredménylap ("allapot logika" doksi, "Gerincterhelés
+ * szakasz": "az eredeti gerincterhelés kalkulátor 2 eredményjelzője
+ * bemásolva, az eredeti számítási logika alapján") ezt kapja meg az
+ * `onResultChange` callback-en, hogy UGYANAZT a logikát mutassa újra,
+ * adatduplikálás/újraimplementálás nélkül (2026.09.07., Marci kérésére). */
+export type GerincterhelesEredmeny = {
+  totalHours: number
+  totalLoad: number
+  totalAct: number
+  loadLabel: string
+  loadColor: string
+  actLabel: string
+  actColor: string
+}
+
 type GerincterhelesKalkulatorProps = {
   /** minden újraszámoláskor meghívva az aktuális "összes idő" (óra) értékkel
    * — az állapotfelmérő ezzel dönti el, mikor jelenjen meg a továbblépés
    * lehetősége (2026.09.04., Marci kérésére: csak 24/24 óránál). */
   onHoursChange?: (hours: number) => void
+  /** minden újraszámoláskor meghívva a teljes eredménnyel (2026.09.07.,
+   * Marci kérésére) — ld. GerincterhelesEredmeny fenti jegyzete. */
+  onResultChange?: (result: GerincterhelesEredmeny) => void
 }
 
 // React.memo: az onHoursChange (a szülő állandó setCalcHours-referenciája)
@@ -605,10 +627,12 @@ type GerincterhelesKalkulatorProps = {
 // üres kiinduló sablonra — törölve a mount-effektus által felépített
 // sorokat/csúszkákat. A memo garantálja, hogy a szülő re-renderje ezt a
 // komponenst egyáltalán ne érintse (2026.09.04., hibajavítás).
-export default memo(function GerincterhelesKalkulator({ onHoursChange }: GerincterhelesKalkulatorProps) {
+export default memo(function GerincterhelesKalkulator({ onHoursChange, onResultChange }: GerincterhelesKalkulatorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const onHoursChangeRef = useRef(onHoursChange)
   onHoursChangeRef.current = onHoursChange
+  const onResultChangeRef = useRef(onResultChange)
+  onResultChangeRef.current = onResultChange
 
   // A <script> EREDETI logikája — szó szerint átemelve (Marci kifejezett
   // kérése: "minden logikája maradjon az eredeti"). Az egyetlen eltérés a
@@ -894,6 +918,11 @@ export default memo(function GerincterhelesKalkulator({ onHoursChange }: Gerinct
       byId('loadCategory')!.style.color = lc.color
       byId('actCategory')!.textContent = ac.label
       byId('actCategory')!.style.color = ac.color
+      onResultChangeRef.current?.({
+        totalHours, totalLoad, totalAct,
+        loadLabel: lc.label, loadColor: lc.color,
+        actLabel: ac.label, actColor: ac.color,
+      })
       setNeedle('loadDial', totalLoad, LOAD_MIN, LOAD_MAX)
       setNeedle('actDial', totalAct, ACT_MIN, ACT_MAX)
       byId('totalHours')!.textContent = fmt(totalHours)

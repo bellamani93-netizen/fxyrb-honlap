@@ -10,6 +10,7 @@ import Idopontfoglalas from './pages/Idopontfoglalas'
 import Belepes from './pages/Belepes'
 import Allapotfelmero from './pages/Allapotfelmero'
 import Gyakorlatok from './pages/Gyakorlatok'
+import Eredmenyeim from './pages/Eredmenyeim'
 import UgyfelKonzultaciok from './pages/UgyfelKonzultaciok'
 import GytUgyfelek from './pages/GytUgyfelek'
 import GytVideokiosztas from './pages/GytVideokiosztas'
@@ -103,6 +104,7 @@ function AppRoutes() {
         <Route element={<UgyfelGate />}>
           <Route path="/gyakorlatok" element={<Gyakorlatok />} />
           <Route path="/konzultacioim" element={<UgyfelKonzultaciok />} />
+          <Route path="/eredmenyeim" element={<Eredmenyeim />} />
         </Route>
       </Route>
       <Route element={<AppLayout navItems={gytNavItems} userName="Judit" role="gyt" />}>

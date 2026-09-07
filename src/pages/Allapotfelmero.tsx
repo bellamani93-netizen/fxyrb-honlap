@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Chevron from '../components/Chevron'
-import GerincterhelesKalkulator from '../components/GerincterhelesKalkulator'
+import GerincterhelesKalkulator, { type GerincterhelesEredmeny } from '../components/GerincterhelesKalkulator'
 import Icon from '../components/Icon'
 import ToggleSwitch from '../components/ToggleSwitch'
 import { withBase } from '../lib/assetUrl'
+import { getSessionName } from '../lib/session'
 import {
   useAllapotfelmero,
   type AllapotfelmeroAdatok,
@@ -66,17 +67,6 @@ const STEP_META: Record<number, { title?: string; subtitle?: string }> = {
   7: { title: 'rizikófaktorok II', subtitle: 'van-e ezek közül valamelyik?' },
   8: { title: 'mozgékonyság', subtitle: 'a tornát érintő kérdések — ne csalj! 🙂' },
   9: { title: 'Személyes célod' },
-}
-
-function getSessionName(fallback: string): string {
-  try {
-    const raw = localStorage.getItem('fyb-session')
-    if (!raw) return fallback
-    const session = JSON.parse(raw) as { name?: string; role?: string }
-    return session.role === 'ugyfel' && session.name ? session.name : fallback
-  } catch {
-    return fallback
-  }
 }
 
 /** a fejléc (mobilon a hamburger-sáv) tényleges magasságát vonja le a
@@ -303,7 +293,7 @@ function MultiToggleRow({
  * sorban (2026.09.04., Marci kérésére: "pontszerű, kicsi, nagy") — ez a
  * popup mostantól minden felbontáson (nem csak mobilon) ez fut. */
 const MERET_LABELS: Record<BodyChartMeret, string> = { pontszeru: 'pontszerű', kis: 'kicsi', nagy: 'nagy' }
-const BODYCHART_IMAGES: Record<BodyChartNezet, string> = { hat: '/images/bodychart-hat.svg', rtg: '/images/bodychart-rtg.svg' }
+export const BODYCHART_IMAGES: Record<BodyChartNezet, string> = { hat: '/images/bodychart-hat.svg', rtg: '/images/bodychart-rtg.svg' }
 
 // 2026.09.04., 3. korrekció: Marci saját, kézzel rajzolt SVG-t adott mindkét
 // nézethez (tűéles, bármilyen felbontáson) — ezekbe MÁR bele van rajzolva a
@@ -313,8 +303,8 @@ const BODYCHART_IMAGES: Record<BodyChartNezet, string> = { hat: '/images/bodycha
 // fájlban, majd egy `translate`-tel eltolva a tartalmat úgy, hogy a két
 // árnyék PONTOSAN ugyanoda essen a közös vásznon) — ez a CHART_W/CHART_H a
 // közös vászon mérete, ami egyben a jelölés-SVG viewBox-a is.
-const CHART_W = 265.52844
-const CHART_H = 553.0808792114258
+export const CHART_W = 265.52844
+export const CHART_H = 553.0808792114258
 
 // 2026.09.04., Marci kérésére: "a rajzolós vonal/pont vastagságok legyenek
 // kisebbek, mindegyik a mostani 75%-a" — az előző (9/20/34, ill. 12/22/36)
@@ -355,7 +345,7 @@ function UndoIcon() {
 /** a jelölések (pontok ÉS húzott vonalak) egységes rétege — egy maszkolt SVG,
  * aminek a mask-image-e maga a testábra-kép, ezért semmi nem lóghat túl a
  * kontúron (ld. korábbi, 2026.09.04-i javítás, ld. Design jegyzet 73. pont). */
-function BodyChartMarksLayer({ jelek, maskSrc }: { jelek: BodyChartJel[]; maskSrc: string }) {
+export function BodyChartMarksLayer({ jelek, maskSrc }: { jelek: BodyChartJel[]; maskSrc: string }) {
   return (
     <svg
       className="bodychart-marks-svg"
@@ -689,7 +679,7 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
 
 export default function Allapotfelmero() {
   const navigate = useNavigate()
-  const { complete } = useAllapotfelmero()
+  const { complete, setAdatok } = useAllapotfelmero()
   const [step, setStep] = useState(1)
   const [calcHours, setCalcHours] = useState(0)
   const availableHeight = useAvailableHeight()
@@ -699,10 +689,21 @@ export default function Allapotfelmero() {
   // kitöltő csík elérte a 24/24 órát — minden más lapon mindig elérhető
   // (2026.09.04., Marci kérésére).
   const nextAvailable = !isCalculatorStep || calcHours >= 23.999
+  // STABIL referencia (2026.09.07.) — a `setAdatok` maga is stabil (ld.
+  // AllapotfelmeroContext.tsx `useCallback` jegyzete), de egy JSX-be írt
+  // inline `(result) => setAdatok(...)` nyíl-függvény MINDEN render
+  // alkalmával új referenciát adna, ami a GerincterhelesKalkulator
+  // `React.memo`-ját hatástalanítaná.
+  const handleCalcResultChange = useCallback((result: GerincterhelesEredmeny) => {
+    setAdatok({ gerincterhelesEredmeny: result })
+  }, [setAdatok])
 
   function handleNext() {
     if (step === TOTAL_STEPS) {
       complete()
+      // KÉSŐBB (Marci A)1 válasza, 2026.09.07.): a "beküldés" majd az
+      // oktatóanyagra fog navigálni — egyelőre, amíg az oktatóanyag lapja
+      // nem készül el, marad a /gyakorlatok.
       navigate('/gyakorlatok')
       return
     }
@@ -762,7 +763,10 @@ export default function Allapotfelmero() {
         {step === BODY_CHART_STEP ? (
           <BodyChartStep />
         ) : isCalculatorStep ? (
-          <GerincterhelesKalkulator onHoursChange={setCalcHours} />
+          <GerincterhelesKalkulator
+            onHoursChange={setCalcHours}
+            onResultChange={handleCalcResultChange}
+          />
         ) : (
           <div className="container-fluid allapotfelmero-form">
             {meta.title && <h1 className="allapotfelmero-title">{meta.title}</h1>}

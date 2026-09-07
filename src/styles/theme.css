@@ -68,6 +68,17 @@
      mert ez itt "tinta" a testábrán, nem állapot-visszajelzés. */
   --symptom-red: #E63946;
 
+  /* gerincterhelés/aktivitás zóna-skála (piros→zöld) — eredetileg a
+     GerincterhelesKalkulator.tsx saját, `.gt-calc-container`-re szűkített
+     változójaként élt, de az Eredménylap (2026.09.07.) is UGYANEZEKKEL a
+     színekkel jeleníti meg a kalkulátor visszaadott eredményét (ld.
+     GerincterhelesEredmeny.loadColor/actColor) — ehhez globálisan elérhető
+     tokennek kellett lennie. Szándékosan FIX, nem mód-függő, mint a fenti
+     macOS-/tünet-színek — ez egy saját, jelentéssel bíró adatvizualizációs
+     skála, nem a márkapaletta része. */
+  --z1: #C0392B; --z2: #E07A3F; --z3: #E8B94A; --z4: #8FC2B8; --z5: #3FA79B; --z6: #28B463;
+  --a1: #C0392B; --a2: #E07A3F; --a3: #E8B94A; --a4: #8FC2B8; --a5: #28B463;
+
   /* GYT "naptáram" — saját (nem SALES-kapacitás-) színkódolás (2026.08.31.,
      Marci kérésére) — MINDEN gyt a saját naptárában ezt látja, függetlenül
      attól, hogy a SALES "gyt naptárak" nézetén milyen kolléga-színt kapott

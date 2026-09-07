@@ -26,7 +26,7 @@ function buildUfNavItems(felmeresKesz: boolean): NavItem[] {
     { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
     { label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: true },
     { label: 'oktatóanyag', icon: '/icons/ikon_tanulas.svg', locked: true },
-    { label: 'eredményeim', icon: '/icons/ikon_csillag.svg', locked: true },
+    { to: '/eredmenyeim', label: 'eredményeim', icon: '/icons/ikon_csillag.svg', locked: !felmeresKesz },
     { label: 'kérdéseim', icon: '/icons/ikon_csengo.svg', locked: true },
   ]
 }

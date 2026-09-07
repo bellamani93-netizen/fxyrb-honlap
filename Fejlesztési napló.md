@@ -1502,3 +1502,21 @@ Marci lezártnak tekintette a flow-t, de kért egy utolsó, teljes átvizsgálá
 4. Elavult kódkomment: a `STEP_META` fölötti magyarázat nem említette a később hozzáadott "Személyes célod" lapot — frissítve.
 
 **Tesztelve böngészőben:** a teljes 10 lapos kérdőívet egyetlen, folyamatos futásban végigjátszva mobilon — minden lap helyesen jelent meg, a kalkulátor kitöltése és a "beküldés" gomb is helyesen működött a folyamat végén. `npm run build` hibamentes, ami megerősíti, hogy a `painLocation` mező törlése biztonságos volt.
+
+## 2026.09.07. — Eredménylap (ÜF fiók) — új szakasz indítása
+
+Marci saját, nem publikus dokumentuma ("allapot logika.odt", gitignore-olt) alapján, a "Minta_hát értékelés.pdf" elrendezés-ihletésével (csak ötletnek, nem másolva) elkészült az Eredménylap az ÜF fiókban. A GYT-oldali integráció (a torna-szintek rendszer manuális kapcsolóinak ezekre az adatokra épülő későbbi felváltása) explicit módon KÉSŐBBI fázis.
+
+Mielőtt bármit írtam volna, mindhárom forrást (állapotfelmérő kód, "allapot logika", PDF) átnézve 13 pontosító kérdést tettem fel Marcinak — a jóváhagyott válaszok alapján:
+
+1. `src/lib/allapotfelmeroEredmeny.ts` — új, tiszta segédfüggvények (életkor/BMI-számítás, BMI-kategória, body chart → fájdalom-hely levezetés a 33%-os határvonal + terület-súlyozás szabálya szerint, mozgékonyság-levezetések) — egyelőre önálló, a GYT-oldali `tornaSzintek.ts`-be nincs bekötve.
+2. `src/lib/session.ts` — a korábban `Allapotfelmero.tsx`-be zárt `getSessionName` kiemelve, mert az Eredménylapnak is kell.
+3. `src/pages/Eredmenyeim.tsx` — az Eredménylap maga, 7 `.card-fyb` szakaszra bontva (Alapadatok, Tünet, Történet, Rizikó, Mozgékonyság, Célod, Gerincterhelés), a meglévő body chart elemek (`BODYCHART_IMAGES`, `BodyChartMarksLayer`) újrafelhasználásával.
+4. `GerincterhelesKalkulator.tsx` — új `onResultChange` callback-prop, ami a teljes eredményt (órák, pontszámok, kategória-cím/szín) visszaadja az Eredménylapnak, hogy az UGYANAZT a logikát jelenítse meg újra, saját újraszámítás nélkül. Ehhez a kalkulátor zóna-színei (`--z1..z6`/`--a1..a5`) a `theme.css` globális tokenjei közé kerültek.
+5. Új, újrahasznosítható `ScaleGauge` komponens: vízszintes, zóna-színezett skála-sáv jelölő-csíkkal — a kalkulátor félkör-műszeréhez hasonló, de egyszerűbb vizuális logika, ugyanazokkal a zóna-színekkel (a BMI-sávhoz külön szín-készlet nélkül, ugyanennek a skálának a színeit újrahasznosítva).
+
+**Proaktívan elkerült regresszió:** az `onResultChange` bekötése előtt felismertem, hogy egy inline JSX callback újra előidézné a korábban már kijavított `React.memo`-hibát (a kalkulátor `dangerouslySetInnerHTML`-jét bármilyen instabil prop-referencia újra-diffelné) — a teljes láncot (`AllapotfelmeroContext.tsx` mutátorai, `Allapotfelmero.tsx` saját callback-je) `useCallback`-kel stabilizáltam, mielőtt böngészőben tesztelni kezdtem volna.
+
+**Hibajavítás a fejlesztés közben:** a `ScaleGauge` jelölő-csíkja kezdetben nem látszott, mert a track saját `overflow:hidden`-je levágta — a zóna-színezés lekerekített sarkait adó vágás egy külön, a markert nem tartalmazó rétegre került.
+
+**Tesztelve böngészőben:** a teljes 10 lapos kérdőívet végigjátszva (rizikófaktorral, háromállású váll-válasszal, nyaki panasszal, egy body chart jelöléssel, a kalkulátor 24/24 órára töltve), majd SPA-navigációval (nem teljes újratöltéssel, hogy a munkamenet-szintű állapot ne vesszen el) az "eredményeim" oldalra lépve — mind a 7 szakasz helyesen jelent meg. Mobilon és asztalin, világos és sötét módban is ellenőrizve. `npm run build` hibamentes.
