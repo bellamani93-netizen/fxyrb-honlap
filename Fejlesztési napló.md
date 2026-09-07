@@ -1452,3 +1452,11 @@ Marci jelezte, hogy a "Munka" dobozból hiányzik az a vékony középső elvál
 Marci jelezte, hogy az "Utazás" és "Szabadidős tevékenység" dobozban a bal oszlop csúszkája túl közel van a középvonalhoz. A vizsgálat egy mélyebb hibát tárt fel: a kalkulátor saját `.row` osztálya véletlenül egybeesik a Bootstrap globális rács-rendszerének `.row` osztályával, ami minden `.row`-nak -12px oldalsó margót ad, a közvetlen gyerekeinek pedig 12px paddingot és max-width:100%-ot — ezt a kalkulátor saját CSS-e sosem írta felül. Ez 24px-es átfedést okozott a két oszlop sorai között (DOM-méréssel igazolva). Javítva egy explicit margin:0 és a gyerekek padding/max-width nullázásával, ami semlegesíti a Bootstrap beszüremlett hatását anélkül, hogy a kalkulátor saját stílusait érintené.
 
 **Tesztelve böngészőben:** DOM-méréssel — a sorok most pontosan a rács-oszlopok szélességét foglalják el, 0px átfedéssel (korábban 24px). Mindhárom doboztípus (flat, col-block, egysoros) ellenőrizve, hibátlan. Mobilon változatlan. `npm run build` hibamentes.
+
+## 2026.09.04. — Lime "beküldés" gomb, lebegő nyilak hover-effektje, nagyobb intenzitás-szám
+
+Marci három korrekciót kért: a kalkulátor kitöltése után megjelenő gomb legyen lime hátterű, "beküldés" felirattal és pipa ikonnal (a korábbi, csak ikont mutató kör-gomb helyett); a balra-jobbra nyíl-gombok mögött minden nézetben legyen egy nagyon enyhe hover-árnyék; a 3. lapon a csúszka alatti szám legyen nagyobb.
+
+A "beküldés" gomb a "kezdjük" CTA-val azonos, lime pirula-stílust kapta, a pozícionáláshoz a meglévő lebegő-gomb osztályokat újrahasznosítva. A nyilak hover-árnyékához egy kettős osztály-feltételű szabály került be, hogy a pirula-CTA-k (amik ugyanazt a pozícionáló osztályt osztják meg a nyilakkal) ne kapják meg tévedésből ugyanezt a hover-effektet. Az intenzitás-szám mérete 1.75rem-re nőtt.
+
+**Tesztelve böngészőben:** mobilon és asztalin, világos és sötét módban — a "beküldés" gomb helyesen jelenik meg és navigál, a nagyobb intenzitás-szám DOM-méréssel megerősítve. A hover-szabály jelenléte a stíluslapban ellenőrizve (a szintetikus hover a tesztkörnyezetben nem váltotta ki megbízhatóan a `:hover` állapotot, ismert automatizálási korlát). `npm run build` hibamentes.

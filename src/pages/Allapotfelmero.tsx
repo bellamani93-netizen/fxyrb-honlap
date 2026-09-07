@@ -590,9 +590,11 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
           <div className="mb-2">
             <FieldLabel>intenzitás</FieldLabel>
             <IntensityRange value={adatok.intenzitas} onChange={(v) => setAdatok({ intenzitas: v })} />
-            <div className="d-flex justify-content-between small" style={{ color: 'var(--color-text-muted)' }}>
+            <div className="d-flex justify-content-between align-items-center small" style={{ color: 'var(--color-text-muted)' }}>
               <span>0 — semmi</span>
-              <span className="fw-bold" style={{ color: 'var(--color-primary)' }}>{adatok.intenzitas}</span>
+              {/* a jelenlegi érték nagyobb, jól látható szám (2026.09.04.,
+                 Marci kérésére: "a csúszka alatt a szám legyen nagyobb"). */}
+              <span className="fw-bold" style={{ color: 'var(--color-primary)', fontSize: '1.75rem', lineHeight: 1 }}>{adatok.intenzitas}</span>
               <span>10 — max. intenzitás</span>
             </div>
           </div>
@@ -757,8 +759,18 @@ export default function Allapotfelmero() {
             <Chevron direction="right" color="var(--navy)" />
           </button>
         ) : (
-          <button type="button" className="allapotfelmero-nav-btn allapotfelmero-nav-btn--save allapotfelmero-nav-btn--float allapotfelmero-nav-btn--next" onClick={handleNext} aria-label="mentés" title="mentés">
-            <Icon src="/icons/ikon_pipa.svg" />
+          // a kalkulátor kitöltése (24/24 óra) után megjelenő gomb a
+          // "kezdjük" CTA-val azonos, lime hátterű pirula-stílust kapja,
+          // szöveggel + pipa ikonnal (2026.09.04., Marci kérésére) — a
+          // korábbi, csak ikont mutató kör-gomb helyett.
+          <button
+            type="button"
+            className="btn-fyb btn-fyb-highlight btn-fyb-lg allapotfelmero-nav-btn--float allapotfelmero-nav-btn--next"
+            onClick={handleNext}
+            aria-label="beküldés"
+          >
+            beküldés
+            <Icon src="/icons/ikon_pipa.svg" style={{ backgroundColor: 'var(--navy)' }} />
           </button>
         )
       )}

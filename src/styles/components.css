@@ -1745,6 +1745,18 @@ html[data-theme='dark'] .sales-delete-icon {
   bottom: 0.75rem;
   z-index: 20;
   box-shadow: var(--shadow-card);
+  transition: box-shadow 0.15s ease;
+}
+/* nagyon enyhe árnyék-effektus hoverre, minden nézetben (2026.09.04.,
+   Marci kérésére: "minden nézet jobbra-balra nyilai mögött legyen egy kis
+   hover effektus") — a nyugalmi `--shadow-card`-nál kicsit erősebb/lágyabb
+   `--shadow-card-hover`, ugyanaz a token, amit a projekt többi gombja is
+   használ hoverre. Kizárólag a nyíl-gombokra (`.allapotfelmero-nav-btn`
+   ALAP osztály is kell hozzá) — a "kezdjük"/"beküldés" pirula-CTA-k a
+   `--float`-ot pozícióhoz osztják meg velük, de NEM a kör-gomb alapot,
+   ezért ez a szabály őket nem érinti. */
+.allapotfelmero-nav-btn.allapotfelmero-nav-btn--float:hover {
+  box-shadow: var(--shadow-card-hover);
 }
 .allapotfelmero-nav-btn--prev {
   left: 0.75rem;
@@ -1756,22 +1768,15 @@ html[data-theme='dark'] .sales-delete-icon {
   height: 0.95em;
 }
 /* a balra-jobbra nyilak a "kezdjük" gombbal EGYEZŐ színt kaptak (2026.09.04.,
-   Marci kérésére: "színezd át a kezdjük gomb színeire") — a "mentés" (pipa)
-   gomb saját, elsődleges-szín háttere ettől függetlenül, `:not()`-tal
-   kizárva, változatlan maradt. */
+   Marci kérésére: "színezd át a kezdjük gomb színeire") — a kalkulátor
+   végén megjelenő "beküldés" gomb mostantól MAGA is a "kezdjük"-kel azonos
+   .btn-fyb.btn-fyb-highlight pirula-stílust használja (nem ezt a kör-gomb
+   osztályt), ezért a korábbi `.allapotfelmero-nav-btn--save` kizárás
+   feleslegessé vált. */
 .allapotfelmero-nav-btn--prev,
-.allapotfelmero-nav-btn--next:not(.allapotfelmero-nav-btn--save) {
+.allapotfelmero-nav-btn--next {
   background-color: var(--lime);
   color: var(--navy);
-}
-.allapotfelmero-nav-btn--save {
-  background-color: var(--color-primary);
-  color: var(--color-primary-contrast);
-}
-.allapotfelmero-nav-btn--save .icon-fyb {
-  width: 1.1rem;
-  height: 1.1rem;
-  color: var(--color-primary-contrast);
 }
 .allapotfelmero-content {
   flex: 1 1 auto;
@@ -1976,10 +1981,6 @@ html[data-theme='dark'] .sales-delete-icon {
     width: 3.2rem;
     height: 3.2rem;
     font-size: 1.3rem;
-  }
-  .allapotfelmero-nav-btn--save .icon-fyb {
-    width: 1.5rem;
-    height: 1.5rem;
   }
   /* a "kezdjük" CTA is ugyanúgy távolabb kerül a sarokban lévő szélektől,
      mint a többi lebegő gomb (2026.09.04.). */
