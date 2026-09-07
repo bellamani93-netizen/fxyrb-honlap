@@ -1546,3 +1546,12 @@ Marci két apró korrekciót kért: (1) az Alapadatok kártyán a névhez/becen�
 A mobil hiba oka: a fő sor `≤640px`-en `flex-direction:column`-ra váltott. Javítás: a sor mindig `row` marad, csak a méretek (testábra magassága, a sáv szélessége) kisebbednek egy szűkebb (`≤480px`) törésponton, hogy egy telefonon is kiférjenek egymás mellett.
 
 **Tesztelve böngészőben:** mobilon (375px) screenshot-tal megerősítve, hogy a testábra és az intenzitás-sáv egymás mellett jelenik meg; asztalin az Alapadatok a kért 3-soros elrendezést mutatja. `npm run build` hibamentes.
+
+## 2026.09.07. — Vizualizációs javaslatok + 2 kiválasztott megvalósítva
+
+Marci arra kért, hogy javasoljak vizualizációs fejlesztéseket az Eredménylaphoz — kevesebb felesleges elem/cím, több grafikus megjelenítés, hogy egyszerre több infó látszódjon. 5 javaslatot adtam (Mozgékonyság ikon-rács, Történet ikonos chip-sor, közös mutató-sáv, Célod összevonása, Rizikó változatlanul), ebből 2-t választott ki:
+
+1. **Közös "Áttekintés" mutató-sáv** — a korábbi külön Alapadatok (BMI) és Gerincterhelés (Terhelés/Aktivitás) kártya egy "Áttekintés" kártyává vonva össze: a személyes adatok egy sorban a 3 dial fölött, a 3 mutató egy közös sorban, kompakt (`size="sm"`) méretben — 2 kártya-fejléc/keret helyett 1, és mind a 3 legfontosabb szám egy pillantással látszik.
+2. **Mozgékonyság ikon-rács** — a 4 szöveges "igen/nem" sor helyett egy 4 elemű ikon-rács (zöld pipa/piros X/narancs felkiáltójel), a meglévő zóna-színskálát újrahasznosítva.
+
+**Tesztelve böngészőben:** mobilon és asztalin, világos és sötét módban is — mindkét új elrendezés helyesen, a várt adatokkal jelenik meg. `npm run build` hibamentes.

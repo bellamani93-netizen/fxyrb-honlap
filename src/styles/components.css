@@ -2328,22 +2328,53 @@ html[data-theme='dark'] .bodychart-img {
   gap: 0.5rem;
 }
 
-/* --- Alapadatok: kompakt szöveg-oszlop (név+becenév, alatta életkor, alatta
-   magasság) + a BMI mutató mellette (2026.09.07., Marci kérésére: "kisebb
-   helyen legyenek" / "alá kerüljön az életkor, az alatt a cm"). */
-.eredmeny-alapadatok-layout {
+/* --- Áttekintés: egysoros személyes-adat felirat + alatta a 3 mutató
+   (BMI/Terhelés/Aktivitás) egy közös sávban (2026.09.07., Marci kérésére:
+   "közös mutató-sáv felül" — a korábbi külön Alapadatok/Gerincterhelés
+   kártya összevonva, kevesebb cím/keret-overheaddel). */
+.eredmeny-overview-text {
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-align: center;
+}
+.eredmeny-overview-hours {
+  text-align: center;
+  color: var(--color-text-muted);
+  margin: 0.5rem 0 0;
+}
+
+/* --- Mozgékonyság ikon-rács — pipa/X/felkiáltójel jelvény + rövid felirat,
+   a korábbi 4 sima szöveges sor helyett (2026.09.07., Marci kérésére: "a
+   lehető legtöbb grafikus megjelenítéssel"). */
+.eredmeny-mobility-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 1rem;
+}
+.eredmeny-mobility-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  width: 80px;
+  text-align: center;
+}
+.eredmeny-mobility-badge {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.25rem;
-}
-.eredmeny-alapadatok-name {
-  font-weight: 700;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #fff;
   font-size: 1.1rem;
+  font-weight: 800;
 }
-.eredmeny-alapadatok-sub {
+.eredmeny-mobility-label {
+  font-size: 0.78rem;
   color: var(--color-text-muted);
-  margin-top: 0.15rem;
+  font-weight: 600;
 }
 
 /* --- félkör-mutató (DialGauge) — a gerincterhelés kalkulátor saját

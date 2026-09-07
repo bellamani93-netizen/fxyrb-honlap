@@ -210,6 +210,28 @@ function VerticalIntensityBar({ value }: { value: number }) {
   )
 }
 
+/** Mozgékonyság ikon-rács (2026.09.07., Marci kérésére: "a lehető legtöbb
+ * grafikus megjelenítéssel") — a korábbi 4 sima "igen/nem" szöveges sor
+ * helyett egy pipa/X/felkiáltójel jelvény + rövid felirat, hogy a 4 válasz
+ * egyetlen pillantással áttekinthető legyen. A piros/sárga/zöld jelentés a
+ * projekt meglévő, --z1/--z2/--z6 zóna-színskáláját használja (ugyanaz a
+ * "hasonló skála" elv, mint a BMI-sávnál), nem vezet be új színt. */
+type MobilityState = 'ok' | 'not-ok' | 'caution'
+const MOBILITY_STYLE: Record<MobilityState, { color: string; symbol: string }> = {
+  ok: { color: 'var(--z6)', symbol: '✓' },
+  'not-ok': { color: 'var(--z1)', symbol: '✕' },
+  caution: { color: 'var(--z2)', symbol: '!' },
+}
+function MobilityItem({ label, state }: { label: string; state: MobilityState }) {
+  const { color, symbol } = MOBILITY_STYLE[state]
+  return (
+    <div className="eredmeny-mobility-item">
+      <span className="eredmeny-mobility-badge" style={{ background: color }}>{symbol}</span>
+      <span className="eredmeny-mobility-label">{label}</span>
+    </div>
+  )
+}
+
 export default function Eredmenyeim() {
   const { adatok } = useAllapotfelmero()
   const [nezet, setNezet] = useState(adatok.bodyChartNezet)
@@ -233,13 +255,18 @@ export default function Eredmenyeim() {
         </div>
 
         <div className="eredmeny-cards">
-          <SectionCard icon="/icons/ikon_fiok.svg" title="Alapadatok">
-            <div className="eredmeny-alapadatok-layout">
-              <div className="eredmeny-alapadatok-text">
-                <div className="eredmeny-alapadatok-name">{becenev ? `${teljesNev} (${becenev})` : teljesNev}</div>
-                <div className="eredmeny-alapadatok-sub">{eletkor !== null ? `${eletkor} év` : '—'}</div>
-                <div className="eredmeny-alapadatok-sub">{adatok.magassag ? `${adatok.magassag} cm` : '—'}</div>
-              </div>
+          {/* Áttekintés (2026.09.07., Marci kérésére: "közös mutató-sáv felül")
+             — a korábbi külön "Alapadatok" (BMI) és "Gerincterhelés" (Terhelés/
+             Aktivitás) kártya EGY közös "vitals" sávvá vonva össze, hogy a 3
+             legfontosabb szám egyetlen kártyán, egy pillantással látszódjon,
+             kevesebb ismétlődő cím/keret-overhead mellett. */}
+          <SectionCard icon="/icons/ikon_fiok.svg" title="Áttekintés">
+            <div className="eredmeny-overview-text">
+              {becenev ? `${teljesNev} (${becenev})` : teljesNev}
+              {eletkor !== null && ` · ${eletkor} év`}
+              {adatok.magassag && ` · ${adatok.magassag} cm`}
+            </div>
+            <div className="eredmeny-dial-row">
               {bmi !== null && bmiCat && (
                 <DialGauge
                   value={bmi}
@@ -254,7 +281,18 @@ export default function Eredmenyeim() {
                   size="sm"
                 />
               )}
+              {gt !== null && (
+                <>
+                  <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} caption="Terhelés" size="sm" />
+                  <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} caption="Aktivitás" size="sm" />
+                </>
+              )}
             </div>
+            {gt !== null ? (
+              <p className="eredmeny-overview-hours">Beosztott napi idő: {fmtHu(gt.totalHours)} / 24 óra</p>
+            ) : (
+              <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>a gerincterhelés kalkulátor még nincs kitöltve.</p>
+            )}
           </SectionCard>
 
           <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet">
@@ -298,31 +336,19 @@ export default function Eredmenyeim() {
           </SectionCard>
 
           <SectionCard icon="/icons/ikon_torna.svg" title="Mozgékonyság">
-            <InfoRow label="hason fekvés kemény felületen" value={adatok.proneOk ? 'igen' : 'nem'} />
-            <InfoRow
-              label="kar váll fölé emelése"
-              value={adatok.shoulderOk === 'igen' ? 'igen' : adatok.shoulderOk === 'nem' ? 'nem' : 'igen, de érzékeny'}
-            />
-            <InfoRow label="nyaki panasz" value={adatok.nyakiPanasz ? 'igen' : 'nem'} />
-            <InfoRow label="térdfájdalom" value={adatok.kneePain ? 'van' : 'nincs'} />
+            <div className="eredmeny-mobility-grid">
+              <MobilityItem label="hason fekvés" state={adatok.proneOk ? 'ok' : 'not-ok'} />
+              <MobilityItem
+                label="váll mozgás"
+                state={adatok.shoulderOk === 'igen' ? 'ok' : adatok.shoulderOk === 'nem' ? 'not-ok' : 'caution'}
+              />
+              <MobilityItem label="nyaki panasz" state={adatok.nyakiPanasz ? 'not-ok' : 'ok'} />
+              <MobilityItem label="térdfájdalom" state={adatok.kneePain ? 'not-ok' : 'ok'} />
+            </div>
           </SectionCard>
 
           <SectionCard icon="/icons/ikon_csillag.svg" title="Célod">
             <p className="mb-0">{adatok.szemelyesCel || '—'}</p>
-          </SectionCard>
-
-          <SectionCard icon="/icons/ikon_szintek.svg" title="Gerincterhelés">
-            {gt === null ? (
-              <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>a gerincterhelés kalkulátor még nincs kitöltve.</p>
-            ) : (
-              <>
-                <InfoRow label="Beosztott napi idő" value={`${fmtHu(gt.totalHours)} / 24 óra`} />
-                <div className="eredmeny-dial-row">
-                  <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} caption="Terhelés" />
-                  <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} caption="Aktivitás" />
-                </div>
-              </>
-            )}
           </SectionCard>
         </div>
       </div>
