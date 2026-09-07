@@ -25,14 +25,16 @@ function fmtHu(n: number, decimals = 1): string {
 function SectionCard({
   icon,
   title,
+  className,
   children,
 }: {
   icon: string
   title: string
+  className?: string
   children: React.ReactNode
 }) {
   return (
-    <div className="card-fyb eredmeny-card">
+    <div className={`card-fyb eredmeny-card ${className ?? ''}`}>
       <div className="eredmeny-card-header">
         <Icon src={icon} />
         <h2 className="eredmeny-card-title">{title}</h2>
@@ -92,13 +94,17 @@ function DialGauge({
   unit: string
   category: string
   categoryColor?: string
-  caption: string
+  /** opcionális — ha a dial már egy saját, ugyanezt a nevet viselő kártya-cím
+   * alatt jelenik meg (ld. Eredmenyeim() "BMI"/"Gerincterhelés"/"Aktivitási
+   * szint" dobozai, 2026.09.07., Marci kérésére), a felirat elhagyható, hogy
+   * ne ismétlődjön kétszer ugyanaz a szöveg egy kis dobozon belül. */
+  caption?: string
   size?: 'sm' | 'md'
 }) {
   const needleRotation = 90 - dialAngleForValue(value, min, max)
   return (
     <div className={`eredmeny-dial eredmeny-dial--${size}`}>
-      <span className="eredmeny-dial-caption">{caption}</span>
+      {caption && <span className="eredmeny-dial-caption">{caption}</span>}
       <svg viewBox="-16 -8 232 124" className="eredmeny-dial-svg">
         {zones.map((z, i) => {
           const zmin = Math.max(z.min, min)
@@ -267,13 +273,15 @@ export default function Eredmenyeim() {
             <div className="eredmeny-alapadatok-date">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</div>
           </SectionCard>
 
-          {/* Mutatók — külön doboz (2026.09.07., Marci kérésére) a 3 dial
-             (BMI, Gerincterhelés, Aktivitási szint) számára, nagyobb
-             feliratokkal (ld. .eredmeny-dial-caption), hogy jobban
-             látszódjanak. */}
-          <SectionCard icon="/icons/ikon_szintek.svg" title="Mutatók">
-            <div className="eredmeny-dial-row">
-              {bmi !== null && bmiCat && (
+          {/* A 3 mutató (BMI, Gerincterhelés, Aktivitási szint) MOSTANTÓL
+             KÜLÖN dobozban (2026.09.07., Marci kérésére: "A mutatóknak külön
+             saját dobozuk is legyen") — a kártya-cím maga adja a nevet, ezért
+             a DialGauge saját `caption`-je itt elhagyva (ne ismétlődjön
+             kétszer ugyanaz a felirat egy kis dobozon belül). A "Beosztott
+             napi idő" szöveg Marci kérésére törölve. */}
+          <SectionCard icon="/icons/ikon_szintek.svg" title="BMI">
+            {bmi !== null && bmiCat ? (
+              <div className="eredmeny-dial-row">
                 <DialGauge
                   value={bmi}
                   min={15}
@@ -283,25 +291,35 @@ export default function Eredmenyeim() {
                   unit="kg/m²"
                   category={bmiCat.label}
                   categoryColor={BMI_CATEGORY_COLOR[bmiCat.key]}
-                  caption="BMI"
                   size="sm"
                 />
-              )}
-              {gt !== null && (
-                <>
-                  <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} caption="Gerincterhelés" size="sm" />
-                  <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} caption="Aktivitási szint" size="sm" />
-                </>
-              )}
-            </div>
+              </div>
+            ) : (
+              <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>nincs elég adat a számításhoz.</p>
+            )}
+          </SectionCard>
+
+          <SectionCard icon="/icons/ikon_szintek.svg" title="Gerincterhelés">
             {gt !== null ? (
-              <p className="eredmeny-overview-hours">Beosztott napi idő: {fmtHu(gt.totalHours)} / 24 óra</p>
+              <div className="eredmeny-dial-row">
+                <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} size="sm" />
+              </div>
             ) : (
               <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>a gerincterhelés kalkulátor még nincs kitöltve.</p>
             )}
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet">
+          <SectionCard icon="/icons/ikon_szintek.svg" title="Aktivitási szint">
+            {gt !== null ? (
+              <div className="eredmeny-dial-row">
+                <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} size="sm" />
+              </div>
+            ) : (
+              <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>a gerincterhelés kalkulátor még nincs kitöltve.</p>
+            )}
+          </SectionCard>
+
+          <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet" className="eredmeny-card--lime-border">
             <p className="eredmeny-tunet-description">{adatok.tunetLeiras || '—'}</p>
             <div className="eredmeny-tunet-main">
               <div className="eredmeny-bodychart-large">
@@ -348,8 +366,8 @@ export default function Eredmenyeim() {
                 label="váll mozgás"
                 state={adatok.shoulderOk === 'igen' ? 'ok' : adatok.shoulderOk === 'nem' ? 'not-ok' : 'caution'}
               />
-              <MobilityItem label="nyaki panasz" state={adatok.nyakiPanasz ? 'not-ok' : 'ok'} />
-              <MobilityItem label="térdfájdalom" state={adatok.kneePain ? 'not-ok' : 'ok'} />
+              <MobilityItem label="nyak" state={adatok.nyakiPanasz ? 'not-ok' : 'ok'} />
+              <MobilityItem label="térd" state={adatok.kneePain ? 'not-ok' : 'ok'} />
             </div>
           </SectionCard>
 

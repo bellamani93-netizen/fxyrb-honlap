@@ -1565,3 +1565,11 @@ A "kitöltés időpontja" a "beküldés" pillanatában, kliens-oldalon rögzíte
 A szöveg-tördelés hibája két lépcsős volt: a flex-elrendezésű érték-oszlop nem tudott a tartalma alá zsugorodni (hiányzott a `min-width:0`), ezt pótolva viszont keskeny (telefonos) nézetben az így felszabaduló, de még mindig szűk hely miatt a szöveg SZÓN BELÜL kezdett törni. A végleges javítás: keskeny nézetben a címke+érték sor egymás alá rendeződik, az érték a teljes szélességet megkapja, így normál szóhatáron törik.
 
 **Tesztelve böngészőben:** szándékosan hosszú szabad szöveges válaszokkal újra végigjátszva a kérdőívet — a hiba előbb reprodukálva (screenshot-tal dokumentálva a szón belüli törést), majd a javítás után megerősítve, hogy a hosszú szöveg mostantól szóhatáron, a dobozon belül marad. `npm run build` hibamentes.
+
+## 2026.09.07. — Mutatók külön-külön dobozban, "beosztott napi idő" törölve, Mozgékonyság-feliratok rövidítve, Tünet doboz lime szegéllyel
+
+Marci négy apró korrekciót kért: (1) a 3 mutató (BMI, Gerincterhelés, Aktivitási szint) kapjon mindegyik saját, külön dobozt (eddig egy közös "Mutatók" kártyában voltak); (2) törölni a "Beosztott napi idő" szöveget; (3) a Mozgékonyság kártyán "nyaki panasz"/"térdfájdalom" helyett rövidebb "nyak"/"térd" felirat, változatlan pipa-logikával; (4) a Tünet doboz kapjon lime szegélyt.
+
+A `DialGauge` saját feliratát (`caption`) opcionálissá tettem, hogy a 3 külön kártyában ne ismétlődjön kétszer ugyanaz a szöveg (a kártya-cím már megnevezi a mutatót). A `SectionCard` komponens kapott egy `className` prop-ot, hogy a Tünet kártya saját, lime szegélyt kaphasson — sötét módban `!important`-tal felülírva a `.card-fyb` alapértelmezett szegélyét.
+
+**Tesztelve böngészőben:** mobilon és asztalin, világos és sötét módban is — mindhárom mutató saját kártyában, a "beosztott napi idő" sehol, a rövidebb "nyak"/"térd" feliratok, és a jól látható lime szegély a Tünet kártyán. `npm run build` hibamentes.

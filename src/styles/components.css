@@ -2291,6 +2291,13 @@ html[data-theme='dark'] .bodychart-img {
   flex-direction: column;
   gap: 1rem;
 }
+/* Tünet doboz lime szegélye (2026.09.07., Marci kérésére) — !important,
+   mert a .card-fyb sötét módban saját, magasabb specificitású szegélyt ad
+   (html[data-theme='dark'] .card-fyb), amit itt szándékosan felül kell írni,
+   MINDKÉT módban ugyanazzal a lime színnel. */
+.eredmeny-card--lime-border {
+  border: 2px solid var(--lime) !important;
+}
 .eredmeny-card-header {
   display: flex;
   align-items: center;
@@ -2370,12 +2377,6 @@ html[data-theme='dark'] .bodychart-img {
   padding-top: 0.5rem;
   border-top: 1px solid var(--color-border);
 }
-.eredmeny-overview-hours {
-  text-align: center;
-  color: var(--color-text-muted);
-  margin: 0.5rem 0 0;
-}
-
 /* --- Mozgékonyság ikon-rács — pipa/X/felkiáltójel jelvény + rövid felirat,
    a korábbi 4 sima szöveges sor helyett (2026.09.07., Marci kérésére: "a
    lehető legtöbb grafikus megjelenítéssel"). */
