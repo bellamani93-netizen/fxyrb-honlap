@@ -1901,12 +1901,25 @@ html[data-theme='dark'] .sales-delete-icon {
   /* a rövidebb lapok (pl. "mozgékonyság", ahol csak 4 sor van) eddig a
      terület TETEJÉHEZ tapadtak, alattuk üresen maradt a hely — függőlegesen
      is középre igazítva arányosabb, kiegyensúlyozottabb a kihasználás (a
-     body chart/kalkulátor lapja, amelyik saját maga tölti ki a teret, ettől
-     nem változik, hiszen náluk a gyerek-elem már eleve 100%-os magasságú). */
+     body chart lapja ettől nem változik, hiszen a gyereke már eleve
+     100%-os magasságú). */
   .allapotfelmero-content {
     display: flex;
     flex-direction: column;
     justify-content: center;
+  }
+  /* HIBAJAVÍTÁS (2026.09.04., Marci hibajelzésére: "asztali gép nézetben
+     nem látszódik az eleje"): a kalkulátor tartalma a body charttal
+     ELLENTÉTBEN NEM pontosan 100%-os magasságú, hanem ANNÁL MAGASABB
+     (görgethető) — a fenti `justify-content:center` ilyenkor a tartalmat a
+     konténer közepére tolja, ami a TETEJÉT a görgethető terület 0-s
+     pozíciója FÖLÉ tolja, ahonnan felfelé görgetve sem érhető el (a
+     böngésző nem enged negatív scrollTop-ot) — a fejléc-szöveg és az első
+     pár csúszka-sor emiatt véglegesen "eltűnt" asztali nézetben. A
+     kalkulátor lapján ezért visszaállítva a normál, felülről induló
+     elrendezésre. */
+  .allapotfelmero-content--calc {
+    justify-content: flex-start;
   }
   /* a form-doboz középre kerül és szélesebb lesz — nem tapad a bal szélhez,
      jobban arányos a sidebar melletti, gyakran jóval szélesebb területhez
