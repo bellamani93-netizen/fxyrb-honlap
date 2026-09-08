@@ -2286,6 +2286,16 @@ html[data-theme='dark'] .bodychart-img {
    7 tematikus .card-fyb szakasz, a projekt meglévő minta-elemeire építve
    (card-fyb, badge-fyb, .risk-checkbox-list szerkezete) — nincs a "Minta_hát
    értékelés.pdf"-ből átvett szín/betűtípus, csak az elrendezés-ötlet. */
+/* HIBAJAVÍTÁS (2026.09.08.): korábban a JSX-ben egy inline `style={{maxWidth:
+   860}}` adta ezt az értéket — az inline style MINDIG felülírja a
+   stíluslapból jövő szabályt (magasabb specificitás), ezért a `@media
+   (min-width:992px) { .eredmeny-page-container { max-width:1180px } }`
+   asztali felülbírálás SOHA nem léphetett érvénybe, ez okozta, hogy a bento
+   rács oszlopai a tervezettnél jóval keskenyebbek voltak. Az inline style
+   törölve a JSX-ből, az alap (mobil) érték ide, CSS-be került. */
+.eredmeny-page-container {
+  max-width: 860px;
+}
 .eredmeny-cards {
   display: flex;
   flex-direction: column;
@@ -2621,22 +2631,36 @@ html[data-theme='dark'] .bodychart-img {
    is tartalmazó doboz) 2×2-es területet foglal, körülötte a többi 7
    kártya tölti ki a fennmaradó cellákat — mindegyik `SectionCard` a saját
    `area` prop-ján (ld. Eredmenyeim.tsx) keresztül kapja a helyét. */
+/* asztalon rejtett / csak asztalon látható elemek (2026.09.08., a
+   "terv.jpg" kézzel rajzolt vázlat alapján) — a JSX mindkettőt MINDIG
+   rendereli, a láthatóságot kizárólag ez a 2 segéd-osztály + a
+   `min-width:992px` töréspont dönti el, hogy a mobil nézet (ahová Marci
+   kérésére EBBEN A FÁZISBAN nem nyúlunk) pixelre változatlan maradjon. */
+.eredmeny-desktop-only {
+  display: none;
+}
+
 @media (min-width: 992px) {
   .eredmeny-page-container {
     max-width: 1180px;
   }
-  /* Fontos tartalmak (Tünet+testábra, Rizikó, Mozgékonyság) kiemelt,
-     széles felső sorban; a másodlagos adatok (Alapadatok, a 3 mutató,
-     Történet, Célod) egy tömör alsó sávba szorulnak (2026.09.08., Marci
-     kérésére: "ezek legyenek kiemelt helyen"). 12 oszlopos rács, hogy a
-     felső sor 3 (6+3+3 arányú), az alsó sor 6 (egyenlő) elemét is
-     pontosan ki lehessen osztani. */
+  .eredmeny-mobile-only {
+    display: none;
+  }
+  /* Rács a "terv.jpg" vázlat elrendezése szerint: bal oszlop (Tünet+
+     Rizikó), közép (nagy testábra + Mozgékonyság+Célod), jobb oszlop
+     (Történet+Életmód/BMI/Gerincterhelés/Aktivitás). 12 oszlop, hogy a
+     jobb oldali 3 dial (bmi/gerinc/akt) egyenként pontosan 1-1 oszlopot
+     kapjon. Az "alap" (Alapadatok) egy önálló, teljes szélességű sáv a
+     tetején. */
   .eredmeny-cards {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     grid-template-areas:
-      "tunet tunet tunet tunet tunet tunet riziko riziko riziko mozgek mozgek mozgek"
-      "alap alap bmi bmi gerinc gerinc akt akt tortenet tortenet celod celod";
+      "alap alap alap alap alap alap alap alap alap alap alap alap"
+      "tunet tunet tunet bodychart bodychart bodychart bodychart bodychart bodychart tortenet tortenet tortenet"
+      "riziko riziko riziko mozgek mozgek mozgek mozgek mozgek mozgek eletmodhead eletmodhead eletmodhead"
+      "riziko riziko riziko cel cel cel cel cel cel bmi gerinc akt";
     gap: 0.85rem 0.9rem;
     align-items: start;
   }
@@ -2673,9 +2697,23 @@ html[data-theme='dark'] .bodychart-img {
   .eredmeny-card-header {
     margin-bottom: 0.5rem;
   }
-  /* másodlagos szakaszok (Alapadatok, BMI, Gerincterhelés, Aktivitási
-     szint, Történet, Célod): kis, visszafogott "felirat", nem hangsúlyos
-     cím — a vizuális súlyt a 3 kiemelt szakasz kapja. */
+  /* az Alapadatok kártya CÍM/DOBOZ nélküli, sima szöveg (2026.09.08.,
+     "terv.jpg") — a cím (mobilon szükséges) szövege rejtve, a kártya
+     tartalma egy vízszintes, két végre igazított sávvá válik: bal oldalt
+     név/kor/magasság, jobb oldalt a kitöltés dátuma. */
+  .eredmeny-card--headerless .eredmeny-card-header {
+    display: none;
+  }
+  .eredmeny-alapadatok-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  /* másodlagos szakaszok (BMI, Gerincterhelés, Aktivitási szint,
+     Történet, Célod): kis, visszafogott "felirat", nem hangsúlyos cím —
+     a vizuális súlyt a kiemelt szakaszok kapják. */
   .eredmeny-card-title {
     font-size: 0.72rem;
     font-weight: 700;
@@ -2683,8 +2721,8 @@ html[data-theme='dark'] .bodychart-img {
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
-  /* a 3 kiemelt szakasz (Tünet, Rizikó, Mozgékonyság) nagy, hangsúlyos
-     címet kap. */
+  /* a kiemelt szakaszok (Tünet, Rizikó, Mozgékonyság) nagy, hangsúlyos
+     címet kapnak. */
   .eredmeny-card-header--prominent .eredmeny-card-title {
     font-size: 1.3rem;
     font-weight: 800;
@@ -2692,9 +2730,14 @@ html[data-theme='dark'] .bodychart-img {
     text-transform: none;
     letter-spacing: normal;
   }
-  .eredmeny-alapadatok-date {
-    margin-top: 0.5rem;
-    padding-top: 0.35rem;
+  /* "Életmód" csoport-fejléc a BMI/Gerincterhelés/Aktivitás trió fölött —
+     ugyanaz a hangsúlyos stílus, mint a kiemelt kártya-címeké, de nem egy
+     SectionCard-hoz tartozik, hanem önálló elem (2026.09.08.). */
+  .eredmeny-group-header {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--color-text);
   }
   /* HIBAJAVÍTÁS: a bento-rács egy oszlopa KESKENYEBB, mint a korábbi, csak
      telefonra szánt `≤480px` töréspont, ahol a "címke+érték egymás
@@ -2708,54 +2751,75 @@ html[data-theme='dark'] .bodychart-img {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.1rem;
-    padding: 0.25rem 0;
+    padding: 0.15rem 0;
   }
   .eredmeny-info-value {
     text-align: left;
   }
-  .eredmeny-info-row {
-    padding: 0.15rem 0;
-  }
-  /* a testábra a LEHETŐ LEGNAGYOBB (2026.09.08., Marci kérésére) — a
-     Tünet szakasz mostantól a rács felső sorának FELÉT kapja (6/12
-     oszlop), ennek megfelelően a testábra is jelentősen nagyobb, mint a
-     korábbi, szűkebb elrendezésben. A körülötte lévő elemek (leírás,
-     nézet/időtartam, jegyzetek) ennek megfelelően tömörebbek. */
-  .eredmeny-bodychart-large {
-    height: 300px;
-  }
-  .eredmeny-tunet-description {
-    margin-bottom: 0.35rem;
-  }
-  .eredmeny-tunet-main {
-    gap: 2rem;
-    margin-bottom: 0.3rem;
-  }
-  .eredmeny-tunet-secondary {
-    margin-bottom: 0.15rem;
-  }
-  .eredmeny-tunet-nezet {
-    gap: 0.25rem;
-  }
-  .eredmeny-donut-svg {
-    width: 46px;
-    height: 46px;
-  }
   .eredmeny-tunet-notes .eredmeny-info-row {
     padding: 0.1rem 0;
   }
-  /* a kompakt (BMI/Gerincterhelés/Aktivitási szint) dial-ok is kisebbek,
-     hogy a másodlagos sáv ne foglaljon indokolatlanul sok magasságot. */
+  .eredmeny-tunet-description {
+    margin-bottom: 0.4rem;
+  }
+  /* a Tünet dobozban asztalon MÁR NINCS testábra (ld. lent, önálló
+     `.eredmeny-bodychart-hero`) — a két, "terv.jpg" szerinti félkör-
+     műszer (Intenzitás/Időtartam) egymás mellett jelenik meg. */
+  .eredmeny-tunet-dials {
+    display: flex;
+    justify-content: center;
+    gap: 1.25rem;
+    margin: 0.5rem 0;
+  }
+  /* a kompakt (BMI/Gerincterhelés/Aktivitási szint, Intenzitás/Időtartam)
+     dial-ok mérete — az "Életmód" trió 1-1 oszlopnyi (~90px) helyre kell
+     hogy férjen. */
   .eredmeny-dial--sm {
-    width: 92px;
+    width: 90px;
   }
   .eredmeny-dial--sm .eredmeny-dial-svg {
-    max-width: 92px;
+    max-width: 90px;
   }
-  /* Rizikó és Mozgékonyság kiemelt helye (2026.09.08., Marci kérésére)
-     jóval szélesebb oszlopot ad nekik (~1/4 a rács szélességéből, a
-     korábbi ~1/6-hoz képest) — a Mozgékonyság 4 jelvénye ezért MOST MÁR
-     egy sorban is elfér, nagyobb, jobban látható méretben. */
+  /* a testábra a LEHETŐ LEGNAGYOBB, önálló, doboz nélküli illusztráció
+     (2026.09.08., Marci kérésére, "terv.jpg") — a rács közepén, a Tünet
+     és a Történet oszlop közötti 6/12-es sávban. */
+  .eredmeny-bodychart-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  /* MAGASSÁG-vezérelt méretezés (nem szélesség-vezérelt) — a rácsban a
+     FÜGGŐLEGES hely a szűkös erőforrás (a "görgetés nélküli" cél miatt),
+     a testábra column-mérete önmagában (ld. `bodychart` terület, 6/12
+     oszlop) sokkal szélesebb helyet adna, mint amennyi magasság-arányosan
+     még kényelmesen kifér — ezért itt fix `height`-ből, NEM `width`-ből
+     számol az `aspect-ratio` (2026.09.08., hibajavítás: az első verzió
+     `width:100%;max-width:460px` miatt majdnem 1000px magas lett). */
+  .eredmeny-bodychart-hero-frame {
+    position: relative;
+    height: 410px;
+    aspect-ratio: 265.52844 / 553.0808792114258;
+  }
+  .eredmeny-bodychart-hero-frame .bodychart-marks-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  /* Rizikó kiemelt helye (2026.09.08., "terv.jpg": egymás ALATTI, teljes
+     szélességű "pirulák" a wrapelt badge-sor helyett). */
+  .eredmeny-risk-tags {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .eredmeny-risk-tags .badge-fyb {
+    width: 100%;
+    text-align: center;
+  }
+  /* Mozgékonyság kiemelt helye — jóval szélesebb oszlop jut neki, a 4
+     jelvény egy sorban, nagyobb méretben fér el. */
   .eredmeny-mobility-item {
     width: 66px;
   }
@@ -2766,8 +2830,5 @@ html[data-theme='dark'] .bodychart-img {
   }
   .eredmeny-mobility-label {
     font-size: 0.72rem;
-  }
-  .eredmeny-risk-tags {
-    gap: 0.6rem;
   }
 }
