@@ -1605,3 +1605,13 @@ A legnagyobb technikai kihívás: mivel a testábra és az Intenzitás/Időtarta
 Három valós hibát találtam és javítottam, mindet méréssel (nem vizuálisan): egy elgépelt terület-név (`celod` a JSX-ben, `cel` a CSS-ben) miatt a Célod kártya a Grid automatikus elhelyezésére esett vissza; egy régről ottfelejtett inline `style={{maxWidth:860}}` felülírta a CSS-ből jövő szélesebb konténer-szabályt, ezért a teljes rács összenyomva jelent meg; és egy hiányzó `display:block` miatt az új "Életmód" felirat egyáltalán nem jelent meg. A testábra méretezését is át kellett gondolni: szélesség-vezérelt méretezéssel majdnem 1020px magas lett volna — magasság-vezérelt méretezésre váltva ez megoldódott.
 
 **Tesztelve böngészőben:** minden hibát előbb reprodukáltam méréssel, majd a javítás után újra ellenőriztem. Sötét módban screenshot-tal is megerősítve, hogy az elrendezés a vázlatnak megfelel. Mobilon megerősítve, hogy a Tünet doboz (testábrával, intenzitás-sávval, kördiagrammal) pixelre ugyanúgy jelenik meg, mint korábban. `npm run build` hibamentes.
+
+## 2026.09.08. — Dobozok vissza (kerekített felül, szögletes alul), Életmód doboz 2 sorban
+
+Marci pontosította az előző kört: a dobozok legyenek a vázlat szerint (felül kerekített, alul szögletes sarkok), és az Életmód dobozban a mutatók 2 sorban legyenek (felül középen BMI, lent a másik kettő).
+
+A dobozok visszakapták a hátterüket/keretüket/árnyékukat, egyedi (felül kerekített, alul szögletes) sarok-alakkal és egy szürkés fejléc-sávval — az Alapadatok kártya kivétel maradt (a vázlaton ott sincs doboz). A Tünet doboz a korábbi lime ékezet-sáv helyett lime színű keretet kapott. Az Életmód "csoport" ismét egyetlen, valódi doboz lett (nem 3 külön kártya egy közös felirat alatt) — belül 2 sorral, ahogy Marci kérte. A mobil-érintetlenség fenntartásához a régi 3 külön mobil-kártya megmaradt (csak mobil-only-ként megjelölve), az új kombinált doboz pedig csak asztalon jelenik meg, teljesen új DialGauge-példányokkal.
+
+4 valós hibát találtam és javítottam, mindet méréssel: egy `overflow:hidden` levágta a dial-feliratokat ("INTENZITÁS" → "TENZITÁS"); az új Életmód doboz `display:none` maradt asztalon is (hiányzó felülírás); a dial-feliratok keskenyebb (≤1250px) ablakban a doboz szélén túlnyúlva jelentek meg — mindegyiket javítottam.
+
+**Tesztelve böngészőben:** minden hibát előbb reprodukáltam méréssel, majd a javítás után 1200px és 1440px szélességben is megerősítettem, hogy a feliratok a dobozon belül maradnak. Világos és sötét módban screenshot-tal megerősítve a doboz-alak. Mobilon megerősítve, hogy a nézet pixelre érintetlen maradt. `npm run build` hibamentes.

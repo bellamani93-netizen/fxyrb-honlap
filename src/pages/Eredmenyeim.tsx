@@ -352,15 +352,12 @@ export default function Eredmenyeim() {
             {nezetToggle}
           </div>
 
-          {/* "Életmód" csoport-fejléc — CSAK asztalon (2026.09.08., Marci
-             kérésére: a BMI/Gerincterhelés/Aktivitási szint mostantól EGY
-             közös, közös cím alá csoportosított egység, doboz nélkül). A 3
-             mutató SAJÁT (mobilon is látható) kártya-címét meghagytuk —
-             azok mutatják, melyik dial melyik mutató, az "Életmód" csak a
-             csoportot nevezi meg fölöttük. */}
-          <div className="eredmeny-group-header eredmeny-desktop-only" style={{ gridArea: 'eletmodhead' }}>Életmód</div>
-
-          <SectionCard icon="/icons/ikon_szintek.svg" title="BMI" area="bmi">
+          {/* Mobilon (változatlanul) 3 KÜLÖN doboz — ld. 102. pont. Asztalon
+             (2026.09.08., "terv.jpg": "az életmód dobozban 2 sorban vannak a
+             mutatók") ez a 3 kártya REJTVE (`eredmeny-mobile-only`), helyettük
+             lent EGY közös "Életmód" doboz jelenik meg, saját (desktop-only)
+             DialGauge-példányokkal, 2 sorban. */}
+          <SectionCard icon="/icons/ikon_szintek.svg" title="BMI" area="bmi" className="eredmeny-mobile-only">
             {bmi !== null && bmiCat ? (
               <div className="eredmeny-dial-row">
                 <DialGauge
@@ -380,7 +377,7 @@ export default function Eredmenyeim() {
             )}
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_szintek.svg" title="Gerincterhelés" area="gerinc">
+          <SectionCard icon="/icons/ikon_szintek.svg" title="Gerincterhelés" area="gerinc" className="eredmeny-mobile-only">
             {gt !== null ? (
               <div className="eredmeny-dial-row">
                 <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} size="sm" />
@@ -390,13 +387,38 @@ export default function Eredmenyeim() {
             )}
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_szintek.svg" title="Aktivitási szint" area="akt">
+          <SectionCard icon="/icons/ikon_szintek.svg" title="Aktivitási szint" area="akt" className="eredmeny-mobile-only">
             {gt !== null ? (
               <div className="eredmeny-dial-row">
                 <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} size="sm" />
               </div>
             ) : (
               <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>a gerincterhelés kalkulátor még nincs kitöltve.</p>
+            )}
+          </SectionCard>
+
+          <SectionCard icon="/icons/ikon_szintek.svg" title="Életmód" area="eletmod" className="eredmeny-desktop-only">
+            <div className="eredmeny-eletmod-row eredmeny-eletmod-row--top">
+              {bmi !== null && bmiCat && (
+                <DialGauge
+                  value={bmi}
+                  min={15}
+                  max={35}
+                  zones={BMI_ZONES}
+                  score={fmtHu(bmi)}
+                  unit="kg/m²"
+                  category={bmiCat.label}
+                  categoryColor={BMI_CATEGORY_COLOR[bmiCat.key]}
+                  caption="BMI"
+                  size="sm"
+                />
+              )}
+            </div>
+            {gt !== null && (
+              <div className="eredmeny-eletmod-row eredmeny-eletmod-row--bottom">
+                <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} caption="Gerincterhelés" size="sm" />
+                <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} caption="Aktivitási szint" size="sm" />
+              </div>
             )}
           </SectionCard>
 

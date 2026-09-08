@@ -2647,46 +2647,64 @@ html[data-theme='dark'] .bodychart-img {
   .eredmeny-mobile-only {
     display: none;
   }
+  /* HIBAJAVÍTÁS: az "Életmód" doboz `.eredmeny-card.eredmeny-desktop-only`
+     kombinációt visel — a `.eredmeny-card` maga sosem állított be saját
+     `display`-t, ezért a `.eredmeny-desktop-only` alap `display:none`-ja
+     felülírás nélkül maradt érvényben asztalon is (a `.eredmeny-
+     bodychart-hero`-hoz és társaihoz hasonló, MÁR meglévő elemek ezt a
+     saját, egyedi `display` szabályukkal automatikusan felülírták, de az
+     Életmód doboz ilyet nem kapott). */
+  .eredmeny-card.eredmeny-desktop-only {
+    display: block;
+  }
   /* Rács a "terv.jpg" vázlat elrendezése szerint: bal oszlop (Tünet+
      Rizikó), közép (nagy testábra + Mozgékonyság+Célod), jobb oszlop
-     (Történet+Életmód/BMI/Gerincterhelés/Aktivitás). 12 oszlop, hogy a
-     jobb oldali 3 dial (bmi/gerinc/akt) egyenként pontosan 1-1 oszlopot
-     kapjon. Az "alap" (Alapadatok) egy önálló, teljes szélességű sáv a
-     tetején. */
+     (Történet+Életmód). 12 oszlop. Az "alap" (Alapadatok) egy önálló,
+     teljes szélességű sáv a tetején. Az "Életmód" (BMI+Gerincterhelés+
+     Aktivitás, 2 sorban egy dobozon belül, ld. lent) a jobb oldali
+     oszlop ALSÓ 2 sorát foglalja el, ugyanott, ahol korábban a 3 külön
+     dial-kártya volt. */
   .eredmeny-cards {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     grid-template-areas:
       "alap alap alap alap alap alap alap alap alap alap alap alap"
       "tunet tunet tunet bodychart bodychart bodychart bodychart bodychart bodychart tortenet tortenet tortenet"
-      "riziko riziko riziko mozgek mozgek mozgek mozgek mozgek mozgek eletmodhead eletmodhead eletmodhead"
-      "riziko riziko riziko cel cel cel cel cel cel bmi gerinc akt";
+      "riziko riziko riziko mozgek mozgek mozgek mozgek mozgek mozgek eletmod eletmod eletmod"
+      "riziko riziko riziko cel cel cel cel cel cel eletmod eletmod eletmod";
     gap: 0.85rem 0.9rem;
     align-items: start;
   }
-  /* Doboz-mentes megjelenés (2026.09.08., Marci kérésére: "nem kellenek
-     dobozok", "a tartalom tényleg töltse ki a teret [eddig nagy gap volt
-     mellette]") — a korábbi kártya-háttér/árnyék/szegély/padding törölve,
-     a szakaszok pusztán a rács-elhelyezéssel és a köztük lévő `gap`-pel
-     különülnek el. `!important`: a `.card-fyb` sötét módú saját szegélyét
-     (`html[data-theme='dark'] .card-fyb`) és a `.eredmeny-card--lime-
-     border` korábbi teljes keretét is felül kell írni. `align-items:start`
-     a rácson (fent) azt is jelenti, hogy egy szakasz TARTALMA már nem
-     nyúlik mesterségesen a sor legmagasabb eleméhez — nincs többé "üres
-     hely doboz alján" jelenség, mert nincs doboz. */
+  /* Dobozok VISSZA, a "terv.jpg" vázlat alakja szerint: felül kerekített,
+     alul szögletes sarkok, szürkés fejléc-sáv (2026.09.08., Marci
+     kérésére — visszavonja a 104. pont "nem kellenek dobozok" kérését).
+     HIBAJAVÍTÁS: az első verzió `overflow:hidden`-nel igazította a
+     fejléc-sáv hátterét a doboz kerekített felső sarkaihoz — ez viszont
+     levágta az enyhén túlnyúló tartalmat is (pl. az "INTENZITÁS"/
+     "IDŐTARTAM" dial-feliratokat "TENZITÁS"/"IDŐTARTA"-ra csonkolta).
+     Végleges megoldás: NINCS `overflow:hidden` a dobozon, a fejléc-sáv
+     kapja KÖZVETLENÜL a doboz felső sugarát (eggyel kisebbre, a keret
+     vastagsága miatt), így semmi nem vágódik le. Az Alapadatok kártya
+     (`--headerless`) marad doboz nélküli sima szöveg — a vázlaton ott
+     sincs keret/fejléc-sáv. */
   .eredmeny-card {
-    background: none !important;
-    box-shadow: none !important;
-    border: none !important;
-    border-radius: 0 !important;
-    padding: 0 !important;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    box-shadow: var(--shadow-card);
+    padding: 0;
   }
-  /* a Tünet korábbi teljes lime KERETE helyett egy visszafogottabb, bal
-     oldali lime ékezet-sáv — doboz nélkül ez olvashatóbb, mint egy 4
-     oldalú keret. */
+  .eredmeny-card--headerless {
+    background: none;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  /* a Tünet doboz a szürke fejléc-sáv helyett lime KERETET kap (a korábbi
+     bal oldali ékezet-sáv helyett, mert most már valódi doboza van). */
   .eredmeny-card--lime-border {
-    border-left: 4px solid var(--lime) !important;
-    padding-left: 1.1rem !important;
+    border-color: var(--lime) !important;
+    border-width: 2px !important;
   }
   /* a dobozcímek elől az ikon eltűnik (2026.09.08., Marci kérésére) — a
      JSX-ben MARAD (mobilon, ahol ez a szabály nem fut, változatlanul
@@ -2695,15 +2713,32 @@ html[data-theme='dark'] .bodychart-img {
     display: none;
   }
   .eredmeny-card-header {
-    margin-bottom: 0.5rem;
+    margin: 0;
+    padding: 0.55rem 1.1rem;
+    background: var(--color-bg-alt);
+    border-bottom: 1px solid var(--color-border);
+    border-radius: calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0;
   }
-  /* az Alapadatok kártya CÍM/DOBOZ nélküli, sima szöveg (2026.09.08.,
-     "terv.jpg") — a cím (mobilon szükséges) szövege rejtve, a kártya
-     tartalma egy vízszintes, két végre igazított sávvá válik: bal oldalt
-     név/kor/magasság, jobb oldalt a kitöltés dátuma. */
   .eredmeny-card--headerless .eredmeny-card-header {
     display: none;
   }
+  /* a doboz TARTALMA (a fejléc-sávon kívül minden direkt gyerek) kapja a
+     vízszintes paddingot, az elsőnek a fejléc alatt a felsőt, az
+     utolsónak pedig az aljsót — a headerless (Alapadatok) kártyát ez a
+     szabály szándékosan NEM érinti (annak nincs doboz-belseje). */
+  .eredmeny-card:not(.eredmeny-card--headerless) > *:not(.eredmeny-card-header) {
+    padding-left: 1.1rem;
+    padding-right: 1.1rem;
+  }
+  .eredmeny-card:not(.eredmeny-card--headerless) .eredmeny-card-header + * {
+    padding-top: 0.7rem;
+  }
+  .eredmeny-card:not(.eredmeny-card--headerless) > *:last-child {
+    padding-bottom: 0.85rem;
+  }
+  /* az Alapadatok kártya tartalma egy vízszintes, két végre igazított
+     sávvá válik: bal oldalt név/kor/magasság, jobb oldalt a kitöltés
+     dátuma (2026.09.08., "terv.jpg"). */
   .eredmeny-alapadatok-card {
     display: flex;
     justify-content: space-between;
@@ -2711,9 +2746,8 @@ html[data-theme='dark'] .bodychart-img {
     flex-wrap: wrap;
     gap: 1rem;
   }
-  /* másodlagos szakaszok (BMI, Gerincterhelés, Aktivitási szint,
-     Történet, Célod): kis, visszafogott "felirat", nem hangsúlyos cím —
-     a vizuális súlyt a kiemelt szakaszok kapják. */
+  /* másodlagos szakaszok (Történet, Célod): kis, visszafogott "felirat",
+     nem hangsúlyos cím — a vizuális súlyt a kiemelt szakaszok kapják. */
   .eredmeny-card-title {
     font-size: 0.72rem;
     font-weight: 700;
@@ -2730,14 +2764,15 @@ html[data-theme='dark'] .bodychart-img {
     text-transform: none;
     letter-spacing: normal;
   }
-  /* "Életmód" csoport-fejléc a BMI/Gerincterhelés/Aktivitás trió fölött —
-     ugyanaz a hangsúlyos stílus, mint a kiemelt kártya-címeké, de nem egy
-     SectionCard-hoz tartozik, hanem önálló elem (2026.09.08.). */
-  .eredmeny-group-header {
-    display: block;
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: var(--color-text);
+  /* "Életmód" doboz — 2 sor (2026.09.08., Marci kérésére: "felül középen
+     BMI, lent a másik kettő"). */
+  .eredmeny-eletmod-row {
+    display: flex;
+    justify-content: center;
+    gap: 1.25rem;
+  }
+  .eredmeny-eletmod-row--top {
+    margin-bottom: 0.5rem;
   }
   /* HIBAJAVÍTÁS: a bento-rács egy oszlopa KESKENYEBB, mint a korábbi, csak
      telefonra szánt `≤480px` töréspont, ahol a "címke+érték egymás
@@ -2772,13 +2807,24 @@ html[data-theme='dark'] .bodychart-img {
     margin: 0.5rem 0;
   }
   /* a kompakt (BMI/Gerincterhelés/Aktivitási szint, Intenzitás/Időtartam)
-     dial-ok mérete — az "Életmód" trió 1-1 oszlopnyi (~90px) helyre kell
-     hogy férjen. */
+     dial-ok mérete — az Életmód doboz alsó sorában (Gerincterhelés+
+     Aktivitás) és a Tünet doboz Intenzitás/Időtartam sorában is 2 dial
+     fér egymás mellé. */
   .eredmeny-dial--sm {
-    width: 90px;
+    width: 105px;
   }
   .eredmeny-dial--sm .eredmeny-dial-svg {
-    max-width: 90px;
+    max-width: 105px;
+  }
+  /* HIBAJAVÍTÁS: a kompakt (105px) dial-ok felirata (pl. "INTENZITÁS")
+     szélesebb, mint maga a dial — keskenyebb (≤~1250px) asztali ablakban
+     ez a Tünet dobozból KILÓGVA, a menüsáv MÖGÉ csúszva jelent meg
+     ("NTENZITÁS", az "I" betű levágva). Kisebb betűméret/betűköz a
+     kompakt dial-oknál, hogy a felirat a dial saját szélességén belül
+     maradjon. */
+  .eredmeny-dial--sm .eredmeny-dial-caption {
+    font-size: 0.78rem;
+    letter-spacing: 0.01em;
   }
   /* a testábra a LEHETŐ LEGNAGYOBB, önálló, doboz nélküli illusztráció
      (2026.09.08., Marci kérésére, "terv.jpg") — a rács közepén, a Tünet
