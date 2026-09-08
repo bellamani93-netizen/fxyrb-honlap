@@ -102,9 +102,14 @@
      sötét módban viszont ÍGY IS ≥4:1, sőt még jobb, mint korábban) — Marci
      a vizuális "neon" hatást a szigorú fehér-háttéres kontrasztnál
      fontosabbnak ítélte, miután megnézte az első (visszafogottabb)
-     változatot. */
-  --z1: #FF2D55; --z2: #FF6A00; --z3: #C77D00; --z4: #00C4B4; --z5: #00B84F; --z6: #00C97A;
-  --a1: #FF2D55; --a2: #FF6A00; --a3: #C77D00; --a4: #00C4B4; --a5: #00C97A;
+     változatot.
+     PONTOSÍTÁS (2026.09.09., 3. kör, Marci kérésére: "a mutatóknál egy
+     középső színt meghagytál barnásnak. ezt cseréld élénksárgára.") — a
+     középső fok (`--z3`/`--a3`, korábban a visszafogott, borostyán/bronz
+     `#C77D00`) élénk, telített sárgára váltott, ugyanazzal a "vizuális hatás
+     a fehér-kontraszt-küszöbnél fontosabb" elvvel, mint a 2. körben. */
+  --z1: #FF2D55; --z2: #FF6A00; --z3: #FFD500; --z4: #00C4B4; --z5: #00B84F; --z6: #00C97A;
+  --a1: #FF2D55; --a2: #FF6A00; --a3: #FFD500; --a4: #00C4B4; --a5: #00C97A;
 
   /* GYT "naptáram" — saját (nem SALES-kapacitás-) színkódolás (2026.08.31.,
      Marci kérésére) — MINDEN gyt a saját naptárában ezt látja, függetlenül

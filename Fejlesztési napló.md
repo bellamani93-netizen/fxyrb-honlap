@@ -1665,3 +1665,9 @@ Marci megnézte az előző kör visszafogott neon-palettáját, és pontosított
 Ez a döntés tudatosan kilép az előző kör ≥3:1 fehér-háttér-kontraszt sávjából — a fehér háttéren a kontraszt kb. 2,2–2,9:1-re csökkent, a sötét háttéren viszont tovább javult. Marci a vizuális "neon" hatást fontosabbnak ítélte a szigorú fehér-kontraszt-küszöbnél, miután megnézte a visszafogottabb változatot — ez tudatos, tájékozott döntés volt, nem hiba.
 
 **Tesztelve böngészőben:** az új színértékeket `getComputedStyle`-lal megerősítve, majd 1440×900px-en világos és sötét módban screenshot-tal ellenőrizve — a narancs/türkiz/zöld tónusok láthatóan élénkebbek, sötét háttéren szinte izzanak, a piros változatlan. Nincs görgetés egyik módban sem. `npm run build` hibamentes.
+
+## 2026.09.09. — Neon mutató-színek, 3. pontosítás: a középső (borostyán) fok élénksárga
+
+Marci jelezte, hogy egy középső szín barnás maradt — ezt élénksárgára cseréltem. A 6-/5-fokú zóna-skála középső foka (amit az előző körben szándékosan nem érintettem, mert akkor csak a narancsot és a zöld/kék tónusokat kérte) most vivid sárgára váltott, ugyanazzal az elvvel: a neon hatás előnyt élvez a szigorú fehér-háttéres kontraszttal szemben. Ez a fok az Intenzitás, a Gerincterhelés és az Aktivitási szint dial középső zónájában jelenik meg egyszerre, mivel egyetlen központi tokent módosít.
+
+**Tesztelve böngészőben:** a token élő értékét közvetlenül megerősítettem (`rgb(255, 213, 0)`, azaz `#FFD500`) — a böngésző-panel ebben a körben ismétlődő kattintás-időtúllépést jelzett, de mivel ez egyetlen CSS-token hex-értékének cseréje (JS/JSX-logikát nem érint), és a szín-átadás láncát az előző 2 körben már képernyőképpel is megerősítettem, a sikeres build és a közvetlen érték-ellenőrzés elegendő volt. `npm run build` hibamentes.
