@@ -2639,6 +2639,15 @@ html[data-theme='dark'] .bodychart-img {
 .eredmeny-desktop-only {
   display: none;
 }
+/* Az oszlop-wrapperek (2026.09.09., ld. lent) mobilon `display:contents`-
+   ként "eltűnnek" — a bennük lévő kártyák egyenesen a `.eredmeny-cards`
+   flex-oszlop gyerekei lesznek, a saját `order`-jük szerint besorolva. Ez
+   biztosítja, hogy a mobil sorrend a 3 asztali oszlopba rendezés ellenére
+   is pontosan a régi (Alapadatok→BMI→Gerinc→Akt→Tünet→Történet→Rizikó→
+   Mozgékonyság→Célod) maradjon. */
+.eredmeny-col {
+  display: contents;
+}
 
 @media (min-width: 992px) {
   .eredmeny-page-container {
@@ -2657,48 +2666,50 @@ html[data-theme='dark'] .bodychart-img {
   .eredmeny-card.eredmeny-desktop-only {
     display: block;
   }
-  /* Rács a "terv.jpg" vázlat elrendezése szerint: bal oszlop (Tünet+
-     Rizikó), közép (nagy testábra + Mozgékonyság+Célod), jobb oszlop
-     (Történet+Életmód). 12 oszlop. Az "alap" (Alapadatok) egy önálló,
-     teljes szélességű sáv a tetején. Az "Életmód" (BMI+Gerincterhelés+
-     Aktivitás, 2 sorban egy dobozon belül, ld. lent) a jobb oldali
-     oszlop ALSÓ 2 sorát foglalja el, ugyanott, ahol korábban a 3 külön
-     dial-kártya volt. */
+  /* HIBAJAVÍTÁS (2026.09.09., Marci kérésére: "nem kell, hogy a rizikó,
+     mozgékonyság, életmód egy magasságban legyenek") — a korábbi
+     `grid-template-areas`-alapú rács minden SORÁNAK magassága a sorban
+     szereplő LEGMAGASABB elemhez igazodott (CSS Grid nem tud "masonry"-
+     szerű, oszloponként FÜGGETLEN magasságot), ezért a Rizikó/Mozgékonyság/
+     Életmód dobozok mindig közös magasságra nyúltak, akkor is, ha
+     tartalmuk ezt nem indokolta. Megoldás: a rács helyett 3, EGYMÁSTÓL
+     FÜGGETLEN MAGASSÁGÚ flex-oszlop (`.eredmeny-col`), mindegyik a saját
+     tartalmának megfelelő teljes magasságra nő. Az oszlopok aránya
+     (3/6/3) a korábbi 12-oszlopos rács bal/közép/jobb sávjának felel meg. */
   .eredmeny-cards {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    grid-template-areas:
-      "alap alap alap alap alap alap alap alap alap alap alap alap"
-      "tunet tunet tunet bodychart bodychart bodychart bodychart bodychart bodychart tortenet tortenet tortenet"
-      "riziko riziko riziko mozgek mozgek mozgek mozgek mozgek mozgek eletmod eletmod eletmod"
-      "riziko riziko riziko cel cel cel cel cel cel eletmod eletmod eletmod";
-    gap: 0.85rem 0.9rem;
-    align-items: start;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.9rem;
   }
-  /* Dobozok VISSZA, a "terv.jpg" vázlat alakja szerint: felül kerekített,
-     alul szögletes sarkok, szürkés fejléc-sáv (2026.09.08., Marci
-     kérésére — visszavonja a 104. pont "nem kellenek dobozok" kérését).
+  .eredmeny-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    min-width: 0;
+  }
+  .eredmeny-col--left,
+  .eredmeny-col--right {
+    flex: 3 1 0;
+  }
+  .eredmeny-col--center {
+    flex: 6 1 0;
+  }
+  /* Dobozok, a "terv.jpg" vázlat alakja szerint: felül kerekített, alul
+     szögletes sarkok, szürkés fejléc-sáv (2026.09.08., Marci kérésére).
      HIBAJAVÍTÁS: az első verzió `overflow:hidden`-nel igazította a
      fejléc-sáv hátterét a doboz kerekített felső sarkaihoz — ez viszont
      levágta az enyhén túlnyúló tartalmat is (pl. az "INTENZITÁS"/
      "IDŐTARTAM" dial-feliratokat "TENZITÁS"/"IDŐTARTA"-ra csonkolta).
      Végleges megoldás: NINCS `overflow:hidden` a dobozon, a fejléc-sáv
      kapja KÖZVETLENÜL a doboz felső sugarát (eggyel kisebbre, a keret
-     vastagsága miatt), így semmi nem vágódik le. Az Alapadatok kártya
-     (`--headerless`) marad doboz nélküli sima szöveg — a vázlaton ott
-     sincs keret/fejléc-sáv. */
+     vastagsága miatt), így semmi nem vágódik le. */
   .eredmeny-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-card) var(--radius-card) 0 0;
     box-shadow: var(--shadow-card);
     padding: 0;
-  }
-  .eredmeny-card--headerless {
-    background: none;
-    border: none;
-    box-shadow: none;
-    border-radius: 0;
   }
   /* a Tünet doboz a szürke fejléc-sáv helyett lime KERETET kap (a korábbi
      bal oldali ékezet-sáv helyett, mert most már valódi doboza van). */
@@ -2719,35 +2730,45 @@ html[data-theme='dark'] .bodychart-img {
     border-bottom: 1px solid var(--color-border);
     border-radius: calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0;
   }
-  .eredmeny-card--headerless .eredmeny-card-header {
-    display: none;
-  }
   /* a doboz TARTALMA (a fejléc-sávon kívül minden direkt gyerek) kapja a
      vízszintes paddingot, az elsőnek a fejléc alatt a felsőt, az
-     utolsónak pedig az aljsót — a headerless (Alapadatok) kártyát ez a
-     szabály szándékosan NEM érinti (annak nincs doboz-belseje). */
-  .eredmeny-card:not(.eredmeny-card--headerless) > *:not(.eredmeny-card-header) {
+     utolsónak pedig az aljsót. */
+  .eredmeny-card > *:not(.eredmeny-card-header) {
     padding-left: 1.1rem;
     padding-right: 1.1rem;
   }
-  .eredmeny-card:not(.eredmeny-card--headerless) .eredmeny-card-header + * {
+  .eredmeny-card .eredmeny-card-header + * {
     padding-top: 0.7rem;
   }
-  .eredmeny-card:not(.eredmeny-card--headerless) > *:last-child {
+  .eredmeny-card > *:last-child {
     padding-bottom: 0.85rem;
   }
-  /* az Alapadatok kártya tartalma egy vízszintes, két végre igazított
-     sávvá válik: bal oldalt név/kor/magasság, jobb oldalt a kitöltés
-     dátuma (2026.09.08., "terv.jpg"). */
-  .eredmeny-alapadatok-card {
+  /* Asztali fejléc-összegzés (2026.09.09., Marci kérésére: "töröld felülről
+     az 'eredményeim' címet" — a felszabaduló helyen az Alapadatok adatai
+     jelennek meg, kompakt, doboz nélküli sorban, ld. Eredmenyeim.tsx
+     `eredmeny-header-summary`). */
+  .eredmeny-header-summary {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    align-items: baseline;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 0.4rem;
+    font-size: 1.1rem;
   }
-  /* másodlagos szakaszok (Történet, Célod): kis, visszafogott "felirat",
-     nem hangsúlyos cím — a vizuális súlyt a kiemelt szakaszok kapják. */
+  .eredmeny-header-summary-name {
+    font-weight: 700;
+    font-size: 1.3rem;
+  }
+  .eredmeny-header-summary-sep {
+    color: var(--color-text-muted);
+  }
+  .eredmeny-header-summary-date {
+    margin-left: 0.75rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+  /* másodlagos szakaszok (Történet, Célod, Életmód): kis, visszafogott
+     "felirat", nem hangsúlyos cím — a vizuális súlyt a kiemelt szakaszok
+     kapják. */
   .eredmeny-card-title {
     font-size: 0.72rem;
     font-weight: 700;
@@ -2774,14 +2795,17 @@ html[data-theme='dark'] .bodychart-img {
   .eredmeny-eletmod-row--top {
     margin-bottom: 0.5rem;
   }
-  /* HIBAJAVÍTÁS: a bento-rács egy oszlopa KESKENYEBB, mint a korábbi, csak
-     telefonra szánt `≤480px` töréspont, ahol a "címke+érték egymás
-     mellett" elrendezés már bevallottan nem fér el (ld. a 101. pont
-     hibajavítását). Itt ugyanez a jelenség lépett fel: a `.eredmeny-info-
-     label` (flex-shrink:0) lefoglalta a teljes sorszélességet, az
-     `.eredmeny-info-value`-nak (min-width:0) 0px maradt, ami a szöveget
-     GYAKORLATILAG KARAKTERENKÉNT törte. Javítás: a bento-oszlopokban a
-     címke+érték sor is EGYMÁS ALÁ rendeződik, mint a telefonos nézetben. */
+  /* HIBAJAVÍTÁS: a bento-oszlop KESKENYEBB, mint a korábbi, csak telefonra
+     szánt `≤480px` töréspont, ahol a "címke+érték egymás mellett"
+     elrendezés már bevallottan nem fér el (ld. a 101. pont hibajavítását).
+     Itt ugyanez a jelenség lépett fel: a `.eredmeny-info-label`
+     (flex-shrink:0) lefoglalta a teljes sorszélességet, az `.eredmeny-
+     info-value`-nak (min-width:0) 0px maradt, ami a szöveget GYAKORLATILAG
+     KARAKTERENKÉNT törte. Javítás: az oszlopokban a címke+érték sor is
+     EGYMÁS ALÁ rendeződik, mint a telefonos nézetben. (A vízszintes
+     padding-et NEM ez a szabály adja — az `.eredmeny-card > *:not(header)`
+     általános szabály már megadja, amikor a sor KÖZVETLEN doboz-gyerek,
+     ld. lent.) */
   .eredmeny-info-row {
     flex-direction: column;
     align-items: flex-start;
@@ -2791,8 +2815,25 @@ html[data-theme='dark'] .bodychart-img {
   .eredmeny-info-value {
     text-align: left;
   }
+  /* HIBAJAVÍTÁS (2026.09.09., Marci kérésére: "a dobozokon belüli határoló
+     vízszintesek mindig dobozhatárig nyúljanak"): egy KÖZVETLEN doboz-
+     gyerek sor (pl. Történet) széltében (margin:0, width:auto) MÁR
+     ÖNMAGÁBAN a doboz teljes szélességét kitölti — a saját paddingje csak a
+     BENNE lévő szöveget tolja beljebb, a szegélyt nem. A Tünet doboz "Jól
+     esik"/"Trigger" sorai viszont NEM közvetlen doboz-gyerekek, hanem a
+     `.eredmeny-tunet-notes` (maga is 1.1rem paddingot kapó doboz-gyerek)
+     BELSEJÉBEN ülnek — emiatt EZEKNÉL a szülő paddingja már összeszűkíti a
+     rendelkezésre álló szélességet, a szegély a szülő paddingjén belül áll
+     meg. Első próbálkozásra tévesen MINDEN `.eredmeny-info-row`-ra (és a
+     `.eredmeny-tunet-notes`-ra magára is) negatív margót adtunk — DOM-
+     méréssel kiderült, hogy ez a doboz SZÉLÉN TÚLRA (nem a doboz éléig, azon
+     túl) tolta ki a szegélyt, mert a padding már máshonnan (az általános
+     szabályból) is adott volt. Végleges, DOM-méréssel megerősített
+     megoldás: a negatív margó KIZÁRÓLAG az egyetlen valóban beljebb eső
+     esetre kerül. */
   .eredmeny-tunet-notes .eredmeny-info-row {
-    padding: 0.1rem 0;
+    padding: 0.1rem 1.1rem;
+    margin: 0 -1.1rem;
   }
   .eredmeny-tunet-description {
     margin-bottom: 0.4rem;
@@ -2827,21 +2868,26 @@ html[data-theme='dark'] .bodychart-img {
     letter-spacing: 0.01em;
   }
   /* a testábra a LEHETŐ LEGNAGYOBB, önálló, doboz nélküli illusztráció
-     (2026.09.08., Marci kérésére, "terv.jpg") — a rács közepén, a Tünet
-     és a Történet oszlop közötti 6/12-es sávban. */
+     (2026.09.08., Marci kérésére, "terv.jpg") — a közép oszlop tetején.
+     Marci pontosítására (2026.09.09.: "a nézet kapcsoló legyen a
+     bodychart mellett közvetlenül jobb oldalt a lábánál") a korábbi
+     column-elrendezés (keret, alatta a kapcsoló) helyett most SOR: a
+     kapcsoló közvetlenül a keret mellett, JOBBRA, a keret ALJÁVAL egy
+     vonalban (`align-items:flex-end`). */
   .eredmeny-bodychart-hero {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.6rem;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.75rem;
   }
   /* MAGASSÁG-vezérelt méretezés (nem szélesség-vezérelt) — a rácsban a
      FÜGGŐLEGES hely a szűkös erőforrás (a "görgetés nélküli" cél miatt),
-     a testábra column-mérete önmagában (ld. `bodychart` terület, 6/12
-     oszlop) sokkal szélesebb helyet adna, mint amennyi magasság-arányosan
-     még kényelmesen kifér — ezért itt fix `height`-ből, NEM `width`-ből
-     számol az `aspect-ratio` (2026.09.08., hibajavítás: az első verzió
-     `width:100%;max-width:460px` miatt majdnem 1000px magas lett). */
+     a testábra oszlop-mérete önmagában sokkal szélesebb helyet adna, mint
+     amennyi magasság-arányosan még kényelmesen kifér — ezért itt fix
+     `height`-ből, NEM `width`-ből számol az `aspect-ratio` (2026.09.08.,
+     hibajavítás: az első verzió `width:100%;max-width:460px` miatt majdnem
+     1000px magas lett). */
   .eredmeny-bodychart-hero-frame {
     position: relative;
     height: 410px;

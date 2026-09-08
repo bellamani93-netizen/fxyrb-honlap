@@ -26,36 +26,35 @@ function SectionCard({
   icon,
   title,
   className,
-  area,
+  order,
   prominent,
-  headerless,
   children,
 }: {
   icon: string
   title: string
   className?: string
-  /** csak az asztali "bento" rácsban számít (ld. `.eredmeny-cards` CSS,
-   * `@media (min-width:992px)`) — a kártya helyét adja meg a rács
-   * `grid-template-areas`-ában. Mobilon nincs hatása (a szülő ott
-   * `display:flex`, a `grid-area` inline style figyelmen kívül marad).
-   * 2026.09.08., Marci kérésére, a 3 fázisú átalakítás 1. (asztali) fázisa. */
-  area?: string
+  /** a MOBIL (egyoszlopos, `display:flex`) sorrendet rögzíti a `order`
+   * CSS-tulajdonsággal — azért van rá szükség, mert asztalon a kártyák 3,
+   * DOM-ban egymástól független magasságú oszlopba csoportosulnak (ld.
+   * `.eredmeny-col`, `display:contents` mobilon), így a DOM-sorrend már
+   * NEM egyezik a kívánt mobil-sorrenddel. A `order` mindkét kontextusban
+   * (a mobil lapos flex-listában ÉS az asztali oszlop-flexekben) a
+   * SAJÁT testvérei közötti relatív sorrendet adja meg helyesen, mivel a
+   * `display:contents` "átlátszó" a flex-elrendezés szempontjából — a
+   * gyerekek mindig a ténylegesen legközelebbi flex-konténerükön belül
+   * sorolódnak be a `order` érték szerint (2026.09.09.). */
+  order?: number
   /** a "fontos tartalmak" (Tünet, Rizikó, Mozgékonyság — Marci kérésére,
    * 2026.09.08.) nagyobb, hangsúlyosabb címet kapnak — CSAK asztalon,
    * `.eredmeny-card-header--prominent` osztályon át (ld. CSS). Mobilon
    * nincs hatása, a cím mérete ott változatlan marad. */
   prominent?: boolean
-  /** az Alapadatok kártya a "terv.jpg" vázlat szerint asztalon CÍM/DOBOZ
-   * nélküli, sima szöveg — a cím szövege (mobilon szükséges) a JSX-ben
-   * MARAD, csak `.eredmeny-card--headerless .eredmeny-card-title`-ként
-   * el van rejtve `min-width:992px`-től (2026.09.08.). */
-  headerless?: boolean
   children: React.ReactNode
 }) {
   return (
     <div
-      className={`card-fyb eredmeny-card ${headerless ? 'eredmeny-card--headerless' : ''} ${className ?? ''}`}
-      style={area ? { gridArea: area } : undefined}
+      className={`card-fyb eredmeny-card ${className ?? ''}`}
+      style={order !== undefined ? { order } : undefined}
     >
       <div className={`eredmeny-card-header ${prominent ? 'eredmeny-card-header--prominent' : ''}`}>
         <Icon src={icon} />
@@ -213,17 +212,6 @@ const INTENSITY_ZONES = [
   { min: 3, max: 6, color: 'var(--z3)' },
   { min: 6, max: 10, color: 'var(--z1)' },
 ]
-function intensityLabel(v: number): string {
-  if (v < 3) return 'enyhe'
-  if (v < 6) return 'közepes'
-  return 'erős'
-}
-function intensityColor(v: number): string {
-  if (v < 3) return 'var(--z6)'
-  if (v < 6) return 'var(--z3)'
-  return 'var(--z1)'
-}
-
 function DurationDonut({ label }: { label: string }) {
   const hours = IDOTARTAM_HOURS[label] ?? 0
   const fraction = Math.min(1, hours / 24)
@@ -322,42 +310,37 @@ export default function Eredmenyeim() {
   return (
     <section className="py-3 py-lg-3">
       <div className="container-fluid eredmeny-page-container">
+        {/* Marci kérésére (2026.09.09.) a "eredményeim" cím asztalon eltűnik
+           (`eredmeny-mobile-only`) — a felszabaduló helyen egy kompakt,
+           doboz nélküli Alapadatok-összegzés jelenik meg (`eredmeny-
+           desktop-only`), hogy ne kelljen külön, teljes szélességű sávot
+           szánni rá a rács tetején (ld. lent, "nem kell fölötte egy nagy
+           dobozba rendezni az infókat"). Mobilon az Alapadatok TOVÁBBRA IS
+           saját, teljes dobozában jelenik meg lent, változatlanul. */}
         <div className="app-page-header mb-3 mobile-sticky-header">
-          <h1 className="app-page-title mb-0">eredményeim</h1>
+          <h1 className="app-page-title mb-0 eredmeny-mobile-only">eredményeim</h1>
+          <div className="eredmeny-header-summary eredmeny-desktop-only">
+            <span className="eredmeny-header-summary-name">{becenev ? `${teljesNev} (${becenev})` : teljesNev}</span>
+            <span className="eredmeny-header-summary-sep">·</span>
+            <span>{eletkor !== null ? `${eletkor} év` : '—'}</span>
+            <span className="eredmeny-header-summary-sep">·</span>
+            <span>{adatok.magassag ? `${adatok.magassag} cm` : '—'}</span>
+            <span className="eredmeny-header-summary-date">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</span>
+          </div>
         </div>
 
         <div className="eredmeny-cards">
-          {/* Alapadatok — mobilon változatlan, saját dobozzal/címmel; asztalon
-             (a "terv.jpg" kézzel rajzolt vázlata szerint, 2026.09.08.) cím és
-             doboz-keret NÉLKÜLI, sima szöveg, a név/kor/magasság BAL, a
-             kitöltés dátuma JOBB oldalon, egy közös, teljes szélességű sávban
-             a rács tetején — ld. `headerless` prop + `.eredmeny-alapadatok-
-             card` CSS (`display:flex;justify-content:space-between`). */}
-          <SectionCard icon="/icons/ikon_fiok.svg" title="Alapadatok" area="alap" headerless className="eredmeny-alapadatok-card">
-            <div className="eredmeny-alapadatok-left">
-              <div className="eredmeny-alapadatok-name">{becenev ? `${teljesNev} (${becenev})` : teljesNev}</div>
-              <div className="eredmeny-alapadatok-sub">{eletkor !== null ? `${eletkor} év` : '—'}</div>
-              <div className="eredmeny-alapadatok-sub">{adatok.magassag ? `${adatok.magassag} cm` : '—'}</div>
-            </div>
+          {/* Alapadatok — CSAK mobilon (asztalon a fenti fejléc-összegzés
+             helyettesíti, ld. `eredmeny-header-summary`). Az `order` a
+             mobil (egyoszlopos) sorrendet rögzíti — ld. SectionCard jegyzet. */}
+          <SectionCard icon="/icons/ikon_fiok.svg" title="Alapadatok" className="eredmeny-mobile-only" order={1}>
+            <div className="eredmeny-alapadatok-name">{becenev ? `${teljesNev} (${becenev})` : teljesNev}</div>
+            <div className="eredmeny-alapadatok-sub">{eletkor !== null ? `${eletkor} év` : '—'}</div>
+            <div className="eredmeny-alapadatok-sub">{adatok.magassag ? `${adatok.magassag} cm` : '—'}</div>
             <div className="eredmeny-alapadatok-date">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</div>
           </SectionCard>
 
-          {/* Önálló, nagy, doboz nélküli testábra (2026.09.08., Marci
-             kérésére, "terv.jpg": "Bodychart a lehető legnagyobb legyen") —
-             CSAK asztalon (`.eredmeny-desktop-only`), a Tünet dobozból
-             KIEMELVE. Mobilon ez az elem rejtve marad, ott a testábra
-             változatlanul a Tünet dobozon belül jelenik meg (lent). */}
-          <div className="eredmeny-bodychart-hero eredmeny-desktop-only" style={{ gridArea: 'bodychart' }}>
-            <div className="eredmeny-bodychart-hero-frame">{bodyChartImg}</div>
-            {nezetToggle}
-          </div>
-
-          {/* Mobilon (változatlanul) 3 KÜLÖN doboz — ld. 102. pont. Asztalon
-             (2026.09.08., "terv.jpg": "az életmód dobozban 2 sorban vannak a
-             mutatók") ez a 3 kártya REJTVE (`eredmeny-mobile-only`), helyettük
-             lent EGY közös "Életmód" doboz jelenik meg, saját (desktop-only)
-             DialGauge-példányokkal, 2 sorban. */}
-          <SectionCard icon="/icons/ikon_szintek.svg" title="BMI" area="bmi" className="eredmeny-mobile-only">
+          <SectionCard icon="/icons/ikon_szintek.svg" title="BMI" className="eredmeny-mobile-only" order={2}>
             {bmi !== null && bmiCat ? (
               <div className="eredmeny-dial-row">
                 <DialGauge
@@ -377,7 +360,7 @@ export default function Eredmenyeim() {
             )}
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_szintek.svg" title="Gerincterhelés" area="gerinc" className="eredmeny-mobile-only">
+          <SectionCard icon="/icons/ikon_szintek.svg" title="Gerincterhelés" className="eredmeny-mobile-only" order={3}>
             {gt !== null ? (
               <div className="eredmeny-dial-row">
                 <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} size="sm" />
@@ -387,7 +370,7 @@ export default function Eredmenyeim() {
             )}
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_szintek.svg" title="Aktivitási szint" area="akt" className="eredmeny-mobile-only">
+          <SectionCard icon="/icons/ikon_szintek.svg" title="Aktivitási szint" className="eredmeny-mobile-only" order={4}>
             {gt !== null ? (
               <div className="eredmeny-dial-row">
                 <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} size="sm" />
@@ -397,111 +380,142 @@ export default function Eredmenyeim() {
             )}
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_szintek.svg" title="Életmód" area="eletmod" className="eredmeny-desktop-only">
-            <div className="eredmeny-eletmod-row eredmeny-eletmod-row--top">
-              {bmi !== null && bmiCat && (
+          {/* Asztalon 3, EGYMÁSTÓL FÜGGETLEN MAGASSÁGÚ oszlop (2026.09.09.,
+             Marci kérésére: "nem kell, hogy a rizikó, mozgékonyság, életmód
+             egy magasságban legyenek") — mobilon a `display:contents` miatt
+             a 3 `.eredmeny-col` "eltűnik" (nem hoz létre saját dobozt), a
+             benne lévő kártyák egyenesen a `.eredmeny-cards` flex-oszlop
+             gyerekei lesznek, a SAJÁT `order`-jük szerint besorolva — ez
+             garantálja, hogy a mobil sorrend a `display:contents` ellenére
+             is pontosan a kívánt (Alapadatok→BMI→Gerinc→Akt→Tünet→
+             Történet→Rizikó→Mozgékonyság→Célod) marad. */}
+          <div className="eredmeny-col eredmeny-col--left">
+            <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet" className="eredmeny-card--lime-border" prominent order={5}>
+              <p className="eredmeny-tunet-description">{adatok.tunetLeiras || '—'}</p>
+              {/* mobilon (változatlanul) a testábra+intenzitás-sáv itt, a
+                 Tünet dobozon BELÜL jelenik meg — asztalon rejtve, ld. lent
+                 az önálló `.eredmeny-bodychart-hero`-t. */}
+              <div className="eredmeny-tunet-main eredmeny-mobile-only">
+                <div className="eredmeny-bodychart-large">{bodyChartImg}</div>
+                <VerticalIntensityBar value={adatok.intenzitas} />
+              </div>
+              <div className="eredmeny-tunet-secondary eredmeny-mobile-only">
+                {nezetToggle}
+                <DurationDonut label={adatok.idotartam} />
+              </div>
+              {/* asztalon (2026.09.08., "terv.jpg": két félkör-műszer, mint a
+                 BMI/Gerincterhelés dial-ok) — ugyanaz a `DialGauge`, amit a
+                 Mutatók dobozok is használnak. */}
+              <div className="eredmeny-tunet-dials eredmeny-desktop-only">
+                {/* Marci kérésére (2026.09.09.) az intenzitás dial-nál NINCS
+                   külön szöveges magyarázat (pl. "erős") az érték alatt —
+                   a `category` üresen marad. */}
                 <DialGauge
-                  value={bmi}
-                  min={15}
-                  max={35}
-                  zones={BMI_ZONES}
-                  score={fmtHu(bmi)}
-                  unit="kg/m²"
-                  category={bmiCat.label}
-                  categoryColor={BMI_CATEGORY_COLOR[bmiCat.key]}
-                  caption="BMI"
+                  value={adatok.intenzitas}
+                  min={0}
+                  max={10}
+                  zones={INTENSITY_ZONES}
+                  score={String(adatok.intenzitas)}
+                  unit="/10"
+                  category=""
+                  caption="Intenzitás"
                   size="sm"
                 />
+                <DialGauge
+                  value={idotartamOra}
+                  min={0}
+                  max={24}
+                  zones={DURATION_ZONES}
+                  score={fmtHu(idotartamOra)}
+                  unit="óra"
+                  category={adatok.idotartam || '—'}
+                  caption="Időtartam"
+                  size="sm"
+                />
+              </div>
+              <div className="eredmeny-tunet-notes">
+                <InfoRow label="Jól esik" value={adatok.miEsikJol} />
+                <InfoRow label="Trigger" value={adatok.mikorErzedLegjobban} />
+              </div>
+            </SectionCard>
+
+            <SectionCard icon="/icons/ikon_checklist.svg" title="Rizikó" prominent order={7}>
+              {rizikoTetelek.length === 0 ? (
+                <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>Rizikó: -</p>
+              ) : (
+                <div className="eredmeny-risk-tags">
+                  {rizikoTetelek.map((r) => (
+                    <span key={r} className="badge-fyb">{r}</span>
+                  ))}
+                </div>
               )}
-            </div>
-            {gt !== null && (
-              <div className="eredmeny-eletmod-row eredmeny-eletmod-row--bottom">
-                <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} caption="Gerincterhelés" size="sm" />
-                <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} caption="Aktivitási szint" size="sm" />
-              </div>
-            )}
-          </SectionCard>
+            </SectionCard>
+          </div>
 
-          <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet" className="eredmeny-card--lime-border" area="tunet" prominent>
-            <p className="eredmeny-tunet-description">{adatok.tunetLeiras || '—'}</p>
-            {/* mobilon (változatlanul) a testábra+intenzitás-sáv itt, a Tünet
-               dobozon BELÜL jelenik meg — asztalon rejtve, ld. fent az önálló
-               `.eredmeny-bodychart-hero`-t. */}
-            <div className="eredmeny-tunet-main eredmeny-mobile-only">
-              <div className="eredmeny-bodychart-large">{bodyChartImg}</div>
-              <VerticalIntensityBar value={adatok.intenzitas} />
-            </div>
-            <div className="eredmeny-tunet-secondary eredmeny-mobile-only">
+          <div className="eredmeny-col eredmeny-col--center">
+            {/* Önálló, nagy, doboz nélküli testábra (2026.09.08., Marci
+               kérésére: "Bodychart a lehető legnagyobb legyen") — CSAK
+               asztalon, a Tünet dobozból KIEMELVE. A nézet-váltó közvetlenül
+               mellette, jobb oldalt, a lábánál (2026.09.09., Marci
+               pontosítására). */}
+            <div className="eredmeny-bodychart-hero eredmeny-desktop-only" style={{ order: 0 }}>
+              <div className="eredmeny-bodychart-hero-frame">{bodyChartImg}</div>
               {nezetToggle}
-              <DurationDonut label={adatok.idotartam} />
             </div>
-            {/* asztalon (2026.09.08., "terv.jpg": két félkör-műszer, mint a
-               BMI/Gerincterhelés dial-ok) — ugyanaz a `DialGauge`, amit a
-               Mutatók dobozok is használnak. */}
-            <div className="eredmeny-tunet-dials eredmeny-desktop-only">
-              <DialGauge
-                value={adatok.intenzitas}
-                min={0}
-                max={10}
-                zones={INTENSITY_ZONES}
-                score={String(adatok.intenzitas)}
-                unit="/10"
-                category={intensityLabel(adatok.intenzitas)}
-                categoryColor={intensityColor(adatok.intenzitas)}
-                caption="Intenzitás"
-                size="sm"
-              />
-              <DialGauge
-                value={idotartamOra}
-                min={0}
-                max={24}
-                zones={DURATION_ZONES}
-                score={fmtHu(idotartamOra)}
-                unit="óra"
-                category={adatok.idotartam || '—'}
-                caption="Időtartam"
-                size="sm"
-              />
-            </div>
-            <div className="eredmeny-tunet-notes">
-              <InfoRow label="Jól esik" value={adatok.miEsikJol} />
-              <InfoRow label="Trigger" value={adatok.mikorErzedLegjobban} />
-            </div>
-          </SectionCard>
 
-          <SectionCard icon="/icons/ikon_munkafuzet.svg" title="Történet" area="tortenet">
-            <InfoRow label="Mikor kezdődött?" value={adatok.kezdodesIdo} />
-            <InfoRow label="Volt már korábban is?" value={adatok.voltMarKorabban} />
-            <InfoRow label="Szerinted mi lehet az oka?" value={adatok.szerintedMiOka} />
-          </SectionCard>
-
-          <SectionCard icon="/icons/ikon_checklist.svg" title="Rizikó" area="riziko" prominent>
-            {rizikoTetelek.length === 0 ? (
-              <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>Rizikó: -</p>
-            ) : (
-              <div className="eredmeny-risk-tags">
-                {rizikoTetelek.map((r) => (
-                  <span key={r} className="badge-fyb">{r}</span>
-                ))}
+            <SectionCard icon="/icons/ikon_torna.svg" title="Mozgékonyság" prominent order={8}>
+              <div className="eredmeny-mobility-grid">
+                <MobilityItem label="hason fekvés" state={adatok.proneOk ? 'ok' : 'not-ok'} />
+                <MobilityItem
+                  label="váll mozgás"
+                  state={adatok.shoulderOk === 'igen' ? 'ok' : adatok.shoulderOk === 'nem' ? 'not-ok' : 'caution'}
+                />
+                <MobilityItem label="nyak" state={adatok.nyakiPanasz ? 'not-ok' : 'ok'} />
+                <MobilityItem label="térd" state={adatok.kneePain ? 'not-ok' : 'ok'} />
               </div>
-            )}
-          </SectionCard>
+            </SectionCard>
 
-          <SectionCard icon="/icons/ikon_torna.svg" title="Mozgékonyság" area="mozgek" prominent>
-            <div className="eredmeny-mobility-grid">
-              <MobilityItem label="hason fekvés" state={adatok.proneOk ? 'ok' : 'not-ok'} />
-              <MobilityItem
-                label="váll mozgás"
-                state={adatok.shoulderOk === 'igen' ? 'ok' : adatok.shoulderOk === 'nem' ? 'not-ok' : 'caution'}
-              />
-              <MobilityItem label="nyak" state={adatok.nyakiPanasz ? 'not-ok' : 'ok'} />
-              <MobilityItem label="térd" state={adatok.kneePain ? 'not-ok' : 'ok'} />
-            </div>
-          </SectionCard>
+            <SectionCard icon="/icons/ikon_csillag.svg" title="Célod" order={9}>
+              <p className="mb-0">{adatok.szemelyesCel || '—'}</p>
+            </SectionCard>
+          </div>
 
-          <SectionCard icon="/icons/ikon_csillag.svg" title="Célod" area="cel">
-            <p className="mb-0">{adatok.szemelyesCel || '—'}</p>
-          </SectionCard>
+          <div className="eredmeny-col eredmeny-col--right">
+            <SectionCard icon="/icons/ikon_munkafuzet.svg" title="Történet" order={6}>
+              <InfoRow label="Mikor kezdődött?" value={adatok.kezdodesIdo} />
+              <InfoRow label="Volt már korábban is?" value={adatok.voltMarKorabban} />
+              <InfoRow label="Szerinted mi lehet az oka?" value={adatok.szerintedMiOka} />
+            </SectionCard>
+
+            {/* Mobilon (változatlanul) 3 KÜLÖN doboz — ld. fent. Asztalon ez
+               az EGY, valódi "Életmód" doboz jelenik meg, 2 sorral (Marci
+               kérésére, 2026.09.08.: "felül középen BMI, lent a másik
+               kettő"). */}
+            <SectionCard icon="/icons/ikon_szintek.svg" title="Életmód" className="eredmeny-desktop-only" order={10}>
+              <div className="eredmeny-eletmod-row eredmeny-eletmod-row--top">
+                {bmi !== null && bmiCat && (
+                  <DialGauge
+                    value={bmi}
+                    min={15}
+                    max={35}
+                    zones={BMI_ZONES}
+                    score={fmtHu(bmi)}
+                    unit="kg/m²"
+                    category={bmiCat.label}
+                    categoryColor={BMI_CATEGORY_COLOR[bmiCat.key]}
+                    caption="BMI"
+                    size="sm"
+                  />
+                )}
+              </div>
+              {gt !== null && (
+                <div className="eredmeny-eletmod-row eredmeny-eletmod-row--bottom">
+                  <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} caption="Gerincterhelés" size="sm" />
+                  <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} caption="Aktivitási szint" size="sm" />
+                </div>
+              )}
+            </SectionCard>
+          </div>
         </div>
       </div>
     </section>
