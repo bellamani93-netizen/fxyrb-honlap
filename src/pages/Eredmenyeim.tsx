@@ -26,15 +26,22 @@ function SectionCard({
   icon,
   title,
   className,
+  area,
   children,
 }: {
   icon: string
   title: string
   className?: string
+  /** csak az asztali "bento" rácsban számít (ld. `.eredmeny-cards` CSS,
+   * `@media (min-width:992px)`) — a kártya helyét adja meg a rács
+   * `grid-template-areas`-ában. Mobilon nincs hatása (a szülő ott
+   * `display:flex`, a `grid-area` inline style figyelmen kívül marad).
+   * 2026.09.08., Marci kérésére, a 3 fázisú átalakítás 1. (asztali) fázisa. */
+  area?: string
   children: React.ReactNode
 }) {
   return (
-    <div className={`card-fyb eredmeny-card ${className ?? ''}`}>
+    <div className={`card-fyb eredmeny-card ${className ?? ''}`} style={area ? { gridArea: area } : undefined}>
       <div className="eredmeny-card-header">
         <Icon src={icon} />
         <h2 className="eredmeny-card-title">{title}</h2>
@@ -254,8 +261,8 @@ export default function Eredmenyeim() {
   const gt = adatok.gerincterhelesEredmeny
 
   return (
-    <section className="py-3 py-lg-5">
-      <div className="container-fluid" style={{ maxWidth: 860 }}>
+    <section className="py-3 py-lg-3">
+      <div className="container-fluid eredmeny-page-container" style={{ maxWidth: 860 }}>
         <div className="app-page-header mb-3 mobile-sticky-header">
           <h1 className="app-page-title mb-0">eredményeim</h1>
         </div>
@@ -266,7 +273,7 @@ export default function Eredmenyeim() {
              magasság, legalul a kitöltés dátuma (ld. Allapotfelmero.tsx
              handleNext — a "beküldés" pillanatában rögzítve, a
              AllapotfelmeroContext `kitoltesDatuma` mezőjében). */}
-          <SectionCard icon="/icons/ikon_fiok.svg" title="Alapadatok">
+          <SectionCard icon="/icons/ikon_fiok.svg" title="Alapadatok" area="alap">
             <div className="eredmeny-alapadatok-name">{becenev ? `${teljesNev} (${becenev})` : teljesNev}</div>
             <div className="eredmeny-alapadatok-sub">{eletkor !== null ? `${eletkor} év` : '—'}</div>
             <div className="eredmeny-alapadatok-sub">{adatok.magassag ? `${adatok.magassag} cm` : '—'}</div>
@@ -279,7 +286,7 @@ export default function Eredmenyeim() {
              a DialGauge saját `caption`-je itt elhagyva (ne ismétlődjön
              kétszer ugyanaz a felirat egy kis dobozon belül). A "Beosztott
              napi idő" szöveg Marci kérésére törölve. */}
-          <SectionCard icon="/icons/ikon_szintek.svg" title="BMI">
+          <SectionCard icon="/icons/ikon_szintek.svg" title="BMI" area="bmi">
             {bmi !== null && bmiCat ? (
               <div className="eredmeny-dial-row">
                 <DialGauge
@@ -299,7 +306,7 @@ export default function Eredmenyeim() {
             )}
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_szintek.svg" title="Gerincterhelés">
+          <SectionCard icon="/icons/ikon_szintek.svg" title="Gerincterhelés" area="gerinc">
             {gt !== null ? (
               <div className="eredmeny-dial-row">
                 <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} size="sm" />
@@ -309,7 +316,7 @@ export default function Eredmenyeim() {
             )}
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_szintek.svg" title="Aktivitási szint">
+          <SectionCard icon="/icons/ikon_szintek.svg" title="Aktivitási szint" area="akt">
             {gt !== null ? (
               <div className="eredmeny-dial-row">
                 <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} size="sm" />
@@ -319,7 +326,7 @@ export default function Eredmenyeim() {
             )}
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet" className="eredmeny-card--lime-border">
+          <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet" className="eredmeny-card--lime-border" area="tunet">
             <p className="eredmeny-tunet-description">{adatok.tunetLeiras || '—'}</p>
             <div className="eredmeny-tunet-main">
               <div className="eredmeny-bodychart-large">
@@ -341,13 +348,13 @@ export default function Eredmenyeim() {
             </div>
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_munkafuzet.svg" title="Történet">
+          <SectionCard icon="/icons/ikon_munkafuzet.svg" title="Történet" area="tortenet">
             <InfoRow label="Mikor kezdődött?" value={adatok.kezdodesIdo} />
             <InfoRow label="Volt már korábban is?" value={adatok.voltMarKorabban} />
             <InfoRow label="Szerinted mi lehet az oka?" value={adatok.szerintedMiOka} />
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_checklist.svg" title="Rizikó">
+          <SectionCard icon="/icons/ikon_checklist.svg" title="Rizikó" area="riziko">
             {rizikoTetelek.length === 0 ? (
               <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>Rizikó: -</p>
             ) : (
@@ -359,7 +366,7 @@ export default function Eredmenyeim() {
             )}
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_torna.svg" title="Mozgékonyság">
+          <SectionCard icon="/icons/ikon_torna.svg" title="Mozgékonyság" area="mozgek">
             <div className="eredmeny-mobility-grid">
               <MobilityItem label="hason fekvés" state={adatok.proneOk ? 'ok' : 'not-ok'} />
               <MobilityItem
@@ -371,7 +378,7 @@ export default function Eredmenyeim() {
             </div>
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_csillag.svg" title="Célod">
+          <SectionCard icon="/icons/ikon_csillag.svg" title="Célod" area="celod">
             <p className="mb-0">{adatok.szemelyesCel || '—'}</p>
           </SectionCard>
         </div>

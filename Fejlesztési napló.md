@@ -1573,3 +1573,15 @@ Marci négy apró korrekciót kért: (1) a 3 mutató (BMI, Gerincterhelés, Akti
 A `DialGauge` saját feliratát (`caption`) opcionálissá tettem, hogy a 3 külön kártyában ne ismétlődjön kétszer ugyanaz a szöveg (a kártya-cím már megnevezi a mutatót). A `SectionCard` komponens kapott egy `className` prop-ot, hogy a Tünet kártya saját, lime szegélyt kaphasson — sötét módban `!important`-tal felülírva a `.card-fyb` alapértelmezett szegélyét.
 
 **Tesztelve böngészőben:** mobilon és asztalin, világos és sötét módban is — mindhárom mutató saját kártyában, a "beosztott napi idő" sehol, a rövidebb "nyak"/"térd" feliratok, és a jól látható lime szegély a Tünet kártyán. `npm run build` hibamentes.
+
+## 2026.09.08. — Eredménylap átalakítása 3 fázisban — 1. fázis: asztali "bento" rács, görgetés nélkül
+
+Marci egy 3 fázisú tervet adott: 1. asztali nézet — görgetés nélkül, logikus elrendezés (a mobil nézethez eközben nem nyúlunk, csak logikai változásokat emelünk át, ha lesz ilyen); 2. mobil nézet, ha az asztali kész; 3. nyomtatható A/4-es összegzés, ha mindkettő kész. Két pontosító kérdés után (elrendezési elv: többhasábos "bento" rács; ha valami nem fér el: minden marad, csak tömörebb) nekiálltam az 1. fázisnak.
+
+A `SectionCard` egy `area` prop-ot kapott, ami `min-width:992px`-en a kártyát egy `grid-template-areas`-alapú rács megfelelő cellájába helyezi (mobilon hatástalan). A 9 kártya elrendezése: felül Alapadatok + a 3 mutató egy sorban, a nagy, testábrás Tünet-doboz 2×2 területet foglal a bal oldalon, mellette Történet/Rizikó/Mozgékonyság/Célod egy 2×2-es alrácsban.
+
+Fejlesztés közben két valós, mérésekkel (nem vizuálisan) felfedezett hibát javítottam: (1) a kártyák `display:flex`-re állítása a rács `align-items:stretch`-ével kombinálva irreális magasságokat okozott — visszaállítva sima blokk-elemre; (2) a bento-oszlopok (~165-210px) a korábbi, telefonra szánt `≤480px` törésponthoz képest is keskenyebbek, ahol a "címke+érték egymás mellett" elrendezés már egyszer bizonyítottan nem fért el — itt is a "egymás alá" elrendezésre váltottam, mert a felirat gyakorlatilag karakterenként törve 1000px+ magasra hízlalt egy dobozt.
+
+A hibák javítása után még mindig ~1814px magas volt a rács — fokozatos, méréssel ellenőrzött tömörítéssel (padding, testábra-magasság, dial-méret, ikon-rács méret) 788px-re csökkent, ami egy tipikus 1366×800-as laptop-ablakban pontosan, görgetés nélkül elfér.
+
+**Tesztelve böngészőben:** `getBoundingClientRect`/`scrollHeight` méréssel ellenőrizve minden lépésnél (nem csak vizuálisan) — 1366×800px-en a tartalom pontosan illeszkedik, egyetlen kártyából sem lóg ki semmi. Világos és sötét módban is screenshot-tal megerősítve. Mobilon megerősítve, hogy a nézet teljesen változatlan maradt. `npm run build` hibamentes.

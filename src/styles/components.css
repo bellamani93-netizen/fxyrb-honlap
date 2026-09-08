@@ -2608,3 +2608,113 @@ html[data-theme='dark'] .bodychart-img {
   font-weight: 600;
   color: var(--color-text-muted);
 }
+
+/* --- Eredménylap: asztali "bento" rács, görgetés nélkül (2026.09.08.,
+   Marci kérésére — 3 fázisú átalakítás: 1. asztali nézet, 2. mobil nézet,
+   3. nyomtatható A/4-es összegzés; "csak akkor lépünk a következőre, ha
+   elkészült az előző"). Ez a blokk KIZÁRÓLAG `min-width:992px`-től aktív
+   (az app saját asztali töréspontja, ld. AppLayout.tsx `d-lg-none`) — az
+   ez ALATTI (mobil/tablet) nézethez Marci kifejezett kérésére NEM
+   nyúltunk, a meglévő, egymás alatti kártya-elrendezés (a fájl korábbi,
+   mobile-first szabályai) változatlanul öröklődnek tovább. A 9 kártya egy
+   közös rácsba kerül: a Tünet (a legtöbb tartalmat hordozó, a bodychartot
+   is tartalmazó doboz) 2×2-es területet foglal, körülötte a többi 7
+   kártya tölti ki a fennmaradó cellákat — mindegyik `SectionCard` a saját
+   `area` prop-ján (ld. Eredmenyeim.tsx) keresztül kapja a helyét. */
+@media (min-width: 992px) {
+  .eredmeny-page-container {
+    max-width: 1180px;
+  }
+  .eredmeny-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-areas:
+      "alap bmi gerinc akt"
+      "tunet tunet tortenet riziko"
+      "tunet tunet mozgek celod";
+    gap: 0.6rem;
+    align-items: stretch;
+  }
+  .eredmeny-card {
+    padding: 0.7rem 1rem;
+  }
+  .eredmeny-card-header {
+    margin-bottom: 0.35rem;
+    gap: 0.4rem;
+  }
+  .eredmeny-card-header .icon-fyb {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+  .eredmeny-card-title {
+    font-size: 0.92rem;
+  }
+  .eredmeny-alapadatok-date {
+    margin-top: 0.5rem;
+    padding-top: 0.35rem;
+  }
+  /* HIBAJAVÍTÁS: a bento-rács egy oszlopa (~210px) KESKENYEBB, mint a
+     korábbi, csak telefonra szánt `≤480px` töréspont, ahol a "címke+érték
+     egymás mellett" elrendezés már bevallottan nem fér el (ld. a 101. pont
+     hibajavítását). Itt ugyanez a jelenség lépett fel: a `.eredmeny-info-
+     label` (flex-shrink:0) lefoglalta a teljes sorszélességet, az
+     `.eredmeny-info-value`-nak (min-width:0) 0px maradt, ami a szöveget
+     GYAKORLATILAG KARAKTERENKÉNT törte — egy 3-soros lista dobozát
+     1000px+ magasságúra hizlalva, ami az egész rács "görgetés nélküli"
+     céljának egyenesen ellentmondott. Javítás: a bento-oszlopokban a
+     címke+érték sor is EGYMÁS ALÁ rendeződik, mint a telefonos nézetben. */
+  .eredmeny-info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+    padding: 0.25rem 0;
+  }
+  .eredmeny-info-value {
+    text-align: left;
+  }
+  /* a testábrás Tünet-doboz a rács 2 sorát foglalja el — a belső elemek
+     (testábra, közte/alatta lévő térközök) tömörebbek, hogy a nagy kép
+     ellenére is beférjen görgetés nélkül. */
+  .eredmeny-bodychart-large {
+    height: 205px;
+  }
+  .eredmeny-tunet-description {
+    margin-bottom: 0.3rem;
+  }
+  .eredmeny-tunet-main {
+    gap: 1.25rem;
+    margin-bottom: 0.3rem;
+  }
+  .eredmeny-tunet-secondary {
+    margin-bottom: 0.2rem;
+  }
+  .eredmeny-tunet-notes .eredmeny-info-row {
+    padding: 0.2rem 0;
+  }
+  .eredmeny-donut-svg {
+    width: 56px;
+    height: 56px;
+  }
+  /* a kompakt (BMI/Gerincterhelés/Aktivitási szint) dial-ok is kisebbek,
+     hogy a felső sor ne foglaljon indokolatlanul sok magasságot. */
+  .eredmeny-dial--sm {
+    width: 105px;
+  }
+  .eredmeny-dial--sm .eredmeny-dial-svg {
+    max-width: 105px;
+  }
+  /* Mozgékonyság ikon-rács — a ~165px széles bento-oszlopban a 80px-es
+     elemek négyesével egymás ALÁ tördelődtek (327px magas doboz egy 4
+     apró jelvényből) — kisebb elemekkel 2×2-es elrendezésbe fér. */
+  .eredmeny-mobility-item {
+    width: 58px;
+  }
+  .eredmeny-mobility-badge {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+  .eredmeny-mobility-label {
+    font-size: 0.66rem;
+  }
+}
