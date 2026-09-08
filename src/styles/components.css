@@ -2673,13 +2673,30 @@ html[data-theme='dark'] .bodychart-img {
      szerű, oszloponként FÜGGETLEN magasságot), ezért a Rizikó/Mozgékonyság/
      Életmód dobozok mindig közös magasságra nyúltak, akkor is, ha
      tartalmuk ezt nem indokolta. Megoldás: a rács helyett 3, EGYMÁSTÓL
-     FÜGGETLEN MAGASSÁGÚ flex-oszlop (`.eredmeny-col`), mindegyik a saját
-     tartalmának megfelelő teljes magasságra nő. Az oszlopok aránya
-     (3/6/3) a korábbi 12-oszlopos rács bal/közép/jobb sávjának felel meg. */
+     FÜGGETLEN MAGASSÁGÚ flex-oszlop (`.eredmeny-col`).
+     RÖGZÍTETT VISZONYOK (2026.09.09., 3. kör, Marci kérésére — "a dobozok
+     magassága dinamikus (tartalomfüggő), de a szélessége mindegyik
+     doboznak ugyanakkora legyen. A Rizikó, Célod, és Életmód doboz alulra
+     igazítva, az aljuk egy vonalban legyen. A cél mindig az aktuális
+     kijelzőméret maximális kitöltése"):
+     1) a 3 oszlop MINDIG egyenlő szélességű (`flex:1 1 0` mindháromra) —
+        ez alapján MINDEN doboz szélessége megegyezik, hiszen egy oszlopon
+        belül minden kártya a teljes oszlopszélességet kitölti;
+     2) a 3 oszlop MAGASSÁGA a `.eredmeny-cards` `align-items:stretch`-je
+        miatt mind a LEGMAGASABB oszlop (a legtöbb tartalmat hordozó
+        közép, testábrás oszlop) magasságára nyúlik — enélkül a rövidebb
+        oszlopok alul "lógnának ki", kihasználatlan hellyel a lap alján;
+     3) az egyes oszlopok UTOLSÓ kártyája (bal: Rizikó, közép: Célod, jobb:
+        Életmód — pontosan a Marci által megnevezett 3 doboz) `margin-top:
+        auto`-t kap, ami a flex-oszlopban a stretch által keletkezett
+        "fölösleges" magasságot KÖZVETLENÜL a doboz FÖLÉ tereli (nem alá) —
+        így ez a 3 doboz mindig az oszlop (és ezzel egymás) ALJÁVAL egy
+        vonalban zár, a FELETTÜK lévő dobozok pedig változatlanul a saját
+        tartalmuk szerinti (dinamikus) magasságúak maradnak. */
   .eredmeny-cards {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 0.9rem;
   }
   .eredmeny-col {
@@ -2687,22 +2704,10 @@ html[data-theme='dark'] .bodychart-img {
     flex-direction: column;
     gap: 0.85rem;
     min-width: 0;
+    flex: 1 1 0;
   }
-  /* Marci kérésére (2026.09.09., 2. kör: "a Mozgékonyság doboz és a Célod
-     doboz lehet keskenyebb, így több hely jut a Történet és Életmód
-     dobozoknak") — a közép oszlop szélessége nem a testábra méretét
-     korlátozza (az saját, MAGASSÁG-vezérelt `aspect-ratio`-val méreteződik,
-     ld. `.eredmeny-bodychart-hero-frame`), csak a Mozgékonyság/Célod
-     dobozok szélességét, ezért BÁTRAN keskenyebbre vehető, a felszabaduló
-     hely a jobb oszlopnak (Történet+Életmód) jut. */
-  .eredmeny-col--left {
-    flex: 3 1 0;
-  }
-  .eredmeny-col--center {
-    flex: 4 1 0;
-  }
-  .eredmeny-col--right {
-    flex: 5 1 0;
+  .eredmeny-col > .eredmeny-card:last-child {
+    margin-top: auto;
   }
   /* Dobozok, a "terv.jpg" vázlat alakja szerint: felül kerekített, alul
      szögletes sarkok, szürkés fejléc-sáv (2026.09.08., Marci kérésére).
@@ -2815,6 +2820,18 @@ html[data-theme='dark'] .bodychart-img {
   }
   .eredmeny-eletmod-row--top {
     margin-bottom: 0.5rem;
+  }
+  /* HIBAJAVÍTÁS (2026.09.09., 3. kör: "rögzítsünk viszonyokat... a
+     szélessége mindegyik doboznak ugyanakkora legyen") — mióta a 3 oszlop
+     egyenlő szélességű (ld. `.eredmeny-col`), az Életmód doboz oszlopa
+     KESKENYEBB, mint a korábbi (5/12-es) volt. A 2 kompakt (105px) dial +
+     az 1.25rem rés (230px) a legszűkebb asztali szélességen (992px, mért
+     belső hely ~219px) enélkül 4px-szel túllógott volna a doboz mindkét
+     szélén (DOM-méréssel megerősítve, majd javítva) — a `.eredmeny-
+     mobility-grid`-nél (ld. lent) alkalmazotthoz hasonló, kisebb rés
+     megoldja. */
+  .eredmeny-eletmod-row--bottom {
+    gap: 0.5rem;
   }
   /* HIBAJAVÍTÁS (2026.09.09., 2. kör, Marci kérésére: "a gerincterhelés és
      aktivitási szint kijelzők egymagasságban legyenek a dobozon belül") —
