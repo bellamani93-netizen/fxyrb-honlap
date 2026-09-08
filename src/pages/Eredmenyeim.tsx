@@ -27,6 +27,7 @@ function SectionCard({
   title,
   className,
   area,
+  prominent,
   children,
 }: {
   icon: string
@@ -38,11 +39,16 @@ function SectionCard({
    * `display:flex`, a `grid-area` inline style figyelmen kívül marad).
    * 2026.09.08., Marci kérésére, a 3 fázisú átalakítás 1. (asztali) fázisa. */
   area?: string
+  /** a "fontos tartalmak" (Tünet, Rizikó, Mozgékonyság — Marci kérésére,
+   * 2026.09.08.) nagyobb, hangsúlyosabb címet kapnak — CSAK asztalon,
+   * `.eredmeny-card-header--prominent` osztályon át (ld. CSS). Mobilon
+   * nincs hatása, a cím mérete ott változatlan marad. */
+  prominent?: boolean
   children: React.ReactNode
 }) {
   return (
     <div className={`card-fyb eredmeny-card ${className ?? ''}`} style={area ? { gridArea: area } : undefined}>
-      <div className="eredmeny-card-header">
+      <div className={`eredmeny-card-header ${prominent ? 'eredmeny-card-header--prominent' : ''}`}>
         <Icon src={icon} />
         <h2 className="eredmeny-card-title">{title}</h2>
       </div>
@@ -326,7 +332,7 @@ export default function Eredmenyeim() {
             )}
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet" className="eredmeny-card--lime-border" area="tunet">
+          <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet" className="eredmeny-card--lime-border" area="tunet" prominent>
             <p className="eredmeny-tunet-description">{adatok.tunetLeiras || '—'}</p>
             <div className="eredmeny-tunet-main">
               <div className="eredmeny-bodychart-large">
@@ -354,7 +360,7 @@ export default function Eredmenyeim() {
             <InfoRow label="Szerinted mi lehet az oka?" value={adatok.szerintedMiOka} />
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_checklist.svg" title="Rizikó" area="riziko">
+          <SectionCard icon="/icons/ikon_checklist.svg" title="Rizikó" area="riziko" prominent>
             {rizikoTetelek.length === 0 ? (
               <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>Rizikó: -</p>
             ) : (
@@ -366,7 +372,7 @@ export default function Eredmenyeim() {
             )}
           </SectionCard>
 
-          <SectionCard icon="/icons/ikon_torna.svg" title="Mozgékonyság" area="mozgek">
+          <SectionCard icon="/icons/ikon_torna.svg" title="Mozgékonyság" area="mozgek" prominent>
             <div className="eredmeny-mobility-grid">
               <MobilityItem label="hason fekvés" state={adatok.proneOk ? 'ok' : 'not-ok'} />
               <MobilityItem

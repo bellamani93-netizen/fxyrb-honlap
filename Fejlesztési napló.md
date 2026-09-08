@@ -1585,3 +1585,13 @@ Fejlesztés közben két valós, mérésekkel (nem vizuálisan) felfedezett hib�
 A hibák javítása után még mindig ~1814px magas volt a rács — fokozatos, méréssel ellenőrzött tömörítéssel (padding, testábra-magasság, dial-méret, ikon-rács méret) 788px-re csökkent, ami egy tipikus 1366×800-as laptop-ablakban pontosan, görgetés nélkül elfér.
 
 **Tesztelve böngészőben:** `getBoundingClientRect`/`scrollHeight` méréssel ellenőrizve minden lépésnél (nem csak vizuálisan) — 1366×800px-en a tartalom pontosan illeszkedik, egyetlen kártyából sem lóg ki semmi. Világos és sötét módban is screenshot-tal megerősítve. Mobilon megerősítve, hogy a nézet teljesen változatlan maradt. `npm run build` hibamentes.
+
+## 2026.09.08. — Eredménylap 1. fázis folytatása: dobozok/ikonok törölve, kiemelt tartalmak, nagyobb testábra
+
+Marci tovább finomította az asztali bento-rácsot: ikonok törölve a dobozcímek elől; a dobozok (háttér/árnyék/keret) törölve, a tartalom töltse ki a teret; a Tünet, Rizikó és Mozgékonyság szakasz legyen kiemelt helyen; a testábra legyen a lehető legnagyobb.
+
+Az ikon- és doboz-törlés CSAK vizuális, CSAK asztalon (`min-width:992px`) — a JSX (és vele a mobil nézet) változatlan maradt, ahogy Marci saját szabálya kéri ("kizárólag logikai elemeket emelünk át"). A rács 12 oszlopossá vált: felül a 3 kiemelt szakasz (Tünet 6/12, Rizikó 3/12, Mozgékonyság 3/12, nagy címmel), alul a 6 másodlagos adat (2/12 egyenként, kis felirat-szerű címmel). A testábra 205px→300px — próbaként 400px-re is felraktam, de az a rácsot 1098px magasra hízlalta (a görgetés-mentes cél messze fölé), ezért 300px-re mérsékeltem.
+
+**Fontos, jelzett kompromisszum:** a nagyobb testábra + kiemelt tartalmak miatt a rács ~946px magas lett (korábban 788px) — egy 1366×950px-es (vagy nagyobb) ablakban pontosan elfér, egy szűkebb (~820px) ablakban már nem. Mivel Marci mindkét kérést (nagyobb testábra ÉS görgetés nélküliség) egyszerre kérte, ezt a feszültséget nem oldottam fel egyoldalúan — visszajeleztem.
+
+**Tesztelve böngészőben:** DOM-méréssel/computed style-lal ellenőrizve minden lépésnél (a böngésző-panel screenshot-ja időnként elavult képet adott vissza ebben a munkamenetben, ezt méréssel kerültem meg) — sötét módban explicit módon megerősítve, hogy mind a 9 kártyán nincs háttér/keret/látható ikon (a Tünet kivételével, ott csak a bal oldali lime sáv maradt). Mobilon megerősítve, hogy a kártya-háttér, -árnyék és az ikon is változatlanul megjelenik — a mobil nézet pixelpontosan érintetlen. `npm run build` hibamentes.
