@@ -196,8 +196,12 @@ const IDOTARTAM_HOURS: Record<string, number> = {
   'szinte egész nap': 20,
 }
 /** semleges (nem piros→zöld) egyetlen szín — az időtartamnak nincs
- * "jó/rossz" jelentése, mint pl. a BMI-nek, ezért nem kap zóna-skálát. */
-const DURATION_ZONES = [{ min: 0, max: 24, color: 'var(--color-primary)' }]
+ * "jó/rossz" jelentése, mint pl. a BMI-nek, ezért nem kap zóna-skálát.
+ * Marci kérésére (2026.09.09., 4. kör: "a mutatók színskálájához... használj
+ * neonszíneket") a korábbi `--color-primary` (téma-függő teal/mint) helyett
+ * a többi mutatóval azonos neon-skála egyik fokát (`--z4`, neon türkiz)
+ * kapja, hogy vizuálisan egységes maradjon a Mutatók-szekció. */
+const DURATION_ZONES = [{ min: 0, max: 24, color: 'var(--z4)' }]
 /** az intenzitás dial-jához (2026.09.08., Marci kérésére, "terv.jpg") — a
  * meglévő --z1/--z3/--z6 zóna-színeket újrahasznosítva (enyhe→zöld,
  * közepes→sárga, erős→piros), új szín bevezetése nélkül. */
@@ -410,9 +414,10 @@ export default function Eredmenyeim() {
                  BMI/Gerincterhelés dial-ok) — ugyanaz a `DialGauge`, amit a
                  Mutatók dobozok is használnak. */}
               <div className="eredmeny-tunet-dials eredmeny-desktop-only">
-                {/* Marci kérésére (2026.09.09.) az intenzitás dial-nál NINCS
-                   külön szöveges magyarázat (pl. "erős") az érték alatt —
-                   a `category` üresen marad. */}
+                {/* Marci kérésére (2026.09.09.: intenzitásnál, majd 4. kör:
+                   időtartamnál is) EGYIK dial-nál sincs külön szöveges
+                   magyarázat (pl. "erős", "3–5 óra") az érték alatt — a
+                   `category` mindkettőnél üresen marad. */}
                 <DialGauge
                   value={adatok.intenzitas}
                   min={0}
@@ -431,7 +436,7 @@ export default function Eredmenyeim() {
                   zones={DURATION_ZONES}
                   score={fmtHu(idotartamOra)}
                   unit="óra"
-                  category={adatok.idotartam || '—'}
+                  category=""
                   caption="Időtartam"
                   size="sm"
                 />

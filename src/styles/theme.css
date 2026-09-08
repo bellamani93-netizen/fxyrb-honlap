@@ -75,9 +75,25 @@
      GerincterhelesEredmeny.loadColor/actColor) — ehhez globálisan elérhető
      tokennek kellett lennie. Szándékosan FIX, nem mód-függő, mint a fenti
      macOS-/tünet-színek — ez egy saját, jelentéssel bíró adatvizualizációs
-     skála, nem a márkapaletta része. */
-  --z1: #C0392B; --z2: #E07A3F; --z3: #E8B94A; --z4: #8FC2B8; --z5: #3FA79B; --z6: #28B463;
-  --a1: #C0392B; --a2: #E07A3F; --a3: #E8B94A; --a4: #8FC2B8; --a5: #28B463;
+     skála, nem a márkapaletta része.
+     NEON PALETTA (2026.09.09., Marci kérésére: "a Mutatók színskálájához (az
+     összes mutatónál) használj neonszíneket, amik jó kontrasztosak a
+     világos és sötét háttérrel is") — a korábbi, tompított/földszínű
+     árnyalatok (pl. `--z1:#C0392B`) helyett élénk, telített ("neon")
+     tónusok, DE nem a lehető legvilágosabb/legrikítóbb változatukban: egy
+     tiszta neon-sárga vagy -zöld a fehér doboz-háttéren (`--color-surface:
+     #FFFFFF`) szinte eltűnne (túl világos), ezért mindegyik szín
+     relatív luminanciáját tudatosan egy szűk sávban (kb. 0,22–0,30) tartva
+     választottam — ez az a tartomány, ahol a WCAG-képlettel számolva a
+     kontraszt EGYSZERRE marad ≥3:1 a világos (`#FFFFFF`) ÉS a sötét
+     (`--color-surface` sötét módban: `#263A50`) doboz-háttérrel szemben is.
+     Mivel ez a token minden mutatót kiszolgál (BMI/Gerincterhelés/
+     Aktivitási szint/Intenzitás/Időtartam az Eredménylapon ÉS a
+     GerincterhelesKalkulator saját, wizard-beli megjelenése is), a csere
+     ide, KÖZPONTIVA, egyetlen helyre került — nem duplikált, lapra szűkített
+     színkészletként. */
+  --z1: #FF2D55; --z2: #E66A00; --z3: #C77D00; --z4: #009690; --z5: #00A344; --z6: #00A876;
+  --a1: #FF2D55; --a2: #E66A00; --a3: #C77D00; --a4: #009690; --a5: #00A876;
 
   /* GYT "naptáram" — saját (nem SALES-kapacitás-) színkódolás (2026.08.31.,
      Marci kérésére) — MINDEN gyt a saját naptárában ezt látja, függetlenül

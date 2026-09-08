@@ -2709,6 +2709,27 @@ html[data-theme='dark'] .bodychart-img {
   .eredmeny-col > .eredmeny-card:last-child {
     margin-top: auto;
   }
+  /* Marci kérésére (2026.09.09., 4. kör: "ha a rizikó dobozban kevés az
+     elem, akkor a Tünet doboz alsó határa csússzon lejjebb. Ilyenkor a
+     belső tartalomnál a tünet leírása és a mutatók közötti térköz
+     nőjön.") — a bal oszlop első kártyája (mindig a Tünet) `flex:1 1 auto`-t
+     kap, így a Rizikó felé (ami a fenti szabály miatt már amúgy is az
+     oszlop aljára van "tűzve") maradó szabad magasságot MAGA A TÜNET DOBOZ
+     nyeli el (nem üres rés kerül a 2 doboz KÖZÉ). A doboz maga is
+     `display:flex;flex-direction:column`-ra vált, hogy a BENNE lévő extra
+     magasságot is tovább tudja adni; a leírás és a dial-sor közötti
+     `.eredmeny-tunet-dials{margin-top:auto}` pedig ugyanezt a technikát
+     (auto-margó) alkalmazza eggyel beljebb — a felszabaduló hely emiatt
+     pontosan a leírás ÉS a mutatók KÖZÖTT nő, a jegyzetek (`.eredmeny-
+     tunet-notes`) pedig változatlanul közvetlenül a dial-ok alatt maradnak. */
+  .eredmeny-col--left > .eredmeny-card:first-child {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .eredmeny-col--left > .eredmeny-card:first-child .eredmeny-tunet-dials {
+    margin-top: auto;
+  }
   /* Dobozok, a "terv.jpg" vázlat alakja szerint: felül kerekített, alul
      szögletes sarkok, szürkés fejléc-sáv (2026.09.08., Marci kérésére).
      HIBAJAVÍTÁS: az első verzió `overflow:hidden`-nel igazította a
@@ -2824,14 +2845,32 @@ html[data-theme='dark'] .bodychart-img {
   /* HIBAJAVÍTÁS (2026.09.09., 3. kör: "rögzítsünk viszonyokat... a
      szélessége mindegyik doboznak ugyanakkora legyen") — mióta a 3 oszlop
      egyenlő szélességű (ld. `.eredmeny-col`), az Életmód doboz oszlopa
-     KESKENYEBB, mint a korábbi (5/12-es) volt. A 2 kompakt (105px) dial +
-     az 1.25rem rés (230px) a legszűkebb asztali szélességen (992px, mért
-     belső hely ~219px) enélkül 4px-szel túllógott volna a doboz mindkét
-     szélén (DOM-méréssel megerősítve, majd javítva) — a `.eredmeny-
-     mobility-grid`-nél (ld. lent) alkalmazotthoz hasonló, kisebb rés
-     megoldja. */
+     KESKENYEBB, mint a korábbi (5/12-es) volt, a korábbi FIX 105px-es
+     dial-szélesség emiatt (2×105px + rés) a legszűkebb asztali szélességen
+     (992px) túllógott volna a doboz szélén.
+     MEGOLDÁS (2026.09.09., 4. kör, Marci kérésére: "az aktivitási szint
+     mutató fölött egy sorban maradjon a szöveg, legyen elég térköz a két
+     mutató között, hogy kiférjen") — a korábbi fix szélesség helyett a 2
+     dial MOST RUGALMAS (`flex:1 1 0`, `min-width:0`): a rendelkezésre álló
+     szélességet egyenlően osztják el egymás közt, ahelyett hogy egy fixen
+     beállított (és a legszűkebb nézethez igazított, ezért máshol
+     szükségtelenül keskeny) értéken ragadnának. Ez KÉT ELŐNNYEL jár: (1) a
+     túllógás fizikailag KIZÁRT (a dial sosem nőhet szélesebbre, mint a
+     ráeső hely), (2) a tipikus/szélesebb asztali nézetekben (≥1200px) a
+     dial-ok ENNÉL FOGVA jóval szélesebbek lehetnek a korábbi fix 105px-nél,
+     így a kétszavas "AKTIVITÁSI SZINT" felirat egy sorba fér — csak a
+     legszűkebb (992px) szélességen marad (a `min-height`-tal már
+     amúgy is kezelt) 2-soros törés, elfogadott szélső eset. */
   .eredmeny-eletmod-row--bottom {
-    gap: 0.5rem;
+    gap: 0.75rem;
+  }
+  .eredmeny-eletmod-row--bottom .eredmeny-dial--sm {
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .eredmeny-eletmod-row--bottom .eredmeny-dial--sm .eredmeny-dial-svg {
+    max-width: 100%;
   }
   /* HIBAJAVÍTÁS (2026.09.09., 2. kör, Marci kérésére: "a gerincterhelés és
      aktivitási szint kijelzők egymagasságban legyenek a dobozon belül") —
