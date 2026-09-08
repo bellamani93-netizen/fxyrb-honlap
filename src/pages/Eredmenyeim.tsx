@@ -27,7 +27,6 @@ function SectionCard({
   title,
   className,
   order,
-  prominent,
   children,
 }: {
   icon: string
@@ -44,11 +43,6 @@ function SectionCard({
    * gyerekek mindig a ténylegesen legközelebbi flex-konténerükön belül
    * sorolódnak be a `order` érték szerint (2026.09.09.). */
   order?: number
-  /** a "fontos tartalmak" (Tünet, Rizikó, Mozgékonyság — Marci kérésére,
-   * 2026.09.08.) nagyobb, hangsúlyosabb címet kapnak — CSAK asztalon,
-   * `.eredmeny-card-header--prominent` osztályon át (ld. CSS). Mobilon
-   * nincs hatása, a cím mérete ott változatlan marad. */
-  prominent?: boolean
   children: React.ReactNode
 }) {
   return (
@@ -56,7 +50,7 @@ function SectionCard({
       className={`card-fyb eredmeny-card ${className ?? ''}`}
       style={order !== undefined ? { order } : undefined}
     >
-      <div className={`eredmeny-card-header ${prominent ? 'eredmeny-card-header--prominent' : ''}`}>
+      <div className="eredmeny-card-header">
         <Icon src={icon} />
         <h2 className="eredmeny-card-title">{title}</h2>
       </div>
@@ -319,13 +313,22 @@ export default function Eredmenyeim() {
            saját, teljes dobozában jelenik meg lent, változatlanul. */}
         <div className="app-page-header mb-3 mobile-sticky-header">
           <h1 className="app-page-title mb-0 eredmeny-mobile-only">eredményeim</h1>
+          {/* Marci pontosítására (2026.09.09., 2. kör): a név/becenév ALATT
+             (nem mellette) áll a kor+magasság, a kitöltés dátuma pedig
+             MINDIG a jobb felső sarokban marad — a `justify-content:
+             space-between` a 2 csoportot (bal: név-blokk, jobb: dátum) a
+             sáv két szélére tolja, függetlenül attól, hogy a névsor
+             1 vagy 2 sorra törik-e. */}
           <div className="eredmeny-header-summary eredmeny-desktop-only">
-            <span className="eredmeny-header-summary-name">{becenev ? `${teljesNev} (${becenev})` : teljesNev}</span>
-            <span className="eredmeny-header-summary-sep">·</span>
-            <span>{eletkor !== null ? `${eletkor} év` : '—'}</span>
-            <span className="eredmeny-header-summary-sep">·</span>
-            <span>{adatok.magassag ? `${adatok.magassag} cm` : '—'}</span>
-            <span className="eredmeny-header-summary-date">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</span>
+            <div className="eredmeny-header-summary-main">
+              <div className="eredmeny-header-summary-name">{becenev ? `${teljesNev} (${becenev})` : teljesNev}</div>
+              <div className="eredmeny-header-summary-sub">
+                {eletkor !== null ? `${eletkor} év` : '—'}
+                <span className="eredmeny-header-summary-sep">·</span>
+                {adatok.magassag ? `${adatok.magassag} cm` : '—'}
+              </div>
+            </div>
+            <div className="eredmeny-header-summary-date">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</div>
           </div>
         </div>
 
@@ -390,7 +393,7 @@ export default function Eredmenyeim() {
              is pontosan a kívánt (Alapadatok→BMI→Gerinc→Akt→Tünet→
              Történet→Rizikó→Mozgékonyság→Célod) marad. */}
           <div className="eredmeny-col eredmeny-col--left">
-            <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet" className="eredmeny-card--lime-border" prominent order={5}>
+            <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet" className="eredmeny-card--lime-border" order={5}>
               <p className="eredmeny-tunet-description">{adatok.tunetLeiras || '—'}</p>
               {/* mobilon (változatlanul) a testábra+intenzitás-sáv itt, a
                  Tünet dobozon BELÜL jelenik meg — asztalon rejtve, ld. lent
@@ -439,7 +442,7 @@ export default function Eredmenyeim() {
               </div>
             </SectionCard>
 
-            <SectionCard icon="/icons/ikon_checklist.svg" title="Rizikó" prominent order={7}>
+            <SectionCard icon="/icons/ikon_checklist.svg" title="Rizikó" order={7}>
               {rizikoTetelek.length === 0 ? (
                 <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>Rizikó: -</p>
               ) : (
@@ -463,7 +466,7 @@ export default function Eredmenyeim() {
               {nezetToggle}
             </div>
 
-            <SectionCard icon="/icons/ikon_torna.svg" title="Mozgékonyság" prominent order={8}>
+            <SectionCard icon="/icons/ikon_torna.svg" title="Mozgékonyság" order={8}>
               <div className="eredmeny-mobility-grid">
                 <MobilityItem label="hason fekvés" state={adatok.proneOk ? 'ok' : 'not-ok'} />
                 <MobilityItem

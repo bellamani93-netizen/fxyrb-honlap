@@ -2688,12 +2688,21 @@ html[data-theme='dark'] .bodychart-img {
     gap: 0.85rem;
     min-width: 0;
   }
-  .eredmeny-col--left,
-  .eredmeny-col--right {
+  /* Marci kérésére (2026.09.09., 2. kör: "a Mozgékonyság doboz és a Célod
+     doboz lehet keskenyebb, így több hely jut a Történet és Életmód
+     dobozoknak") — a közép oszlop szélessége nem a testábra méretét
+     korlátozza (az saját, MAGASSÁG-vezérelt `aspect-ratio`-val méreteződik,
+     ld. `.eredmeny-bodychart-hero-frame`), csak a Mozgékonyság/Célod
+     dobozok szélességét, ezért BÁTRAN keskenyebbre vehető, a felszabaduló
+     hely a jobb oszlopnak (Történet+Életmód) jut. */
+  .eredmeny-col--left {
     flex: 3 1 0;
   }
   .eredmeny-col--center {
-    flex: 6 1 0;
+    flex: 4 1 0;
+  }
+  .eredmeny-col--right {
+    flex: 5 1 0;
   }
   /* Dobozok, a "terv.jpg" vázlat alakja szerint: felül kerekített, alul
      szögletes sarkok, szürkés fejléc-sáv (2026.09.08., Marci kérésére).
@@ -2747,38 +2756,50 @@ html[data-theme='dark'] .bodychart-img {
      az 'eredményeim' címet" — a felszabaduló helyen az Alapadatok adatai
      jelennek meg, kompakt, doboz nélküli sorban, ld. Eredmenyeim.tsx
      `eredmeny-header-summary`). */
+  /* Marci pontosítására (2026.09.09., 2. kör): a 2 csoport (bal: név-blokk,
+     jobb: kitöltés dátuma) `justify-content:space-between`-nel a sáv két
+     szélére kerül — a dátum emiatt MINDIG a jobb felső sarokban marad,
+     függetlenül attól, hogy a bal oldali név-blokk 1 vagy 2 sorra törik. */
   .eredmeny-header-summary {
     display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    font-size: 1.1rem;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    /* a `.app-page-header` a "eredményeim" cím (mobilon látható `<h1>`)
+       mellett MÁSODIK gyerekként rendereli ezt is — asztalon a cím
+       `display:none`, ezért enélkül a `flex:1` nélkül ez a doboz csak a
+       SAJÁT tartalmának szélességét venné fel, és a benne lévő
+       `justify-content:space-between` nem a lap jobb széléig, csak eddig a
+       szűkebb dobozig tolná ki a dátumot. */
+    flex: 1;
   }
   .eredmeny-header-summary-name {
     font-weight: 700;
     font-size: 1.3rem;
   }
-  .eredmeny-header-summary-sep {
+  /* Marci kérésére (2026.09.09., 2. kör: "Név, becenév alatt legyen a kor
+     és a magasság") — a kor+magasság a névsor ALATT, külön sorban. */
+  .eredmeny-header-summary-sub {
     color: var(--color-text-muted);
+    margin-top: 0.15rem;
+  }
+  .eredmeny-header-summary-sep {
+    margin: 0 0.35rem;
   }
   .eredmeny-header-summary-date {
-    margin-left: 0.75rem;
     color: var(--color-text-muted);
     font-size: 0.9rem;
+    white-space: nowrap;
+    padding-top: 0.2rem;
   }
-  /* másodlagos szakaszok (Történet, Célod, Életmód): kis, visszafogott
-     "felirat", nem hangsúlyos cím — a vizuális súlyt a kiemelt szakaszok
-     kapják. */
+  /* Marci kérésére (2026.09.09., 2. kör: "Történet, Célod, és Életmód
+     dobozcím formázása legyen olyan, mint a többi (pl. Tünet) dobozcím
+     formázása") — mivel EZUTÁN minden asztalon látható doboz-cím
+     (Tünet/Rizikó/Mozgékonyság/Történet/Célod/Életmód) egységesen ezt a
+     nagy, hangsúlyos stílust kapja, a korábbi "kiemelt/másodlagos" 2-féle
+     cím-stílus (és a hozzá tartozó `SectionCard` `prominent` prop) törölve
+     lett — dead code, mert a megkülönböztetésnek elveszett az értelme. */
   .eredmeny-card-title {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  /* a kiemelt szakaszok (Tünet, Rizikó, Mozgékonyság) nagy, hangsúlyos
-     címet kapnak. */
-  .eredmeny-card-header--prominent .eredmeny-card-title {
     font-size: 1.3rem;
     font-weight: 800;
     color: var(--color-text);
@@ -2794,6 +2815,24 @@ html[data-theme='dark'] .bodychart-img {
   }
   .eredmeny-eletmod-row--top {
     margin-bottom: 0.5rem;
+  }
+  /* HIBAJAVÍTÁS (2026.09.09., 2. kör, Marci kérésére: "a gerincterhelés és
+     aktivitási szint kijelzők egymagasságban legyenek a dobozon belül") —
+     a "Gerincterhelés" (1 szó) és az "Aktivitási szint" (2 szó) feliratok
+     ELTÉRŐ SZÁMÚ sorra törhetnek a kompakt (105px széles) dial-oknál, ami
+     a felirat ALATTI félkör-műszert (a "kijelzőt") a 2 dial-nál eltérő
+     magasságba tolta — a `.eredmeny-dial` `flex-direction:column`
+     elrendezésben a felirat magassága közvetlenül eltolja az utána
+     következő SVG-t. Rögzített `min-height` (2 sornyi hely, FÜGGETLENÜL
+     attól, hogy a tényleges szöveg 1 vagy 2 sorra tör-e) + a szöveget alulra
+     igazító `display:flex;align-items:flex-end` biztosítja, hogy a felirat
+     alatti SVG mindig UGYANOTT kezdődjön, a szöveg sorainak számától
+     függetlenül. */
+  .eredmeny-eletmod-row--bottom .eredmeny-dial-caption {
+    min-height: 1.85rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
   }
   /* HIBAJAVÍTÁS: a bento-oszlop KESKENYEBB, mint a korábbi, csak telefonra
      szánt `≤480px` töréspont, ahol a "címke+érték egymás mellett"
@@ -2910,17 +2949,29 @@ html[data-theme='dark'] .bodychart-img {
     width: 100%;
     text-align: center;
   }
-  /* Mozgékonyság kiemelt helye — jóval szélesebb oszlop jut neki, a 4
-     jelvény egy sorban, nagyobb méretben fér el. */
+  /* HIBAJAVÍTÁS (2026.09.09., 2. kör): a közép oszlop a "Mozgékonyság doboz
+     lehet keskenyebb" kérésre (ld. `.eredmeny-col--center`) 6/12-ről 4/12-re
+     szűkült — a korábbi, még a széles oszlophoz méretezett jelvények (66px
+     doboz, 40px jelvény) emiatt a legszűkebb asztali szélességen (992px,
+     mért belső hely: ~184px) 4 helyett csak 3-at engedtek egy sorba, a 4.
+     jelvény egy ÚJ sorra tört — ez ~230px-szel megnövelte a Mozgékonyság
+     doboz (és vele a teljes közép oszlop) magasságát, ami 1200×800px-en
+     már túlcsordulást (görgetést) okozott. Kisebb, a legszűkebb (992px)
+     esetre méretezett jelvények (176px < ~184px elérhető hely, tartalék
+     híján is) garantálják, hogy a 4 jelvény MINDIG egy sorban marad. */
+  .eredmeny-mobility-grid {
+    gap: 0.25rem;
+  }
   .eredmeny-mobility-item {
-    width: 66px;
+    width: 40px;
   }
   .eredmeny-mobility-badge {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
   }
   .eredmeny-mobility-label {
-    font-size: 0.72rem;
+    font-size: 0.6rem;
+    line-height: 1.15;
   }
 }
