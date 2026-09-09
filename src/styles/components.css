@@ -2311,8 +2311,19 @@ html[data-theme='dark'] .bodychart-img {
    kerekített felső sarkaihoz — ez levágta az enyhén túlnyúló tartalmat is
    (pl. a dial-feliratokat). Végleges megoldás: NINCS `overflow:hidden` a
    dobozon, a fejléc-sáv kapja KÖZVETLENÜL a doboz felső sugarát (eggyel
-   kisebbre, a keret vastagsága miatt). */
-.eredmeny-card {
+   kisebbre, a keret vastagsága miatt).
+   HIBAJAVÍTÁS (2026.09.10., Marci kérésére: "a dobozok fejléce ugyanolyan
+   legyen, mint asztali nézetben: a felső részt egy széltől-szélig érő vonal
+   leválasztja, a teteje szürke") — mobilon (≤991.98px) egy RÉGEBBI, más
+   app-oldalakra (nem az Eredménylapra) szánt szabály, a `.app-main
+   .card-fyb { padding: 1.25rem }` (ld. fentebb, Design jegyzet 10. pont)
+   MAGASABB specificitású (2 osztály), mint az itteni `.eredmeny-card
+   { padding: 0 }` (1 osztály) — emiatt a doboz mobilon VISSZAKAPOTT egy
+   20px-es kerete, ami a fejléc-sávot minden oldalon befelé tolta (nem ért
+   ki a doboz szélééig). A `.eredmeny-cards .eredmeny-card` szelektor (2
+   osztály, később a fájlban) ugyanarra a specificitási szintre kerül, és a
+   forráson belüli sorrend miatt felülírja a régebbi szabályt. */
+.eredmeny-cards .eredmeny-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card) var(--radius-card) 0 0;
@@ -2553,13 +2564,16 @@ html[data-theme='dark'] .bodychart-img {
 /* --- testábra: önálló, doboz nélküli, nagy illusztráció, mellette a
    nézet-váltóval (2026.09.08., Marci kérésére: "Bodychart a lehető
    legnagyobb legyen"; 2026.09.10-től MOBILON is önálló elem, nem a Tünet
-   dobozon belül — ld. fenti jegyzet). Mobilon a keret ALATT, középen áll a
-   nézet-váltó (oszlop-elrendezés); asztalon a keret JOBB oldalán, a
-   aljával egy vonalban (sor-elrendezés, ld. lent a médialekérdezésben). */
+   dobozon belül — ld. fenti jegyzet). A nézet-kapcsoló a keret JOBB
+   oldalán, a lábával (aljával) egy vonalban áll — MINDEN képernyőméreten
+   (2026.09.10., Marci kérésére: "a Bodychart lába mellett jobb oldalon
+   legyen a nézetválasztó" — korábban ez csak asztalon volt így, mobilon a
+   keret ALATT, középen állt a kapcsoló). */
 .eredmeny-bodychart-hero {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: center;
   gap: 0.75rem;
 }
 .eredmeny-bodychart-hero-frame {
@@ -2720,16 +2734,6 @@ html[data-theme='dark'] .bodychart-img {
     justify-content: space-between;
     gap: 1rem;
     flex: 1;
-  }
-  /* a testábra sor-elrendezésű: a nézet-kapcsoló közvetlenül a keret jobb
-     oldalán, annak ALJÁVAL egy vonalban (2026.09.09., Marci pontosítására:
-     "a nézet kapcsoló legyen a bodychart mellett közvetlenül jobb oldalt a
-     lábánál"). */
-  .eredmeny-bodychart-hero {
-    flex-direction: row;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 0.75rem;
   }
   /* MAGASSÁG-vezérelt méretezés (nem szélesség-vezérelt) — a rácsban a
      FÜGGŐLEGES hely a szűkös erőforrás (a "görgetés nélküli" cél miatt),

@@ -1687,3 +1687,13 @@ A legnagyobb architektúra-váltás: mivel Marci "minden módosítás átvétel�
 Egy hibát találtam és javítottam: a testábra-kép a törölt, régi (mobilra szánt) CSS-osztálynevet viselte, ami véletlenül helyesen pozicionálta az önálló testábra-elemet is — a törlés után elvesztette a pozicionálását, egy új, kifejezetten a testábra-keretre kötött szabállyal javítva.
 
 **Tesztelve böngészőben:** a teljes kérdőívet szkriptelve kitöltve. Mobilon (375px) DOM-méréssel megerősítve a pontos kért sorrendet, és hogy minden doboz felvette az asztali megjelenést (screenshot-tal is, világos és sötét módban). Asztalon (1440×900, 1200×800) megerősítve, hogy semmi nem változott az 1. fázis végi állapothoz képest — nincs regresszió. `npm run build` hibamentes, konzol-hiba nem jelentkezett.
+
+## 2026.09.10. — Mobil fejléc-sáv javítás (széltől-szélig) és a nézet-váltó a bodychart lábánál mobilon is
+
+Marci az előző kör mobil nézetét megnézve 2 pontosítást kért: a dobozok fejléce ugyanolyan legyen, mint asztalon (széltől-szélig érő elválasztó vonal, szürke tető) — és a testábra melletti nézet-váltó kerüljön a keret lábához, jobb oldalra (mobilon eddig a keret alatt, középen állt).
+
+A fejléc-sáv hibáját méréssel találtam meg: egy régebbi, más app-oldalakra szánt mobil-kompakt szabály (`.app-main .card-fyb { padding: 1.25rem }`) magasabb CSS-specificitású volt, mint az Eredménylap saját `.eredmeny-card { padding: 0 }` szabálya — emiatt a doboz mobilon visszakapott egy keretet, ami a fejléc-sávot minden oldalon befelé tolta, nem ért ki a doboz széléig. A szelektor specificitásának emelésével javítva (nem a régi, más oldalakat is érintő szabály módosításával).
+
+A nézet-váltó áthelyezéséhez egyszerűen eltávolítottam a mobil/asztali elrendezés-különbséget: a testábra és a kapcsoló mostantól minden képernyőméreten azonos, sor-irányú elrendezést kap (a korábbi, csak asztali `flex-direction: row` szabály lett az egyetlen, univerzális szabály).
+
+**Tesztelve böngészőben:** a teljes kérdőívet szkriptelve kitöltve, mobilon (375px) DOM-méréssel megerősítve mindkét javítást (minden doboz fejléce a doboz szélééig ér; a testábra és a nézet-váltó alsó éle pontosan egyezik) — screenshot-tal is, világos és sötét módban. Asztalon (1440×900) megerősítve, hogy semmi nem változott — nincs regresszió. `npm run build` hibamentes, konzol-hiba nem jelentkezett.
