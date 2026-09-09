@@ -15,6 +15,7 @@ import UgyfelKonzultaciok from './pages/UgyfelKonzultaciok'
 import GytUgyfelek from './pages/GytUgyfelek'
 import GytVideokiosztas from './pages/GytVideokiosztas'
 import GytNaptar from './pages/GytNaptar'
+import GytAllapotfelmerok from './pages/GytAllapotfelmerok'
 import SalesHivasaim from './pages/SalesHivasaim'
 import SalesHozzarendeles from './pages/SalesHozzarendeles'
 import SalesUzenetek from './pages/SalesUzenetek'
@@ -32,12 +33,17 @@ function buildGytNavItems(newClientsCount: number): NavItem[] {
     { to: '/gyt/ugyfelek', label: 'ügyfeleim', icon: '/icons/ikon_kezdolap.svg', badge: newClientsCount || undefined },
     { to: '/gyt/videokiosztas', label: 'videókiosztás', icon: '/icons/ikon_video.svg' },
     { to: '/gyt/naptar', label: 'naptár', icon: '/icons/ikon_naptar.svg' },
+    // korábban zárolt helyőrző volt ("állapotfelmérő") — Marci kérésére
+    // (2026.09.10.: "az eredménylap üf-hez rendelve legyen látható a gyt
+    // fiókban is: állapotfelmérők menüpont alatt") feloldva, többes számra
+    // átnevezve, és a többi AKTÍV menüpont mellé (nem a zárolt helyőrzők
+    // közé) átsorolva.
+    { to: '/gyt/allapotfelmerok', label: 'állapotfelmérők', icon: '/icons/ikon_kerdoiv.svg' },
     { label: 'dokumentáció', icon: '/icons/ikon_munkafuzet.svg', locked: true },
     { label: 'munkafüzet', icon: '/icons/ikon_tanulas.svg', locked: true },
     { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
     { label: 'oktatóanyag', icon: '/icons/ikon_villanykorte.svg', locked: true },
     { label: 'eredmények', icon: '/icons/ikon_csillag.svg', locked: true },
-    { label: 'állapotfelmérő', icon: '/icons/ikon_kerdoiv.svg', locked: true },
     { label: 'kérdések', icon: '/icons/ikon_csengo.svg', locked: true },
   ]
 }
@@ -111,6 +117,7 @@ function AppRoutes() {
         <Route path="/gyt/ugyfelek" element={<GytUgyfelek />} />
         <Route path="/gyt/videokiosztas" element={<GytVideokiosztas />} />
         <Route path="/gyt/naptar" element={<GytNaptar />} />
+        <Route path="/gyt/allapotfelmerok" element={<GytAllapotfelmerok />} />
       </Route>
       <Route element={<AppLayout navItems={salesNavItems} userName="Eszter" role="sales" />}>
         <Route element={<SalesDataProvider><Outlet /></SalesDataProvider>}>

@@ -233,13 +233,32 @@ function MobilityItem({ label, state }: { label: string; state: MobilityState })
   )
 }
 
-export default function Eredmenyeim() {
+export default function Eredmenyeim({
+  displayName,
+  showPrint = false,
+}: {
+  /** GYT-oldali megjelenítéskor (ld. GytAllapotfelmerok.tsx) a kiválasztott
+   * ÜGYFÉL neve — mivel nincs backend, minden más mező (Tünet, mutatók stb.)
+   * továbbra is a KÖZÖS, munkamenet-szintű `AllapotfelmeroContext`-ből
+   * jön (ugyanaz a demó-adat, akárhonnan nézzük), csak a fejlécben
+   * megjelenő NÉV cserélődik a valós ügyfél-nyilvántartásból (2026.09.10.,
+   * Marci kérésére: "az eredménylap üf-hez rendelve legyen látható a gyt
+   * fiókban is"). Adás esetén a becenév-toldalék elmarad (az a session-
+   * szintű ÜF-demóadat része, a GYT-oldali ügyfél-rekordnak nincs ilyen
+   * mezője). Az ÜF saját `/eredmenyeim` oldalán nincs megadva — ott a
+   * `getSessionName()`-ből jövő névre esik vissza, változatlanul. */
+  displayName?: string
+  /** a "nyomtatás" gomb — Marci kérésére (2026.09.10.) KIZÁRÓLAG a GYT-
+   * oldali nézetben jelenik meg, az ÜF saját "eredményeim" oldaláról
+   * törölve (alapértelmezetten `false`). */
+  showPrint?: boolean
+}) {
   const { adatok } = useAllapotfelmero()
   const [nezet, setNezet] = useState(adatok.bodyChartNezet)
   const imageSrc = withBase(BODYCHART_IMAGES[nezet])
 
-  const teljesNev = getSessionName('Péter')
-  const becenev = adatok.megszolitas
+  const teljesNev = displayName ?? getSessionName('Péter')
+  const becenev = displayName ? undefined : adatok.megszolitas
   const eletkor = calculateAge(adatok.szuletesiEv, adatok.szuletesiHo)
   const bmi = calculateBmi(adatok.magassag, adatok.suly)
   const bmiCat = bmi !== null ? bmiCategory(bmi) : null
@@ -293,10 +312,17 @@ export default function Eredmenyeim() {
           {/* Marci kérésére (2026.09.10., 3. fázis: "hogyan tudjuk ezeket egy
              A/4-es állított lapra... nyomtatóbarát legyen") — a böngésző
              natív nyomtatását indítja; a gomb maga `no-print`, papíron nem
-             jelenik meg. */}
-          <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm no-print eredmeny-print-btn" onClick={() => window.print()}>
-            nyomtatás
-          </button>
+             jelenik meg. Marci KÉSŐBBI kérésére (ugyanazon a napon: "nyomtatás
+             opció csak a gyt fiókban legyen, az üf fiókból töröld") a gomb
+             mostantól a `showPrint` prop-tól függ — az ÜF saját
+             "eredményeim" oldalán (`showPrint` alapértelmezetten `false`)
+             nem jelenik meg, KIZÁRÓLAG a GYT-oldali nézetben (ld.
+             GytAllapotfelmerok.tsx). */}
+          {showPrint && (
+            <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm no-print eredmeny-print-btn" onClick={() => window.print()}>
+              nyomtatás
+            </button>
+          )}
         </div>
 
         {/* A 7 doboz sorrendje 2026.09.10-től UGYANAZZAL a 7 `order`-
