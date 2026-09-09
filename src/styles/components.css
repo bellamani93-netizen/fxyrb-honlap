@@ -2536,8 +2536,30 @@ html[data-theme='dark'] .bodychart-img {
 .eredmeny-tunet-dials {
   display: flex;
   justify-content: center;
-  gap: 1.25rem;
+  gap: 0.75rem;
   margin: 0.5rem 0;
+}
+/* HIBAJAVÍTÁS (2026.09.10., Marci kérésére: "nyomtatásnál a dobozból
+   kilógnak a mutatók... a tartalom mindig maradjon a dobozban") — a 2
+   fix szélességű (170px, ill. keskeny oszlopban/nyomtatva 105px) dial
+   EGYÜTT+a köztük lévő rés MINDIG szélesebb volt, mint a Tünet doboz
+   ténylegesen rendelkezésre álló belső szélessége (a doboz `justify-
+   content:center` miatt középre húzva, de `overflow:visible` mellett a
+   túlnyúló rész láthatóan kilógott a doboz szegélyén túl — mérve: PONTOSAN
+   ez a hiba, minden töréspontnál, nemcsak nyomtatva). Ugyanaz a technika,
+   mint amit az Életmód doboz alsó dial-párja már 2026.09.09. óta használ
+   (ld. `.eredmeny-eletmod-row--bottom .eredmeny-dial--sm` lent): a 2 dial
+   RUGALMAS szélességű, egyenlően osztozik a ténylegesen rendelkezésre álló
+   helyen — ez FIZIKAILAG KIZÁRJA a túlnyúlást, függetlenül a doboz aktuális
+   szélességétől (mobil, asztali, nyomtatott — mind ugyanezt a szabályt
+   kapja, nincs törésponttól függő speciális eset). */
+.eredmeny-tunet-dials .eredmeny-dial--sm {
+  width: auto;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.eredmeny-tunet-dials .eredmeny-dial--sm .eredmeny-dial-svg {
+  max-width: 100%;
 }
 .eredmeny-tunet-nezet {
   display: flex;
@@ -2801,13 +2823,18 @@ html[data-theme='dark'] .bodychart-img {
    egyik képernyős töréspont szélességével sem böngészőnként, ezért minden,
    a 3-oszlopos elrendezéshez szükséges szabályt itt, KIZÁRÓLAG `@media
    print`-en belül, saját maga ismétel meg (nem "örökli" a desktop-blokkot).
-   Az arányok (3 egyenlő oszlop, ~224px/oszlop A/4-en 12mm margóval) a MÁR
+   Az arányok (3 egyenlő oszlop, ~224px/oszlop A/4-en a lapmargóval) a MÁR
    BEVÁLT, legszűkebb asztali eset (992px, ~221px/oszlop) méreteivel
    gyakorlatilag megegyeznek, ezért a kompakt dial-/jelvény-méretezést is
-   INNEN, nem újratervezve vettem át. */
+   INNEN, nem újratervezve vettem át.
+   HIBAJAVÍTÁS (2026.09.10., Marci kérésére: "adj kisebb nyomtatási margót a
+   lap szélétől") — a korábbi 12mm lapmargó 8mm-re csökkent, több hasznos
+   szélességet hagyva az oszlopoknak (ez ÖNMAGÁBAN nem oldotta meg a fent
+   dokumentált dial-túllógást — az a `.eredmeny-tunet-dials` rugalmas
+   szélesség-szabályával lett javítva, ami minden töréspontra vonatkozik). */
 @page {
   size: A4 portrait;
-  margin: 12mm;
+  margin: 8mm;
 }
 @media print {
   /* app-keret (menüsáv, felső sáv, nyomtatás gomb, nézet-kapcsoló) rejtve —
@@ -2938,7 +2965,12 @@ html[data-theme='dark'] .bodychart-img {
   }
   /* kompakt dial-/jelvény-méretezés — a MÁR bevált, legszűkebb asztali
      (992px, ~221px/oszlop) eset méretei, mert az A/4 nyomtatott oszlop
-     (~224px, 12mm lapmargóval) gyakorlatilag ugyanakkora. */
+     (~224px, a lapmargóval) gyakorlatilag ugyanakkora. Ez a FIX méret csak
+     az EGYEDÜLÁLLÓ (párosítatlan) dial-oknál (pl. az Életmód doboz BMI-
+     sora) marad érvényben — a PÁROSÁVAL megjelenő dial-oknál (Tünet:
+     Intenzitás/Időtartam; Életmód alsó sora: Gerincterhelés/Aktivitási
+     szint) a rugalmas szélesség-szabály (ld. lent) MAGASABB specificitású,
+     ezért felülírja. */
   .eredmeny-dial--sm {
     width: 105px !important;
   }
@@ -2948,6 +2980,27 @@ html[data-theme='dark'] .bodychart-img {
   .eredmeny-dial--sm .eredmeny-dial-caption {
     font-size: 0.78rem !important;
     letter-spacing: 0.01em !important;
+  }
+  /* HIBAJAVÍTÁS (2026.09.10., Marci kérésére: "nyomtatásnál a dobozból
+     kilógnak a mutatók... a tartalom mindig maradjon a dobozban") — a
+     fenti fix 105px szélesség a Tünet és az Életmód PÁROSÁVAL megjelenő
+     dial-jainál (2 db, egymás mellett) SZÉLESEBB volt, mint a doboz
+     ténylegesen rendelkezésre álló, keskeny (nyomtatott A/4-es oszlop)
+     belső helye — ez okozta a kilógást. Ugyanaz a rugalmas-szélesség
+     technika, mint a képernyős (nem nyomtatott) alap CSS-ben (ld.
+     `.eredmeny-tunet-dials`/`.eredmeny-eletmod-row--bottom` szabályok) —
+     ITT, nyomtatáskor is KIFEJEZETTEN meg kell ismételni, mert a fenti
+     `!important` szabály különben felülírná (a print-blokk ÖNÁLLÓ,
+     semmit nem örököl a képernyős szabályokból). */
+  .eredmeny-tunet-dials .eredmeny-dial--sm,
+  .eredmeny-eletmod-row--bottom .eredmeny-dial--sm {
+    width: auto !important;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+  }
+  .eredmeny-tunet-dials .eredmeny-dial--sm .eredmeny-dial-svg,
+  .eredmeny-eletmod-row--bottom .eredmeny-dial--sm .eredmeny-dial-svg {
+    max-width: 100% !important;
   }
   .eredmeny-mobility-grid {
     gap: 0.25rem !important;
