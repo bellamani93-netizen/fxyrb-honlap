@@ -2640,6 +2640,17 @@ html[data-theme='dark'] .bodychart-img {
 .eredmeny-desktop-only {
   display: none;
 }
+/* nyomtatás-segédosztályok (2026.09.10., Marci kérésére, 3. fázis:
+   "nyomtatóbarát" A4 összegzés) — ugyanaz az elv, mint a fenti mobil/
+   desktop-only párnál: a JSX MINDIG rendereli mindkettőt (pl. a nézet-
+   kapcsoló ÉS a statikus nézet-felirat is), a láthatóságot kizárólag CSS
+   dönti el, itt képernyő vs. nyomtatás szerint. */
+.eredmeny-print-only {
+  display: none;
+}
+.eredmeny-print-btn {
+  margin-left: auto;
+}
 .eredmeny-footer-date {
   color: var(--color-text-muted);
   text-align: center;
@@ -2779,5 +2790,178 @@ html[data-theme='dark'] .bodychart-img {
   .eredmeny-mobility-label {
     font-size: 0.6rem;
     line-height: 1.15;
+  }
+}
+
+/* --- Eredménylap: nyomtatható A/4 összegzés (2026.09.10., Marci kérésére,
+   3. fázis: "Nézzük, hogyan tudjuk ezeket egy A/4-es állított lapra úgy
+   helyezni, hogy lehetőleg nyomtatóbarát legyen.") — ÖNÁLLÓ, a képernyős
+   (`min-width:992px`) médialekérdezéstől FÜGGETLEN szabálykészlet: a
+   nyomtatás során a lap tényleges "szélessége" NEM garantáltan egyezik meg
+   egyik képernyős töréspont szélességével sem böngészőnként, ezért minden,
+   a 3-oszlopos elrendezéshez szükséges szabályt itt, KIZÁRÓLAG `@media
+   print`-en belül, saját maga ismétel meg (nem "örökli" a desktop-blokkot).
+   Az arányok (3 egyenlő oszlop, ~224px/oszlop A/4-en 12mm margóval) a MÁR
+   BEVÁLT, legszűkebb asztali eset (992px, ~221px/oszlop) méreteivel
+   gyakorlatilag megegyeznek, ezért a kompakt dial-/jelvény-méretezést is
+   INNEN, nem újratervezve vettem át. */
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+@media print {
+  /* app-keret (menüsáv, felső sáv, nyomtatás gomb, nézet-kapcsoló) rejtve —
+     a `.app-shell` képernyőn `height:100vh;overflow:hidden` (2 független
+     görgetési terület), ami nyomtatáskor levágná a tartalmat egyetlen
+     "képernyőnyi" magasságra; ehelyett a lap a TERMÉSZETES dokumentum-
+     folyáshoz (és az @page magasságához) igazodjon. */
+  .app-topbar,
+  .app-sidebar,
+  .app-sidebar-backdrop,
+  .no-print {
+    display: none !important;
+  }
+  .app-shell {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+  .app-main {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .mobile-sticky-header {
+    position: static !important;
+    top: auto !important;
+    padding-top: 0 !important;
+  }
+  /* a lap MINDIG világos háttéren, sötét szövegen nyomtat, függetlenül
+     attól, hogy a felhasználó épp sötét módban nézte-e a képernyőn —
+     mivel minden szín ide vezet vissza (CSS-változók), elég EZT a pár
+     tokent világos módú értékre állítani, minden rájuk épülő szabály
+     (kártya-háttér, fejléc-sáv, szöveg-szín stb.) automatikusan követi.
+     A mutatók jelentéssel bíró neon-színei (--z1..z6/--a1..a5, --lime)
+     VÁLTOZATLANOK maradnak — azok nyomtatva is informatívak. */
+  html[data-theme='dark'] {
+    --color-bg: #F8F9FA;
+    --color-bg-alt: #EFF2F3;
+    --color-surface: #FFFFFF;
+    --color-text: #1A2634;
+    --color-text-muted: #5E807F;
+    --color-border: #E1E5E7;
+  }
+  .eredmeny-page-container {
+    max-width: none !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .card-fyb,
+  .eredmeny-card {
+    box-shadow: none !important;
+  }
+  .eredmeny-card {
+    break-inside: avoid;
+  }
+  /* nyomtatáskor rejtett/csak nyomtatáskor látható elemek — a JSX MINDIG
+     mindkettőt rendereli (ld. Eredmenyeim.tsx `eredmeny-print-only`), a
+     képernyőn `eredmeny-mobile-only`/`eredmeny-desktop-only` szerint
+     eldöntött láthatóság itt ÚJRA, explicit módon szükséges, mert a
+     nyomtatás nem "örökli" a képernyős `min-width:992px` médialekérdezés
+     hatását. */
+  .eredmeny-mobile-only {
+    display: none !important;
+  }
+  .eredmeny-header-summary-date {
+    display: block !important;
+  }
+  .eredmeny-print-only {
+    display: inline-block !important;
+  }
+  /* fejléc: név/kor/magasság balra, kitöltés dátuma jobbra — ugyanaz az
+     elrendezés, mint asztalon. */
+  .eredmeny-header-summary {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+  .eredmeny-header-summary-date {
+    color: var(--color-text-muted) !important;
+    font-size: 0.8rem !important;
+    white-space: nowrap !important;
+  }
+  /* 3, egymástól független magasságú oszlop — ugyanaz a technika, mint
+     asztalon (ld. a képernyős `@media(min-width:992px)` blokk jegyzetét). */
+  .eredmeny-cards {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+  .eredmeny-col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.4rem !important;
+    min-width: 0 !important;
+    flex: 1 1 0 !important;
+  }
+  .eredmeny-col > .eredmeny-card:last-child {
+    margin-top: auto !important;
+  }
+  .eredmeny-col--left > .eredmeny-card:first-child {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .eredmeny-col--left > .eredmeny-card:first-child .eredmeny-tunet-dials {
+    margin-top: auto !important;
+  }
+  /* a testábra nyomtatáskor OSZLOP-elrendezésű (kép fent, a statikus
+     nézet-felirat alatta, középen) — a képernyős SOR-elrendezés (kép
+     mellett a kapcsoló) az INTERAKTÍV kapcsolóhoz készült, ami papíron
+     nem jelenik meg, ezért itt nem indokolt a hely-igényesebb sor-forma. */
+  .eredmeny-bodychart-hero {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
+  }
+  .eredmeny-bodychart-hero-frame {
+    height: 400px !important;
+  }
+  .eredmeny-print-nezet {
+    color: var(--color-text-muted) !important;
+    font-size: 0.72rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+  }
+  /* kompakt dial-/jelvény-méretezés — a MÁR bevált, legszűkebb asztali
+     (992px, ~221px/oszlop) eset méretei, mert az A/4 nyomtatott oszlop
+     (~224px, 12mm lapmargóval) gyakorlatilag ugyanakkora. */
+  .eredmeny-dial--sm {
+    width: 105px !important;
+  }
+  .eredmeny-dial--sm .eredmeny-dial-svg {
+    max-width: 105px !important;
+  }
+  .eredmeny-dial--sm .eredmeny-dial-caption {
+    font-size: 0.78rem !important;
+    letter-spacing: 0.01em !important;
+  }
+  .eredmeny-mobility-grid {
+    gap: 0.25rem !important;
+  }
+  .eredmeny-mobility-item {
+    width: 40px !important;
+  }
+  .eredmeny-mobility-badge {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.8rem !important;
+  }
+  .eredmeny-mobility-label {
+    font-size: 0.6rem !important;
+    line-height: 1.15 !important;
   }
 }

@@ -256,11 +256,15 @@ export default function Eredmenyeim() {
     </>
   )
   const nezetToggle = (
-    <div className="eredmeny-tunet-nezet">
+    <div className="eredmeny-tunet-nezet no-print">
       <span className="small" style={{ color: 'var(--color-text-muted)' }}>nézet</span>
       <ToggleSwitch checked={nezet === 'rtg'} onChange={(c) => setNezet(c ? 'rtg' : 'hat')} label="nézet váltása hát és röntgen nézet között" />
     </div>
   )
+  // nyomtatáskor a kapcsoló (interaktív elem, papíron értelmetlen) helyett
+  // egy sima, statikus felirat mutatja, melyik nézet van kiválasztva
+  // (2026.09.10., Marci kérésére, 3. fázis: "nyomtatóbarát" A4 összegzés).
+  const nezetPrintLabel = <span className="eredmeny-print-only eredmeny-print-nezet">nézet: {nezet === 'rtg' ? 'röntgen' : 'hátulnézet'}</span>
 
   return (
     <section className="py-3 py-lg-3">
@@ -286,6 +290,13 @@ export default function Eredmenyeim() {
             </div>
             <div className="eredmeny-header-summary-date eredmeny-desktop-only">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</div>
           </div>
+          {/* Marci kérésére (2026.09.10., 3. fázis: "hogyan tudjuk ezeket egy
+             A/4-es állított lapra... nyomtatóbarát legyen") — a böngésző
+             natív nyomtatását indítja; a gomb maga `no-print`, papíron nem
+             jelenik meg. */}
+          <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm no-print eredmeny-print-btn" onClick={() => window.print()}>
+            nyomtatás
+          </button>
         </div>
 
         {/* A 7 doboz sorrendje 2026.09.10-től UGYANAZZAL a 7 `order`-
@@ -357,6 +368,7 @@ export default function Eredmenyeim() {
             <div className="eredmeny-bodychart-hero" style={{ order: 1 }}>
               <div className="eredmeny-bodychart-hero-frame">{bodyChartImg}</div>
               {nezetToggle}
+              {nezetPrintLabel}
             </div>
 
             <SectionCard icon="/icons/ikon_torna.svg" title="Mozgékonyság" order={4}>
