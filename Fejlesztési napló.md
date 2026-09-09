@@ -1675,3 +1675,15 @@ Marci jelezte, hogy egy középső szín barnás maradt — ezt élénksárgára
 ## 2026.09.09. — Sötét mód színátmenetes háttere visszavonva
 
 Marci a `body`/`.app-shell` sötét módú színátmenetes hátterét (ld. előző, ugyanaznapi bejegyzés) "tévútnak" minősítette, és kérte a visszaállítást. A változást `git revert`-tel vontam vissza (nem `git reset`-tel, mert a commit már fel volt tolva a távoli `main`-re) — ez egy ÚJ, a korábbi commit teljes tartalmát visszavonó commit-ot hoz létre, megtartva a git-történetet, force push nélkül. A build hash-e (`D4R1b5iM.css`/`BtwoGDC8.js`) pontosan megegyezik a gradiens bevezetése ELŐTTI állapotéval, ami megerősíti a teljes, hiánytalan visszaállást.
+
+## 2026.09.10. — Eredménylap 2. fázis indul: mobil nézet, az asztali módosítások átvételével
+
+Az 1. fázis (asztali nézet) lezárult. Marci: folytassuk a mobil nézettel, az asztali nézet minden módosítását átvesszük, csak az elrendezés lesz más — egyoszlopos, lefelé görgetős lista, konkrét sorrenddel megadva (fejléc-blokk → testábra → Tünet → Rizikó → Mozgékonyság → Történet → Életmód → Célod → kitöltés időpontja).
+
+Ez nem inkrementális finomítás volt, hanem teljes mobil-újraépítés: a korábbi, 1. fázis alatt szándékosan érintetlenül hagyott mobil-specifikus tartalom (külön Alapadatok-doboz, 3 külön BMI/Gerincterhelés/Aktivitási szint doboz, a Tünet dobozon belüli testábra+intenzitás-sáv+időtartam-kördiagram) megszűnt — helyette minden képernyőméreten az asztalon már kialakult végleges tartalom jelenik meg.
+
+A legnagyobb architektúra-váltás: mivel Marci "minden módosítás átvételét" kérte, a korábbi, kétszer (mobil ÉS asztali médialekérdezés) élő "skin"-szabályok (doboz-alak, fejléc-sáv, cím-stílus stb.) feleslegessé váltak — ezek egységes, alap szabállyá lettek, a médialekérdezésben csak a valódi makro-elrendezés (1 vs. 3 oszlop) és a szűkebb oszlopokhoz igazított méretek maradtak. A sorrendet egyetlen közös `order`-készlet (1-7) fejezi ki mind mobilra, mind asztalra — matematikailag ellenőrizve, hogy mindkét elrendezés helyesen adódik ki ugyanabból a számozásból. A kitöltés időpontja maradt az egyetlen valódi tartalmi különbség a 2 nézet között (asztalon fejlécben, mobilon a lap alján).
+
+Egy hibát találtam és javítottam: a testábra-kép a törölt, régi (mobilra szánt) CSS-osztálynevet viselte, ami véletlenül helyesen pozicionálta az önálló testábra-elemet is — a törlés után elvesztette a pozicionálását, egy új, kifejezetten a testábra-keretre kötött szabállyal javítva.
+
+**Tesztelve böngészőben:** a teljes kérdőívet szkriptelve kitöltve. Mobilon (375px) DOM-méréssel megerősítve a pontos kért sorrendet, és hogy minden doboz felvette az asztali megjelenést (screenshot-tal is, világos és sötét módban). Asztalon (1440×900, 1200×800) megerősítve, hogy semmi nem változott az 1. fázis végi állapothoz képest — nincs regresszió. `npm run build` hibamentes, konzol-hiba nem jelentkezett.

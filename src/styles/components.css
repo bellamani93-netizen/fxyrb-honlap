@@ -2285,14 +2285,17 @@ html[data-theme='dark'] .bodychart-img {
 /* --- Eredménylap (Eredmenyeim.tsx, 2026.09.07., Marci kérésére, 2. fázis) ---
    7 tematikus .card-fyb szakasz, a projekt meglévő minta-elemeire építve
    (card-fyb, badge-fyb, .risk-checkbox-list szerkezete) — nincs a "Minta_hát
-   értékelés.pdf"-ből átvett szín/betűtípus, csak az elrendezés-ötlet. */
-/* HIBAJAVÍTÁS (2026.09.08.): korábban a JSX-ben egy inline `style={{maxWidth:
-   860}}` adta ezt az értéket — az inline style MINDIG felülírja a
-   stíluslapból jövő szabályt (magasabb specificitás), ezért a `@media
-   (min-width:992px) { .eredmeny-page-container { max-width:1180px } }`
-   asztali felülbírálás SOHA nem léphetett érvénybe, ez okozta, hogy a bento
-   rács oszlopai a tervezettnél jóval keskenyebbek voltak. Az inline style
-   törölve a JSX-ből, az alap (mobil) érték ide, CSS-be került. */
+   értékelés.pdf"-ből átvett szín/betűtípus, csak az elrendezés-ötlet.
+   2026.09.10-től (2. fázis, mobil nézet, Marci kérésére: "az asztali nézet
+   minden módosítását átvesszük, az elrendezés lesz másként") ez az EGÉSZ
+   szakasz EGYSÉGES: a doboz-alak, cím-stílus, ikon-elrejtés, mutató-
+   színek/dial-ok, Rizikó-pirulák stb. MINDEN képernyőméreten UGYANAZOK —
+   kizárólag a MAKRO-ELRENDEZÉS (egyoszlopos lista mobilon vs. 3, egymástól
+   független magasságú oszlop ≥992px-től) különbözik a lenti
+   `@media (min-width: 992px)` blokkban. Korábban (1. fázis) minden ilyen
+   "skin" szabály KÉTSZER élt (egyszer az alap/mobil, egyszer a desktop
+   médialekérdezésben, gyakran eltérő értékkel) — ez a duplikáció innentől
+   megszűnt. */
 .eredmeny-page-container {
   max-width: 860px;
 }
@@ -2301,6 +2304,21 @@ html[data-theme='dark'] .bodychart-img {
   flex-direction: column;
   gap: 1rem;
 }
+/* Dobozok: felül kerekített, alul szögletes sarkok, szürkés fejléc-sáv (a
+   "terv.jpg" vázlat alakja szerint, 2026.09.08., Marci kérésére — MOSTANTÓL
+   minden képernyőméreten, ld. fenti jegyzet). HIBAJAVÍTÁS (akkor): az első
+   verzió `overflow:hidden`-nel igazította a fejléc-sáv hátterét a doboz
+   kerekített felső sarkaihoz — ez levágta az enyhén túlnyúló tartalmat is
+   (pl. a dial-feliratokat). Végleges megoldás: NINCS `overflow:hidden` a
+   dobozon, a fejléc-sáv kapja KÖZVETLENÜL a doboz felső sugarát (eggyel
+   kisebbre, a keret vastagsága miatt). */
+.eredmeny-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  box-shadow: var(--shadow-card);
+  padding: 0;
+}
 /* Tünet doboz lime szegélye (2026.09.07., Marci kérésére) — !important,
    mert a .card-fyb sötét módban saját, magasabb specificitású szegélyt ad
    (html[data-theme='dark'] .card-fyb), amit itt szándékosan felül kell írni,
@@ -2308,22 +2326,47 @@ html[data-theme='dark'] .bodychart-img {
 .eredmeny-card--lime-border {
   border: 2px solid var(--lime) !important;
 }
-.eredmeny-card-header {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.9rem;
+/* a dobozcímek elől az ikon eltűnik (2026.09.08., Marci kérésére). */
+.eredmeny-card-header .icon-fyb {
+  display: none;
 }
+.eredmeny-card-header {
+  margin: 0;
+  padding: 0.55rem 1.1rem;
+  background: var(--color-bg-alt);
+  border-bottom: 1px solid var(--color-border);
+  border-radius: calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0;
+}
+/* a doboz TARTALMA (a fejléc-sávon kívül minden direkt gyerek) kapja a
+   vízszintes paddingot, az elsőnek a fejléc alatt a felsőt, az utolsónak
+   pedig az aljsót. */
+.eredmeny-card > *:not(.eredmeny-card-header) {
+  padding-left: 1.1rem;
+  padding-right: 1.1rem;
+}
+.eredmeny-card .eredmeny-card-header + * {
+  padding-top: 0.7rem;
+}
+.eredmeny-card > *:last-child {
+  padding-bottom: 0.85rem;
+}
+/* egységes, nagy, hangsúlyos dobozcím-stílus (2026.09.09., Marci kérésére:
+   "Történet, Célod, és Életmód dobozcím formázása legyen olyan, mint a
+   többi (pl. Tünet) dobozcím formázása" — a korábbi "kiemelt/másodlagos"
+   2-féle cím-stílus megszűnt, mert a megkülönböztetésnek elveszett az
+   értelme, amikor MINDEN doboz ugyanazt kéri). */
 .eredmeny-card-title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--color-text);
 }
 .eredmeny-info-row {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-  padding: 0.5rem 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.35rem 0;
   border-bottom: 1px solid var(--color-border);
 }
 .eredmeny-info-row:last-child {
@@ -2344,48 +2387,38 @@ html[data-theme='dark'] .bodychart-img {
    szükség esetén akár szón belül is törjön, sose lógjon ki. */
 .eredmeny-info-value {
   font-weight: 600;
-  text-align: right;
+  text-align: left;
   min-width: 0;
   overflow-wrap: break-word;
-}
-/* keskeny (telefonos) nézetben a címke+érték egymás MELLETT elrendezés
-   túl kevés helyet hagy az értéknek — szóhatáron belüli, csúnya törésekhez
-   vezetett. Ehelyett a sor EGYMÁS ALÁ rendeződik, az érték a teljes
-   szélességet megkapja, így a szöveg a normál szóhatárokon törik
-   (2026.09.07., hibajavítás, Marci jelzésére). */
-@media (max-width: 480px) {
-  .eredmeny-info-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.2rem;
-  }
-  .eredmeny-info-value {
-    text-align: left;
-  }
 }
 
 .eredmeny-risk-tags {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.eredmeny-risk-tags .badge-fyb {
+  width: 100%;
+  text-align: center;
 }
 
-/* --- Alapadatok: kompakt szöveg-oszlop (2026.09.07., Marci kérésére: "Külön
-   doboz legyen... Név (becenév), alatta életkor, alatta cm. Kitöltés
-   időpontja") — önálló kártya, a mutatóktól (ld. lent) elválasztva. */
-.eredmeny-alapadatok-name {
+/* --- fejléc-összegzés (2026.09.09., eredetileg csak asztalra, 2026.09.10-
+   től MINDEN képernyőméreten: név(becenév), alatta kor+magasság — Marci
+   kérésére, 2. fázis: "az asztali nézet minden módosítását átvesszük"). A
+   kitöltés dátuma (`eredmeny-header-summary-date`) asztalon itt, a sáv jobb
+   szélén jelenik meg (ld. lent), mobilon viszont a lap ALJÁN, a dobozsor
+   UTÁN — ez az elrendezésbeli különbség (nem a tartalom) miatt van
+   `eredmeny-desktop-only`-ra jelölve. */
+.eredmeny-header-summary-name {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
 }
-.eredmeny-alapadatok-sub {
+.eredmeny-header-summary-sub {
   color: var(--color-text-muted);
   margin-top: 0.15rem;
 }
-.eredmeny-alapadatok-date {
-  color: var(--color-text-muted);
-  margin-top: 0.75rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--color-border);
+.eredmeny-header-summary-sep {
+  margin: 0 0.35rem;
 }
 /* --- Mozgékonyság ikon-rács — pipa/X/felkiáltójel jelvény + rövid felirat,
    a korábbi 4 sima szöveges sor helyett (2026.09.07., Marci kérésére: "a
@@ -2480,41 +2513,20 @@ html[data-theme='dark'] .bodychart-img {
   flex-wrap: wrap;
 }
 
-/* --- Tünet-szakasz: cím alatt a tünet-leírás, alatta a testábra (bal) +
-   intenzitás-sáv (jobb, a testábra magasságára nyújtva), alattuk a
-   nézet-váltó/időtartam sor, legalul a szöveges jegyzetek (2026.09.07.,
-   Marci kérésére — a testábra mögötti helyi háttérdoboz is törölve). */
+/* --- Tünet-szakasz: cím alatt a leírás, alatta az Intenzitás/Időtartam
+   dial-pár, legalul a szöveges jegyzetek (2026.09.10-től ez a szerkezet
+   MINDEN képernyőméreten közös — korábban mobilon a testábra+intenzitás-
+   sáv is itt jelent meg, de a testábra 2026.09.10-től önálló, doboz nélküli
+   elem lett mobilon is, ld. `.eredmeny-bodychart-hero`). */
 .eredmeny-tunet-description {
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 0.4rem;
 }
-.eredmeny-tunet-main {
+.eredmeny-tunet-dials {
   display: flex;
-  align-items: stretch;
   justify-content: center;
-  gap: 2rem;
-  margin-bottom: 1rem;
-}
-.eredmeny-bodychart-large {
-  position: relative;
-  flex: 0 0 auto;
-  height: 440px;
-  aspect-ratio: 265.52844 / 553.0808792114258;
-}
-.eredmeny-bodychart-large-img,
-.eredmeny-bodychart-large .bodychart-marks-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.eredmeny-tunet-secondary {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 2rem;
-  margin-bottom: 1rem;
+  gap: 1.25rem;
+  margin: 0.5rem 0;
 }
 .eredmeny-tunet-nezet {
   display: flex;
@@ -2526,125 +2538,108 @@ html[data-theme='dark'] .bodychart-img {
   border-top: 1px solid var(--color-border);
   padding-top: 0.25rem;
 }
-/* HIBAJAVÍTÁS (2026.09.07., Marci kérésére: "Telefon nézetben bekerült a
-   fájdalomskála a kép alá, ezt korrigáld") — a fő sor korábban telefonos
-   szélességen `flex-direction:column`-ra váltott (testábra fölé, intenzitás-
-   sáv alá), ez volt a hiba: a kérés a testábra ÉS az intenzitás-sáv EGYMÁS
-   MELLETT állását kéri MINDEN nézetben. A sor iránya innentől mindig `row`,
-   csak a méretek kisebbek keskeny (≤480px) képernyőn, hogy kiférjenek. */
-@media (max-width: 480px) {
-  .eredmeny-tunet-main {
-    gap: 1rem;
-  }
-  .eredmeny-bodychart-large {
-    height: 260px;
-  }
-  .eredmeny-intensity-vertical {
-    width: 70px;
-  }
-  .eredmeny-intensity-vertical-track {
-    width: 22px;
-  }
+/* HIBAJAVÍTÁS (2026.09.09.): a Tünet doboz "Jól esik"/"Trigger" sorai NEM
+   közvetlen doboz-gyerekek, hanem a `.eredmeny-tunet-notes` (maga is
+   1.1rem paddingot kapó doboz-gyerek) BELSEJÉBEN ülnek — emiatt a szülő
+   paddingja összeszűkíti a rendelkezésre álló szélességet, a szegély a
+   szülő paddingján belül állna meg. A negatív margó "kilógatja" a sort a
+   szülő paddingjéből, majd a saját paddingje a szöveget visszahelyezi —
+   így a szegély pontosan a doboz széléig ér. */
+.eredmeny-tunet-notes .eredmeny-info-row {
+  padding: 0.1rem 1.1rem;
+  margin: 0 -1.1rem;
 }
 
-/* --- időtartam kördiagram (2026.09.07., Marci kérésére: "ahogy a mintában") */
-.eredmeny-donut {
+/* --- testábra: önálló, doboz nélküli, nagy illusztráció, mellette a
+   nézet-váltóval (2026.09.08., Marci kérésére: "Bodychart a lehető
+   legnagyobb legyen"; 2026.09.10-től MOBILON is önálló elem, nem a Tünet
+   dobozon belül — ld. fenti jegyzet). Mobilon a keret ALATT, középen áll a
+   nézet-váltó (oszlop-elrendezés); asztalon a keret JOBB oldalán, a
+   aljával egy vonalban (sor-elrendezés, ld. lent a médialekérdezésben). */
+.eredmeny-bodychart-hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
+  gap: 0.75rem;
 }
-.eredmeny-donut-caption {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 0.2rem;
-}
-.eredmeny-donut-svg {
-  width: 72px;
-  height: 72px;
-}
-.eredmeny-donut-value {
-  font-size: 0.8rem;
-  font-weight: 700;
-  margin-top: 0.2rem;
-  max-width: 100px;
-}
-
-/* --- függőleges intenzitás-sáv (2026.09.07., Marci kérésére) — ugyanaz a
-   teal→mint gradiens-logika, mint a vízszintes .intensity-range csúszkáé,
-   alulról felfelé töltve */
-.eredmeny-intensity-vertical {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 0 0 auto;
-  width: 140px;
-}
-.eredmeny-intensity-vertical-caption {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 0.4rem;
-}
-.eredmeny-intensity-vertical-track {
+.eredmeny-bodychart-hero-frame {
   position: relative;
-  width: 32px;
-  flex: 1;
-  min-height: 60px;
-  border-radius: 999px;
-  background: var(--color-border);
-  overflow: hidden;
+  height: 460px;
+  aspect-ratio: 265.52844 / 553.0808792114258;
 }
-.eredmeny-intensity-vertical-fill {
+.eredmeny-bodychart-hero-img,
+.eredmeny-bodychart-hero-frame .bodychart-marks-svg {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, var(--teal), var(--mint));
-  border-radius: 999px;
-}
-.eredmeny-intensity-vertical-value {
-  font-size: 0.95rem;
-  font-weight: 800;
-  margin-top: 0.4rem;
-}
-.eredmeny-intensity-vertical-value small {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-/* --- Eredménylap: asztali "bento" rács, görgetés nélkül (2026.09.08.,
-   Marci kérésére — 3 fázisú átalakítás: 1. asztali nézet, 2. mobil nézet,
-   3. nyomtatható A/4-es összegzés; "csak akkor lépünk a következőre, ha
-   elkészült az előző"). Ez a blokk KIZÁRÓLAG `min-width:992px`-től aktív
-   (az app saját asztali töréspontja, ld. AppLayout.tsx `d-lg-none`) — az
-   ez ALATTI (mobil/tablet) nézethez Marci kifejezett kérésére NEM
-   nyúltunk, a meglévő, egymás alatti kártya-elrendezés (a fájl korábbi,
-   mobile-first szabályai) változatlanul öröklődnek tovább. A 9 kártya egy
-   közös rácsba kerül: a Tünet (a legtöbb tartalmat hordozó, a bodychartot
-   is tartalmazó doboz) 2×2-es területet foglal, körülötte a többi 7
-   kártya tölti ki a fennmaradó cellákat — mindegyik `SectionCard` a saját
-   `area` prop-ján (ld. Eredmenyeim.tsx) keresztül kapja a helyét. */
-/* asztalon rejtett / csak asztalon látható elemek (2026.09.08., a
-   "terv.jpg" kézzel rajzolt vázlat alapján) — a JSX mindkettőt MINDIG
-   rendereli, a láthatóságot kizárólag ez a 2 segéd-osztály + a
-   `min-width:992px` töréspont dönti el, hogy a mobil nézet (ahová Marci
-   kérésére EBBEN A FÁZISBAN nem nyúlunk) pixelre változatlan maradjon. */
+/* --- "Életmód" doboz — 2 sor (2026.09.08., Marci kérésére: "felül középen
+   BMI, lent a másik kettő"; 2026.09.10-től MINDEN képernyőméreten ez az
+   EGY doboz jelenik meg, a korábbi 3 külön mobil-kártya helyett). */
+.eredmeny-eletmod-row {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+}
+.eredmeny-eletmod-row--top {
+  margin-bottom: 0.5rem;
+}
+/* A 2 alsó dial (Gerincterhelés/Aktivitási szint) RUGALMAS szélességű
+   (2026.09.09., Marci kérésére: "legyen elég térköz a két mutató között,
+   hogy kiférjen") — a rendelkezésre álló szélességet egyenlően osztják el
+   egymás közt, ahelyett hogy egy fix értéken ragadnának; ez garantálja,
+   hogy MINDEN doboz-szélességen (mobilon a legtöbb hely jut nekik) a
+   kétszavas "AKTIVITÁSI SZINT" felirat kényelmesen egy sorba fér. */
+.eredmeny-eletmod-row--bottom {
+  gap: 0.75rem;
+}
+.eredmeny-eletmod-row--bottom .eredmeny-dial--sm {
+  width: auto;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.eredmeny-eletmod-row--bottom .eredmeny-dial--sm .eredmeny-dial-svg {
+  max-width: 100%;
+}
+/* HIBAJAVÍTÁS (2026.09.09., Marci kérésére: "a gerincterhelés és aktivitási
+   szint kijelzők egymagasságban legyenek a dobozon belül") — a
+   "Gerincterhelés" (1 szó) és az "Aktivitási szint" (2 szó) feliratok
+   ELTÉRŐ SZÁMÚ sorra törhetnek, ami a felirat ALATTI félkör-műszert a 2
+   dial-nál eltérő magasságba tolná. Rögzített `min-height` (2 sornyi hely,
+   FÜGGETLENÜL attól, hogy a tényleges szöveg 1 vagy 2 sorra tör-e) + a
+   szöveget alulra igazító `display:flex;align-items:flex-end` biztosítja,
+   hogy a felirat alatti SVG mindig UGYANOTT kezdődjön. */
+.eredmeny-eletmod-row--bottom .eredmeny-dial-caption {
+  min-height: 1.85rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* asztalon rejtett / csak asztalon látható elemek — a JSX mindkettőt
+   MINDIG rendereli (jelenleg csak a "kitöltés időpontja" sorra van
+   szükség, ld. Eredmenyeim.tsx), a láthatóságot ez a 2 segéd-osztály + a
+   `min-width:992px` töréspont dönti el. */
 .eredmeny-desktop-only {
   display: none;
 }
-/* Az oszlop-wrapperek (2026.09.09., ld. lent) mobilon `display:contents`-
-   ként "eltűnnek" — a bennük lévő kártyák egyenesen a `.eredmeny-cards`
+.eredmeny-footer-date {
+  color: var(--color-text-muted);
+  text-align: center;
+  font-size: 0.9rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+/* Az oszlop-wrapperek (ld. lent) mobilon `display:contents`-ként
+   "eltűnnek" — a bennük lévő kártyák egyenesen a `.eredmeny-cards`
    flex-oszlop gyerekei lesznek, a saját `order`-jük szerint besorolva. Ez
-   biztosítja, hogy a mobil sorrend a 3 asztali oszlopba rendezés ellenére
-   is pontosan a régi (Alapadatok→BMI→Gerinc→Akt→Tünet→Történet→Rizikó→
-   Mozgékonyság→Célod) maradjon. */
+   biztosítja, hogy a mobil sorrend (testábra→Tünet→Rizikó→Mozgékonyság→
+   Történet→Életmód→Célod, Marci kérésére, 2. fázis) a 3 asztali oszlopba
+   rendezés ellenére is helyes maradjon. */
 .eredmeny-col {
   display: contents;
 }
@@ -2656,43 +2651,30 @@ html[data-theme='dark'] .bodychart-img {
   .eredmeny-mobile-only {
     display: none;
   }
-  /* HIBAJAVÍTÁS: az "Életmód" doboz `.eredmeny-card.eredmeny-desktop-only`
-     kombinációt visel — a `.eredmeny-card` maga sosem állított be saját
-     `display`-t, ezért a `.eredmeny-desktop-only` alap `display:none`-ja
-     felülírás nélkül maradt érvényben asztalon is (a `.eredmeny-
-     bodychart-hero`-hoz és társaihoz hasonló, MÁR meglévő elemek ezt a
-     saját, egyedi `display` szabályukkal automatikusan felülírták, de az
-     Életmód doboz ilyet nem kapott). */
-  .eredmeny-card.eredmeny-desktop-only {
+  /* a kitöltés dátuma asztalon a fejléc jobb szélén jelenik meg (mobilon
+     `.eredmeny-desktop-only` alapból elrejti) — a `display:block`
+     KÖTELEZŐ itt, különben a `.eredmeny-desktop-only` alap `display:none`-ja
+     felülírás nélkül maradna érvényben (ld. a projekt korábbi, ismételten
+     dokumentált hibajavításait ugyanerre a jelenségre). */
+  .eredmeny-header-summary-date {
     display: block;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    padding-top: 0.2rem;
   }
-  /* HIBAJAVÍTÁS (2026.09.09., Marci kérésére: "nem kell, hogy a rizikó,
-     mozgékonyság, életmód egy magasságban legyenek") — a korábbi
-     `grid-template-areas`-alapú rács minden SORÁNAK magassága a sorban
-     szereplő LEGMAGASABB elemhez igazodott (CSS Grid nem tud "masonry"-
-     szerű, oszloponként FÜGGETLEN magasságot), ezért a Rizikó/Mozgékonyság/
-     Életmód dobozok mindig közös magasságra nyúltak, akkor is, ha
-     tartalmuk ezt nem indokolta. Megoldás: a rács helyett 3, EGYMÁSTÓL
-     FÜGGETLEN MAGASSÁGÚ flex-oszlop (`.eredmeny-col`).
-     RÖGZÍTETT VISZONYOK (2026.09.09., 3. kör, Marci kérésére — "a dobozok
-     magassága dinamikus (tartalomfüggő), de a szélessége mindegyik
-     doboznak ugyanakkora legyen. A Rizikó, Célod, és Életmód doboz alulra
-     igazítva, az aljuk egy vonalban legyen. A cél mindig az aktuális
-     kijelzőméret maximális kitöltése"):
-     1) a 3 oszlop MINDIG egyenlő szélességű (`flex:1 1 0` mindháromra) —
-        ez alapján MINDEN doboz szélessége megegyezik, hiszen egy oszlopon
-        belül minden kártya a teljes oszlopszélességet kitölti;
+  /* RÖGZÍTETT VISZONYOK (2026.09.09., Marci kérésére — "a dobozok magassága
+     dinamikus (tartalomfüggő), de a szélessége mindegyik doboznak
+     ugyanakkora legyen. A Rizikó, Célod, és Életmód doboz alulra igazítva,
+     az aljuk egy vonalban legyen. A cél mindig az aktuális kijelzőméret
+     maximális kitöltése"):
+     1) a 3 oszlop MINDIG egyenlő szélességű (`flex:1 1 0` mindháromra);
      2) a 3 oszlop MAGASSÁGA a `.eredmeny-cards` `align-items:stretch`-je
-        miatt mind a LEGMAGASABB oszlop (a legtöbb tartalmat hordozó
-        közép, testábrás oszlop) magasságára nyúlik — enélkül a rövidebb
-        oszlopok alul "lógnának ki", kihasználatlan hellyel a lap alján;
+        miatt mind a LEGMAGASABB oszlop magasságára nyúlik;
      3) az egyes oszlopok UTOLSÓ kártyája (bal: Rizikó, közép: Célod, jobb:
-        Életmód — pontosan a Marci által megnevezett 3 doboz) `margin-top:
-        auto`-t kap, ami a flex-oszlopban a stretch által keletkezett
-        "fölösleges" magasságot KÖZVETLENÜL a doboz FÖLÉ tereli (nem alá) —
-        így ez a 3 doboz mindig az oszlop (és ezzel egymás) ALJÁVAL egy
-        vonalban zár, a FELETTÜK lévő dobozok pedig változatlanul a saját
-        tartalmuk szerinti (dinamikus) magasságúak maradnak. */
+        Életmód) `margin-top:auto`-t kap, ami a stretch által keletkezett
+        "fölösleges" magasságot KÖZVETLENÜL a doboz FÖLÉ tereli — így ez a
+        3 doboz mindig az oszlop (és ezzel egymás) ALJÁVAL egy vonalban zár. */
   .eredmeny-cards {
     display: flex;
     flex-direction: row;
@@ -2709,19 +2691,14 @@ html[data-theme='dark'] .bodychart-img {
   .eredmeny-col > .eredmeny-card:last-child {
     margin-top: auto;
   }
-  /* Marci kérésére (2026.09.09., 4. kör: "ha a rizikó dobozban kevés az
-     elem, akkor a Tünet doboz alsó határa csússzon lejjebb. Ilyenkor a
-     belső tartalomnál a tünet leírása és a mutatók közötti térköz
-     nőjön.") — a bal oszlop első kártyája (mindig a Tünet) `flex:1 1 auto`-t
-     kap, így a Rizikó felé (ami a fenti szabály miatt már amúgy is az
-     oszlop aljára van "tűzve") maradó szabad magasságot MAGA A TÜNET DOBOZ
-     nyeli el (nem üres rés kerül a 2 doboz KÖZÉ). A doboz maga is
-     `display:flex;flex-direction:column`-ra vált, hogy a BENNE lévő extra
-     magasságot is tovább tudja adni; a leírás és a dial-sor közötti
-     `.eredmeny-tunet-dials{margin-top:auto}` pedig ugyanezt a technikát
-     (auto-margó) alkalmazza eggyel beljebb — a felszabaduló hely emiatt
-     pontosan a leírás ÉS a mutatók KÖZÖTT nő, a jegyzetek (`.eredmeny-
-     tunet-notes`) pedig változatlanul közvetlenül a dial-ok alatt maradnak. */
+  /* Marci kérésére (2026.09.09.: "ha a rizikó dobozban kevés az elem, akkor
+     a Tünet doboz alsó határa csússzon lejjebb. Ilyenkor a belső
+     tartalomnál a tünet leírása és a mutatók közötti térköz nőjön.") — a
+     bal oszlop első kártyája (mindig a Tünet) `flex:1 1 auto`-t kap, így a
+     Rizikó felé maradó szabad magasságot MAGA A TÜNET DOBOZ nyeli el (nem
+     üres rés kerül a 2 doboz KÖZÉ); a leírás és a dial-sor közötti
+     `margin-top:auto` pedig eggyel beljebb alkalmazza ugyanezt a technikát,
+     hogy a felszabaduló hely pontosan a leírás ÉS a mutatók KÖZÖTT nőjön. */
   .eredmeny-col--left > .eredmeny-card:first-child {
     flex: 1 1 auto;
     display: flex;
@@ -2730,222 +2707,40 @@ html[data-theme='dark'] .bodychart-img {
   .eredmeny-col--left > .eredmeny-card:first-child .eredmeny-tunet-dials {
     margin-top: auto;
   }
-  /* Dobozok, a "terv.jpg" vázlat alakja szerint: felül kerekített, alul
-     szögletes sarkok, szürkés fejléc-sáv (2026.09.08., Marci kérésére).
-     HIBAJAVÍTÁS: az első verzió `overflow:hidden`-nel igazította a
-     fejléc-sáv hátterét a doboz kerekített felső sarkaihoz — ez viszont
-     levágta az enyhén túlnyúló tartalmat is (pl. az "INTENZITÁS"/
-     "IDŐTARTAM" dial-feliratokat "TENZITÁS"/"IDŐTARTA"-ra csonkolta).
-     Végleges megoldás: NINCS `overflow:hidden` a dobozon, a fejléc-sáv
-     kapja KÖZVETLENÜL a doboz felső sugarát (eggyel kisebbre, a keret
-     vastagsága miatt), így semmi nem vágódik le. */
-  .eredmeny-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-card) var(--radius-card) 0 0;
-    box-shadow: var(--shadow-card);
-    padding: 0;
-  }
-  /* a Tünet doboz a szürke fejléc-sáv helyett lime KERETET kap (a korábbi
-     bal oldali ékezet-sáv helyett, mert most már valódi doboza van). */
-  .eredmeny-card--lime-border {
-    border-color: var(--lime) !important;
-    border-width: 2px !important;
-  }
-  /* a dobozcímek elől az ikon eltűnik (2026.09.08., Marci kérésére) — a
-     JSX-ben MARAD (mobilon, ahol ez a szabály nem fut, változatlanul
-     látszik), csak asztalon van elrejtve. */
-  .eredmeny-card-header .icon-fyb {
-    display: none;
-  }
-  .eredmeny-card-header {
-    margin: 0;
-    padding: 0.55rem 1.1rem;
-    background: var(--color-bg-alt);
-    border-bottom: 1px solid var(--color-border);
-    border-radius: calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0;
-  }
-  /* a doboz TARTALMA (a fejléc-sávon kívül minden direkt gyerek) kapja a
-     vízszintes paddingot, az elsőnek a fejléc alatt a felsőt, az
-     utolsónak pedig az aljsót. */
-  .eredmeny-card > *:not(.eredmeny-card-header) {
-    padding-left: 1.1rem;
-    padding-right: 1.1rem;
-  }
-  .eredmeny-card .eredmeny-card-header + * {
-    padding-top: 0.7rem;
-  }
-  .eredmeny-card > *:last-child {
-    padding-bottom: 0.85rem;
-  }
-  /* Asztali fejléc-összegzés (2026.09.09., Marci kérésére: "töröld felülről
-     az 'eredményeim' címet" — a felszabaduló helyen az Alapadatok adatai
-     jelennek meg, kompakt, doboz nélküli sorban, ld. Eredmenyeim.tsx
-     `eredmeny-header-summary`). */
-  /* Marci pontosítására (2026.09.09., 2. kör): a 2 csoport (bal: név-blokk,
-     jobb: kitöltés dátuma) `justify-content:space-between`-nel a sáv két
-     szélére kerül — a dátum emiatt MINDIG a jobb felső sarokban marad,
-     függetlenül attól, hogy a bal oldali név-blokk 1 vagy 2 sorra törik. */
+  /* a fejléc-összegzés 2 csoportja (bal: név-blokk, jobb: kitöltés dátuma)
+     `justify-content:space-between`-nel a sáv két szélére kerül — a dátum
+     emiatt MINDIG a jobb felső sarokban marad, függetlenül attól, hogy a
+     bal oldali név-blokk 1 vagy 2 sorra törik. A `flex:1` biztosítja, hogy
+     a doboz a `.app-page-header` TELJES szélességét felvegye (különben csak
+     a saját tartalma szerinti szélességet kapná, és a `space-between` nem a
+     lap jobb széléig, csak addig a szűkebb dobozig tolná ki a dátumot). */
   .eredmeny-header-summary {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    /* a `.app-page-header` a "eredményeim" cím (mobilon látható `<h1>`)
-       mellett MÁSODIK gyerekként rendereli ezt is — asztalon a cím
-       `display:none`, ezért enélkül a `flex:1` nélkül ez a doboz csak a
-       SAJÁT tartalmának szélességét venné fel, és a benne lévő
-       `justify-content:space-between` nem a lap jobb széléig, csak eddig a
-       szűkebb dobozig tolná ki a dátumot. */
     flex: 1;
   }
-  .eredmeny-header-summary-name {
-    font-weight: 700;
-    font-size: 1.3rem;
-  }
-  /* Marci kérésére (2026.09.09., 2. kör: "Név, becenév alatt legyen a kor
-     és a magasság") — a kor+magasság a névsor ALATT, külön sorban. */
-  .eredmeny-header-summary-sub {
-    color: var(--color-text-muted);
-    margin-top: 0.15rem;
-  }
-  .eredmeny-header-summary-sep {
-    margin: 0 0.35rem;
-  }
-  .eredmeny-header-summary-date {
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-    white-space: nowrap;
-    padding-top: 0.2rem;
-  }
-  /* Marci kérésére (2026.09.09., 2. kör: "Történet, Célod, és Életmód
-     dobozcím formázása legyen olyan, mint a többi (pl. Tünet) dobozcím
-     formázása") — mivel EZUTÁN minden asztalon látható doboz-cím
-     (Tünet/Rizikó/Mozgékonyság/Történet/Célod/Életmód) egységesen ezt a
-     nagy, hangsúlyos stílust kapja, a korábbi "kiemelt/másodlagos" 2-féle
-     cím-stílus (és a hozzá tartozó `SectionCard` `prominent` prop) törölve
-     lett — dead code, mert a megkülönböztetésnek elveszett az értelme. */
-  .eredmeny-card-title {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: var(--color-text);
-    text-transform: none;
-    letter-spacing: normal;
-  }
-  /* "Életmód" doboz — 2 sor (2026.09.08., Marci kérésére: "felül középen
-     BMI, lent a másik kettő"). */
-  .eredmeny-eletmod-row {
-    display: flex;
-    justify-content: center;
-    gap: 1.25rem;
-  }
-  .eredmeny-eletmod-row--top {
-    margin-bottom: 0.5rem;
-  }
-  /* HIBAJAVÍTÁS (2026.09.09., 3. kör: "rögzítsünk viszonyokat... a
-     szélessége mindegyik doboznak ugyanakkora legyen") — mióta a 3 oszlop
-     egyenlő szélességű (ld. `.eredmeny-col`), az Életmód doboz oszlopa
-     KESKENYEBB, mint a korábbi (5/12-es) volt, a korábbi FIX 105px-es
-     dial-szélesség emiatt (2×105px + rés) a legszűkebb asztali szélességen
-     (992px) túllógott volna a doboz szélén.
-     MEGOLDÁS (2026.09.09., 4. kör, Marci kérésére: "az aktivitási szint
-     mutató fölött egy sorban maradjon a szöveg, legyen elég térköz a két
-     mutató között, hogy kiférjen") — a korábbi fix szélesség helyett a 2
-     dial MOST RUGALMAS (`flex:1 1 0`, `min-width:0`): a rendelkezésre álló
-     szélességet egyenlően osztják el egymás közt, ahelyett hogy egy fixen
-     beállított (és a legszűkebb nézethez igazított, ezért máshol
-     szükségtelenül keskeny) értéken ragadnának. Ez KÉT ELŐNNYEL jár: (1) a
-     túllógás fizikailag KIZÁRT (a dial sosem nőhet szélesebbre, mint a
-     ráeső hely), (2) a tipikus/szélesebb asztali nézetekben (≥1200px) a
-     dial-ok ENNÉL FOGVA jóval szélesebbek lehetnek a korábbi fix 105px-nél,
-     így a kétszavas "AKTIVITÁSI SZINT" felirat egy sorba fér — csak a
-     legszűkebb (992px) szélességen marad (a `min-height`-tal már
-     amúgy is kezelt) 2-soros törés, elfogadott szélső eset. */
-  .eredmeny-eletmod-row--bottom {
-    gap: 0.75rem;
-  }
-  .eredmeny-eletmod-row--bottom .eredmeny-dial--sm {
-    width: auto;
-    flex: 1 1 0;
-    min-width: 0;
-  }
-  .eredmeny-eletmod-row--bottom .eredmeny-dial--sm .eredmeny-dial-svg {
-    max-width: 100%;
-  }
-  /* HIBAJAVÍTÁS (2026.09.09., 2. kör, Marci kérésére: "a gerincterhelés és
-     aktivitási szint kijelzők egymagasságban legyenek a dobozon belül") —
-     a "Gerincterhelés" (1 szó) és az "Aktivitási szint" (2 szó) feliratok
-     ELTÉRŐ SZÁMÚ sorra törhetnek a kompakt (105px széles) dial-oknál, ami
-     a felirat ALATTI félkör-műszert (a "kijelzőt") a 2 dial-nál eltérő
-     magasságba tolta — a `.eredmeny-dial` `flex-direction:column`
-     elrendezésben a felirat magassága közvetlenül eltolja az utána
-     következő SVG-t. Rögzített `min-height` (2 sornyi hely, FÜGGETLENÜL
-     attól, hogy a tényleges szöveg 1 vagy 2 sorra tör-e) + a szöveget alulra
-     igazító `display:flex;align-items:flex-end` biztosítja, hogy a felirat
-     alatti SVG mindig UGYANOTT kezdődjön, a szöveg sorainak számától
-     függetlenül. */
-  .eredmeny-eletmod-row--bottom .eredmeny-dial-caption {
-    min-height: 1.85rem;
-    display: flex;
+  /* a testábra sor-elrendezésű: a nézet-kapcsoló közvetlenül a keret jobb
+     oldalán, annak ALJÁVAL egy vonalban (2026.09.09., Marci pontosítására:
+     "a nézet kapcsoló legyen a bodychart mellett közvetlenül jobb oldalt a
+     lábánál"). */
+  .eredmeny-bodychart-hero {
+    flex-direction: row;
     align-items: flex-end;
     justify-content: center;
+    gap: 0.75rem;
   }
-  /* HIBAJAVÍTÁS: a bento-oszlop KESKENYEBB, mint a korábbi, csak telefonra
-     szánt `≤480px` töréspont, ahol a "címke+érték egymás mellett"
-     elrendezés már bevallottan nem fér el (ld. a 101. pont hibajavítását).
-     Itt ugyanez a jelenség lépett fel: a `.eredmeny-info-label`
-     (flex-shrink:0) lefoglalta a teljes sorszélességet, az `.eredmeny-
-     info-value`-nak (min-width:0) 0px maradt, ami a szöveget GYAKORLATILAG
-     KARAKTERENKÉNT törte. Javítás: az oszlopokban a címke+érték sor is
-     EGYMÁS ALÁ rendeződik, mint a telefonos nézetben. (A vízszintes
-     padding-et NEM ez a szabály adja — az `.eredmeny-card > *:not(header)`
-     általános szabály már megadja, amikor a sor KÖZVETLEN doboz-gyerek,
-     ld. lent.) */
-  .eredmeny-info-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.1rem;
-    padding: 0.15rem 0;
-  }
-  .eredmeny-info-value {
-    text-align: left;
-  }
-  /* HIBAJAVÍTÁS (2026.09.09., Marci kérésére: "a dobozokon belüli határoló
-     vízszintesek mindig dobozhatárig nyúljanak"): egy KÖZVETLEN doboz-
-     gyerek sor (pl. Történet) széltében (margin:0, width:auto) MÁR
-     ÖNMAGÁBAN a doboz teljes szélességét kitölti — a saját paddingje csak a
-     BENNE lévő szöveget tolja beljebb, a szegélyt nem. A Tünet doboz "Jól
-     esik"/"Trigger" sorai viszont NEM közvetlen doboz-gyerekek, hanem a
-     `.eredmeny-tunet-notes` (maga is 1.1rem paddingot kapó doboz-gyerek)
-     BELSEJÉBEN ülnek — emiatt EZEKNÉL a szülő paddingja már összeszűkíti a
-     rendelkezésre álló szélességet, a szegély a szülő paddingjén belül áll
-     meg. Első próbálkozásra tévesen MINDEN `.eredmeny-info-row`-ra (és a
-     `.eredmeny-tunet-notes`-ra magára is) negatív margót adtunk — DOM-
-     méréssel kiderült, hogy ez a doboz SZÉLÉN TÚLRA (nem a doboz éléig, azon
-     túl) tolta ki a szegélyt, mert a padding már máshonnan (az általános
-     szabályból) is adott volt. Végleges, DOM-méréssel megerősített
-     megoldás: a negatív margó KIZÁRÓLAG az egyetlen valóban beljebb eső
-     esetre kerül. */
-  .eredmeny-tunet-notes .eredmeny-info-row {
-    padding: 0.1rem 1.1rem;
-    margin: 0 -1.1rem;
-  }
-  .eredmeny-tunet-description {
-    margin-bottom: 0.4rem;
-  }
-  /* a Tünet dobozban asztalon MÁR NINCS testábra (ld. lent, önálló
-     `.eredmeny-bodychart-hero`) — a két, "terv.jpg" szerinti félkör-
-     műszer (Intenzitás/Időtartam) egymás mellett jelenik meg. */
-  .eredmeny-tunet-dials {
-    display: flex;
-    justify-content: center;
-    gap: 1.25rem;
-    margin: 0.5rem 0;
+  /* MAGASSÁG-vezérelt méretezés (nem szélesség-vezérelt) — a rácsban a
+     FÜGGŐLEGES hely a szűkös erőforrás (a "görgetés nélküli" cél miatt),
+     a testábra oszlop-mérete önmagában sokkal szélesebb helyet adna, mint
+     amennyi magasság-arányosan még kényelmesen kifér. */
+  .eredmeny-bodychart-hero-frame {
+    height: 410px;
   }
   /* a kompakt (BMI/Gerincterhelés/Aktivitási szint, Intenzitás/Időtartam)
-     dial-ok mérete — az Életmód doboz alsó sorában (Gerincterhelés+
-     Aktivitás) és a Tünet doboz Intenzitás/Időtartam sorában is 2 dial
-     fér egymás mellé. */
+     dial-ok mérete — a keskenyebb asztali oszlopokban a mobil 170px-es
+     alapméret már nem férne el 2 egymás melletti dial esetén. */
   .eredmeny-dial--sm {
     width: 105px;
   }
@@ -2962,59 +2757,10 @@ html[data-theme='dark'] .bodychart-img {
     font-size: 0.78rem;
     letter-spacing: 0.01em;
   }
-  /* a testábra a LEHETŐ LEGNAGYOBB, önálló, doboz nélküli illusztráció
-     (2026.09.08., Marci kérésére, "terv.jpg") — a közép oszlop tetején.
-     Marci pontosítására (2026.09.09.: "a nézet kapcsoló legyen a
-     bodychart mellett közvetlenül jobb oldalt a lábánál") a korábbi
-     column-elrendezés (keret, alatta a kapcsoló) helyett most SOR: a
-     kapcsoló közvetlenül a keret mellett, JOBBRA, a keret ALJÁVAL egy
-     vonalban (`align-items:flex-end`). */
-  .eredmeny-bodychart-hero {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 0.75rem;
-  }
-  /* MAGASSÁG-vezérelt méretezés (nem szélesség-vezérelt) — a rácsban a
-     FÜGGŐLEGES hely a szűkös erőforrás (a "görgetés nélküli" cél miatt),
-     a testábra oszlop-mérete önmagában sokkal szélesebb helyet adna, mint
-     amennyi magasság-arányosan még kényelmesen kifér — ezért itt fix
-     `height`-ből, NEM `width`-ből számol az `aspect-ratio` (2026.09.08.,
-     hibajavítás: az első verzió `width:100%;max-width:460px` miatt majdnem
-     1000px magas lett). */
-  .eredmeny-bodychart-hero-frame {
-    position: relative;
-    height: 410px;
-    aspect-ratio: 265.52844 / 553.0808792114258;
-  }
-  .eredmeny-bodychart-hero-frame .bodychart-marks-svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-  /* Rizikó kiemelt helye (2026.09.08., "terv.jpg": egymás ALATTI, teljes
-     szélességű "pirulák" a wrapelt badge-sor helyett). */
-  .eredmeny-risk-tags {
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-  .eredmeny-risk-tags .badge-fyb {
-    width: 100%;
-    text-align: center;
-  }
-  /* HIBAJAVÍTÁS (2026.09.09., 2. kör): a közép oszlop a "Mozgékonyság doboz
-     lehet keskenyebb" kérésre (ld. `.eredmeny-col--center`) 6/12-ről 4/12-re
-     szűkült — a korábbi, még a széles oszlophoz méretezett jelvények (66px
-     doboz, 40px jelvény) emiatt a legszűkebb asztali szélességen (992px,
-     mért belső hely: ~184px) 4 helyett csak 3-at engedtek egy sorba, a 4.
-     jelvény egy ÚJ sorra tört — ez ~230px-szel megnövelte a Mozgékonyság
-     doboz (és vele a teljes közép oszlop) magasságát, ami 1200×800px-en
-     már túlcsordulást (görgetést) okozott. Kisebb, a legszűkebb (992px)
-     esetre méretezett jelvények (176px < ~184px elérhető hely, tartalék
-     híján is) garantálják, hogy a 4 jelvény MINDIG egy sorban marad. */
+  /* Mozgékonyság — a keskenyebb asztali oszlopban a mobil alapméretű
+     jelvények (80px doboz, 40px jelvény) nem férnének ki egy sorban;
+     kisebb, a legszűkebb (992px) esetre méretezett jelvények garantálják,
+     hogy a 4 jelvény MINDIG egy sorban marad. */
   .eredmeny-mobility-grid {
     gap: 0.25rem;
   }

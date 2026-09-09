@@ -41,7 +41,10 @@ function SectionCard({
    * SAJÁT testvérei közötti relatív sorrendet adja meg helyesen, mivel a
    * `display:contents` "átlátszó" a flex-elrendezés szempontjából — a
    * gyerekek mindig a ténylegesen legközelebbi flex-konténerükön belül
-   * sorolódnak be a `order` érték szerint (2026.09.09.). */
+   * sorolódnak be a `order` érték szerint (2026.09.09.). A mobil ÉS az
+   * asztali sorrend 2026.09.10-től UGYANAZOKKAL az értékekkel fejezhető
+   * ki (ld. Eredmenyeim() jegyzetét), ezért nincs többé szükség KÜLÖN
+   * mobil/asztali `order`-készletre. */
   order?: number
   children: React.ReactNode
 }) {
@@ -180,14 +183,11 @@ const BMI_CATEGORY_COLOR: Record<BmiCategory['key'], string> = {
   elhizas: 'var(--z1)',
 }
 
-/** kördiagram (2026.09.07., Marci kérésére: "az időtartam kördiagrammal, ahogy
- * a mintában") — az IDOTARTAM_OPTIONS (Allapotfelmero.tsx) kategorikus
- * válaszai nincsenek konkrét óraszámhoz kötve, ezért mindegyikhez egy
- * jellemző napi óraszámot rendelünk (a sáv középértéke), és ennek a
- * 24 órához viszonyított ARÁNYÁT jelenítjük meg a körön. Mobilon ez a
- * `DurationDonut` jeleníti meg, asztalon (a "terv.jpg" vázlat szerint) egy
- * `DialGauge` — a két nézet MOST már eltérő vizuális elemet használ,
- * ezért mindkét komponens megmaradt, ld. lent. */
+/** az IDOTARTAM_OPTIONS (Allapotfelmero.tsx) kategorikus válaszai nincsenek
+ * konkrét óraszámhoz kötve, ezért mindegyikhez egy jellemző napi óraszámot
+ * rendelünk (a sáv középértéke) — ezt mutatja az Időtartam `DialGauge`
+ * (2026.09.10-től MINDEN képernyőméreten ez az egy komponens jeleníti meg,
+ * a korábbi, csak mobilra szánt `DurationDonut` megszűnt). */
 const IDOTARTAM_HOURS: Record<string, number> = {
   'kevesebb, mint 1 óra': 0.5,
   '1–2 óra': 1.5,
@@ -210,43 +210,6 @@ const INTENSITY_ZONES = [
   { min: 3, max: 6, color: 'var(--z3)' },
   { min: 6, max: 10, color: 'var(--z1)' },
 ]
-function DurationDonut({ label }: { label: string }) {
-  const hours = IDOTARTAM_HOURS[label] ?? 0
-  const fraction = Math.min(1, hours / 24)
-  const r = 30
-  const c = 2 * Math.PI * r
-  return (
-    <div className="eredmeny-donut">
-      <span className="eredmeny-donut-caption">időtartam</span>
-      <svg viewBox="0 0 72 72" className="eredmeny-donut-svg">
-        <circle cx="36" cy="36" r={r} fill="none" stroke="var(--color-border)" strokeWidth="9" />
-        <circle
-          cx="36" cy="36" r={r} fill="none" stroke="var(--color-primary)" strokeWidth="9"
-          strokeDasharray={`${fraction * c} ${c}`}
-          strokeLinecap="round"
-          transform="rotate(-90 36 36)"
-        />
-      </svg>
-      <span className="eredmeny-donut-value">{label || '—'}</span>
-    </div>
-  )
-}
-
-/** függőleges intenzitás-sáv (2026.09.07., Marci kérésére) — ugyanaz a
- * teal→mint gradiens-logika, mint a vízszintes `.intensity-range`
- * csúszkáé/az Allapotfelmero.tsx 3. lapján, csak alulról felfelé töltve. */
-function VerticalIntensityBar({ value }: { value: number }) {
-  const pct = (value / 10) * 100
-  return (
-    <div className="eredmeny-intensity-vertical">
-      <span className="eredmeny-intensity-vertical-caption">intenzitás</span>
-      <div className="eredmeny-intensity-vertical-track">
-        <span className="eredmeny-intensity-vertical-fill" style={{ height: `${pct}%` }} />
-      </div>
-      <span className="eredmeny-intensity-vertical-value">{value}<small>/10</small></span>
-    </div>
-  )
-}
 
 /** Mozgékonyság ikon-rács (2026.09.07., Marci kérésére: "a lehető legtöbb
  * grafikus megjelenítéssel") — a korábbi 4 sima "igen/nem" szöveges sor
@@ -286,15 +249,9 @@ export default function Eredmenyeim() {
   const gt = adatok.gerincterhelesEredmeny
   const idotartamOra = IDOTARTAM_HOURS[adatok.idotartam] ?? 0
 
-  // a testábra+jelölések JSX-e egyszer íródik le, de KÉTSZER kerül a
-  // DOM-ba (a Tünet dobozon belül, mobilra — és önállóan, a "terv.jpg"
-  // vázlat szerint, asztalra) — ld. .eredmeny-mobile-only/.eredmeny-
-  // desktop-only, 2026.09.08. A duplikáció szándékos: Marci kifejezett
-  // kérése, hogy a mobil nézethez EBBEN A FÁZISBAN ne nyúljunk, ezért ott
-  // a testábra a Tünet dobozon BELÜL kell maradjon, változatlan helyen.
   const bodyChartImg = (
     <>
-      <img src={imageSrc} alt="testábra" className="eredmeny-bodychart-large-img" draggable={false} />
+      <img src={imageSrc} alt="testábra" className="eredmeny-bodychart-hero-img" draggable={false} />
       <BodyChartMarksLayer jelek={adatok.bodyChartJelek} maskSrc={imageSrc} />
     </>
   )
@@ -308,22 +265,17 @@ export default function Eredmenyeim() {
   return (
     <section className="py-3 py-lg-3">
       <div className="container-fluid eredmeny-page-container">
-        {/* Marci kérésére (2026.09.09.) a "eredményeim" cím asztalon eltűnik
-           (`eredmeny-mobile-only`) — a felszabaduló helyen egy kompakt,
-           doboz nélküli Alapadatok-összegzés jelenik meg (`eredmeny-
-           desktop-only`), hogy ne kelljen külön, teljes szélességű sávot
-           szánni rá a rács tetején (ld. lent, "nem kell fölötte egy nagy
-           dobozba rendezni az infókat"). Mobilon az Alapadatok TOVÁBBRA IS
-           saját, teljes dobozában jelenik meg lent, változatlanul. */}
+        {/* Fejléc-összegzés (2026.09.09., asztalra; 2026.09.10-től MINDEN
+           képernyőméreten ez jelenik meg, a korábbi, csak mobilra szánt
+           "eredményeim" cím + külön Alapadatok-doboz helyett — Marci
+           kérésére, 2. fázis: "az asztali nézet minden módosítását
+           átvesszük"). A kitöltés dátuma asztalon a sáv jobb szélén marad
+           (`eredmeny-desktop-only`); mobilon a dátum a lap ALJÁN, a
+           dobozok UTÁN jelenik meg (ld. lent, `eredmeny-mobile-only`) —
+           ez az EGYETLEN érdemi tartalmi különbség a 2 nézet között, minden
+           más (doboz-alak, cím-stílus, neon mutató-színek stb.) közös. */}
         <div className="app-page-header mb-3 mobile-sticky-header">
-          <h1 className="app-page-title mb-0 eredmeny-mobile-only">eredményeim</h1>
-          {/* Marci pontosítására (2026.09.09., 2. kör): a név/becenév ALATT
-             (nem mellette) áll a kor+magasság, a kitöltés dátuma pedig
-             MINDIG a jobb felső sarokban marad — a `justify-content:
-             space-between` a 2 csoportot (bal: név-blokk, jobb: dátum) a
-             sáv két szélére tolja, függetlenül attól, hogy a névsor
-             1 vagy 2 sorra törik-e. */}
-          <div className="eredmeny-header-summary eredmeny-desktop-only">
+          <div className="eredmeny-header-summary">
             <div className="eredmeny-header-summary-main">
               <div className="eredmeny-header-summary-name">{becenev ? `${teljesNev} (${becenev})` : teljesNev}</div>
               <div className="eredmeny-header-summary-sub">
@@ -332,88 +284,24 @@ export default function Eredmenyeim() {
                 {adatok.magassag ? `${adatok.magassag} cm` : '—'}
               </div>
             </div>
-            <div className="eredmeny-header-summary-date">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</div>
+            <div className="eredmeny-header-summary-date eredmeny-desktop-only">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</div>
           </div>
         </div>
 
+        {/* A 7 doboz sorrendje 2026.09.10-től UGYANAZZAL a 7 `order`-
+           értékkel (1-7) fejezhető ki mind mobilon (lapos, egyoszlopos
+           lista), mind asztalon (3, egymástól független magasságú oszlop,
+           ld. `.eredmeny-col`) — mert az asztali OSZLOPOK BELSŐ sorrendje
+           (bal: Tünet→Rizikó; közép: testábra→Mozgékonyság→Célod; jobb:
+           Történet→Életmód) és a Marci által kért MOBIL sorrend (testábra→
+           Tünet→Rizikó→Mozgékonyság→Történet→Életmód→Célod) ugyanazzal az
+           1-7 sorszámozással egyszerre teljesíthető — nincs szükség két
+           külön `order`-készletre. */}
         <div className="eredmeny-cards">
-          {/* Alapadatok — CSAK mobilon (asztalon a fenti fejléc-összegzés
-             helyettesíti, ld. `eredmeny-header-summary`). Az `order` a
-             mobil (egyoszlopos) sorrendet rögzíti — ld. SectionCard jegyzet. */}
-          <SectionCard icon="/icons/ikon_fiok.svg" title="Alapadatok" className="eredmeny-mobile-only" order={1}>
-            <div className="eredmeny-alapadatok-name">{becenev ? `${teljesNev} (${becenev})` : teljesNev}</div>
-            <div className="eredmeny-alapadatok-sub">{eletkor !== null ? `${eletkor} év` : '—'}</div>
-            <div className="eredmeny-alapadatok-sub">{adatok.magassag ? `${adatok.magassag} cm` : '—'}</div>
-            <div className="eredmeny-alapadatok-date">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</div>
-          </SectionCard>
-
-          <SectionCard icon="/icons/ikon_szintek.svg" title="BMI" className="eredmeny-mobile-only" order={2}>
-            {bmi !== null && bmiCat ? (
-              <div className="eredmeny-dial-row">
-                <DialGauge
-                  value={bmi}
-                  min={15}
-                  max={35}
-                  zones={BMI_ZONES}
-                  score={fmtHu(bmi)}
-                  unit="kg/m²"
-                  category={bmiCat.label}
-                  categoryColor={BMI_CATEGORY_COLOR[bmiCat.key]}
-                  size="sm"
-                />
-              </div>
-            ) : (
-              <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>nincs elég adat a számításhoz.</p>
-            )}
-          </SectionCard>
-
-          <SectionCard icon="/icons/ikon_szintek.svg" title="Gerincterhelés" className="eredmeny-mobile-only" order={3}>
-            {gt !== null ? (
-              <div className="eredmeny-dial-row">
-                <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} size="sm" />
-              </div>
-            ) : (
-              <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>a gerincterhelés kalkulátor még nincs kitöltve.</p>
-            )}
-          </SectionCard>
-
-          <SectionCard icon="/icons/ikon_szintek.svg" title="Aktivitási szint" className="eredmeny-mobile-only" order={4}>
-            {gt !== null ? (
-              <div className="eredmeny-dial-row">
-                <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} size="sm" />
-              </div>
-            ) : (
-              <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>a gerincterhelés kalkulátor még nincs kitöltve.</p>
-            )}
-          </SectionCard>
-
-          {/* Asztalon 3, EGYMÁSTÓL FÜGGETLEN MAGASSÁGÚ oszlop (2026.09.09.,
-             Marci kérésére: "nem kell, hogy a rizikó, mozgékonyság, életmód
-             egy magasságban legyenek") — mobilon a `display:contents` miatt
-             a 3 `.eredmeny-col` "eltűnik" (nem hoz létre saját dobozt), a
-             benne lévő kártyák egyenesen a `.eredmeny-cards` flex-oszlop
-             gyerekei lesznek, a SAJÁT `order`-jük szerint besorolva — ez
-             garantálja, hogy a mobil sorrend a `display:contents` ellenére
-             is pontosan a kívánt (Alapadatok→BMI→Gerinc→Akt→Tünet→
-             Történet→Rizikó→Mozgékonyság→Célod) marad. */}
           <div className="eredmeny-col eredmeny-col--left">
-            <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet" className="eredmeny-card--lime-border" order={5}>
+            <SectionCard icon="/icons/ikon_kerdoiv.svg" title="Tünet" className="eredmeny-card--lime-border" order={2}>
               <p className="eredmeny-tunet-description">{adatok.tunetLeiras || '—'}</p>
-              {/* mobilon (változatlanul) a testábra+intenzitás-sáv itt, a
-                 Tünet dobozon BELÜL jelenik meg — asztalon rejtve, ld. lent
-                 az önálló `.eredmeny-bodychart-hero`-t. */}
-              <div className="eredmeny-tunet-main eredmeny-mobile-only">
-                <div className="eredmeny-bodychart-large">{bodyChartImg}</div>
-                <VerticalIntensityBar value={adatok.intenzitas} />
-              </div>
-              <div className="eredmeny-tunet-secondary eredmeny-mobile-only">
-                {nezetToggle}
-                <DurationDonut label={adatok.idotartam} />
-              </div>
-              {/* asztalon (2026.09.08., "terv.jpg": két félkör-műszer, mint a
-                 BMI/Gerincterhelés dial-ok) — ugyanaz a `DialGauge`, amit a
-                 Mutatók dobozok is használnak. */}
-              <div className="eredmeny-tunet-dials eredmeny-desktop-only">
+              <div className="eredmeny-tunet-dials">
                 {/* Marci kérésére (2026.09.09.: intenzitásnál, majd 4. kör:
                    időtartamnál is) EGYIK dial-nál sincs külön szöveges
                    magyarázat (pl. "erős", "3–5 óra") az érték alatt — a
@@ -447,7 +335,7 @@ export default function Eredmenyeim() {
               </div>
             </SectionCard>
 
-            <SectionCard icon="/icons/ikon_checklist.svg" title="Rizikó" order={7}>
+            <SectionCard icon="/icons/ikon_checklist.svg" title="Rizikó" order={3}>
               {rizikoTetelek.length === 0 ? (
                 <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>Rizikó: -</p>
               ) : (
@@ -462,16 +350,16 @@ export default function Eredmenyeim() {
 
           <div className="eredmeny-col eredmeny-col--center">
             {/* Önálló, nagy, doboz nélküli testábra (2026.09.08., Marci
-               kérésére: "Bodychart a lehető legnagyobb legyen") — CSAK
-               asztalon, a Tünet dobozból KIEMELVE. A nézet-váltó közvetlenül
-               mellette, jobb oldalt, a lábánál (2026.09.09., Marci
-               pontosítására). */}
-            <div className="eredmeny-bodychart-hero eredmeny-desktop-only" style={{ order: 0 }}>
+               kérésére: "Bodychart a lehető legnagyobb legyen") — 2026.09.10-
+               től MINDEN képernyőméreten önálló elem, a Tünet dobozból
+               KIEMELVE (korábban csak asztalon volt így, mobilon a Tünet
+               dobozon belül maradt). A nézet-váltó közvetlenül mellette. */}
+            <div className="eredmeny-bodychart-hero" style={{ order: 1 }}>
               <div className="eredmeny-bodychart-hero-frame">{bodyChartImg}</div>
               {nezetToggle}
             </div>
 
-            <SectionCard icon="/icons/ikon_torna.svg" title="Mozgékonyság" order={8}>
+            <SectionCard icon="/icons/ikon_torna.svg" title="Mozgékonyság" order={4}>
               <div className="eredmeny-mobility-grid">
                 <MobilityItem label="hason fekvés" state={adatok.proneOk ? 'ok' : 'not-ok'} />
                 <MobilityItem
@@ -483,23 +371,24 @@ export default function Eredmenyeim() {
               </div>
             </SectionCard>
 
-            <SectionCard icon="/icons/ikon_csillag.svg" title="Célod" order={9}>
+            <SectionCard icon="/icons/ikon_csillag.svg" title="Célod" order={7}>
               <p className="mb-0">{adatok.szemelyesCel || '—'}</p>
             </SectionCard>
           </div>
 
           <div className="eredmeny-col eredmeny-col--right">
-            <SectionCard icon="/icons/ikon_munkafuzet.svg" title="Történet" order={6}>
+            <SectionCard icon="/icons/ikon_munkafuzet.svg" title="Történet" order={5}>
               <InfoRow label="Mikor kezdődött?" value={adatok.kezdodesIdo} />
               <InfoRow label="Volt már korábban is?" value={adatok.voltMarKorabban} />
               <InfoRow label="Szerinted mi lehet az oka?" value={adatok.szerintedMiOka} />
             </SectionCard>
 
-            {/* Mobilon (változatlanul) 3 KÜLÖN doboz — ld. fent. Asztalon ez
-               az EGY, valódi "Életmód" doboz jelenik meg, 2 sorral (Marci
-               kérésére, 2026.09.08.: "felül középen BMI, lent a másik
-               kettő"). */}
-            <SectionCard icon="/icons/ikon_szintek.svg" title="Életmód" className="eredmeny-desktop-only" order={10}>
+            {/* A korábbi, mobilra szánt 3 KÜLÖN (BMI/Gerincterhelés/
+               Aktivitási szint) doboz megszűnt — 2026.09.10-től MINDEN
+               képernyőméreten ez az EGY, valódi "Életmód" doboz jelenik
+               meg, 2 sorral (Marci kérésére, 2026.09.08.: "felül középen
+               BMI, lent a másik kettő"). */}
+            <SectionCard icon="/icons/ikon_szintek.svg" title="Életmód" order={6}>
               <div className="eredmeny-eletmod-row eredmeny-eletmod-row--top">
                 {bmi !== null && bmiCat && (
                   <DialGauge
@@ -525,6 +414,12 @@ export default function Eredmenyeim() {
             </SectionCard>
           </div>
         </div>
+
+        {/* Kitöltés dátuma — CSAK mobilon, a dobozsor UTÁN, a lap legalján
+           (Marci kérésére, 2. fázis: "kitöltés időpontja" a mobil sorrend
+           utolsó eleme). Asztalon ugyanez az adat a fejlécben jelenik meg
+           (ld. fent, `eredmeny-header-summary-date`). */}
+        <div className="eredmeny-footer-date eredmeny-mobile-only">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</div>
       </div>
     </section>
   )
