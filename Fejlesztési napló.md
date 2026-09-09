@@ -1671,13 +1671,3 @@ Ez a döntés tudatosan kilép az előző kör ≥3:1 fehér-háttér-kontraszt 
 Marci jelezte, hogy egy középső szín barnás maradt — ezt élénksárgára cseréltem. A 6-/5-fokú zóna-skála középső foka (amit az előző körben szándékosan nem érintettem, mert akkor csak a narancsot és a zöld/kék tónusokat kérte) most vivid sárgára váltott, ugyanazzal az elvvel: a neon hatás előnyt élvez a szigorú fehér-háttéres kontraszttal szemben. Ez a fok az Intenzitás, a Gerincterhelés és az Aktivitási szint dial középső zónájában jelenik meg egyszerre, mivel egyetlen központi tokent módosít.
 
 **Tesztelve böngészőben:** a token élő értékét közvetlenül megerősítettem (`rgb(255, 213, 0)`, azaz `#FFD500`) — a böngésző-panel ebben a körben ismétlődő kattintás-időtúllépést jelzett, de mivel ez egyetlen CSS-token hex-értékének cseréje (JS/JSX-logikát nem érint), és a szín-átadás láncát az előző 2 körben már képernyőképpel is megerősítettem, a sikeres build és a közvetlen érték-ellenőrzés elegendő volt. `npm run build` hibamentes.
-
-## 2026.09.09. — Sötét mód: színátmenetes háttér (az egész alkalmazásra, nem csak az Eredménylapra)
-
-Marci kérése, ellentétben az eddigi Eredménylap-fókuszú körökkel: sötét módban a lap háttere legyen színátmenetes — alul a jelenlegi (navy) szín, felül egy világosabb sötétkék. Ez a nyilvános marketing-oldalakra ÉS a bejelentkezés utáni ÜF-fiókokra is vonatkozik.
-
-A `body` és az ÜF-fiókok saját `.app-shell` háttér-eleme (ami a `body`-t elfedi) mindkettő kapott egy, kizárólag sötét módban futó felülírást: egy függőleges színátmenetet a jelenlegi `--navy`-ból a már meglévő, egy fokkal világosabb `--color-bg-alt` tokenbe — új szín bevezetése nélkül.
-
-Egy első pillantásra hibának tűnő jelenséget méréssel tisztáztam: a teljes Főoldal képernyőképén a menüsáv tája sötétebbnek, alatta világosabbnak tűnt — ez a kért iránnyal ellentétesnek látszott. Egy elszigetelt, a viewporttal megegyező magasságú teszt-elemmel megerősítettem, hogy a gradiens iránya VALÓJÁBAN helyes; a "sötét tető" jelenség a sticky menüsáv saját, a gradienstől független, tömör hátterének volt betudható, ami a hosszú (3610px-es) Főoldal tetején elfedte a gradiens (egyébként ott világosabb) kezdetét.
-
-**Tesztelve böngészőben:** egy elszigetelt teszt-elemen és a valódi Főoldalon (0px, 1500px, a lap alja) is screenshot-tal megerősítve a helyes irányú, fokozatosan sötétedő átmenetet. `getComputedStyle`-lal közvetlenül ellenőrizve a `body` és egy szintetikus `.app-shell` elem háttérértékét. Világos módban megerősítve, hogy a háttér változatlanul sima szín maradt. `npm run build` hibamentes.

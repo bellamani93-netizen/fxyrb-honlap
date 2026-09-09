@@ -682,14 +682,6 @@ html[data-theme='dark'] .locked-overlay-card {
   min-height: 100vh;
   background-color: var(--color-bg);
 }
-/* Marci kérésére (2026.09.09.: "sötét módban a háttér legyen színátmenetes:
-   alul a jelenlegi szín, felül a világosabb sötétkék") — ugyanaz a
-   színátmenet, mint a `body`-n (ld. theme.css), csak az ÜF-fiókok saját
-   háttér-elemére (`.app-shell`) alkalmazva, mert az ott ELFEDI a `body`
-   hátterét. */
-html[data-theme='dark'] .app-shell {
-  background: linear-gradient(to top, var(--navy) 0%, var(--color-bg-alt) 100%);
-}
 /* asztali nézetben (≥992px) a bal oldali menüsáv fix helyen marad, csak a
    tartalom görgethető alatta — korábban a teljes oldal (menüsáv+tartalom)
    együtt görgetett, ezért egy hosszú oldalnál (pl. a naptár-rács) a menüsáv
