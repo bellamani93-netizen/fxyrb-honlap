@@ -417,6 +417,11 @@ export default function Eredmenyeim({
           <div className="eredmeny-col eredmeny-col--right">
             <SectionCard icon="/icons/ikon_munkafuzet.svg" title="Történet" order={5}>
               <InfoRow label="Mikor kezdődött?" value={adatok.kezdodesIdo} />
+              {/* új mező (2026.09.11., Marci kérésére: "az eredménylapon a
+                 Történet dobozban jelenjen meg az előzmények mező") — a
+                 kérdőív 3. (Tünet) lapján felvett szabad szöveg, itt a
+                 "Mikor kezdődött?" mellett, azzal tematikusan összetartozva. */}
+              <InfoRow label="Előzmények" value={adatok.elozmenyek} />
               <InfoRow label="Volt már korábban is?" value={adatok.voltMarKorabban} />
               <InfoRow label="Szerinted mi lehet az oka?" value={adatok.szerintedMiOka} />
             </SectionCard>

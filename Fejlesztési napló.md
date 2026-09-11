@@ -1743,3 +1743,9 @@ Az első két kérés egyszerű szöveg-/mező-hozzáadás volt. A harmadik stru
 A 2 korábbi lista 1, ábécérendbe rendezett (`localeCompare('hu')`) listává egyesült. Az elrendezéshez CSS `column-count`-ot használtam, nem grid-et — a multicol elrendezés folyamatosan tölti ki az 1. oszlopot, majd folytatja a 2.-ban (mint egy szótár-oszlop), ami pontosan az "elemei ábécérendben kövessék egymást" kérést teljesíti; egy grid zegzugos (sor-elsőbbségi) sorrendet adott volna. Mobilon a lap már eddig is görgethető volt, a görgetés-kérés emiatt automatikusan teljesült, külön szabály nélkül.
 
 **Tesztelve böngészőben:** a teljes kérdőívet szkriptelve kitöltve — megerősítve mindkét szöveg-változást, a 9-re csökkent lépésszámot (a haladás-sáv pontosan 100%-ot mutat a kalkulátor lapon), és a helyes lapsorrendet. Screenshot-tal megerősítve a rizikófaktorok lap 3 nézetét (mobil: 1 görgethető oszlop; 768px és 1200px: 2 hasáb, folyamatos ábécé-sorrenddel) — világos és sötét módban is. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.09.11. — Eredménylap: az "Előzmények" mező megjelenítése a Történet dobozban
+
+Marci kérésére az előző körben a kérdőívhez felvett "Előzmények" mező most az Eredménylapon is megjelenik, a Történet dobozban, a "Mikor kezdődött?" alatt — a már meglévő `InfoRow` komponens újrafelhasználásával, új CSS nélkül (a hosszabb szabad szöveg tördelését a doboz már korábban garantálta). Ez az első lépés a Marci által jelzett kétfázisú munkamenetben — a nagyobb Eredménylap-elrendezési változtatások még hátravannak.
+
+**Tesztelve böngészőben:** a teljes kérdőívet kitöltve, az Eredménylapot megnyitva megerősítettem, hogy az "Előzmények" sor a helyén, a válasz-szöveggel jelenik meg, asztali nézetben világos és sötét módban is, regresszió nélkül. `npm run build` hibamentes.
