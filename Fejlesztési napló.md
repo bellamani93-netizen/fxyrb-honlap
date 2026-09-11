@@ -1779,3 +1779,11 @@ Marci egy mintaképet küldött (egy energiamix-donut widget screenshotja) az el
 A kihúzás irányát a szelet saját középszögéből számoltam, a gyűrű forgatás ELŐTTI (helyi) koordinátarendszerében — a szülő elforgatása ezt automatikusan a helyes végső irányba viszi tovább. A korábbi külön szöveges "részlet-fejléc" (név+%+óra) megszűnt, mert ugyanez az infó most a gyűrű közepén és a kiemelt jelmagyarázat-sorban is látszik — a gyűrű közepéből szándékosan kimaradt a tevékenység neve, mert a valós (gyakran hosszú) nevek nem férnének el a kis kör belsejében, a jelmagyarázat mellette viszont egyértelműen mutatja.
 
 **Tesztelve böngészőben:** a teljes kérdőívet kitöltve, ezúttal sikerült screenshot-ot is készíteni (az előző körben jelentkezett host-oldali hiba megszűnt). Megerősítve, hogy a gyűrű és a lista egymás mellett jelenik meg, a kiválasztás kihúzva+derengve emelkedik ki, és követi az új kiválasztást másik szeletre kattintva is. Mobilon oszlop-elrendezésre vált (gyűrű fent, lista alatta). Sötét módban is jól látszik a derengés, nincs kontraszt-probléma. Konzol-hiba nem jelentkezett.
+
+## 2026.09.11. — Óra-megoszlás popup: a jelmagyarázat-lista belső görgetésének megszüntetése
+
+Marci: "nem akarok görgetést a popupon belül." A jelmagyarázat-lista korábban egy fix magasságú, önállóan görgethető kis dobozban jelent meg, ami több kitöltött tevékenységnél (pl. 9-nél) ténylegesen látható görgetősávot mutatott. Eltávolítottam ezt a korlátot, a lista a természetes magasságára nő.
+
+Hogy ez ne okozzon görgetést a TELJES popupon (a projektszintű, minden popupra érvényes biztonsági háló szintjén) sem a legszűkebb mobil méreten, szorosabbra vettem a lista-sorok és a popup belső réseit, és a gyűrűt mobilon kisebbre.
+
+**Tesztelve böngészőben:** a 9-tételes "Példa nap" tesztadattal DOM-méréssel megerősítve, hogy sem a lista, sem a teljes popup nem görget 700×900px-en és 375×812px-en (mobil) sem. Screenshot-tal is megerősítve mindkét méretben. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
