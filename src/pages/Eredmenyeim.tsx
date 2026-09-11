@@ -263,7 +263,7 @@ export default function Eredmenyeim({
   const bmi = calculateBmi(adatok.magassag, adatok.suly)
   const bmiCat = bmi !== null ? bmiCategory(bmi) : null
 
-  const rizikoTetelek = [...adatok.rizikofaktorokI, ...adatok.rizikofaktorokII]
+  const rizikoTetelek = adatok.rizikofaktorok
 
   const gt = adatok.gerincterhelesEredmeny
   const idotartamOra = IDOTARTAM_HOURS[adatok.idotartam] ?? 0

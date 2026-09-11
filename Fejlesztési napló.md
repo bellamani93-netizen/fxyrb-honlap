@@ -1731,3 +1731,15 @@ A javítás ugyanazt a már bevált technikát alkalmazza, amit az Életmód dob
 A lapmargót Marci kérésére 12mm-ről 8mm-re csökkentettem — ez önmagában nem oldotta volna meg a túllógást (az a dial-pár saját szélességéből fakadt), de több hasznos helyet hagy az oszlopoknak.
 
 **Tesztelve böngészőben:** a teljes kérdőívet szkriptelve kitöltve, a Gerincterhelés kalkulátor csúszkáit is kitöltve, hogy mindkét érintett dial-pár valódi adattal jelenjen meg. DOM-méréssel megerősítve mindhárom töréspontnál (mobil, asztali két szélességben, és nyomtatva egy A4-arányos szimulációban), hogy mindkét dial-pár mostantól pontosan a doboz szegélyén belül marad. Screenshot-tal is megerősítve — nincs vizuális regresszió. `npm run build` hibamentes, konzol-hiba nem jelentkezett.
+
+## 2026.09.11. — Állapotfelmérő kérdőív: új "Előzmények" mező, Tünet-cím pontosítás, rizikófaktorok összevonása
+
+Marci jelezte, hogy strukturális változtatások jönnek a kérdőíven és az Eredménylapon is — ebben a körben csak a kérdőívvel foglalkoztunk, az Eredménylap egy következő körben jön.
+
+Három kérést kaptunk: egy új, szabad szöveges "Előzmények" mezőt a Tünet lapra (kitöltő-szöveggel: "foglald össze vázlatpontokban, hogyan kezdődött"); a "Tünet: mit érzel?" címet "Tünet: mit érzel MOST?"-ra pontosítani; és a rizikófaktorok I/II 2 külön lapját 1 közös lappá összevonni, asztalon 2 hasábba rendezve, mobilon görgetve, ábécérendben.
+
+Az első két kérés egyszerű szöveg-/mező-hozzáadás volt. A harmadik strukturális változás: a kérdőív lépésszáma 10-ről 9-re csökkent, mert a 2 külön rizikófaktor-lap 1 lappá vonódott össze. Az adatmodellben is összevontam a 2 külön tömböt 1 közösre — ez biztonságos volt, mert az Eredménylap és a fázis-1-limitáció-származtatás (magas vérnyomás) már eddig is egybefésülve, 1 listaként kezelte a 2 tömböt, tehát a különválasztásnak sosem volt önálló jelentése a kódban, csak a kérdőív 2-lapos felosztásában.
+
+A 2 korábbi lista 1, ábécérendbe rendezett (`localeCompare('hu')`) listává egyesült. Az elrendezéshez CSS `column-count`-ot használtam, nem grid-et — a multicol elrendezés folyamatosan tölti ki az 1. oszlopot, majd folytatja a 2.-ban (mint egy szótár-oszlop), ami pontosan az "elemei ábécérendben kövessék egymást" kérést teljesíti; egy grid zegzugos (sor-elsőbbségi) sorrendet adott volna. Mobilon a lap már eddig is görgethető volt, a görgetés-kérés emiatt automatikusan teljesült, külön szabály nélkül.
+
+**Tesztelve böngészőben:** a teljes kérdőívet szkriptelve kitöltve — megerősítve mindkét szöveg-változást, a 9-re csökkent lépésszámot (a haladás-sáv pontosan 100%-ot mutat a kalkulátor lapon), és a helyes lapsorrendet. Screenshot-tal megerősítve a rizikófaktorok lap 3 nézetét (mobil: 1 görgethető oszlop; 768px és 1200px: 2 hasáb, folyamatos ábécé-sorrenddel) — világos és sötét módban is. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.

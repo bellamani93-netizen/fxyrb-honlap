@@ -2225,6 +2225,30 @@ html[data-theme='dark'] .bodychart-img {
   background-color: var(--color-primary);
   border-color: var(--color-primary);
 }
+/* a korábbi 2 külön lap (rizikófaktorok I/II) 1 közös lappá vonódott össze
+   (2026.09.11., Marci kérésére: "Rizikófaktorok I és II legyen egy lapon.
+   Asztali nézetben 2 hasábba rendezve. Telefonos nézetben görgetve. A lista
+   elemei abc sorrendben kövessék egymást.") — mobilon (alap szabály)
+   VÁLTOZATLANUL 1 függőleges lista (az `.allapotfelmero-content` már eleve
+   `overflow-y:auto`, tehát a 15 tételes egyesített lista magától görgethető,
+   nincs szükség külön szabályra). Táblagépen/asztalin (≥768px, a lap többi
+   reszponzív szabályával azonos töréspont) VALÓDI CSS többhasábos
+   (`column-count`) elrendezés — NEM grid —, mert ez folyamatosan, az 1.
+   hasábot alulig kitöltve folytatja a 2.-ban (mint egy szótár/index), ami
+   PONTOSAN az "elemei abc sorrendben kövessék egymást" olvasási sorrendet
+   adja; grid-nél ez sor-elsőbbségi (zegzugos) sorrendet adna. */
+@media (min-width: 768px) {
+  .risk-checkbox-list {
+    display: block;
+    column-count: 2;
+    column-gap: 1.5rem;
+  }
+  .risk-checkbox-item {
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 0.6rem;
+  }
+}
 
 /* --- csúszka (range) márkaszínezése --- */
 .form-range {

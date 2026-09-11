@@ -29,6 +29,11 @@ export type AllapotfelmeroAdatok = {
   gyakorisag: string
   idotartam: string
   intenzitas: number
+  /** új mező (2026.09.11., Marci kérésére) — "Előzmények: foglald össze
+   * vázlatpontokban, hogyan kezdődött" — szabad szöveges összefoglaló a
+   * Tünet lapon, a `kezdodesIdo` (mikor kezdődött, ld. lent) select-mezőt
+   * egészíti ki, nem váltja ki. */
+  elozmenyek: string
   bodyChartNezet: BodyChartNezet
   bodyChartMeret: BodyChartMeret
   bodyChartJelek: BodyChartJel[]
@@ -37,8 +42,11 @@ export type AllapotfelmeroAdatok = {
   miEsikJol: string
   mikorErzedLegjobban: string
   szerintedMiOka: string
-  rizikofaktorokI: string[]
-  rizikofaktorokII: string[]
+  /** a korábbi, 2 külön lapon (rizikófaktorok I/II) megjelenő 2 lista
+   * EGYETLEN mezőbe összevonva (2026.09.11., Marci kérésére: "Rizikófaktorok
+   * I és II legyen egy lapon") — a 2 kérdőív-lap ténylegesen 1 kérdéssé
+   * (1 checkbox-lista) egyszerűsödött, ezért a tárolt válasz is 1 tömb. */
+  rizikofaktorok: string[]
   proneOk: boolean
   /** korábban boolean (igen/nem) volt — Marci kérésére (2026.09.04.) egy
    * harmadik válasz-lehetőséggel bővült ("igen, de érzékeny"). */
@@ -47,7 +55,7 @@ export type AllapotfelmeroAdatok = {
   /** új mező (2026.09.04., Marci kérésére) — "nyaki panaszod van?" igen/nem. */
   nyakiPanasz: boolean
   szemelyesCel: string
-  /** a gerincterhelés kalkulátor (10. lap) legutóbbi eredménye — az
+  /** a gerincterhelés kalkulátor (9. lap) legutóbbi eredménye — az
    * Eredménylap "Gerincterhelés szakasza" ezt jeleníti meg újra, ugyanazzal
    * a logikával, amit a kalkulátor számolt (2026.09.07., Marci kérésére).
    * `null`, amíg a kalkulátor még nem futott le legalább egyszer. */
@@ -68,6 +76,7 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   gyakorisag: '',
   idotartam: '',
   intenzitas: 0,
+  elozmenyek: '',
   bodyChartNezet: 'hat',
   bodyChartMeret: 'pontszeru',
   bodyChartJelek: [],
@@ -76,8 +85,7 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   miEsikJol: '',
   mikorErzedLegjobban: '',
   szerintedMiOka: '',
-  rizikofaktorokI: [],
-  rizikofaktorokII: [],
+  rizikofaktorok: [],
   proneOk: true,
   shoulderOk: 'igen',
   kneePain: false,

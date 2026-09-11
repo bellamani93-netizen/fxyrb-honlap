@@ -103,9 +103,11 @@ export function deriveShoulderOkBoolean(shoulderOk: AllapotfelmeroAdatok['should
 }
 
 /** A magas vérnyomás fázis-1 limitáció mostantól a rizikófaktor-listából
- * (checkbox) jön, nem külön kérdésből (2026.09.07., Marci kérésére). */
-export function deriveHighBloodPressure(rizikofaktorokI: string[]): boolean {
-  return rizikofaktorokI.includes('magas vérnyomás')
+ * (checkbox) jön, nem külön kérdésből (2026.09.07., Marci kérésére). A
+ * korábbi 2 külön (I/II) lista 2026.09.11-től 1 mezőbe összevonva, ld.
+ * AllapotfelmeroContext.tsx `rizikofaktorok`. */
+export function deriveHighBloodPressure(rizikofaktorok: string[]): boolean {
+  return rizikofaktorok.includes('magas vérnyomás')
 }
 
 /** Az összes fázis-1 limitáció egy csokorban — a KÉSŐBBI GYT-oldali
@@ -125,6 +127,6 @@ export function deriveLimitations(adatok: AllapotfelmeroAdatok): DerivedLimitati
     proneOk: deriveProneOkForLimitations(adatok.proneOk, adatok.nyakiPanasz),
     shoulderOk: deriveShoulderOkBoolean(adatok.shoulderOk),
     kneePain: adatok.kneePain,
-    highBloodPressure: deriveHighBloodPressure(adatok.rizikofaktorokI),
+    highBloodPressure: deriveHighBloodPressure(adatok.rizikofaktorok),
   }
 }

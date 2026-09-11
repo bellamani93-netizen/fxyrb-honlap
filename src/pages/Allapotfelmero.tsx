@@ -23,7 +23,9 @@ import {
 // itt csak a Context-ben élnek, mentés/beküldés nem ír vissza semmilyen
 // "valós" nyilvántartásba.
 
-const TOTAL_STEPS = 10
+// a korábbi 10 lapból 9 lett (2026.09.11., Marci kérésére) — a
+// rizikófaktorok I/II 2 külön lapja 1 közös lappá vonódott össze (ld. lent).
+const TOTAL_STEPS = 9
 /** "mutasd meg" — a body chart lapja: itt nincs cím/alcím és a padding is
  * minimális, hogy a testábra kapja a lehető legtöbb helyet (2026.09.04.,
  * Marci kérésére). */
@@ -47,14 +49,16 @@ const IDOTARTAM_OPTIONS = ['kevesebb, mint 1 óra', '1–2 óra', '3–5 óra', 
 const TORTENET_OPTIONS = ['sose', 'volt egyszer', 'volt többször is']
 const KEZDODES_OPTIONS = ['Most', 'pár napja', 'néhány hete', 'hónapokkal ezelőtt', 'évekkel ezelőtt']
 
-const RIZIKO_I_OPTIONS = [
+// a korábbi 2 külön lap (rizikófaktorok I/II) 1 lappá vonódott össze
+// (2026.09.11., Marci kérésére: "Rizikófaktorok I és II legyen egy lapon...
+// A lista elemei abc sorrendben kövessék egymást") — a 2 korábbi lista
+// tartalma változatlan, csak EGY, ábécérendbe rendezett listává egyesítve.
+const RIZIKO_OPTIONS = [
   'láz', 'rosszullét', 'asztma', 'aktív daganatos betegség', 'korábbi daganatos betegség',
   'magas vérnyomás', 'csontritkulás', 'nem tervezett súlyvesztés',
-]
-const RIZIKO_II_OPTIONS = [
   'gyomor/bélbetegség', 'láb zsibbadás', 'izomerő gyengülés egyik/mindkét lábban',
   'szívbetegség', 'COPD', 'vizelettartási problémák', 'széklettartási problémák',
-]
+].sort((a, b) => a.localeCompare(b, 'hu'))
 
 // 2026.09.04., Marci kérésére: a generikus "Állapotfelmérő kérdőív" cím +
 // alatta a türkiz alcím MINDEN lapról eltűnt, KIVÉVE a rizikófaktorok, a
@@ -64,10 +68,9 @@ const RIZIKO_II_OPTIONS = [
 // ez egyben helyet is szabadított fel (ezért vonható össze pl. a "történet"
 // és a "további kérdések" lap egyetlen, 5. lappá).
 const STEP_META: Record<number, { title?: string; subtitle?: string }> = {
-  6: { title: 'rizikófaktorok I', subtitle: 'van-e ezek közül valamelyik?' },
-  7: { title: 'rizikófaktorok II', subtitle: 'van-e ezek közül valamelyik?' },
-  8: { title: 'mozgékonyság', subtitle: 'a tornát érintő kérdések — ne csalj! 🙂' },
-  9: { title: 'Személyes célod' },
+  6: { title: 'rizikófaktorok', subtitle: 'van-e ezek közül valamelyik?' },
+  7: { title: 'mozgékonyság', subtitle: 'a tornát érintő kérdések — ne csalj! 🙂' },
+  8: { title: 'Személyes célod' },
 }
 
 /** a fejléc (mobilon a hamburger-sáv) tényleges magasságát vonja le a
@@ -588,7 +591,7 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
     case 3:
       return (
         <>
-          <TextField label="Tünet: mit érzel?" value={adatok.tunetLeiras} onChange={(v) => setAdatok({ tunetLeiras: v })} placeholder="pl: fájdalom/húzódás/nyilallás stb." hint="max. 15 szó" centered />
+          <TextField label="Tünet: mit érzel MOST?" value={adatok.tunetLeiras} onChange={(v) => setAdatok({ tunetLeiras: v })} placeholder="pl: fájdalom/húzódás/nyilallás stb." hint="max. 15 szó" centered />
           <SelectField label="gyakoriság" value={adatok.gyakorisag} onChange={(v) => setAdatok({ gyakorisag: v })} options={GYAKORISAG_OPTIONS} />
           <SelectField label="időtartam (óra/nap)" value={adatok.idotartam} onChange={(v) => setAdatok({ idotartam: v })} options={IDOTARTAM_OPTIONS} />
           <div className="mb-2">
@@ -606,6 +609,10 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
               <span>10 — max. intenzitás</span>
             </div>
           </div>
+          {/* új mező (2026.09.11., Marci kérésére) — a `kezdodesIdo` (5. lap,
+             "mikor kezdődött?" select) MELLETT, azt kiegészítve: itt szabad
+             szöveggel, vázlatpontokban foglalható össze a történet eleje. */}
+          <TextAreaField label="Előzmények:" value={adatok.elozmenyek} onChange={(v) => setAdatok({ elozmenyek: v })} placeholder="Foglald össze vázlatpontokban, hogyan kezdődött." rows={3} />
         </>
       )
     case 5:
@@ -623,30 +630,23 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
         </>
       )
     case 6:
+      // a korábbi 2 külön lap (rizikófaktorok I/II) 1 lappá vonódott össze
+      // (2026.09.11., Marci kérésére) — 1 kérdés, 1 (ábécérendbe rendezett)
+      // lista, 1 tárolt tömb. Az asztali 2-hasábos elrendezést a
+      // `.risk-checkbox-list` saját, `@media(min-width:768px)` CSS-szabálya
+      // adja (ld. components.css), itt nincs szükség külön JSX-re hozzá.
       return (
         <RiskCheckboxList
-          options={RIZIKO_I_OPTIONS}
-          selected={adatok.rizikofaktorokI}
+          options={RIZIKO_OPTIONS}
+          selected={adatok.rizikofaktorok}
           onToggle={(opt) => setAdatok({
-            rizikofaktorokI: adatok.rizikofaktorokI.includes(opt)
-              ? adatok.rizikofaktorokI.filter((o) => o !== opt)
-              : [...adatok.rizikofaktorokI, opt],
+            rizikofaktorok: adatok.rizikofaktorok.includes(opt)
+              ? adatok.rizikofaktorok.filter((o) => o !== opt)
+              : [...adatok.rizikofaktorok, opt],
           })}
         />
       )
     case 7:
-      return (
-        <RiskCheckboxList
-          options={RIZIKO_II_OPTIONS}
-          selected={adatok.rizikofaktorokII}
-          onToggle={(opt) => setAdatok({
-            rizikofaktorokII: adatok.rizikofaktorokII.includes(opt)
-              ? adatok.rizikofaktorokII.filter((o) => o !== opt)
-              : [...adatok.rizikofaktorokII, opt],
-          })}
-        />
-      )
-    case 8:
       // a "fájdalom helye" sor törölve (2026.09.04., Marci kérésére: "ez nem
       // kell") — a body chart (4. lap) már pontosan rögzíti a helyet.
       return (
@@ -666,13 +666,13 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
           <TraitToggleRow label="van térdfájdalmad (négykézláb helyzetekhez)" value={!adatok.kneePain} onChange={(v) => setAdatok({ kneePain: !v })} trueLabel="nincs" falseLabel="van" />
         </>
       )
-    case 9:
+    case 8:
       return <TextAreaField value={adatok.szemelyesCel} onChange={(v) => setAdatok({ szemelyesCel: v })} placeholder="mit szeretnél elérni a programmal?" />
     default:
-      // a kalkulátor (10.) lapot az Allapotfelmero() felső szintű render-je
+      // a kalkulátor (9.) lapot az Allapotfelmero() felső szintű render-je
       // saját magától kezeli (`isCalculatorStep` ág), StepContent-et arra a
       // lépésre sosem hívja meg — ez az ág emiatt a body chart (4.) és a
-      // kalkulátor (10.) lapon fut le, de egyik esetben sem hívódik meg
+      // kalkulátor (9.) lapon fut le, de egyik esetben sem hívódik meg
       // (mindkettő saját, StepContent-en kívüli JSX-et kap).
       return null
   }
