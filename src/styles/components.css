@@ -2886,38 +2886,51 @@ html[data-theme='dark'] .bodychart-img {
   align-items: center;
   justify-content: center;
 }
+/* Marci mutatott egy mintaképet (2026.09.11., egy energiamix-donut
+   widgetről: "Az adatok ábrázolásához használj ilyen elrendezést a
+   legördülő lista helyett") — a gyűrű és a jelmagyarázat EGYMÁS MELLETT
+   (nem egymás alatt, nem egy kis görgethető dobozban); keskeny (mobil)
+   nézetben a lenti media query egymás ALÁ rendezi vissza a 2 elemet. */
+.ora-megoszlas-body {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
 .ora-gyuru-svg {
-  width: 100%;
+  flex: 1 1 200px;
   max-width: 220px;
   margin: 0 auto;
   display: block;
   overflow: visible;
 }
 /* a szeletek (körívek) a gyűrű SAJÁT sugarán ülnek — a kattintható terület
-   emiatt pontosan a látható ívvel egyezik meg, nincs "láthatatlan" felesleg. */
+   emiatt pontosan a látható ívvel egyezik meg, nincs "láthatatlan" felesleg.
+   A kiválasztott szelet a mintakép szerint KIHÚZVA+derengéssel emelkedik ki
+   (ld. Eredmenyeim.tsx `transform`/`filter` inline stílusa), NEM vastagabb
+   vonallal — a `transition` ezt az áthelyeződést/derengést animálja lágyan. */
 .ora-gyuru-szelet {
   cursor: pointer;
-  transition: stroke-width 0.15s ease, opacity 0.15s ease;
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
-/* egyszerű, görgethető lista-nézet a gyűrű alatt — a vékony szeletek
-   pontos eltalálása helyett itt is ki lehet választani egy tevékenységet
-   (nagyobb, kényelmesebb koppintási cél mobilon), és egyúttal
-   jelmagyarázatként is szolgál (szín↔név párosítás). */
+/* a jelmagyarázat a gyűrű MELLETT, teljes szélességű sorokkal (nem egy kis,
+   görgethető dobozban) — minden sor szín+név+százalék, a kiválasztott sor
+   háttér-kiemelést kap (ugyanaz a kiválasztás egyszerre látszik a gyűrűn ÉS
+   itt). Hosszú lista esetén (sok kitöltött tevékenység) a lista MAGA
+   görgethető, de a doboz-keret/kis-doboz-érzet megszűnt. */
 .ora-legenda {
+  flex: 1 1 220px;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  max-height: 9rem;
+  gap: 0.2rem;
+  max-height: 14rem;
   overflow-y: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 0.4rem;
 }
 .ora-legenda-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem 0.4rem;
+  gap: 0.6rem;
+  padding: 0.4rem 0.5rem;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -2942,32 +2955,26 @@ html[data-theme='dark'] .bodychart-img {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ora-legenda-ora {
+.ora-legenda-pct {
   flex: 0 0 auto;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  color: var(--color-text-muted);
+}
+@media (max-width: 480px) {
+  .ora-megoszlas-body {
+    flex-direction: column;
+  }
+  .ora-gyuru-svg {
+    max-width: 190px;
+  }
+  .ora-legenda {
+    width: 100%;
+  }
 }
 .ora-reszlet {
   padding: 0.85rem 1rem;
   background: var(--color-bg-alt);
   border-radius: var(--radius-card);
-}
-.ora-reszlet-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem;
-  font-weight: 800;
-}
-.ora-reszlet-pct {
-  color: var(--color-primary);
-  flex-shrink: 0;
-}
-.ora-reszlet-ora {
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
-  margin-bottom: 0.6rem;
 }
 .ora-contrib {
   margin-top: 0.6rem;
