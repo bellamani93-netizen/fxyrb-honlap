@@ -22,6 +22,23 @@ function fmtHu(n: number, decimals = 1): string {
   return rounded.toFixed(decimals).replace('.', ',').replace(/,0$/, '')
 }
 
+/** Marci kérésére (2026.09.11.: "ha az előzmények túl hosszú lenne, akkor
+ * ezt a két blokkot el lehet rejteni [Mikor kezdődött? / Volt már korábban
+ * is?], hiszen valószínűleg leírta részletesen, viszont ha nem írt eleget,
+ * akkor jó, ha látszódik") — a küszöböt böngészős méréssel kalibráltam: a
+ * legszűkebb asztali nézeten (992×800) is MÁR ÜRES Előzmények mellett is
+ * van egy ~12-17px-es, korábbról (108-109. pont) elfogadott maradék
+ * görgetés — ez a küszöb nem ezt hivatott megszüntetni, hanem azt
+ * akadályozza meg, hogy egy HOSSZÚ, több mondatos/vázlatpontos válasz
+ * (amit a mező placeholder-e kifejezetten kér: "vázlatpontokban") a
+ * Történet dobozt annyira megnyújtsa, hogy a `align-items:stretch` miatt a
+ * MÁSIK 2 oszlopban is nagy, kitöltetlen rés keletkezzen (ld. Design
+ * jegyzet korábbi böngészős tesztje). 150 karakter kb. 1-2 rövid mondatnak
+ * felel meg — eddig még nem "vázlatpontos" a válasz, utána már valószínűleg
+ * igen, és a "Mikor kezdődött?"/"Volt már korábban is?" tartalma ekkorra
+ * jó eséllyel úgyis szerepel a szövegben. */
+const ELOZMENYEK_HOSSZU_KUSZOB = 150
+
 function SectionCard({
   icon,
   title,
@@ -416,13 +433,26 @@ export default function Eredmenyeim({
 
           <div className="eredmeny-col eredmeny-col--right">
             <SectionCard icon="/icons/ikon_munkafuzet.svg" title="Történet" order={5}>
-              <InfoRow label="Mikor kezdődött?" value={adatok.kezdodesIdo} />
               {/* új mező (2026.09.11., Marci kérésére: "az eredménylapon a
                  Történet dobozban jelenjen meg az előzmények mező") — a
                  kérdőív 3. (Tünet) lapján felvett szabad szöveg, itt a
-                 "Mikor kezdődött?" mellett, azzal tematikusan összetartozva. */}
+                 "Mikor kezdődött?" mellett, azzal tematikusan összetartozva.
+                 HOSSZÚ Előzmények-válasz esetén (ld. ELOZMENYEK_HOSSZU_KUSZOB
+                 fenti jegyzete, Marci kérésére 2026.09.11.) ez a 2 mező —
+                 "Mikor kezdődött?"/"Volt már korábban is?" — ELTŰNIK, mert
+                 tartalmilag átfed egy részletes Előzmények-leírással, és a
+                 hely felszabadítása megakadályozza, hogy a Történet doboz a
+                 `align-items:stretch` miatt a MÁSIK 2 oszlopba is nagy, üres
+                 rést "húzzon be". Rövid/üres Előzmények esetén VÁLTOZATLANUL
+                 látszik mindkét mező, hiszen akkor önmagában hordoznak
+                 információt. */}
+              {adatok.elozmenyek.length < ELOZMENYEK_HOSSZU_KUSZOB && (
+                <InfoRow label="Mikor kezdődött?" value={adatok.kezdodesIdo} />
+              )}
               <InfoRow label="Előzmények" value={adatok.elozmenyek} />
-              <InfoRow label="Volt már korábban is?" value={adatok.voltMarKorabban} />
+              {adatok.elozmenyek.length < ELOZMENYEK_HOSSZU_KUSZOB && (
+                <InfoRow label="Volt már korábban is?" value={adatok.voltMarKorabban} />
+              )}
               <InfoRow label="Szerinted mi lehet az oka?" value={adatok.szerintedMiOka} />
             </SectionCard>
 
