@@ -1787,3 +1787,11 @@ Marci: "nem akarok görgetést a popupon belül." A jelmagyarázat-lista korább
 Hogy ez ne okozzon görgetést a TELJES popupon (a projektszintű, minden popupra érvényes biztonsági háló szintjén) sem a legszűkebb mobil méreten, szorosabbra vettem a lista-sorok és a popup belső réseit, és a gyűrűt mobilon kisebbre.
 
 **Tesztelve böngészőben:** a 9-tételes "Példa nap" tesztadattal DOM-méréssel megerősítve, hogy sem a lista, sem a teljes popup nem görget 700×900px-en és 375×812px-en (mobil) sem. Screenshot-tal is megerősítve mindkét méretben. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.09.11. — A popup-háttér elsötétítése sötét módban
+
+Marci: "A popup mögött sötétüljön el jobban a háttér sötét módban." Kiderült, hogy a projektszintű popup-háttér navy színű volt — világos módban ez jól elsötétít egy világos oldalt, de sötét módban a lap saját háttere is ugyanez a navy szín, ezért a "sötétítés" alig látszott.
+
+Egy sötét-mód-specifikus felülírással a háttér sötét módban tisztán feketére, magasabb átlátszatlanságra váltott — ez független a lap saját színétől, ezért valódi kontrasztot ad. Világos módban a viselkedés változatlan. Mivel ez a projekt megosztott popup-háttér osztályát módosítja, minden popupra egységesen érvényes, nem csak az óra-megoszlás popupra.
+
+**Tesztelve böngészőben:** megerősítve, hogy sötét módban a háttér jelentősen sötétebb lett, világos módban nem változott. Screenshot-tal is megerősítve — a popup most láthatóan élesen elválik a háttértől. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.

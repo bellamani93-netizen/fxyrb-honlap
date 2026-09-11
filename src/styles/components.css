@@ -1276,6 +1276,16 @@ html[data-theme='dark'] .locked-overlay-card {
   justify-content: center;
   padding: 1rem;
 }
+/* HIBAJAVÍTÁS (2026.09.11., Marci kérésére: "a popup mögött sötétüljön el
+   jobban a háttér sötét módban") — a fenti navy (--navy) színű háttér
+   VILÁGOS módban jól elsötétít egy világos oldalt, de sötét módban a lap
+   HÁTTERE (--color-bg) MAGA is ez a navy szín, ezért a "sötétítés" alig
+   látszott (navy 60%-a navy alapon). Sötét módban egy tisztán fekete,
+   magasabb átlátszatlanságú réteg VALÓDI kontrasztot ad a mögötte lévő
+   (navy-árnyalatú) tartalomhoz képest. */
+html[data-theme='dark'] .modal-backdrop-fyb {
+  background-color: rgba(0, 0, 0, 0.75);
+}
 .modal-fyb {
   max-width: 24rem;
   width: 100%;
