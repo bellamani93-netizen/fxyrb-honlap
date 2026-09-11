@@ -2839,6 +2839,177 @@ html[data-theme='dark'] .bodychart-img {
   }
 }
 
+/* --- Eredménylap: óra-megoszlás körsávdiagram popup (2026.09.11., Marci
+   kérésére: "A gerincterhelés, vagy aktivitási szint mutatókra kattintva
+   nyíljon meg egy popup, amiben ábrázolva van egy kördiagramon, hogyan
+   töltődik a 24 óra... A kördiagram körsávdiagram legyen. A kördiagram egy
+   körsáv-cikkjére kattintva jelenjen meg a %, a tevékenység neve, a konkrét
+   időtartam, és két sáv...") — a `.modal-backdrop-fyb`/`.modal-fyb`
+   MEGLÉVŐ, projektszerte használt popup-vázát veszi át (ld. pl.
+   Allapotfelmero.tsx BodyChartSizePopup), csak szélesebb `maxWidth`-tel,
+   hogy a gyűrű+jelmagyarázat+részlet-panel kényelmesen elférjen. */
+.eredmeny-dial--clickable {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.eredmeny-dial--clickable:hover,
+.eredmeny-dial--clickable:focus-visible {
+  transform: scale(1.035);
+}
+.eredmeny-dial--clickable:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+.ora-megoszlas-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.ora-megoszlas-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.ora-megoszlas-close {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ora-gyuru-svg {
+  width: 100%;
+  max-width: 220px;
+  margin: 0 auto;
+  display: block;
+  overflow: visible;
+}
+/* a szeletek (körívek) a gyűrű SAJÁT sugarán ülnek — a kattintható terület
+   emiatt pontosan a látható ívvel egyezik meg, nincs "láthatatlan" felesleg. */
+.ora-gyuru-szelet {
+  cursor: pointer;
+  transition: stroke-width 0.15s ease, opacity 0.15s ease;
+}
+/* egyszerű, görgethető lista-nézet a gyűrű alatt — a vékony szeletek
+   pontos eltalálása helyett itt is ki lehet választani egy tevékenységet
+   (nagyobb, kényelmesebb koppintási cél mobilon), és egyúttal
+   jelmagyarázatként is szolgál (szín↔név párosítás). */
+.ora-legenda {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 9rem;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem;
+}
+.ora-legenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.4rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+.ora-legenda-item.is-active {
+  background: var(--color-bg-alt);
+}
+.ora-legenda-szin {
+  flex: 0 0 auto;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+}
+.ora-legenda-nev {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ora-legenda-ora {
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+.ora-reszlet {
+  padding: 0.85rem 1rem;
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-card);
+}
+.ora-reszlet-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-weight: 800;
+}
+.ora-reszlet-pct {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+.ora-reszlet-ora {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 0.6rem;
+}
+.ora-contrib {
+  margin-top: 0.6rem;
+}
+.ora-contrib-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+.ora-contrib-value {
+  flex-shrink: 0;
+}
+.ora-contrib-track {
+  position: relative;
+  height: 0.5rem;
+  background: var(--color-border);
+  border-radius: 999px;
+  overflow: visible;
+}
+.ora-contrib-fill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 999px;
+}
+/* a 0-pont jelölése a sávon — a Gerincterhelés-sávnál a KÖZÉPEN (a -20..20
+   tartomány szimmetrikus), az Aktivitási szint-sávnál a BAL szélén (a 0..25
+   tartomány már 0-nál kezdődik) jelenik meg, a `left` %-ot mindkét esetben
+   ugyanaz a képlet számolja (ld. Eredmenyeim.tsx `OraContribSav`). */
+.ora-contrib-zero {
+  position: absolute;
+  top: -0.15rem;
+  width: 2px;
+  height: 0.8rem;
+  background: var(--color-text-muted);
+  transform: translateX(-1px);
+}
+
 /* --- Eredménylap: nyomtatható A/4 összegzés (2026.09.10., Marci kérésére,
    3. fázis: "Nézzük, hogyan tudjuk ezeket egy A/4-es állított lapra úgy
    helyezni, hogy lehetőleg nyomtatóbarát legyen.") — ÖNÁLLÓ, a képernyős

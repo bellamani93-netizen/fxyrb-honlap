@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Icon from '../components/Icon'
 import ToggleSwitch from '../components/ToggleSwitch'
+import type { GerincterhelesReszlet } from '../components/GerincterhelesKalkulator'
 import { withBase } from '../lib/assetUrl'
 import { getSessionName } from '../lib/session'
 import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
@@ -120,6 +121,7 @@ function DialGauge({
   categoryColor,
   caption,
   size = 'md',
+  onClick,
 }: {
   value: number
   min: number
@@ -135,10 +137,21 @@ function DialGauge({
    * ne ismétlődjön kétszer ugyanaz a szöveg egy kis dobozon belül. */
   caption?: string
   size?: 'sm' | 'md'
+  /** opcionális — a Gerincterhelés/Aktivitási szint dial-ok Marci kérésére
+   * (2026.09.11.) kattinthatóvá váltak, az óra-megoszlás popupot nyitják
+   * (ld. lent, OraMegoszlasPopup) — a BMI/Intenzitás/Időtartam dial-ok
+   * VÁLTOZATLANUL nem interaktívak, mert nincs propjuk. */
+  onClick?: () => void
 }) {
   const needleRotation = 90 - dialAngleForValue(value, min, max)
   return (
-    <div className={`eredmeny-dial eredmeny-dial--${size}`}>
+    <div
+      className={`eredmeny-dial eredmeny-dial--${size} ${onClick ? 'eredmeny-dial--clickable' : ''}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } } : undefined}
+    >
       {caption && <span className="eredmeny-dial-caption">{caption}</span>}
       <svg viewBox="-16 -8 232 124" className="eredmeny-dial-svg">
         {zones.map((z, i) => {
@@ -250,6 +263,145 @@ function MobilityItem({ label, state }: { label: string; state: MobilityState })
   )
 }
 
+// --- óra-megoszlás körsávdiagram popup (2026.09.11., Marci kérésére: "A
+// gerincterhelés, vagy aktivitási szint mutatókra kattintva nyíljon meg egy
+// popup, amiben ábrázolva van egy kördiagramon, hogyan töltődik a 24 óra
+// [bejelölt válaszok alapján]. A kördiagram körsávdiagram legyen. A
+// kördiagram egy körsáv-cikkjére kattintva jelenjen meg a %, a tevékenység
+// neve, a konkrét időtartam, és két sáv: a gerincterhelés, és aktivitási
+// szint értékek alapján mutassa, hogy ez mennyiben járul hozzá a végső
+// eredményhez (+ vagy - hatás)." — 2 döntés Marci választása (rákérdezés
+// után, 2026.09.11.): (1) a szeletek EGYEDI tevékenységenként jelennek meg
+// (nem az 5 fő kategóriába összevonva); (2) a 2 hozzájárulás-sáv a FŐ
+// mutatókkal (Gerincterhelés -20..20, Aktivitási szint 0..25) AZONOS
+// léptékben skálázódik, közvetlenül összevethetően velük.
+const ORA_GYURU_R = 76
+const ORA_GYURU_STROKE = 30
+const ORA_GYURU_KERULET = 2 * Math.PI * ORA_GYURU_R
+/** apró rés a szomszédos szeletek között (a kerület px-jeiben) — tisztán
+ * vizuális tagolás, hogy a szomszédos (esetleg közeli árnyalatú) szeletek
+ * határa akkor is látszódjon, ha nincs köztük éles szín-ugrás. */
+const ORA_GYURU_RES = 3
+
+/** minden szelet a forrás-sorrend (a kalkulátor `activities` tömbje, ld.
+ * GerincterhelesKalkulator.tsx) szerint egyenletesen elosztott árnyalatot
+ * kap — ez garantáltan annyi, egymástól jól megkülönböztethető színt ad,
+ * ahány tevékenységet valaki ténylegesen kitöltött, fix palettakészlet
+ * nélkül. A 200°-os kezdő eltolás elkerüli a piros/zöld tartományt (a
+ * mutatók saját, "rossz/jó" jelentésű --z1/--z6 skálája), hogy a szelet-szín
+ * NE keveredjen a hozzájárulás-sávok piros/zöld jelentésével. */
+function szeletSzin(i: number, n: number): string {
+  const hue = (200 + (i * 360) / Math.max(1, n)) % 360
+  return `hsl(${hue}, 62%, 56%)`
+}
+
+/** egy hozzájárulás-sáv — a `min..max` a FŐ mutató (Gerincterhelés/
+ * Aktivitási szint) teljes tartománya, tehát a sáv hossza/pozíciója
+ * közvetlenül összevethető azzal, amit a felhasználó a nagy dial-okon lát.
+ * A "0" jelölés a Gerincterhelés-sávnál (szimmetrikus -20..20 tartomány)
+ * középen, az Aktivitási szint-sávnál (0..25, mindig ≥0 hozzájárulás) a bal
+ * szélen jelenik meg — ugyanaz a képlet mindkét esetben helyesen számolja. */
+function OraContribSav({ label, value, min, max, unit }: { label: string; value: number; min: number; max: number; unit: string }) {
+  const zeroPct = ((0 - min) / (max - min)) * 100
+  const valuePct = ((value - min) / (max - min)) * 100
+  const left = Math.min(zeroPct, valuePct)
+  const width = Math.abs(valuePct - zeroPct)
+  const positive = value >= 0
+  const color = positive ? 'var(--z6)' : 'var(--z1)'
+  return (
+    <div className="ora-contrib">
+      <div className="ora-contrib-head">
+        <span>{label}</span>
+        <span className="ora-contrib-value" style={{ color }}>{positive ? '+' : ''}{fmtHu(value)} {unit}</span>
+      </div>
+      <div className="ora-contrib-track">
+        <div className="ora-contrib-fill" style={{ left: `${left}%`, width: `${width}%`, background: color }} />
+        <div className="ora-contrib-zero" style={{ left: `${zeroPct}%` }} />
+      </div>
+    </div>
+  )
+}
+
+function OraMegoszlasPopup({ reszletek, onClose }: { reszletek: GerincterhelesReszlet[]; onClose: () => void }) {
+  const [kivalasztott, setKivalasztott] = useState<string | null>(reszletek[0]?.id ?? null)
+  const aktiv = reszletek.find((r) => r.id === kivalasztott) ?? null
+  const osszesOra = reszletek.reduce((s, r) => s + r.ora, 0)
+  let cumulative = 0
+  return (
+    <div className="modal-backdrop-fyb no-print" onClick={onClose}>
+      <div className="modal-fyb card-fyb ora-megoszlas-modal" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
+        <div className="ora-megoszlas-head">
+          <h2 className="h6 mb-0">napi 24 óra megoszlása</h2>
+          <button type="button" className="ora-megoszlas-close" onClick={onClose} aria-label="bezárás">✕</button>
+        </div>
+        {reszletek.length === 0 ? (
+          <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>Nincs kitöltött tevékenység.</p>
+        ) : (
+          <>
+            <svg viewBox="0 0 200 200" className="ora-gyuru-svg">
+              <g transform="rotate(-90 100 100)">
+                {reszletek.map((r, i) => {
+                  const frac = r.ora / 24
+                  const dash = Math.max(0, frac * ORA_GYURU_KERULET - ORA_GYURU_RES)
+                  const gap = ORA_GYURU_KERULET - dash
+                  const offset = -cumulative * ORA_GYURU_KERULET
+                  cumulative += frac
+                  const active = kivalasztott === r.id
+                  return (
+                    <circle
+                      key={r.id}
+                      cx={100}
+                      cy={100}
+                      r={ORA_GYURU_R}
+                      fill="none"
+                      stroke={szeletSzin(i, reszletek.length)}
+                      strokeWidth={active ? ORA_GYURU_STROKE + 6 : ORA_GYURU_STROKE}
+                      strokeDasharray={`${dash} ${gap}`}
+                      strokeDashoffset={offset}
+                      opacity={kivalasztott && !active ? 0.5 : 1}
+                      className="ora-gyuru-szelet"
+                      onClick={() => setKivalasztott(r.id)}
+                    />
+                  )
+                })}
+              </g>
+              <text x={100} y={96} textAnchor="middle" fontSize={26} fontWeight={800} fill="var(--color-text)">{fmtHu(osszesOra)}</text>
+              <text x={100} y={116} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--color-text-muted)">/ 24 óra</text>
+            </svg>
+
+            <div className="ora-legenda">
+              {reszletek.map((r, i) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  className={`ora-legenda-item ${kivalasztott === r.id ? 'is-active' : ''}`}
+                  onClick={() => setKivalasztott(r.id)}
+                >
+                  <span className="ora-legenda-szin" style={{ background: szeletSzin(i, reszletek.length) }} />
+                  <span className="ora-legenda-nev">{r.nev}</span>
+                  <span className="ora-legenda-ora">{fmtHu(r.ora)} óra</span>
+                </button>
+              ))}
+            </div>
+
+            {aktiv && (
+              <div className="ora-reszlet">
+                <div className="ora-reszlet-head">
+                  <span className="ora-reszlet-nev">{aktiv.nev}</span>
+                  <span className="ora-reszlet-pct">{Math.round((aktiv.ora / 24) * 100)}%</span>
+                </div>
+                <div className="ora-reszlet-ora">{fmtHu(aktiv.ora)} óra</div>
+                <OraContribSav label="Gerincterhelésre gyakorolt hatás" value={aktiv.terheles} min={-20} max={20} unit="pont" />
+                <OraContribSav label="Aktivitási szintre gyakorolt hatás" value={aktiv.aktivitas} min={0} max={25} unit="pont" />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function Eredmenyeim({
   displayName,
   showPrint = false,
@@ -273,6 +425,10 @@ export default function Eredmenyeim({
   const { adatok } = useAllapotfelmero()
   const [nezet, setNezet] = useState(adatok.bodyChartNezet)
   const imageSrc = withBase(BODYCHART_IMAGES[nezet])
+  // az óra-megoszlás popup (2026.09.11., Marci kérésére) — a Gerincterhelés
+  // ÉS az Aktivitási szint dial is UGYANAZT a popupot nyitja (mindkét sáv
+  // mindig együtt látszik benne, ld. OraMegoszlasPopup), ezért elég 1 boolean.
+  const [oraPopupOpen, setOraPopupOpen] = useState(false)
 
   const teljesNev = displayName ?? getSessionName('Péter')
   const becenev = displayName ? undefined : adatok.megszolitas
@@ -480,8 +636,8 @@ export default function Eredmenyeim({
               </div>
               {gt !== null && (
                 <div className="eredmeny-eletmod-row eredmeny-eletmod-row--bottom">
-                  <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} caption="Gerincterhelés" size="sm" />
-                  <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} caption="Aktivitási szint" size="sm" />
+                  <DialGauge value={gt.totalLoad} min={-20} max={20} zones={LOAD_ZONES} score={fmtHu(gt.totalLoad)} unit="pont" category={gt.loadLabel} categoryColor={gt.loadColor} caption="Gerincterhelés" size="sm" onClick={() => setOraPopupOpen(true)} />
+                  <DialGauge value={gt.totalAct} min={0} max={25} zones={ACT_ZONES} score={fmtHu(gt.totalAct)} unit="pont" category={gt.actLabel} categoryColor={gt.actColor} caption="Aktivitási szint" size="sm" onClick={() => setOraPopupOpen(true)} />
                 </div>
               )}
             </SectionCard>
@@ -494,6 +650,9 @@ export default function Eredmenyeim({
            (ld. fent, `eredmeny-header-summary-date`). */}
         <div className="eredmeny-footer-date eredmeny-mobile-only">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</div>
       </div>
+      {oraPopupOpen && gt && (
+        <OraMegoszlasPopup reszletek={gt.reszletek} onClose={() => setOraPopupOpen(false)} />
+      )}
     </section>
   )
 }

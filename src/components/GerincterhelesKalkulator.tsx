@@ -599,6 +599,25 @@ const CALCULATOR_HTML = `
  * bemásolva, az eredeti számítási logika alapján") ezt kapja meg az
  * `onResultChange` callback-en, hogy UGYANAZT a logikát mutassa újra,
  * adatduplikálás/újraimplementálás nélkül (2026.09.07., Marci kérésére). */
+/** egy KITÖLTÖTT (0 óránál nagyobb) tevékenység "szelete" — az Eredménylap
+ * óra-megoszlás körsávdiagramja (2026.09.11., Marci kérésére: "a gerincterhelés,
+ * vagy aktivitási szint mutatókra kattintva nyíljon meg egy popup... kördiagramon,
+ * hogyan töltődik a 24 óra") ezt a listát rajzolja ki, EGYEDI tevékenységenként
+ * (nem csoportosítva) — Marci választása a 2 felkínált bontás közül. */
+export type GerincterhelesReszlet = {
+  id: string
+  csoport: string
+  nev: string
+  ora: number
+  /** ennek a tevékenységnek a SAJÁT hozzájárulása a totalLoad-hoz (óra × t) —
+   * a popup 2 sávjának egyike ezt jeleníti meg, a fő Gerincterhelés-mutatóval
+   * AZONOS (-20..20) léptékben (Marci választása). */
+  terheles: number
+  /** ugyanez az aktivitási szinthez (óra × a), a fő Aktivitási szint-mutatóval
+   * AZONOS (0..25) léptékben. */
+  aktivitas: number
+}
+
 export type GerincterhelesEredmeny = {
   totalHours: number
   totalLoad: number
@@ -607,6 +626,7 @@ export type GerincterhelesEredmeny = {
   loadColor: string
   actLabel: string
   actColor: string
+  reszletek: GerincterhelesReszlet[]
 }
 
 type GerincterhelesKalkulatorProps = {
@@ -800,8 +820,8 @@ export default memo(function GerincterhelesKalkulator({ onHoursChange, onResultC
     // csoport-készletet építsen fel (2026.09.04.).
     groupsEl.replaceChildren()
     type ItemDef = { id: string; label: string; sub: string; t: number; a: number }
-    const inputs: Record<string, { slider: HTMLInputElement; valueBadge: HTMLElement; t: number; a: number }> = {}
-    function buildRow(item: ItemDef) {
+    const inputs: Record<string, { slider: HTMLInputElement; valueBadge: HTMLElement; t: number; a: number; label: string; sub: string; group: string }> = {}
+    function buildRow(item: ItemDef, group: string) {
       const row = document.createElement('div')
       row.className = 'row'
       const top = document.createElement('div')
@@ -822,7 +842,7 @@ export default memo(function GerincterhelesKalkulator({ onHoursChange, onResultC
       slider.setAttribute('aria-label', (item.label + ' ' + item.sub).trim() + ' órák száma')
       row.appendChild(slider)
       slider.addEventListener('input', () => onSliderInput(item.id))
-      inputs[item.id] = { slider, valueBadge, t: item.t, a: item.a }
+      inputs[item.id] = { slider, valueBadge, t: item.t, a: item.a, label: item.label, sub: item.sub, group }
       return row
     }
     const groupIcons: Record<string, string> = {
@@ -845,13 +865,13 @@ export default memo(function GerincterhelesKalkulator({ onHoursChange, onResultC
           const col = document.createElement('div')
           col.className = 'col-block'
           colItems.forEach((item) => {
-            col.appendChild(buildRow(item))
+            col.appendChild(buildRow(item, g.group))
           })
           gEl.appendChild(col)
         })
       } else if ('items' in g && g.items) {
         g.items.forEach((item, idx) => {
-          const row = buildRow(item)
+          const row = buildRow(item, g.group)
           const isSingle = g.items!.length === 1
           const isLastOdd = g.items!.length % 2 === 1 && idx === g.items!.length - 1
           if (isSingle) {
@@ -902,12 +922,27 @@ export default memo(function GerincterhelesKalkulator({ onHoursChange, onResultC
     }
     function recalc() {
       let totalHours = 0, totalLoad = 0, totalAct = 0
-      Object.values(inputs).forEach(({ slider, valueBadge, t, a }) => {
+      // az óra-megoszlás körsávdiagramjához (Eredmenyeim.tsx, 2026.09.11.,
+      // Marci kérésére) MINDEN 0 óránál nagyobb ("bejelölt") tevékenységet
+      // önálló "szeletként" gyűjtünk — ugyanabból az adatból, amit a
+      // totalLoad/totalAct összegzéséhez amúgy is bejárunk, nem külön logika.
+      const reszletek: GerincterhelesReszlet[] = []
+      Object.entries(inputs).forEach(([id, { slider, valueBadge, t, a, label, sub, group }]) => {
         const h = parseFloat(slider.value) || 0
         totalHours += h
         valueBadge.textContent = fmt(h) + ' óra'
         updateSliderGradient(slider)
-        if (h > 0) { totalLoad += h * t; totalAct += h * a }
+        if (h > 0) {
+          totalLoad += h * t; totalAct += h * a
+          reszletek.push({
+            id,
+            csoport: group,
+            nev: label ? `${label} – ${sub}` : sub,
+            ora: h,
+            terheles: h * t,
+            aktivitas: h * a,
+          })
+        }
       })
       onHoursChangeRef.current?.(totalHours)
       byId('loadScore')!.textContent = fmt(totalLoad)
@@ -922,6 +957,7 @@ export default memo(function GerincterhelesKalkulator({ onHoursChange, onResultC
         totalHours, totalLoad, totalAct,
         loadLabel: lc.label, loadColor: lc.color,
         actLabel: ac.label, actColor: ac.color,
+        reszletek,
       })
       setNeedle('loadDial', totalLoad, LOAD_MIN, LOAD_MAX)
       setNeedle('actDial', totalAct, ACT_MIN, ACT_MAX)
