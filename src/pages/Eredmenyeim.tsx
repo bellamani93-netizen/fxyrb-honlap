@@ -305,14 +305,29 @@ function szeletSzin(i: number, n: number): string {
  * közvetlenül összevethető azzal, amit a felhasználó a nagy dial-okon lát.
  * A "0" jelölés a Gerincterhelés-sávnál (szimmetrikus -20..20 tartomány)
  * középen, az Aktivitási szint-sávnál (0..25, mindig ≥0 hozzájárulás) a bal
- * szélen jelenik meg — ugyanaz a képlet mindkét esetben helyesen számolja. */
-function OraContribSav({ label, value, min, max, unit }: { label: string; value: number; min: number; max: number; unit: string }) {
+ * szélen jelenik meg — ugyanaz a képlet mindkét esetben helyesen számolja.
+ * A `variant` dönti el a SZÍN jelentését (2026.09.15., Marci kérésére: "hogyan
+ * lehetne ábrázolni jól az inaktivitást? Mert az a sáv most mindig zöldet
+ * mutat" — mivel a kalkulátorban EGYETLEN tevékenységnek sincs negatív
+ * aktivitás-szorzója, az "érték≥0→zöld" logika az Aktivitási szint-sávnál
+ * érdemben SOSEM adott pirosat, a szín emiatt nem hordozott infót):
+ * - `'polaris'` (Gerincterhelés) — VÁLTOZATLANUL piros/zöld ELŐJEL szerint,
+ *   mert ott a szorzó VALÓBAN lehet negatív (káros) vagy pozitív (kímélő).
+ * - `'intensitas'` (Aktivitási szint) — Marci választott javaslata: NEM
+ *   jó/rossz szín, hanem egyetlen (semleges, a --z4 "nincs jó/rossz
+ *   jelentése" tokent újrahasznosító) árnyalat, aminek az ÁTLÁTSZATLANSÁGA
+ *   nő a hozzájárulás MÉRTÉKÉVEL — egy passzív tevékenység halvány, egy
+ *   intenzív pedig teli színű sávot ad, a sáv HOSSZA mellett egy MÁSODIK,
+ *   megerősítő jelzéssel. */
+function OraContribSav({ label, value, min, max, unit, variant = 'polaris' }: { label: string; value: number; min: number; max: number; unit: string; variant?: 'polaris' | 'intensitas' }) {
   const zeroPct = ((0 - min) / (max - min)) * 100
   const valuePct = ((value - min) / (max - min)) * 100
   const left = Math.min(zeroPct, valuePct)
   const width = Math.abs(valuePct - zeroPct)
   const positive = value >= 0
-  const color = positive ? 'var(--z6)' : 'var(--z1)'
+  const color = variant === 'intensitas' ? 'var(--z4)' : (positive ? 'var(--z6)' : 'var(--z1)')
+  const intenzitasHanyad = variant === 'intensitas' ? Math.min(1, Math.max(0, (value - min) / (max - min))) : 1
+  const fillOpacity = variant === 'intensitas' ? 0.3 + intenzitasHanyad * 0.7 : 1
   return (
     <div className="ora-contrib">
       <div className="ora-contrib-head">
@@ -320,8 +335,8 @@ function OraContribSav({ label, value, min, max, unit }: { label: string; value:
         <span className="ora-contrib-value" style={{ color }}>{positive ? '+' : ''}{fmtHu(value)} {unit}</span>
       </div>
       <div className="ora-contrib-track">
-        <div className="ora-contrib-fill" style={{ left: `${left}%`, width: `${width}%`, background: color }} />
-        <div className="ora-contrib-zero" style={{ left: `${zeroPct}%` }} />
+        <div className="ora-contrib-fill" style={{ left: `${left}%`, width: `${width}%`, background: color, opacity: fillOpacity }} />
+        {variant === 'polaris' && <div className="ora-contrib-zero" style={{ left: `${zeroPct}%` }} />}
       </div>
     </div>
   )
@@ -411,7 +426,7 @@ function OraMegoszlasPopup({ reszletek, onClose }: { reszletek: GerincterhelesRe
               <div className="ora-reszlet">
                 <div className="ora-reszlet-nev">{aktiv.nev}</div>
                 <OraContribSav label="Gerincterhelésre gyakorolt hatás" value={aktiv.terheles} min={-20} max={20} unit="pont" />
-                <OraContribSav label="Aktivitási szintre gyakorolt hatás" value={aktiv.aktivitas} min={0} max={25} unit="pont" />
+                <OraContribSav label="Aktivitási szintre gyakorolt hatás" value={aktiv.aktivitas} min={0} max={25} unit="pont" variant="intensitas" />
               </div>
             )}
           </>

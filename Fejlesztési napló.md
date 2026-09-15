@@ -1803,3 +1803,11 @@ Miután Marci egy külön git worktree-ben megnézte a projekt "1. fázis" (telj
 A korábban bevezetett gyűrű+lista egymás melletti elrendezés lista-fele teljesen megszűnt, a gyűrű ismét önmagában, középen áll, a popup is visszaszűkült. A tevékenység neve — mivel a lista volt az egyetlen hely, ahol eddig megjelent — most a 2 hatás-sáv fölött, önálló feliratként jelenik meg, kizárólag a kiválasztott tevékenységre. A kiválasztás mostantól kizárólag a gyűrű szeleteire kattintva történik.
 
 **Tesztelve böngészőben:** a teljes kérdőívet kitöltve (Példa nap gomb), megerősítve, hogy a lista ténylegesen eltűnt. Screenshot-tal megerősítve desktopon, mobilon és sötét módban is — a kiválasztás gyűrű-szeletre kattintva helyesen frissül, a név+sávok minden esetben pontosan egyeznek a kalkulátor saját számításával. Konzol-hiba nem jelentkezett, build hibamentes.
+
+## 2026.09.15. — Az Aktivitási szint hozzájárulás-sáv újraszínezése: telítettség-skála a mindig-zöld logika helyett
+
+Marci megkérdezte, hogyan lehetne jobban ábrázolni az inaktivitást, mert az Aktivitási szint hatás-sáv mindig zöldet mutatott. Az ok: a kalkulátorban egyetlen tevékenységnek sincs negatív aktivitás-szorzója, ezért a korábbi "pozitív érték = zöld, negatív = piros" logika ennél a sávnál matematikailag sosem tudott pirosat adni — a szín nem hordozott valódi információt. 3 javaslatot adtam (telítettség-skála; átlaghoz viszonyított relatív szín; diszkrét kategória-jelvény), Marci a telítettség-skálát választotta.
+
+A sáv mostantól egy új "mód" paramétert kapott: a Gerincterhelés-sáv változatlanul piros/zöld marad (ott a szorzó valóban lehet negatív), az Aktivitási szint-sáv viszont egyetlen semleges színt kapott, aminek az átlátszatlansága a hozzájárulás mértékével nő — egy passzív tevékenység halvány, egy intenzív teli színű sávot ad.
+
+**Tesztelve böngészőben:** két eltérő intenzitású tevékenységre kattintva megerősítve, hogy a szín és az átlátszatlanság helyesen számolódik, és a két sáv vizuálisan egyértelműen megkülönböztethető lett világos és sötét módban is. Konzol-hiba nem jelentkezett, build hibamentes.
