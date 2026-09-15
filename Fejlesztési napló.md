@@ -1811,3 +1811,9 @@ Marci megkérdezte, hogyan lehetne jobban ábrázolni az inaktivitást, mert az 
 A sáv mostantól egy új "mód" paramétert kapott: a Gerincterhelés-sáv változatlanul piros/zöld marad (ott a szorzó valóban lehet negatív), az Aktivitási szint-sáv viszont egyetlen semleges színt kapott, aminek az átlátszatlansága a hozzájárulás mértékével nő — egy passzív tevékenység halvány, egy intenzív teli színű sávot ad.
 
 **Tesztelve böngészőben:** két eltérő intenzitású tevékenységre kattintva megerősítve, hogy a szín és az átlátszatlanság helyesen számolódik, és a két sáv vizuálisan egyértelműen megkülönböztethető lett világos és sötét módban is. Konzol-hiba nem jelentkezett, build hibamentes.
+
+## 2026.09.15. — A "0 pont" hozzájárulás-érték pirossal
+
+Marci pontosított az előző kör eredményén: a pontosan 0 hozzájárulás-érték pirossal jelenjen meg, mindegy melyik sávról van szó — egyértelmű jelzésként, hogy az adott tevékenység semmit nem tesz hozzá az adott mutatóhoz. A szabályt magához a számhoz kötöttem, nem a sáv típusához, hogy általánosan is helyesen működjön.
+
+**Tesztelve böngészőben:** megerősítve, hogy egy 0 hozzájárulású tevékenységnél a szám pirossal jelenik meg, egy nem-nulla tevékenységnél változatlanul a saját (türkiz vagy zöld) színével. Konzol-hiba nem jelentkezett, build hibamentes.

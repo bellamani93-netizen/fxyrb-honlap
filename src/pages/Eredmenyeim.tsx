@@ -325,7 +325,12 @@ function OraContribSav({ label, value, min, max, unit, variant = 'polaris' }: { 
   const left = Math.min(zeroPct, valuePct)
   const width = Math.abs(valuePct - zeroPct)
   const positive = value >= 0
-  const color = variant === 'intensitas' ? 'var(--z4)' : (positive ? 'var(--z6)' : 'var(--z1)')
+  // Marci kérésére (2026.09.15.: "a 0 pont érték pirossal legyen írva") —
+  // FÜGGETLENÜL a variánstól: egy 0 hozzájárulás (leggyakrabban az
+  // Aktivitási szint-sávnál, egy teljesen passzív tevékenységnél fordul elő)
+  // NEM semleges/pozitív színt kap, hanem pirosat — egyértelmű figyelmeztető
+  // jelzés, hogy ez a tevékenység SEMMIT nem tesz hozzá az adott mutatóhoz.
+  const color = value === 0 ? 'var(--z1)' : variant === 'intensitas' ? 'var(--z4)' : (positive ? 'var(--z6)' : 'var(--z1)')
   const intenzitasHanyad = variant === 'intensitas' ? Math.min(1, Math.max(0, (value - min) / (max - min))) : 1
   const fillOpacity = variant === 'intensitas' ? 0.3 + intenzitasHanyad * 0.7 : 1
   return (
