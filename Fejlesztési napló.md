@@ -1839,3 +1839,11 @@ Marci 2 dolgot kért: a "jelöld be" gomb ikonja térjen vissza az eredeti "+" i
 A derengést nem a sötét szín cseréjével oldottam meg, hanem egy külön, mindig ugyanolyan élénk piros glow-effektussal, ami 9-nél kisebb, 10-nél nagyobb. Az egyedi toll-ikon fájlt, mivel véglegesen feleslegessé vált, töröltem.
 
 **Tesztelve böngészőben:** izolált, lépésenként ellenőrzött teszttel (a gyors, kötegelt JS-végrehajtás ebben a körben megbízhatatlannak bizonyult, a teszt-automatizálás saját hibája, nem a komponensé) megerősítettem, hogy 8-nál nincs derengés, 9-nél és 10-nél a várt méretű/erősségű piros derengés jelenik meg, és az ikon visszaállt "+"-ra. Konzol-hiba nem jelentkezett, build hibamentes.
+
+## 2026.09.15. — Fájdalomskála: külön, élénkebb színpár sötét módra a 9-10-es tartománynál
+
+Marci az előző kör derengése ellenére is elégedetlen maradt: sötét módban a 9-es, 10-es érték még mindig nem elég kontrasztos, kért egy élénkebb, kontrasztosabb színt. A valódi ok: maga a sáv színe (nem csak a derengés) egy világos módra tervezett, alacsony fényerejű sötétvörösre épült, ami a lap sötét (navy) hátterén alig üt el.
+
+A megoldáshoz két külön színpont-készletet vezettem be — a zöld/sárga/narancs rész változatlan maradt, de a piros/sötétvörös végpontok sötét módban jóval magasabb fényerejű, élénk piros/magenta-vörös tónusra váltottak. Mivel a projektben a téma-váltás nem React state-ből, hanem csak egy HTML attribútumból jön, egy megfigyelőt (MutationObserver) vettem fel, hogy a szín élő témaváltáskor is azonnal frissüljön, nem csak új lapbetöltéskor. A derengés színe is követi ugyanezt a logikát.
+
+**Tesztelve böngészőben:** sötét módban 10-es értéknél megerősítettem, hogy a sáv, a szám és a derengés is ugyanazt az új, élénk színt veszi fel. Élő témaváltással (újratöltés nélkül) megerősítettem, hogy világos módban azonnal visszaáll a korábbi megjelenés. Konzol-hiba nem jelentkezett, build hibamentes.
