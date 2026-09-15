@@ -2896,19 +2896,15 @@ html[data-theme='dark'] .bodychart-img {
   align-items: center;
   justify-content: center;
 }
-/* Marci mutatott egy mintaképet (2026.09.11., egy energiamix-donut
-   widgetről: "Az adatok ábrázolásához használj ilyen elrendezést a
-   legördülő lista helyett") — a gyűrű és a jelmagyarázat EGYMÁS MELLETT
-   (nem egymás alatt, nem egy kis görgethető dobozban); keskeny (mobil)
-   nézetben a lenti media query egymás ALÁ rendezi vissza a 2 elemet. */
-.ora-megoszlas-body {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-}
+/* HIBAJAVÍTÁS/EGYSZERŰSÍTÉS (2026.09.15., Marci kérésére: "amikor megnyílik
+   a popup a részletes napi terhelésekkel, akkor nem kell a lista. Csak a
+   kördiagram, és amikor egy cikkre kattintunk, akkor alatta csak az az egy
+   felirat és annak a hatásai [két csík] látszódnak") — a 122. pontban
+   bevezetett gyűrű+jelmagyarázat-lista oldalt-egymás-melletti elrendezés
+   jelmagyarázat-fele (a korábbi `.ora-megoszlas-body`/`.ora-legenda*`
+   szabálykészlet) megszűnt; a gyűrű ismét önmagában, középre igazítva áll,
+   a modal `maxWidth`-je is ehhez igazodva szűkült vissza (ld. Eredmenyeim.tsx). */
 .ora-gyuru-svg {
-  flex: 1 1 200px;
   max-width: 220px;
   margin: 0 auto;
   display: block;
@@ -2916,89 +2912,24 @@ html[data-theme='dark'] .bodychart-img {
 }
 /* a szeletek (körívek) a gyűrű SAJÁT sugarán ülnek — a kattintható terület
    emiatt pontosan a látható ívvel egyezik meg, nincs "láthatatlan" felesleg.
-   A kiválasztott szelet a mintakép szerint KIHÚZVA+derengéssel emelkedik ki
-   (ld. Eredmenyeim.tsx `transform`/`filter` inline stílusa), NEM vastagabb
-   vonallal — a `transition` ezt az áthelyeződést/derengést animálja lágyan. */
+   A kiválasztott szelet KIHÚZVA+derengéssel emelkedik ki (ld. Eredmenyeim.tsx
+   `transform`/`filter` inline stílusa), NEM vastagabb vonallal — a
+   `transition` ezt az áthelyeződést/derengést animálja lágyan. */
 .ora-gyuru-szelet {
   cursor: pointer;
   transition: transform 0.15s ease, filter 0.15s ease;
-}
-/* a jelmagyarázat a gyűrű MELLETT, teljes szélességű sorokkal (nem egy kis,
-   görgethető dobozban) — minden sor szín+név+százalék, a kiválasztott sor
-   háttér-kiemelést kap (ugyanaz a kiválasztás egyszerre látszik a gyűrűn ÉS
-   itt). HIBAJAVÍTÁS (2026.09.11., Marci kérésére: "nem akarok görgetést a
-   popupon belül") — a korábbi `max-height`+saját görgetés megszűnt, a lista
-   a TERMÉSZETES magasságára nő; a `.modal-fyb` MEGLÉVŐ, projektszintű
-   biztonsági hálója (max-height a viewporthoz, ld. a szabály saját
-   jegyzetét) marad az EGYETLEN görgetési lehetőség, kivételesen szélsőséges
-   (sok tucat kitöltött tevékenységű) esetre — normál kitöltésnél ez sosem
-   lép életbe, a teljes lista mindig görgetés nélkül látszik. */
-.ora-legenda {
-  flex: 1 1 220px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-.ora-legenda-item {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.3rem 0.5rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text);
-  text-align: left;
-  cursor: pointer;
-}
-.ora-legenda-item.is-active {
-  background: var(--color-bg-alt);
-}
-.ora-legenda-szin {
-  flex: 0 0 auto;
-  width: 0.8rem;
-  height: 0.8rem;
-  border-radius: 50%;
-}
-.ora-legenda-nev {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: 0.85rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ora-legenda-pct {
-  flex: 0 0 auto;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-@media (max-width: 480px) {
-  .ora-megoszlas-body {
-    flex-direction: column;
-  }
-  /* kisebb gyűrű + szorosabb sorköz mobilon — Marci kérésére (2026.09.11.:
-     "nem akarok görgetést a popupon belül") minél több tér marad a
-     jelmagyarázat-listának, hogy sok (pl. 9+) kitöltött tevékenység esetén
-     is elférjen a `.modal-fyb` MEGLÉVŐ, viewport-magassághoz igazodó
-     biztonsági hálóján belül, anélkül hogy az érdemben aktiválódna. */
-  .ora-gyuru-svg {
-    max-width: 160px;
-  }
-  .ora-legenda {
-    width: 100%;
-  }
-  .ora-legenda-item {
-    padding: 0.2rem 0.4rem;
-  }
-  .ora-reszlet {
-    padding: 0.65rem 0.85rem;
-  }
 }
 .ora-reszlet {
   padding: 0.85rem 1rem;
   background: var(--color-bg-alt);
   border-radius: var(--radius-card);
+}
+/* a kiválasztott tevékenység NEVE — Marci kérésére (2026.09.15.) az egyetlen
+   hely, ahol ez megjelenik (a jelmagyarázat-lista megszűnése óta), ezért a 2
+   hatás-sáv fölötti, önálló, hangsúlyos felirat. */
+.ora-reszlet-nev {
+  font-weight: 800;
+  margin-bottom: 0.5rem;
 }
 .ora-contrib {
   margin-top: 0.6rem;

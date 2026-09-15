@@ -1795,3 +1795,11 @@ Marci: "A popup mögött sötétüljön el jobban a háttér sötét módban." K
 Egy sötét-mód-specifikus felülírással a háttér sötét módban tisztán feketére, magasabb átlátszatlanságra váltott — ez független a lap saját színétől, ezért valódi kontrasztot ad. Világos módban a viselkedés változatlan. Mivel ez a projekt megosztott popup-háttér osztályát módosítja, minden popupra egységesen érvényes, nem csak az óra-megoszlás popupra.
 
 **Tesztelve böngészőben:** megerősítve, hogy sötét módban a háttér jelentősen sötétebb lett, világos módban nem változott. Screenshot-tal is megerősítve — a popup most láthatóan élesen elválik a háttértől. Konzol-hiba nem jelentkezett, `npm run build` hibamentes.
+
+## 2026.09.15. — Óra-megoszlás popup: a jelmagyarázat-lista törlése, csak a gyűrű + 1 kiválasztott felirat marad
+
+Miután Marci egy külön git worktree-ben megnézte a projekt "1. fázis" (teljes UI-terv) régi mérföldkő-állapotát, visszatért az óra-megoszlás popuphoz: a lista nem kell, csak a kördiagram — egy szeletre kattintva alatta csak annak az egy tevékenységnek a neve és a 2 hatás-sávja látszódjon.
+
+A korábban bevezetett gyűrű+lista egymás melletti elrendezés lista-fele teljesen megszűnt, a gyűrű ismét önmagában, középen áll, a popup is visszaszűkült. A tevékenység neve — mivel a lista volt az egyetlen hely, ahol eddig megjelent — most a 2 hatás-sáv fölött, önálló feliratként jelenik meg, kizárólag a kiválasztott tevékenységre. A kiválasztás mostantól kizárólag a gyűrű szeleteire kattintva történik.
+
+**Tesztelve böngészőben:** a teljes kérdőívet kitöltve (Példa nap gomb), megerősítve, hogy a lista ténylegesen eltűnt. Screenshot-tal megerősítve desktopon, mobilon és sötét módban is — a kiválasztás gyűrű-szeletre kattintva helyesen frissül, a név+sávok minden esetben pontosan egyeznek a kalkulátor saját számításával. Konzol-hiba nem jelentkezett, build hibamentes.

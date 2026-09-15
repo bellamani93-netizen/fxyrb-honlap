@@ -346,7 +346,7 @@ function OraMegoszlasPopup({ reszletek, onClose }: { reszletek: GerincterhelesRe
   const kezdoHanyadok = kumulativHanyadok(reszletek)
   return (
     <div className="modal-backdrop-fyb no-print" onClick={onClose}>
-      <div className="modal-fyb card-fyb ora-megoszlas-modal" style={{ maxWidth: 620 }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal-fyb card-fyb ora-megoszlas-modal" style={{ maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
         <div className="ora-megoszlas-head">
           <h2 className="h6 mb-0">napi 24 óra megoszlása</h2>
           <button type="button" className="ora-megoszlas-close" onClick={onClose} aria-label="bezárás">✕</button>
@@ -355,77 +355,61 @@ function OraMegoszlasPopup({ reszletek, onClose }: { reszletek: GerincterhelesRe
           <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>Nincs kitöltött tevékenység.</p>
         ) : (
           <>
-            {/* Marci mintaképe alapján (2026.09.11.: "Az adatok ábrázolásához
-               használj ilyen elrendezést a legördülő lista helyett") — a
-               gyűrű és a jelmagyarázat EGYMÁS MELLETT (nem egymás alatt,
-               nem egy kis görgethető dobozban), a kiválasztott szelet
-               KIHÚZVA+derengéssel emelkedik ki a gyűrűből, a jelmagyarázat
-               megfelelő sora pedig háttér-kiemelést kap — ugyanaz a
-               kiválasztás egyszerre 2 helyen (gyűrű+lista) látszik. */}
-            <div className="ora-megoszlas-body">
-              <svg viewBox="0 0 200 200" className="ora-gyuru-svg">
-                <g transform="rotate(-90 100 100)">
-                  {reszletek.map((r, i) => {
-                    const frac = r.ora / 24
-                    const dash = Math.max(0, frac * ORA_GYURU_KERULET - ORA_GYURU_RES)
-                    const gap = ORA_GYURU_KERULET - dash
-                    const kezdoHanyad = kezdoHanyadok[i]
-                    const offset = -kezdoHanyad * ORA_GYURU_KERULET
-                    const active = kivalasztott === r.id
-                    const color = szeletSzin(i, reszletek.length)
-                    // a szelet KÖZÉPSZÖGE (a gyűrű SAJÁT, forgatás előtti
-                    // koordinátarendszerében) adja a kihúzás irányát — a
-                    // körüli <g> -90°-os forgatása ezt automatikusan a
-                    // helyes végső (képernyős) irányba viszi tovább.
-                    const midDeg = (kezdoHanyad + frac / 2) * 360
-                    const midRad = (midDeg * Math.PI) / 180
-                    const dx = active ? Math.cos(midRad) * ORA_GYURU_KIEMELES : 0
-                    const dy = active ? Math.sin(midRad) * ORA_GYURU_KIEMELES : 0
-                    return (
-                      <circle
-                        key={r.id}
-                        cx={100}
-                        cy={100}
-                        r={ORA_GYURU_R}
-                        fill="none"
-                        stroke={color}
-                        strokeWidth={ORA_GYURU_STROKE}
-                        strokeDasharray={`${dash} ${gap}`}
-                        strokeDashoffset={offset}
-                        transform={active ? `translate(${dx} ${dy})` : undefined}
-                        style={active ? { filter: `drop-shadow(0 0 5px ${color})` } : undefined}
-                        className="ora-gyuru-szelet"
-                        onClick={() => setKivalasztott(r.id)}
-                      />
-                    )
-                  })}
-                </g>
-                {aktiv && (
-                  <>
-                    <text x={100} y={94} textAnchor="middle" fontSize={30} fontWeight={800} fill="var(--color-text)">{fmtHu((aktiv.ora / 24) * 100)}%</text>
-                    <text x={100} y={116} textAnchor="middle" fontSize={12} fontWeight={600} fill="var(--color-text-muted)">{fmtHu(aktiv.ora)} óra</text>
-                  </>
-                )}
-              </svg>
-
-              <div className="ora-legenda">
-                {reszletek.map((r, i) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    className={`ora-legenda-item ${kivalasztott === r.id ? 'is-active' : ''}`}
-                    onClick={() => setKivalasztott(r.id)}
-                  >
-                    <span className="ora-legenda-szin" style={{ background: szeletSzin(i, reszletek.length) }} />
-                    <span className="ora-legenda-nev">{r.nev}</span>
-                    <span className="ora-legenda-pct">{fmtHu((r.ora / 24) * 100)}%</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Marci kérésére (2026.09.15.: "amikor megnyílik a popup...
+               akkor nem kell a lista. Csak a kördiagram, és amikor egy
+               cikkre kattintunk, akkor alatta csak az az egy felirat és
+               annak a hatásai [két csík] látszódnak") — a korábbi (122.
+               pont) gyűrű+jelmagyarázat-lista elrendezés jelmagyarázat-fele
+               megszűnt; a kiválasztás EGYEDÜL a gyűrűn (kihúzás+derengés)
+               látszik, a tevékenység NEVE a gyűrű ALATT, 1 feliratként. */}
+            <svg viewBox="0 0 200 200" className="ora-gyuru-svg">
+              <g transform="rotate(-90 100 100)">
+                {reszletek.map((r, i) => {
+                  const frac = r.ora / 24
+                  const dash = Math.max(0, frac * ORA_GYURU_KERULET - ORA_GYURU_RES)
+                  const gap = ORA_GYURU_KERULET - dash
+                  const kezdoHanyad = kezdoHanyadok[i]
+                  const offset = -kezdoHanyad * ORA_GYURU_KERULET
+                  const active = kivalasztott === r.id
+                  const color = szeletSzin(i, reszletek.length)
+                  // a szelet KÖZÉPSZÖGE (a gyűrű SAJÁT, forgatás előtti
+                  // koordinátarendszerében) adja a kihúzás irányát — a
+                  // körüli <g> -90°-os forgatása ezt automatikusan a
+                  // helyes végső (képernyős) irányba viszi tovább.
+                  const midDeg = (kezdoHanyad + frac / 2) * 360
+                  const midRad = (midDeg * Math.PI) / 180
+                  const dx = active ? Math.cos(midRad) * ORA_GYURU_KIEMELES : 0
+                  const dy = active ? Math.sin(midRad) * ORA_GYURU_KIEMELES : 0
+                  return (
+                    <circle
+                      key={r.id}
+                      cx={100}
+                      cy={100}
+                      r={ORA_GYURU_R}
+                      fill="none"
+                      stroke={color}
+                      strokeWidth={ORA_GYURU_STROKE}
+                      strokeDasharray={`${dash} ${gap}`}
+                      strokeDashoffset={offset}
+                      transform={active ? `translate(${dx} ${dy})` : undefined}
+                      style={active ? { filter: `drop-shadow(0 0 5px ${color})` } : undefined}
+                      className="ora-gyuru-szelet"
+                      onClick={() => setKivalasztott(r.id)}
+                    />
+                  )
+                })}
+              </g>
+              {aktiv && (
+                <>
+                  <text x={100} y={94} textAnchor="middle" fontSize={30} fontWeight={800} fill="var(--color-text)">{fmtHu((aktiv.ora / 24) * 100)}%</text>
+                  <text x={100} y={116} textAnchor="middle" fontSize={12} fontWeight={600} fill="var(--color-text-muted)">{fmtHu(aktiv.ora)} óra</text>
+                </>
+              )}
+            </svg>
 
             {aktiv && (
               <div className="ora-reszlet">
+                <div className="ora-reszlet-nev">{aktiv.nev}</div>
                 <OraContribSav label="Gerincterhelésre gyakorolt hatás" value={aktiv.terheles} min={-20} max={20} unit="pont" />
                 <OraContribSav label="Aktivitási szintre gyakorolt hatás" value={aktiv.aktivitas} min={0} max={25} unit="pont" />
               </div>
