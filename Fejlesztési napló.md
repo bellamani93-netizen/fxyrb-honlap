@@ -1847,3 +1847,11 @@ Marci az előző kör derengése ellenére is elégedetlen maradt: sötét módb
 A megoldáshoz két külön színpont-készletet vezettem be — a zöld/sárga/narancs rész változatlan maradt, de a piros/sötétvörös végpontok sötét módban jóval magasabb fényerejű, élénk piros/magenta-vörös tónusra váltottak. Mivel a projektben a téma-váltás nem React state-ből, hanem csak egy HTML attribútumból jön, egy megfigyelőt (MutationObserver) vettem fel, hogy a szín élő témaváltáskor is azonnal frissüljön, nem csak új lapbetöltéskor. A derengés színe is követi ugyanezt a logikát.
 
 **Tesztelve böngészőben:** sötét módban 10-es értéknél megerősítettem, hogy a sáv, a szám és a derengés is ugyanazt az új, élénk színt veszi fel. Élő témaváltással (újratöltés nélkül) megerősítettem, hogy világos módban azonnal visszaáll a korábbi megjelenés. Konzol-hiba nem jelentkezett, build hibamentes.
+
+## 2026.09.15. — Óra-megoszlás popup: a kiválasztott tevékenység címe a saját gyűrű-szeletével azonos színű
+
+Marci kérte, hogy a popupban a kiválasztott tevékenység címe mindig ugyanolyan színű legyen, mint a kördiagramon a hozzá tartozó szelet. Eddig a cím a lap alap szövegszínét viselte, függetlenül a szelet színétől.
+
+A megoldás: a gyűrű-szeletek és a cím színét ugyanabból az 1 függvényből, ugyanazokkal a bemenetekkel számolom — ehhez a kiválasztott tevékenység indexét is meg kellett őrizni (nem csak magát az objektumot), hogy a cím is ugyanúgy tudja kiszámolni a saját színét, mint a gyűrű.
+
+**Tesztelve böngészőben:** 2 különböző tevékenységre kattintva megerősítettem, hogy a cím színe pontosan egyezik a hozzá tartozó gyűrű-szelet színével, világos és sötét módban is. Konzol-hiba nem jelentkezett, build hibamentes.

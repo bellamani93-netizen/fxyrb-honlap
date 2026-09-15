@@ -362,7 +362,13 @@ function kumulativHanyadok(reszletek: GerincterhelesReszlet[]): number[] {
 
 function OraMegoszlasPopup({ reszletek, onClose }: { reszletek: GerincterhelesReszlet[]; onClose: () => void }) {
   const [kivalasztott, setKivalasztott] = useState<string | null>(reszletek[0]?.id ?? null)
-  const aktiv = reszletek.find((r) => r.id === kivalasztott) ?? null
+  const aktivIndex = reszletek.findIndex((r) => r.id === kivalasztott)
+  const aktiv = aktivIndex >= 0 ? reszletek[aktivIndex] : null
+  // Marci kérésére (2026.09.15.: "mindig olyan színnel legyen a cím, amilyen
+  // színű éppen a kördiagramon a hozzátartozó cikkely") — UGYANAZ a
+  // `szeletSzin(i, n)` hívás adja a nevet ÉS a gyűrű-szeletet is, ezért a 2
+  // szín garantáltan egyezik, bármelyik tevékenységre kattintva.
+  const aktivSzin = aktivIndex >= 0 ? szeletSzin(aktivIndex, reszletek.length) : undefined
   const kezdoHanyadok = kumulativHanyadok(reszletek)
   return (
     <div className="modal-backdrop-fyb no-print" onClick={onClose}>
@@ -429,7 +435,7 @@ function OraMegoszlasPopup({ reszletek, onClose }: { reszletek: GerincterhelesRe
 
             {aktiv && (
               <div className="ora-reszlet">
-                <div className="ora-reszlet-nev">{aktiv.nev}</div>
+                <div className="ora-reszlet-nev" style={{ color: aktivSzin }}>{aktiv.nev}</div>
                 <OraContribSav label="Gerincterhelésre gyakorolt hatás" value={aktiv.terheles} min={-20} max={20} unit="pont" />
                 <OraContribSav label="Aktivitási szintre gyakorolt hatás" value={aktiv.aktivitas} min={0} max={25} unit="pont" variant="intensitas" />
               </div>
