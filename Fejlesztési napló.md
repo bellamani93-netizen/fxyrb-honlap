@@ -1831,3 +1831,11 @@ A csúszkához egy közös színfüggvényt írtam, ami 5 rögzített színpont 
 Marci nem tartotta megfelelőnek az előző körben felvett, egyedileg rajzolt toll-ikont, és kérte, hogy a projekt már meglévő munkafüzet-ikonját használjam helyette. Az egyedi ikonfájlt, mivel máshol nem hivatkozott rá semmi, töröltem.
 
 **Tesztelve böngészőben:** megerősítettem, hogy a gomb az új ikont mutatja. Konzol-hiba nem jelentkezett, build hibamentes.
+
+## 2026.09.15. — "Jelöld be" ikon vissza az eredeti "+"-ra, piros derengés a fájdalomskála 9-10-es értékeinél
+
+Marci 2 dolgot kért: a "jelöld be" gomb ikonja térjen vissza az eredeti "+" ikonra (sem a saját rajzolt toll, sem a munkafüzet-ikon nem volt megfelelő); és a fájdalom-intenzitás skála 9-es, 10-es értékei túl sötétek, ezért jelenjen meg egy piros derengés a csík körül — 10-nél nagyobb, mint 9-nél.
+
+A derengést nem a sötét szín cseréjével oldottam meg, hanem egy külön, mindig ugyanolyan élénk piros glow-effektussal, ami 9-nél kisebb, 10-nél nagyobb. Az egyedi toll-ikon fájlt, mivel véglegesen feleslegessé vált, töröltem.
+
+**Tesztelve böngészőben:** izolált, lépésenként ellenőrzött teszttel (a gyors, kötegelt JS-végrehajtás ebben a körben megbízhatatlannak bizonyult, a teszt-automatizálás saját hibája, nem a komponensé) megerősítettem, hogy 8-nál nincs derengés, 9-nél és 10-nél a várt méretű/erősségű piros derengés jelenik meg, és az ikon visszaállt "+"-ra. Konzol-hiba nem jelentkezett, build hibamentes.

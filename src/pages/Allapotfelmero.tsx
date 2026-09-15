@@ -230,6 +230,18 @@ function intensityColor(value: number): string {
  * kalkulátor saját `updateSliderGradient`-je teszi. A kitöltött szakasz
  * SZÍNE (2026.09.15. óta) a fenti `intensityColor`-ból jön, a korábbi fix
  * teal→mint gradiens helyett. */
+/** Marci kérésére (2026.09.15.: "a 9, 10-es értékek túl sötétek. jelenjen meg
+ * egy piros derengés a csík körül 9-nél, 10-nél ez a derengés legyen
+ * nagyobb") — a sötétvörös felé tartó szín (ld. `INTENSITY_COLOR_STOPS`)
+ * 9-10-nél nehezen kivehető; egy piros (nem a sötétedő sáv-szín, hanem egy
+ * ÁLLANDÓ, élénk `--symptom-red`) KÜLSŐ derengés ELLENSÚLYOZZA ezt — 10-nél
+ * nagyobb sugarú/erősebb, mint 9-nél. 9 alatt nincs derengés. */
+function intensityGlow(value: number): string | undefined {
+  if (value >= 10) return '0 0 26px 8px rgba(230, 57, 70, 0.65)'
+  if (value >= 9) return '0 0 14px 4px rgba(230, 57, 70, 0.45)'
+  return undefined
+}
+
 function IntensityRange({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const pct = (value / 10) * 100
   const color = intensityColor(value)
@@ -241,7 +253,10 @@ function IntensityRange({ value, onChange }: { value: number; onChange: (v: numb
       max={10}
       value={value}
       onChange={(e) => onChange(Number(e.target.value))}
-      style={{ background: `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)` }}
+      style={{
+        background: `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)`,
+        boxShadow: intensityGlow(value),
+      }}
     />
   )
 }
@@ -463,7 +478,7 @@ function BodyChartStep() {
   // rajzolni a felületen") — korábban a rajzolás csak a popup "rajzolás"
   // gombja UTÁN vált elérhetővé (egy `armed` állapot mögé zárva); ez a
   // korlátozás megszűnt, a felület MINDIG kész a rajzolásra, a "jelöld be"
-  // gomb (ikon_munkafuzet.svg ikonnal, ld. lent) már csak a MÉRET
+  // gomb (az eredeti "+" ikonnal, ld. lent) már csak a MÉRET
   // (pontszerű/kicsi/nagy) váltására nyitja meg a popupot.
   const [popupOpen, setPopupOpen] = useState(false)
   const isDrawingRef = useRef(false)
@@ -547,7 +562,7 @@ function BodyChartStep() {
             aria-label="tünet bejelölése"
             title="tünet bejelölése"
           >
-            <Icon src="/icons/ikon_munkafuzet.svg" />
+            <Icon src="/icons/ikon_plusz.svg" />
           </button>
         </div>
 
