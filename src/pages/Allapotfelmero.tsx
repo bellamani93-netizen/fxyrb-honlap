@@ -463,8 +463,8 @@ function BodyChartStep() {
   // rajzolni a felületen") — korábban a rajzolás csak a popup "rajzolás"
   // gombja UTÁN vált elérhetővé (egy `armed` állapot mögé zárva); ez a
   // korlátozás megszűnt, a felület MINDIG kész a rajzolásra, a "jelöld be"
-  // gomb (tollas ikonnal, ld. lent) már csak a MÉRET (pontszerű/kicsi/nagy)
-  // váltására nyitja meg a popupot.
+  // gomb (ikon_munkafuzet.svg ikonnal, ld. lent) már csak a MÉRET
+  // (pontszerű/kicsi/nagy) váltására nyitja meg a popupot.
   const [popupOpen, setPopupOpen] = useState(false)
   const isDrawingRef = useRef(false)
   const imageSrc = withBase(BODYCHART_IMAGES[adatok.bodyChartNezet])
@@ -547,7 +547,7 @@ function BodyChartStep() {
             aria-label="tünet bejelölése"
             title="tünet bejelölése"
           >
-            <Icon src="/icons/ikon_toll.svg" />
+            <Icon src="/icons/ikon_munkafuzet.svg" />
           </button>
         </div>
 

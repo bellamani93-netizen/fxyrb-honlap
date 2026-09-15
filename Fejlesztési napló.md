@@ -1825,3 +1825,9 @@ Marci visszatért a kérdőívhez, 4 finomítást kérve egyszerre: a fájdalom-
 A csúszkához egy közös színfüggvényt írtam, ami 5 rögzített színpont (zöld/sárga/narancs/piros/sötétvörös) között folytonosan interpolál — a csúszka és a szám ugyanabból a függvényből számolja a színét, így garantáltan egyeznek. A testábránál a korábbi "felfegyverzett" állapot (ami csak a popup gombja után vált igazzá) megszűnt, a felület mindig kész a rajzolásra; a "+" gomb új célja a méret-választás, új tollas ikonnal. Az alapértelmezett méret "kicsi"-re változott. A lapváltáskori görgetés-visszaállításhoz egy referenciát vettem fel a lap-tartalom konténerére, és minden lépés-váltáskor explicit nullázom a görgetést — a konténer maga ugyanis nem cserélődik lapváltáskor, ezért korábban megőrizte az előző lap görgetési pozícióját.
 
 **Tesztelve böngészőben:** a csúszkát több értékre állítva megerősítettem, hogy a szín pontosan interpolál és a szám mindig egyezik a csúszkával, világos és sötét módban is. A testábrán az első próbálkozásra sikerült jelölést felvenni popup nélkül, az alapértelmezett méret "kicsi". A görgetés-visszaállítást egy rövid nézetablakban egy ténylegesen görgetett lapról tovább lépve ellenőriztem — a következő lap mindig felülről indul. Konzol-hiba nem jelentkezett, build hibamentes.
+
+## 2026.09.15. — A "jelöld be" gomb ikonja: saját rajzolt toll helyett a meglévő ikon_munkafuzet.svg
+
+Marci nem tartotta megfelelőnek az előző körben felvett, egyedileg rajzolt toll-ikont, és kérte, hogy a projekt már meglévő munkafüzet-ikonját használjam helyette. Az egyedi ikonfájlt, mivel máshol nem hivatkozott rá semmi, töröltem.
+
+**Tesztelve böngészőben:** megerősítettem, hogy a gomb az új ikont mutatja. Konzol-hiba nem jelentkezett, build hibamentes.
