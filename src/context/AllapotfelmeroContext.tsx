@@ -78,7 +78,9 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   intenzitas: 0,
   elozmenyek: '',
   bodyChartNezet: 'hat',
-  bodyChartMeret: 'pontszeru',
+  // alapértelmezett rajzolás-méret "kicsi" (2026.09.15., Marci kérésére) —
+  // korábban "pontszerű" volt.
+  bodyChartMeret: 'kis',
   bodyChartJelek: [],
   kezdodesIdo: '',
   voltMarKorabban: '',

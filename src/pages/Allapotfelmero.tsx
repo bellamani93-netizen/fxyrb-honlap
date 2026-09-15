@@ -191,13 +191,48 @@ function TextAreaField({
   )
 }
 
+/** a fájdalom-intenzitás színskálája — Marci kérésére (2026.09.15.: "a
+ * csúszka színe folyamatosan változzon a 0-nál még zöld, aztán átmenet
+ * sárga - narancs - piros - sötétvörös. Ugyanezt a színt veszi fel a szám
+ * is") 5 rögzített színpont (0/2,5/5/7,5/10) közötti FOLYTONOS (nem
+ * lépcsős/zóna-alapú) RGB-interpolációt ad — a csúszka kitöltött szakasza
+ * ÉS a fölötte álló szám EGYETLEN, közös függvényből kapja a színét, hogy a
+ * kettő garantáltan mindig egyezzen. */
+const INTENSITY_COLOR_STOPS: { at: number; rgb: [number, number, number] }[] = [
+  { at: 0, rgb: [0, 201, 122] }, // zöld (--z6)
+  { at: 2.5, rgb: [255, 213, 0] }, // sárga (--z3)
+  { at: 5, rgb: [255, 106, 0] }, // narancs (--z2)
+  { at: 7.5, rgb: [230, 57, 70] }, // piros (--symptom-red)
+  { at: 10, rgb: [122, 20, 26] }, // sötétvörös
+]
+function intensityColor(value: number): string {
+  const v = Math.min(10, Math.max(0, value))
+  let lo = INTENSITY_COLOR_STOPS[0]
+  let hi = INTENSITY_COLOR_STOPS[INTENSITY_COLOR_STOPS.length - 1]
+  for (let i = 0; i < INTENSITY_COLOR_STOPS.length - 1; i++) {
+    if (v >= INTENSITY_COLOR_STOPS[i].at && v <= INTENSITY_COLOR_STOPS[i + 1].at) {
+      lo = INTENSITY_COLOR_STOPS[i]
+      hi = INTENSITY_COLOR_STOPS[i + 1]
+      break
+    }
+  }
+  const t = hi.at === lo.at ? 0 : (v - lo.at) / (hi.at - lo.at)
+  const r = Math.round(lo.rgb[0] + (hi.rgb[0] - lo.rgb[0]) * t)
+  const g = Math.round(lo.rgb[1] + (hi.rgb[1] - lo.rgb[1]) * t)
+  const b = Math.round(lo.rgb[2] + (hi.rgb[2] - lo.rgb[2]) * t)
+  return `rgb(${r}, ${g}, ${b})`
+}
+
 /** a fájdalom-intenzitás csúszka ugyanúgy nézzen ki, mint a gerincterhelés
  * kalkulátor csúszkái (2026.09.04., Marci kérésére) — a kitöltött szakasz
- * (teal→mint gradiens) a natív range input nem tudja CSS-ből egyedül
- * kiszámolni, ezért az aktuális értékből itt, inline style-ban számoljuk,
- * ugyanúgy, ahogy a kalkulátor saját `updateSliderGradient`-je teszi. */
+ * a natív range input nem tudja CSS-ből egyedül kiszámolni, ezért az
+ * aktuális értékből itt, inline style-ban számoljuk, ugyanúgy, ahogy a
+ * kalkulátor saját `updateSliderGradient`-je teszi. A kitöltött szakasz
+ * SZÍNE (2026.09.15. óta) a fenti `intensityColor`-ból jön, a korábbi fix
+ * teal→mint gradiens helyett. */
 function IntensityRange({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const pct = (value / 10) * 100
+  const color = intensityColor(value)
   return (
     <input
       type="range"
@@ -206,7 +241,7 @@ function IntensityRange({ value, onChange }: { value: number; onChange: (v: numb
       max={10}
       value={value}
       onChange={(e) => onChange(Number(e.target.value))}
-      style={{ background: `linear-gradient(to right, var(--teal) 0%, var(--mint) ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)` }}
+      style={{ background: `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)` }}
     />
   )
 }
@@ -424,7 +459,12 @@ function BodyChartSizePopup({
 
 function BodyChartStep() {
   const { adatok, setAdatok, addBodyChartStroke, extendLastBodyChartStroke, undoLastBodyChartStroke } = useAllapotfelmero()
-  const [armed, setArmed] = useState(false)
+  // Marci kérésére (2026.09.15.: "A bodychart-nál már rögtön lehessen
+  // rajzolni a felületen") — korábban a rajzolás csak a popup "rajzolás"
+  // gombja UTÁN vált elérhetővé (egy `armed` állapot mögé zárva); ez a
+  // korlátozás megszűnt, a felület MINDIG kész a rajzolásra, a "jelöld be"
+  // gomb (tollas ikonnal, ld. lent) már csak a MÉRET (pontszerű/kicsi/nagy)
+  // váltására nyitja meg a popupot.
   const [popupOpen, setPopupOpen] = useState(false)
   const isDrawingRef = useRef(false)
   const imageSrc = withBase(BODYCHART_IMAGES[adatok.bodyChartNezet])
@@ -441,7 +481,6 @@ function BodyChartStep() {
   // telefonon volt elérhető, de Marci kérésére (2026.09.04.) asztali/tablet
   // nézetben (egérrel húzva) is működik, ugyanazokkal a Pointer Events-ekkel.
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    if (!armed) return
     // a capture hibája (pl. nem-elsődleges/szintetikus pointer) ne akadályozza
     // meg magát a jelölés felvételét — húzás közben csak a folyamatos
     // pointermove-követés esne el, ami koppintásnál (1 pontos jel) nem számít.
@@ -465,7 +504,7 @@ function BodyChartStep() {
 
   return (
     <div className="bodychart-full">
-      <div className={`bodychart-frame ${armed ? 'is-armed' : ''}`}>
+      <div className="bodychart-frame is-armed">
         {/* a pontosvessző/koordináta-számítás (pointFromEvent) a WRAP saját
            dobozához viszonyít, ami PONTOSAN a kép mérete — a `.bodychart-frame`
            ennél szélesebb is lehet (a gombok-oszlop mellett középre igazítva),
@@ -508,7 +547,7 @@ function BodyChartStep() {
             aria-label="tünet bejelölése"
             title="tünet bejelölése"
           >
-            <Icon src="/icons/ikon_plusz.svg" />
+            <Icon src="/icons/ikon_toll.svg" />
           </button>
         </div>
 
@@ -535,7 +574,7 @@ function BodyChartStep() {
         <BodyChartSizePopup
           meret={adatok.bodyChartMeret}
           onSelectMeret={(m) => setAdatok({ bodyChartMeret: m })}
-          onStartDrawing={() => { setArmed(true); setPopupOpen(false) }}
+          onStartDrawing={() => setPopupOpen(false)}
           onClose={() => setPopupOpen(false)}
         />
       )}
@@ -601,7 +640,7 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
                korábban a "intenzitás" felirattal egy sorban, jobbra
                igazítva volt). */}
             <div className="text-center mb-1">
-              <span className="fw-bold" style={{ color: 'var(--color-primary)', fontSize: '1.75rem', lineHeight: 1 }}>{adatok.intenzitas}</span>
+              <span className="fw-bold" style={{ color: intensityColor(adatok.intenzitas), fontSize: '1.75rem', lineHeight: 1 }}>{adatok.intenzitas}</span>
             </div>
             <IntensityRange value={adatok.intenzitas} onChange={(v) => setAdatok({ intenzitas: v })} />
             <div className="d-flex justify-content-between small" style={{ color: 'var(--color-text-muted)' }}>
@@ -684,6 +723,18 @@ export default function Allapotfelmero() {
   const [step, setStep] = useState(1)
   const [calcHours, setCalcHours] = useState(0)
   const availableHeight = useAvailableHeight()
+  const contentRef = useRef<HTMLDivElement>(null)
+  // Marci kérésére (2026.09.15.: "Minden lap felülről induljon, ha
+  // görgethető, mindig látszódjon a cím, akkor is, ha az előző lapon
+  // legörgettem") — a `.allapotfelmero-content` saját `overflow-y:auto`-ja
+  // (ld. lent) megőrizte a görgetési pozíciót lapváltáskor, mert a div maga
+  // NEM cserélődik (csak a benne lévő `StepContent` render), ezért egy
+  // hosszabb, görgetett lapról a KÖVETKEZŐ lapra lépve az is görgetve
+  // indult, a cím a látótéren KÍVÜL maradt. Minden `step`-váltáskor explicit
+  // 0-ra állítjuk a görgetést.
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 })
+  }, [step])
   const meta = STEP_META[step] ?? {}
   const isCalculatorStep = step === TOTAL_STEPS
   // az utolsó (kalkulátor) lapon a továbblépés csak akkor jelenik meg, ha a
@@ -762,6 +813,7 @@ export default function Allapotfelmero() {
       )}
 
       <div
+        ref={contentRef}
         className={`allapotfelmero-content ${step === TOTAL_STEPS ? 'allapotfelmero-content--scrollable allapotfelmero-content--calc' : ''} ${step === BODY_CHART_STEP ? 'allapotfelmero-content--full' : ''} ${step === WELCOME_STEP ? 'allapotfelmero-content--center' : ''}`}
       >
         {step === BODY_CHART_STEP ? (
