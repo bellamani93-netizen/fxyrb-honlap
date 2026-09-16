@@ -24,6 +24,19 @@ const DEFAULT_MESSAGE_TEMPLATES: [MessageTemplate, MessageTemplate] = [
   },
 ]
 
+// a "Pozitív elbírálás" e-mail sablonja — a 2 elutasító sablontól KÜLÖN
+// tárolva (nem egy közös 3-elemű tömbben), mert más a jelentése (elfogadás,
+// nem törlés) és más a felület, ami szerkeszti (ld. SalesUzenetek.tsx saját,
+// külön kártyája) (2026.09.16., Marci kérésére: "a kiküldendő emailek között
+// legyen olyan lehetőség is, hogy 'Pozitív elbírálás' — ezt lekattintva
+// tűnik el a lime 'új' jelző az üf neve mellől"). Elküldése (ld.
+// CallDetailModal.tsx) NEM törli a hívást — kizárólag a `SalesCall.isNew`
+// jelzőt állítja `false`-ra.
+const DEFAULT_POSITIVE_TEMPLATE: MessageTemplate = {
+  name: 'Pozitív elbírálás',
+  body: 'Kedves {Név}! Örömmel értesítünk, hogy jelentkezésedet elfogadtuk. Hamarosan felvesszük veled a kapcsolatot az időpont-egyeztetéshez. Üdvözlettel, a FixYourBack csapata.',
+}
+
 type SalesDataContextValue = {
   clients: Client[]
   setClients: Dispatch<SetStateAction<Client[]>>
@@ -42,6 +55,8 @@ type SalesDataContextValue = {
   markAdminAdded: (id: string) => void
   messageTemplates: [MessageTemplate, MessageTemplate]
   setMessageTemplates: Dispatch<SetStateAction<[MessageTemplate, MessageTemplate]>>
+  positiveTemplate: MessageTemplate
+  setPositiveTemplate: Dispatch<SetStateAction<MessageTemplate>>
 }
 
 const SalesDataContext = createContext<SalesDataContextValue | null>(null)
@@ -71,6 +86,7 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
   const [salesCalls, setSalesCalls] = useState<SalesCall[]>(() => buildInitialSalesCalls(today))
   const [adminAddedIds, setAdminAddedIds] = useState<Set<string>>(new Set())
   const [messageTemplates, setMessageTemplates] = useState<[MessageTemplate, MessageTemplate]>(DEFAULT_MESSAGE_TEMPLATES)
+  const [positiveTemplate, setPositiveTemplate] = useState<MessageTemplate>(DEFAULT_POSITIVE_TEMPLATE)
   const { active: adminActive, guard: adminGuard, isModified, modal: adminModal } = useAdminEditGuard('sales')
 
   function markAdminAdded(id: string) {
@@ -95,6 +111,8 @@ export function SalesDataProvider({ children }: { children: ReactNode }) {
     markAdminAdded,
     messageTemplates,
     setMessageTemplates,
+    positiveTemplate,
+    setPositiveTemplate,
   }
 
   return (

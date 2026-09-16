@@ -137,6 +137,13 @@
 html[data-theme='dark'] .card-fyb {
   border: 2px solid var(--color-border);
 }
+/* általános, lime szegélyű kiemelés — a korábbi, csak az Eredménylap "Tünet"
+   dobozára szabott `.eredmeny-card--lime-border` ÁLTALÁNOSÍTOTT változata
+   (2026.09.16.), hogy más oldalakon (pl. SalesUzenetek.tsx "Pozitív
+   elbírálás" sablon-kártyája) is újrafelhasználható legyen. */
+.card-fyb--lime-border {
+  border: 2px solid var(--lime) !important;
+}
 .card-fyb.card-fyb-hover:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-card-hover);
@@ -1440,6 +1447,18 @@ html[data-theme='dark'] .sales-delete-icon {
   font-size: 1.4rem;
   font-weight: 700;
   line-height: 1;
+}
+/* az időpont mostantól gomb (kattintva a hívás-részleteket nyitja meg, ld.
+   SalesHivasaim.tsx `CallRow`, 2026.09.16., Marci kérésére) — a natív gomb-
+   kinézet nullázva, hogy változatlanul sima szövegnek tűnjön. */
+.call-row-time--btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
 }
 
 /* --- GYT: "mai konzultációk" lista (2026.08.31.) — egyszerűbb, 4 oszlopos

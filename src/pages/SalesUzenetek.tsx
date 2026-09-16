@@ -7,7 +7,7 @@ import { useSalesData, type MessageTemplate } from '../context/SalesDataContext'
 // elnevezés-jellegű szöveg — CSAK ez jelenik meg a törlés-popup gombján,
 // nem a teljes üzenetszöveg (2026.08.28., 4. kör, Marci kérésére).
 export default function SalesUzenetek() {
-  const { messageTemplates, setMessageTemplates } = useSalesData()
+  const { messageTemplates, setMessageTemplates, positiveTemplate, setPositiveTemplate } = useSalesData()
 
   function updateTemplate(index: 0 | 1, field: 'name' | 'body', value: string) {
     setMessageTemplates((prev) => {
@@ -17,6 +17,10 @@ export default function SalesUzenetek() {
     })
   }
 
+  function updatePositiveTemplate(field: 'name' | 'body', value: string) {
+    setPositiveTemplate((prev) => ({ ...prev, [field]: value }))
+  }
+
   return (
     <section className="py-3 py-lg-5">
       <div className="container-fluid" style={{ maxWidth: 900 }}>
@@ -24,6 +28,35 @@ export default function SalesUzenetek() {
           <h1 className="app-page-title mb-0">üzenetek</h1>
         </div>
 
+        {/* "Pozitív elbírálás" — a 2 elutasító sablontól elkülönítve, saját
+           szekcióban (2026.09.16., Marci kérésére) — a hívás-módosító popup
+           "email küldése" szekciójában ez zöld/lime gombként jelenik meg a 2
+           piros elutasító mellett, elküldése törli a hívás lime "új" jelzőjét. */}
+        <h2 className="h6 mb-2">elfogadás</h2>
+        <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>
+          ezt az üzenetet küldi a hívás-módosító popup "Pozitív elbírálás" gombja — elküldése eltünteti a lime "új" jelzőt a hívás mellől. A "{'{Név}'}" jelölő a küldéskor az ügyfél nevére cserélődik.
+        </p>
+        <div className="card-fyb card-fyb--lime-border mb-4">
+          <label className="form-label small fw-bold" htmlFor="tpl-positive-name">elnevezés</label>
+          <input
+            id="tpl-positive-name"
+            type="text"
+            className="form-control mb-3"
+            placeholder="pl. Pozitív elbírálás"
+            value={positiveTemplate.name}
+            onChange={(e) => updatePositiveTemplate('name', e.target.value)}
+          />
+          <label className="form-label small fw-bold" htmlFor="tpl-positive-body">üzenet szövege</label>
+          <textarea
+            id="tpl-positive-body"
+            className="form-control"
+            rows={4}
+            value={positiveTemplate.body}
+            onChange={(e) => updatePositiveTemplate('body', e.target.value)}
+          />
+        </div>
+
+        <h2 className="h6 mb-2">elutasítás</h2>
         <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>
           ez a 2 elutasító-üzenet szolgál választható sablonként, amikor egy hívást törölsz és értesítőt küldesz — a törlés-popup gombján csak az elnevezés látszik, a "{'{Név}'}" jelölő pedig a küldéskor az ügyfél nevére cserélődik.
         </p>

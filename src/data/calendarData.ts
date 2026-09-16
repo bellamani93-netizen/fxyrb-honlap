@@ -164,6 +164,13 @@ export type SalesCallStatus = 'var_gyt_re' | 'hozzarendelve'
 // látszik a listában); a piros nem "outcome", hanem törli magát a hívást
 export type SalesCallOutcome = 'nem_jelent_meg' | 'rendben'
 
+/** egy Calendly-foglaláskor feltett kérdés + az arra adott válasz — a
+ * foglaláskori űrlap (nincs backend, ezért csak demó-adatként rögzítve a
+ * hívás mellett) (2026.09.16., Marci kérésére: "amikor érkezik egy foglalás
+ * a Calendly-től, akkor a Calendly-ben megadott válaszokat látnunk kell az
+ * időpontra kattintva"). */
+export type CalendlyAnswer = { question: string; answer: string }
+
 export type SalesCall = {
   id: string
   name: string
@@ -177,6 +184,15 @@ export type SalesCall = {
   assignedStart?: string
   assignedClientId?: string
   outcome?: SalesCallOutcome
+  /** a Calendly-foglaláskor megadott válaszok — ld. `CalendlyAnswer` fenti
+   * jegyzete. */
+  answers?: CalendlyAnswer[]
+  /** friss, még el nem bírált Calendly-foglalás — ugyanúgy jelezve (lime
+   * "új" jelvény + oldalsáv-pötty), mint a GYT fiók "új ügyfél" jelzése
+   * (2026.09.16., Marci kérésére). A "Pozitív elbírálás" e-mail (ld.
+   * CallDetailModal.tsx/SalesDataContext.tsx `positiveTemplate`) elküldése
+   * állítja `false`-ra. */
+  isNew?: boolean
 }
 
 // a Calendly-ből (placeholder-adatként) érkező sales-hívások — ezek MÉG NEM
@@ -184,6 +200,18 @@ export type SalesCall = {
 // létre belőlük az első valódi ügyfél-bejegyzést. A "mai hívások" nézet
 // (2026.08.28., 2. kör) miatt a dátumok a MINDENKORI "ma"-hoz képest relatívak
 // (nem fix naptári dátumok), hogy a demó bármikor tesztelve mutasson mai elemet.
+// a Calendly foglalási űrlap 3 kérdése (demó-adat, mert nincs valós Calendly-
+// integráció) — minden létrehozott (akár a demó, akár a "hozzárendelések"
+// oldalon felvett) hívás ugyanezt a 3 kérdést kapja, csak a válaszok térnek el.
+const CALENDLY_QUESTIONS = [
+  'Mi a fő panaszod, ami miatt jelentkeztél?',
+  'Mióta áll fenn a probléma?',
+  'Hogyan találtál ránk?',
+]
+function calendlyAnswers(a1: string, a2: string, a3: string): CalendlyAnswer[] {
+  return CALENDLY_QUESTIONS.map((question, i) => ({ question, answer: [a1, a2, a3][i] }))
+}
+
 export function buildInitialSalesCalls(today: Date): SalesCall[] {
   const iso = (offset: number) => formatISODate(addDays(today, offset))
   return [
@@ -194,6 +222,12 @@ export function buildInitialSalesCalls(today: Date): SalesCall[] {
       phone: '+36 30 678 9012',
       callTime: `${iso(0)}T09:00`,
       status: 'var_gyt_re',
+      isNew: true,
+      answers: calendlyAnswers(
+        'Derékfájás, főleg hosszú ülés után.',
+        'Kb. 8 hónapja, egyre gyakrabban.',
+        'Instagram-hirdetés.',
+      ),
     },
     {
       id: 'call-molnar-tamas',
@@ -202,6 +236,11 @@ export function buildInitialSalesCalls(today: Date): SalesCall[] {
       phone: '+36 30 789 0123',
       callTime: `${iso(0)}T15:00`,
       status: 'var_gyt_re',
+      answers: calendlyAnswers(
+        'Porckorongsérv-gyanú, sugárzó fájdalom a lábba.',
+        '2 hete, orvos még nem vizsgálta.',
+        'Ismerős ajánlotta.',
+      ),
     },
     {
       id: 'call-szucs-viktoria',
@@ -212,6 +251,11 @@ export function buildInitialSalesCalls(today: Date): SalesCall[] {
       status: 'hozzarendelve',
       assignedGyt: 'Kollé Gábor',
       assignedStart: `${iso(4)}T10:00`,
+      answers: calendlyAnswers(
+        'Nyakfájás, ülőmunka mellett.',
+        'Kb. fél éve.',
+        'Google-keresés.',
+      ),
     },
     {
       id: 'call-farkas-milan',
@@ -220,6 +264,12 @@ export function buildInitialSalesCalls(today: Date): SalesCall[] {
       phone: '+36 30 901 2345',
       callTime: `${iso(5)}T16:30`,
       status: 'var_gyt_re',
+      isNew: true,
+      answers: calendlyAnswers(
+        'Krónikus derékfájás, edzés közben rosszabbodik.',
+        'Több éve, hullámzó erősséggel.',
+        'YouTube-videó a módszerről.',
+      ),
     },
   ]
 }

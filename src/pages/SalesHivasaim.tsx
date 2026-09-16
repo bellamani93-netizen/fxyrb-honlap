@@ -133,6 +133,16 @@ export default function SalesHivasaim() {
     setSalesCalls((prev) => prev.map((c) => (c.id === callId ? { ...c, outcome } : c)))
   }
 
+  // "Pozitív elbírálás" — nem törlő művelet, csak a lime "új" jelzőt veszi
+  // le a hívásról (2026.09.16., Marci kérésére: "ezt lekattintva tűnik el a
+  // lime 'új' jelző az üf neve mellől"). A tényleges e-mail-sablon (ld.
+  // `positiveTemplate`) küldése itt UI-terv szinten nem jár tényleges
+  // e-mail-küldéssel — akárcsak az elutasító sablonoknál (nincs backend).
+  function handleAccept(callId: string) {
+    setSalesCalls((prev) => prev.map((c) => (c.id === callId ? { ...c, isNew: false } : c)))
+    setModifyingCall(null)
+  }
+
   // piros gomb: ha a hívás már foglalt GYT-időponttal járt, azt a naptár-
   // sávot és a belőle létrehozott ügyfelet is töröljük — nem maradhat "árva"
   // foglalás egy elutasított hívás mögött
@@ -244,6 +254,7 @@ export default function SalesHivasaim() {
             onClose={() => setModifyingCall(null)}
             onSetOutcome={(outcome) => handleSetOutcome(modifyingCall.id, outcome)}
             onReject={() => handleReject(modifyingCall)}
+            onAccept={() => handleAccept(modifyingCall.id)}
           />
         )}
 
@@ -267,8 +278,17 @@ function CallRow({ call, onModify }: { call: SalesCall; onModify: () => void }) 
   return (
     <div className="py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
       <div className="call-row-grid">
-        <span className="call-row-time">{formatTime(call.callTime)}</span>
-        <span className="fw-bold">{call.name}</span>
+        {/* az időpontra kattintva is megnyílik a hívás-részletek popup —
+           ugyanaz a cél, mint a fogaskerék gombnak (2026.09.16., Marci
+           kérésére: "a Calendly-ben megadott válaszokat látnunk kell az
+           időpontra kattintva"). */}
+        <button type="button" className="call-row-time call-row-time--btn" onClick={onModify}>
+          {formatTime(call.callTime)}
+        </button>
+        <span className="fw-bold d-flex align-items-center gap-2">
+          {call.name}
+          {call.isNew && <span className="new-client-badge">új</span>}
+        </span>
         <span className="small" style={{ color: 'var(--color-text-muted)' }}>{call.email}</span>
         <a href={telHref(call.phone)} className="small" style={{ color: 'var(--color-primary)' }}>{call.phone}</a>
         <span className="d-flex align-items-center gap-2 flex-wrap">
@@ -286,10 +306,15 @@ function CallRow({ call, onModify }: { call: SalesCall; onModify: () => void }) 
          "hozzárendelések" oldal "adatok importálása" funkciójával megy) */}
       <div className="d-lg-none">
         <div className="d-flex justify-content-between align-items-start mb-2">
-          <span className="call-row-time">{formatTime(call.callTime)}</span>
+          <button type="button" className="call-row-time call-row-time--btn" onClick={onModify}>
+            {formatTime(call.callTime)}
+          </button>
           <GearButton onClick={onModify} />
         </div>
-        <span className="fw-bold d-block">{call.name}</span>
+        <span className="fw-bold d-flex align-items-center gap-2">
+          {call.name}
+          {call.isNew && <span className="new-client-badge">új</span>}
+        </span>
         <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>{call.email}</span>
         <a href={telHref(call.phone)} className="small d-block" style={{ color: 'var(--color-primary)' }}>{call.phone}</a>
         <div className="mt-2 d-flex align-items-center gap-2 flex-wrap">

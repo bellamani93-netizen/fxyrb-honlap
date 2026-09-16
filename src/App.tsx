@@ -21,7 +21,7 @@ import SalesHozzarendeles from './pages/SalesHozzarendeles'
 import SalesUzenetek from './pages/SalesUzenetek'
 import AdminMunkatarsak from './pages/AdminMunkatarsak'
 import AdminBlog from './pages/AdminBlog'
-import { SalesDataProvider } from './context/SalesDataContext'
+import { SalesDataProvider, useSalesData } from './context/SalesDataContext'
 import { CalendarProvider } from './context/CalendarContext'
 import { ClientsProvider, useClients } from './context/ClientsContext'
 import { BlogProvider } from './context/BlogContext'
@@ -48,11 +48,17 @@ function buildGytNavItems(newClientsCount: number): NavItem[] {
   ]
 }
 
-const salesNavItems: NavItem[] = [
-  { to: '/sales/hivasaim', label: 'hívásaim', icon: '/icons/ikon_naptar.svg' },
-  { to: '/sales/hozzarendeles', label: 'hozzárendelések', icon: '/icons/ikon_plusz.svg' },
-  { to: '/sales/uzenetek', label: 'üzenetek', icon: '/icons/ikon_csengo.svg' },
-]
+// a "hívásaim" pötty ugyanúgy egy friss, még el nem bírált Calendly-
+// foglalást jelez, mint a GYT "ügyfeleim" pöttye az új ügyfelet
+// (2026.09.16., Marci kérésére: "új sales foglalásokat ugyanúgy jelöljük,
+// mint a gyt fiók új ügyfél-jelzését").
+function buildSalesNavItems(newCallsCount: number): NavItem[] {
+  return [
+    { to: '/sales/hivasaim', label: 'hívásaim', icon: '/icons/ikon_naptar.svg', badge: newCallsCount || undefined },
+    { to: '/sales/hozzarendeles', label: 'hozzárendelések', icon: '/icons/ikon_plusz.svg' },
+    { to: '/sales/uzenetek', label: 'üzenetek', icon: '/icons/ikon_csengo.svg' },
+  ]
+}
 
 const adminNavItems: NavItem[] = [
   { to: '/admin/munkatarsak', label: 'munkatársak', icon: '/icons/ikon_kezdolap.svg' },
@@ -64,11 +70,21 @@ export default function App() {
   return (
     <ClientsProvider>
       <CalendarProvider>
-        <BlogProvider>
-          <AllapotfelmeroProvider>
-            <AppRoutes />
-          </AllapotfelmeroProvider>
-        </BlogProvider>
+        {/* a SalesDataProvider korábban csak a /sales/* útvonalak alatt
+           élt (ld. AppRoutes lent) — mostantól ITT, a többi állapot-
+           providerrel egy szinten, mert a "hívásaim" oldalsáv-pötty
+           (2026.09.16., Marci kérésére, ld. buildSalesNavItems) az
+           AppLayout-nak (ami az AppRoutes ÁGA FÖLÖTT, a Route elemek
+           SZÜLŐJEKÉNT rendereli a menüsávot) már A ROUTE-VÁLTÁS ELŐTT
+           szüksége van a `salesCalls`-ra — ugyanaz a minta, mint a GYT
+           "ügyfeleim" pöttyénél a ClientsProvider esetében. */}
+        <SalesDataProvider>
+          <BlogProvider>
+            <AllapotfelmeroProvider>
+              <AppRoutes />
+            </AllapotfelmeroProvider>
+          </BlogProvider>
+        </SalesDataProvider>
       </CalendarProvider>
     </ClientsProvider>
   )
@@ -92,6 +108,9 @@ function AppRoutes() {
   const { clients } = useClients()
   const newClientsCount = clients.filter((c) => c.assignedGytId === LOGGED_IN_GYT_ID && c.isNew).length
   const gytNavItems = buildGytNavItems(newClientsCount)
+  const { salesCalls } = useSalesData()
+  const newSalesCallsCount = salesCalls.filter((c) => c.isNew).length
+  const salesNavItems = buildSalesNavItems(newSalesCallsCount)
 
   return (
     <>
@@ -120,11 +139,9 @@ function AppRoutes() {
         <Route path="/gyt/allapotfelmerok" element={<GytAllapotfelmerok />} />
       </Route>
       <Route element={<AppLayout navItems={salesNavItems} userName="Eszter" role="sales" />}>
-        <Route element={<SalesDataProvider><Outlet /></SalesDataProvider>}>
-          <Route path="/sales/hivasaim" element={<SalesHivasaim />} />
-          <Route path="/sales/hozzarendeles" element={<SalesHozzarendeles />} />
-          <Route path="/sales/uzenetek" element={<SalesUzenetek />} />
-        </Route>
+        <Route path="/sales/hivasaim" element={<SalesHivasaim />} />
+        <Route path="/sales/hozzarendeles" element={<SalesHozzarendeles />} />
+        <Route path="/sales/uzenetek" element={<SalesUzenetek />} />
       </Route>
       <Route element={<AppLayout navItems={adminNavItems} userName="Anna" role="admin" />}>
         <Route path="/admin/munkatarsak" element={<AdminMunkatarsak />} />

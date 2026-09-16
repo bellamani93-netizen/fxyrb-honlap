@@ -16,37 +16,38 @@ type CallDetailModalProps = {
   onClose: () => void
   onSetOutcome: (outcome: 'nem_jelent_meg' | 'rendben') => void
   onReject: (templateIndex: 0 | 1) => void
+  /** "Pozitív elbírálás" — elküldi a pozitív sablont (ld. SalesDataContext
+   * `positiveTemplate`) és törli a hívás lime "új" jelzőjét (2026.09.16.,
+   * Marci kérésére). Nem törlő/nem visszafordíthatatlan lépés, ezért —
+   * ellentétben az elutasító sablonokkal — nincs hozzá külön megerősítő
+   * lépés. */
+  onAccept: () => void
 }
 
-// A hívás-sorok fogaskerék ikonja nyitja meg ezt a popupot — minden adat +
-// a 3 státuszgomb (piros = törlés+elutasító üzenet, sárga = "nem jött",
-// zöld = "rendben") egy helyen. A piros gomb nem azonnal töröl, hanem egy
-// második lépésben a 2 elutasító-sablon közül kell választani (ld. Design
-// jegyzet, 2026.08.28., 3. kör — Marci döntése: a megerősítés és a
-// sablon-választás EGY lépés, nem két külön képernyő).
-export default function CallDetailModal({ call, onClose, onSetOutcome, onReject }: CallDetailModalProps) {
-  const { messageTemplates } = useSalesData()
-  const [confirmingReject, setConfirmingReject] = useState(false)
+// A hívás-sorok fogaskerék ikonja (ill. az időpontra kattintás, ld.
+// SalesHivasaim.tsx) nyitja meg ezt a popupot — minden adat, a Calendly-
+// válaszok, a 2 kimenet-gomb (sárga = "nem jött", zöld = "rendben") és a
+// "email küldése" szekció (2026.09.16., Marci kérésére) egy helyen. Az
+// "email küldése" szekció MINDHÁROM lehetőséget (1 pozitív + 2 elutasító
+// sablon) EGYSZERRE, egyenrangúan mutatja — korábban a 2 elutasító sablon
+// egy KÜLÖN "törlés" ikon MÖGÉ volt rejtve, ez a lépés megszűnt. Az
+// elutasító gombok (törléssel is járnak) megtartják a saját, könnyű
+// megerősítő lépését; a pozitív gomb azonnal hat, mert nem törlő művelet.
+export default function CallDetailModal({ call, onClose, onSetOutcome, onReject, onAccept }: CallDetailModalProps) {
+  const { messageTemplates, positiveTemplate } = useSalesData()
+  const [pendingRejectIndex, setPendingRejectIndex] = useState<0 | 1 | null>(null)
 
-  if (confirmingReject) {
+  if (pendingRejectIndex !== null) {
+    const tpl = messageTemplates[pendingRejectIndex]
     return (
-      <div className="modal-backdrop-fyb" onClick={() => setConfirmingReject(false)}>
+      <div className="modal-backdrop-fyb" onClick={() => setPendingRejectIndex(null)}>
         <div className="modal-fyb card-fyb" onClick={(e) => e.stopPropagation()}>
-          <p className="mb-3">biztosan töröljük az időpontot, és küldjünk értesítőt? válaszd ki, melyik üzenetet küldjük:</p>
-          <div className="d-flex flex-column gap-2 mb-3">
-            {messageTemplates.map((tpl, i) => (
-              <button
-                key={i}
-                type="button"
-                className="btn-fyb btn-fyb-danger text-start"
-                onClick={() => onReject(i as 0 | 1)}
-              >
-                {tpl.name}
-              </button>
-            ))}
-          </div>
-          <div className="d-flex justify-content-end">
-            <button type="button" className="btn-fyb btn-fyb-ghost" onClick={() => setConfirmingReject(false)}>mégse</button>
+          <p className="mb-3">
+            biztosan töröljük az időpontot, és elküldjük ezt az üzenetet: <span className="fw-bold">{tpl.name}</span>?
+          </p>
+          <div className="d-flex justify-content-end gap-2">
+            <button type="button" className="btn-fyb btn-fyb-ghost" onClick={() => setPendingRejectIndex(null)}>mégse</button>
+            <button type="button" className="btn-fyb btn-fyb-danger" onClick={() => onReject(pendingRejectIndex)}>igen, küldés</button>
           </div>
         </div>
       </div>
@@ -65,18 +66,27 @@ export default function CallDetailModal({ call, onClose, onSetOutcome, onReject 
           <span className="small" style={{ color: 'var(--color-text-muted)' }}>{call.phone}</span>
         </div>
 
-        <div className="d-flex justify-content-center gap-4 mb-3">
-          <div className="text-center">
-            <button
-              type="button"
-              className="circle-icon-btn circle-icon-btn--danger"
-              aria-label="időpont törlése"
-              onClick={() => setConfirmingReject(true)}
-            >
-              <Icon src="/icons/ikon_kuka.svg" />
-            </button>
-            <p className="small mb-0 mt-1">törlés</p>
+        {/* Calendly-válaszok (2026.09.16., Marci kérésére: "amikor érkezik
+           egy foglalás a Calendly-től, akkor a Calendly-ben megadott
+           válaszokat látnunk kell az időpontra kattintva") — csak akkor
+           jelenik meg, ha van hozzá rögzített válasz (a sales saját maga
+           által, kézzel felvett hívásoknál, ld. SalesHivasaim.tsx
+           handleCreateCall, nincs Calendly-adat). */}
+        {call.answers && call.answers.length > 0 && (
+          <div className="mb-3">
+            <h3 className="h6 mb-2" style={{ fontSize: '0.9rem' }}>Calendly-válaszok</h3>
+            <div className="d-flex flex-column gap-2">
+              {call.answers.map((qa, i) => (
+                <div key={i}>
+                  <div className="small fw-bold">{qa.question}</div>
+                  <div className="small" style={{ color: 'var(--color-text-muted)' }}>{qa.answer}</div>
+                </div>
+              ))}
+            </div>
           </div>
+        )}
+
+        <div className="d-flex justify-content-center gap-4 mb-3">
           <div className="text-center">
             <button
               type="button"
@@ -104,6 +114,25 @@ export default function CallDetailModal({ call, onClose, onSetOutcome, onReject 
               <Icon src="/icons/ikon_pipa.svg" />
             </button>
             <p className="small mb-0 mt-1">rendben</p>
+          </div>
+        </div>
+
+        <div className="mb-3">
+          <h3 className="h6 mb-2" style={{ fontSize: '0.9rem' }}>email küldése</h3>
+          <div className="d-flex flex-column gap-2">
+            <button type="button" className="btn-fyb btn-fyb-highlight text-start" onClick={onAccept}>
+              {positiveTemplate.name}
+            </button>
+            {messageTemplates.map((tpl, i) => (
+              <button
+                key={i}
+                type="button"
+                className="btn-fyb btn-fyb-danger text-start"
+                onClick={() => setPendingRejectIndex(i as 0 | 1)}
+              >
+                {tpl.name}
+              </button>
+            ))}
           </div>
         </div>
 
