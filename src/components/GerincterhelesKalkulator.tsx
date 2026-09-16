@@ -637,6 +637,18 @@ type GerincterhelesKalkulatorProps = {
   /** minden újraszámoláskor meghívva a teljes eredménnyel (2026.09.07.,
    * Marci kérésére) — ld. GerincterhelesEredmeny fenti jegyzete. */
   onResultChange?: (result: GerincterhelesEredmeny) => void
+  /** hibajavítás (2026.09.16., alapos utóvizsgálat során felfedezve): a
+   * komponens a lap 9. (kalkulátor) lépésén kívül EGYÁLTALÁN NEM renderelődik
+   * (ld. Allapotfelmero.tsx `isCalculatorStep` ág), ezért "előző" gombbal
+   * elhagyva, majd "következő"-vel visszatérve MINDIG ÚJRA MOUNTOLÓDIK — mivel
+   * minden saját állapota nyers DOM-on él (nincs React state), ez korábban a
+   * kitöltő 24 óráját is TÖRÖLTE, arra kényszerítve, hogy mindent újra
+   * kitöltsön. Az id→óra párok (a korábban, EBBEN a kitöltésben már
+   * kiszámolt `GerincterhelesEredmeny.reszletek`-ből származtatva, ld.
+   * Allapotfelmero.tsx) a mount-effektusban egyszer visszaállítják a
+   * csúszkákat — nincs szükség külön mezőre a Context-ben, a reszletek már
+   * tartalmazzák az `id`-t ÉS az `ora`-t. */
+  initialValues?: Record<string, number>
 }
 
 // React.memo: az onHoursChange (a szülő állandó setCalcHours-referenciája)
@@ -646,8 +658,12 @@ type GerincterhelesKalkulatorProps = {
 // (React 19-es kísérlet alapján) VISSZAÁLLÍTOTTA a kalkulátor DOM-ját az
 // üres kiinduló sablonra — törölve a mount-effektus által felépített
 // sorokat/csúszkákat. A memo garantálja, hogy a szülő re-renderje ezt a
-// komponenst egyáltalán ne érintse (2026.09.04., hibajavítás).
-export default memo(function GerincterhelesKalkulator({ onHoursChange, onResultChange }: GerincterhelesKalkulatorProps) {
+// komponenst egyáltalán ne érintse (2026.09.04., hibajavítás). Az
+// `initialValues` prop referenciáját a hívó (Allapotfelmero.tsx) `useMemo`-val
+// a `step`-hez köti (NEM az `adatok`-hoz, ami minden csúszka-mozdulatra
+// változna), hogy ez a garancia az `initialValues` bevezetése UTÁN is
+// érvényben maradjon.
+export default memo(function GerincterhelesKalkulator({ onHoursChange, onResultChange, initialValues }: GerincterhelesKalkulatorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const onHoursChangeRef = useRef(onHoursChange)
   onHoursChangeRef.current = onHoursChange
@@ -983,6 +999,16 @@ export default memo(function GerincterhelesKalkulator({ onHoursChange, onResultC
       })
       recalc()
     })
+    // hibajavítás (2026.09.16.): korábban ide kitöltött óra-értékek
+    // visszaállítása, ha a felhasználó "előző"-vel elhagyta, majd
+    // "következő"-vel visszatért erre a lapra (ld. `initialValues` jegyzete
+    // fent) — ugyanaz a "csúszkára ír, majd recalc()" minta, mint a "Példa
+    // nap" gombnál.
+    if (initialValues) {
+      Object.entries(inputs).forEach(([id, { slider }]) => {
+        if (initialValues[id] !== undefined) slider.value = String(initialValues[id])
+      })
+    }
     recalc()
   }, [])
 

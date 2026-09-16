@@ -2549,14 +2549,6 @@ html[data-theme='dark'] .bodychart-img {
   font-weight: 700;
   margin-top: 0.2rem;
 }
-.eredmeny-dial-row {
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-top: 0.75rem;
-  flex-wrap: wrap;
-}
 
 /* --- Tünet-szakasz: cím alatt a leírás, alatta az Intenzitás/Időtartam
    dial-pár, legalul a szöveges jegyzetek (2026.09.10-től ez a szerkezet

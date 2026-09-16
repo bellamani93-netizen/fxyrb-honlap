@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Chevron from '../components/Chevron'
 import GerincterhelesKalkulator, { type GerincterhelesEredmeny } from '../components/GerincterhelesKalkulator'
@@ -770,7 +770,7 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
 
 export default function Allapotfelmero() {
   const navigate = useNavigate()
-  const { complete, setAdatok } = useAllapotfelmero()
+  const { complete, setAdatok, adatok } = useAllapotfelmero()
   const [step, setStep] = useState(1)
   const [calcHours, setCalcHours] = useState(0)
   const availableHeight = useAvailableHeight()
@@ -800,6 +800,22 @@ export default function Allapotfelmero() {
   const handleCalcResultChange = useCallback((result: GerincterhelesEredmeny) => {
     setAdatok({ gerincterhelesEredmeny: result })
   }, [setAdatok])
+  // hibajavítás (2026.09.16., alapos utóvizsgálat során felfedezve): a
+  // kalkulátor (ld. GerincterhelesKalkulator.tsx `initialValues` jegyzete)
+  // "előző"-vel elhagyva, majd "következő"-vel visszatérve korábban törölte
+  // a kitöltő 24 óráját, mert MINDEN saját állapota nyers DOM-on él, a
+  // komponens pedig ilyenkor újra mountolódik. Az `adatok.gerincterhelesEredmeny.
+  // reszletek`-ből (id→óra) állítjuk vissza — SZÁNDÉKOSAN csak `step`-re
+  // kötve (NEM `adatok`-ra, ami minden csúszka-mozdulatnál változna), hogy a
+  // referencia STABIL maradjon, amíg a kalkulátor lapján vagyunk — enélkül a
+  // `React.memo` (ld. ott a jegyzetet) minden csúszka-mozdulatkor
+  // hatástalanná válna, és visszatérne a DOM-ot nullázó hiba, amit épp az a
+  // memo hivatott megelőzni.
+  const initialCalcValues = useMemo(() => {
+    const reszletek = adatok.gerincterhelesEredmeny?.reszletek ?? []
+    return Object.fromEntries(reszletek.map((r) => [r.id, r.ora]))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step])
 
   function handleNext() {
     if (step === TOTAL_STEPS) {
@@ -875,6 +891,7 @@ export default function Allapotfelmero() {
           <GerincterhelesKalkulator
             onHoursChange={setCalcHours}
             onResultChange={handleCalcResultChange}
+            initialValues={initialCalcValues}
           />
         ) : (
           <div className="container-fluid allapotfelmero-form">
