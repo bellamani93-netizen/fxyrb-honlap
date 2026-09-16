@@ -2817,6 +2817,21 @@ html[data-theme='dark'] .bodychart-img {
     gap: 1rem;
     flex: 1;
   }
+  /* a "nyomtatás" gomb (GYT-oldali nézet, ld. `showPrint`) a fenti dátum-
+     sorral AZONOS MAGASSÁGBAN legyen (2026.09.16., Marci kérésére) — a gomb
+     a `.eredmeny-header-summary`-val EGY SZINTEN, az `.app-page-header`
+     MÁSIK flex-elemeként ül, ami alapból (`align-items:center`) a TELJES
+     sor magasságához (a KÉTsoros név-blokk magasságához) képest középre
+     igazítaná — emiatt lejjebb csúszott a dátumsor egysoros, felülre igazí-
+     tott (`align-items:flex-start`) szövegéhez képest. Az `align-self:
+     flex-start` a gombot is a sor TETEJÉHEZ (ugyanahhoz a referenciaponthoz,
+     mint a dátumsor) igazítja, a név-blokk hosszától (1 vagy 2 soros)
+     függetlenül. Csak asztali nézetben szükséges — mobilon a dátum ki van
+     kapcsolva a fejlécben (ld. `eredmeny-desktop-only`), ott a gomb
+     változatlanul a név mellett, középre igazítva marad. */
+  .eredmeny-print-btn {
+    align-self: flex-start;
+  }
   /* MAGASSÁG-vezérelt méretezés (nem szélesség-vezérelt) — a rácsban a
      FÜGGŐLEGES hely a szűkös erőforrás (a "görgetés nélküli" cél miatt),
      a testábra oszlop-mérete önmagában sokkal szélesebb helyet adna, mint
