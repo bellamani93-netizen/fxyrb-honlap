@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Icon from './Icon'
 import { useSalesData } from '../context/SalesDataContext'
-import type { SalesCall } from '../data/calendarData'
+import { formatCallScheduleParts, type SalesCall } from '../data/calendarData'
 
 function formatStart(value: string) {
   if (!value) return '—'
@@ -11,6 +11,21 @@ function formatStart(value: string) {
   return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}. ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+/** a "Pozitív elbírálás" sablon `{Név}`/`{Hónap}`/`{Nap}`/`{Időpont}`
+ * jelölőit a hívás saját adataira cseréli (2026.09.16., Marci kérésére) —
+ * a 2 elutasító sablonnál eddig sosem volt SZÜKSÉG a tényleges behelyettesí-
+ * tett szöveg megjelenítésére (csak a `name` rövid elnevezés látszott a
+ * gombon), a pozitívnál viszont a dátum/idő hívásonként ELTÉR, ezért itt
+ * ÉRDEMES ténylegesen megmutatni a kész szöveget küldés előtt. */
+function substitute(template: string, call: SalesCall): string {
+  const { month, day, time } = formatCallScheduleParts(call.callTime)
+  return template
+    .replaceAll('{Név}', call.name)
+    .replaceAll('{Hónap}', month)
+    .replaceAll('{Nap}', day)
+    .replaceAll('{Időpont}', time)
+}
+
 type CallDetailModalProps = {
   call: SalesCall
   onClose: () => void
@@ -18,9 +33,10 @@ type CallDetailModalProps = {
   onReject: (templateIndex: 0 | 1) => void
   /** "Pozitív elbírálás" — elküldi a pozitív sablont (ld. SalesDataContext
    * `positiveTemplate`) és törli a hívás lime "új" jelzőjét (2026.09.16.,
-   * Marci kérésére). Nem törlő/nem visszafordíthatatlan lépés, ezért —
-   * ellentétben az elutasító sablonokkal — nincs hozzá külön megerősítő
-   * lépés. */
+   * Marci kérésére). Nem törlő/nem visszafordíthatatlan lépés, de a
+   * behelyettesített dátum/idő hívásonként eltér, ezért — az elutasító
+   * sablonokhoz hasonlóan — van hozzá egy megerősítő lépés, ami a TÉNYLEGES
+   * tárgyat+szöveget is megmutatja (ld. lent `confirmingAccept`). */
   onAccept: () => void
 }
 
@@ -36,6 +52,7 @@ type CallDetailModalProps = {
 export default function CallDetailModal({ call, onClose, onSetOutcome, onReject, onAccept }: CallDetailModalProps) {
   const { messageTemplates, positiveTemplate } = useSalesData()
   const [pendingRejectIndex, setPendingRejectIndex] = useState<0 | 1 | null>(null)
+  const [confirmingAccept, setConfirmingAccept] = useState(false)
 
   if (pendingRejectIndex !== null) {
     const tpl = messageTemplates[pendingRejectIndex]
@@ -48,6 +65,26 @@ export default function CallDetailModal({ call, onClose, onSetOutcome, onReject,
           <div className="d-flex justify-content-end gap-2">
             <button type="button" className="btn-fyb btn-fyb-ghost" onClick={() => setPendingRejectIndex(null)}>mégse</button>
             <button type="button" className="btn-fyb btn-fyb-danger" onClick={() => onReject(pendingRejectIndex)}>igen, küldés</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // "Pozitív elbírálás" — a 2 elutasító sablontól eltérően itt a TÉNYLEGES,
+  // behelyettesített tárgyat+szöveget is megmutatjuk küldés előtt (ld.
+  // `substitute` fenti jegyzete), mert a dátum/idő hívásonként változik.
+  if (confirmingAccept) {
+    return (
+      <div className="modal-backdrop-fyb" onClick={() => setConfirmingAccept(false)}>
+        <div className="modal-fyb card-fyb" onClick={(e) => e.stopPropagation()}>
+          <p className="small fw-bold mb-1">tárgy</p>
+          <p className="mb-3">{substitute(positiveTemplate.subject ?? '', call)}</p>
+          <p className="small fw-bold mb-1">üzenet</p>
+          <p className="mb-3" style={{ whiteSpace: 'pre-wrap' }}>{substitute(positiveTemplate.body, call)}</p>
+          <div className="d-flex justify-content-end gap-2">
+            <button type="button" className="btn-fyb btn-fyb-ghost" onClick={() => setConfirmingAccept(false)}>mégse</button>
+            <button type="button" className="btn-fyb btn-fyb-highlight" onClick={onAccept}>igen, küldés</button>
           </div>
         </div>
       </div>
@@ -120,7 +157,7 @@ export default function CallDetailModal({ call, onClose, onSetOutcome, onReject,
         <div className="mb-3">
           <h3 className="h6 mb-2" style={{ fontSize: '0.9rem' }}>email küldése</h3>
           <div className="d-flex flex-column gap-2">
-            <button type="button" className="btn-fyb btn-fyb-highlight text-start" onClick={onAccept}>
+            <button type="button" className="btn-fyb btn-fyb-highlight text-start" onClick={() => setConfirmingAccept(true)}>
               {positiveTemplate.name}
             </button>
             {messageTemplates.map((tpl, i) => (

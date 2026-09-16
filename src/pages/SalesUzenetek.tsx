@@ -17,7 +17,7 @@ export default function SalesUzenetek() {
     })
   }
 
-  function updatePositiveTemplate(field: 'name' | 'body', value: string) {
+  function updatePositiveTemplate(field: 'name' | 'subject' | 'body', value: string) {
     setPositiveTemplate((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -34,7 +34,7 @@ export default function SalesUzenetek() {
            piros elutasító mellett, elküldése törli a hívás lime "új" jelzőjét. */}
         <h2 className="h6 mb-2">elfogadás</h2>
         <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>
-          ezt az üzenetet küldi a hívás-módosító popup "Pozitív elbírálás" gombja — elküldése eltünteti a lime "új" jelzőt a hívás mellől. A "{'{Név}'}" jelölő a küldéskor az ügyfél nevére cserélődik.
+          ezt az üzenetet küldi a hívás-módosító popup "Pozitív elbírálás" gombja — elküldése eltünteti a lime "új" jelzőt a hívás mellől. A "{'{Név}'}" jelölő az ügyfél nevére, a "{'{Hónap}'}"/"{'{Nap}'}"/"{'{Időpont}'}" jelölők a hívás saját, lefoglalt időpontjára cserélődnek a küldéskor.
         </p>
         <div className="card-fyb card-fyb--lime-border mb-4">
           <label className="form-label small fw-bold" htmlFor="tpl-positive-name">elnevezés</label>
@@ -46,11 +46,20 @@ export default function SalesUzenetek() {
             value={positiveTemplate.name}
             onChange={(e) => updatePositiveTemplate('name', e.target.value)}
           />
+          <label className="form-label small fw-bold" htmlFor="tpl-positive-subject">tárgy</label>
+          <input
+            id="tpl-positive-subject"
+            type="text"
+            className="form-control mb-3"
+            placeholder="pl. Pozitív elbírálás: hívni foglak {Hónap} {Nap}-n!"
+            value={positiveTemplate.subject ?? ''}
+            onChange={(e) => updatePositiveTemplate('subject', e.target.value)}
+          />
           <label className="form-label small fw-bold" htmlFor="tpl-positive-body">üzenet szövege</label>
           <textarea
             id="tpl-positive-body"
             className="form-control"
-            rows={4}
+            rows={8}
             value={positiveTemplate.body}
             onChange={(e) => updatePositiveTemplate('body', e.target.value)}
           />

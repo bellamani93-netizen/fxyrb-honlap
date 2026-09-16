@@ -94,6 +94,16 @@ const MONTH_NAMES = [
   'január', 'február', 'március', 'április', 'május', 'június',
   'július', 'augusztus', 'szeptember', 'október', 'november', 'december',
 ]
+
+/** egy `SalesCall.callTime`-ból ("2026-08-29T11:00") a "Pozitív elbírálás"
+ * email-sablon {Hónap}/{Nap}/{Időpont} jelölőihez szükséges 3 rész —
+ * (2026.09.16., Marci kérésére, ld. SalesDataContext.tsx
+ * `DEFAULT_POSITIVE_TEMPLATE`). */
+export function formatCallScheduleParts(callTime: string): { month: string; day: string; time: string } {
+  const [datePart, timePart] = callTime.split('T')
+  const [, m, d] = datePart.split('-').map(Number)
+  return { month: MONTH_NAMES[m - 1] ?? '', day: String(d), time: timePart?.slice(0, 5) ?? '' }
+}
 const MONTH_ABBR = ['jan', 'febr', 'márc', 'ápr', 'máj', 'jún', 'júl', 'aug', 'szept', 'okt', 'nov', 'dec']
 
 // egy heti naptár-nézet mobil fejlécének "év, hónap" felirata (2026.09.02.,

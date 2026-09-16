@@ -10,8 +10,11 @@ import { useClients } from './ClientsContext'
 // 2 sablont szerkeszti, a hívás-módosító popup pirosgombja pedig ezek közül
 // választva küld (helyettesítő, backend nélküli) elutasítót. Külön "name"
 // mező (2026.08.28., 4. kör, Marci kérésére) — a törlés-popup gombján NEM a
-// teljes üzenetszöveg, csak ez a rövid elnevezés jelenik meg.
-export type MessageTemplate = { name: string; body: string }
+// teljes üzenetszöveg, csak ez a rövid elnevezés jelenik meg. A "subject"
+// OPCIONÁLIS (2026.09.16., Marci kérésére, a "Pozitív elbírálás" sablonhoz
+// adva, ld. lent) — a 2 elutasító sablonnál eddig nem merült fel igény rá,
+// ezért azoknál üresen marad.
+export type MessageTemplate = { name: string; subject?: string; body: string }
 
 const DEFAULT_MESSAGE_TEMPLATES: [MessageTemplate, MessageTemplate] = [
   {
@@ -31,10 +34,16 @@ const DEFAULT_MESSAGE_TEMPLATES: [MessageTemplate, MessageTemplate] = [
 // legyen olyan lehetőség is, hogy 'Pozitív elbírálás' — ezt lekattintva
 // tűnik el a lime 'új' jelző az üf neve mellől"). Elküldése (ld.
 // CallDetailModal.tsx) NEM törli a hívást — kizárólag a `SalesCall.isNew`
-// jelzőt állítja `false`-ra.
+// jelzőt állítja `false`-ra. A `{Hónap}`/`{Nap}`/`{Időpont}` jelölők a hívás
+// SAJÁT, már lefoglalt időpontjából (`SalesCall.callTime`) töltődnek ki,
+// ld. `formatCallScheduleParts` (calendarData.ts) — a "45 perces
+// konzultáció", amire a levél hivatkozik, maga a Calendly-foglalás, nem egy
+// KÉSŐBBI GYT-időpont. A pontos szöveg Marci saját megfogalmazása
+// (2026.09.16.), szó szerint átvéve.
 const DEFAULT_POSITIVE_TEMPLATE: MessageTemplate = {
   name: 'Pozitív elbírálás',
-  body: 'Kedves {Név}! Örömmel értesítünk, hogy jelentkezésedet elfogadtuk. Hamarosan felvesszük veled a kapcsolatot az időpont-egyeztetéshez. Üdvözlettel, a FixYourBack csapata.',
+  subject: 'Pozitív elbírálás: hívni foglak {Hónap} {Nap}-n!',
+  body: 'Kedves {Név}!\n\nÖrömmel jelentem, hogy átnéztem a jelentkezésed a 45 perces konzultációra, és hívni foglak a lefoglalt időpontban. {Hónap} {Nap} {Időpont} -kor.\n\nÍrd be te is az időpontot a naptáradba, illetve legyél majd olyan környezetben, ahol zavartalanul tudsz beszélni, és legyen nálad jegyzetelésre alkalmas eszköz is!\n\n\nÜdvözlettel\nBella Márton\nés a FixYourBack csapata',
 }
 
 type SalesDataContextValue = {
