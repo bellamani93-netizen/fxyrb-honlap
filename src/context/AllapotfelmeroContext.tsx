@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { GerincterhelesEredmeny } from '../components/GerincterhelesKalkulator'
+import { formatDateHu } from '../lib/allapotfelmeroEredmeny'
 
 // Az ÜF-oldali "állapotfelmérő" kérdőív közös állapota (2026.09.03., Marci
 // kérésére, 2. fázis indítása). Ez a fiók LEGELSŐ pontja: amíg nincs kitöltve
@@ -105,6 +106,12 @@ type AllapotfelmeroContextValue = {
   completed: boolean
   adatok: AllapotfelmeroAdatok
   setAdatok: (patch: Partial<AllapotfelmeroAdatok>) => void
+  /** MINDEN korábban BEKÜLDÖTT állapotfelmérés pillanatképe, LEGÚJABB ELÖL
+   * (2026.09.16., Marci kérésére: "Újabb kitöltés nem a jelenlegi
+   * eredménylapot írja felül, hanem létrehoz egy újat") — az Eredménylap
+   * (Eredmenyeim.tsx) EBBŐL a listából olvas, NEM a folyamatban lévő
+   * `adatok` piszkozatból (ld. `complete()` jegyzete). */
+  eredmenyek: AllapotfelmeroAdatok[]
   complete: () => void
   /** új jelölés indítása egy ponttal (koppintás VAGY egy húzás kezdete). */
   addBodyChartStroke: (meret: BodyChartMeret, point: BodyChartPont) => void
@@ -127,6 +134,23 @@ export function useAllapotfelmero() {
 export function AllapotfelmeroProvider({ children }: { children: ReactNode }) {
   const [completed, setCompleted] = useState(false)
   const [adatok, setAdatokState] = useState<AllapotfelmeroAdatok>(DEFAULT_ALLAPOTFELMERO_ADATOK)
+  const [eredmenyek, setEredmenyek] = useState<AllapotfelmeroAdatok[]>([])
+  // HIBAJAVÍTÁS (2026.09.16.): a `complete()`-nek a LEGFRISSEBB `adatok`-ra
+  // van szüksége, de EGY MÁSIK setState (`setEredmenyek`) hívást NEM szabad
+  // a `setAdatokState`-nek átadott FRISSÍTŐ FÜGGVÉNY BELSEJÉBŐL indítani —
+  // React (StrictMode, fejlesztői módban) az ilyen frissítő függvényeket
+  // TISZTASÁG-ELLENŐRZÉSKÉNT KÉTSZER hívja meg, ami a benne rejlő
+  // mellékhatást (a beágyazott `setEredmenyek` hívást) is MEGKÉTSZEREZTE —
+  // egyetlen beküldés emiatt KÉT példányban került az előzmény-listába
+  // (böngészős teszttel fedeztem fel). A megoldás: egy ref MINDIG a
+  // legfrissebb `adatok`-ot tükrözi, a `complete()` ebből olvas, és a 2
+  // setState hívás (`setEredmenyek`/`setAdatokState`) EGYMÁS UTÁN, KÜLÖN,
+  // nem egymásba ágyazva fut le — egyik sem kap FRISSÍTŐ FÜGGVÉNYT, amit
+  // React duplán hívhatna.
+  const adatokRef = useRef(adatok)
+  useEffect(() => {
+    adatokRef.current = adatok
+  }, [adatok])
 
   // Mindegyik `useCallback`-kel STABIL referenciájú (üres függőségi tömb) —
   // egyik sem hivatkozik a `completed`/`adatok` külső változóra, mindig a
@@ -159,11 +183,25 @@ export function AllapotfelmeroProvider({ children }: { children: ReactNode }) {
     setAdatokState((prev) => ({ ...prev, bodyChartJelek: prev.bodyChartJelek.slice(0, -1) }))
   }, [])
 
-  const complete = useCallback(() => setCompleted(true), [])
+  // Marci kérésére (2026.09.16.: "Állapotfelmérés beküldése után rögtön az
+  // Eredményeim lapra navigál az oldal. Újabb kitöltés nem a jelenlegi
+  // eredménylapot írja felül, hanem létrehoz egy újat.") — a fenti `adatokRef`-
+  // ből olvassuk a legfrissebb piszkozatot (NEM egy `setAdatokState`-nek
+  // átadott frissítő függvényből, ld. a ref saját jegyzetét, miért), azt
+  // dátumozzuk, az `eredmenyek` lista ELEJÉRE (LEGÚJABB ELÖL) másoljuk, majd
+  // a piszkozat (`adatok`) visszaáll az ALAPÉRTELMEZETT (üres) állapotra,
+  // hogy egy ÚJ kitöltés valóban ÚJ, tiszta lapról induljon, ne a korábbi
+  // válaszok módosításaként.
+  const complete = useCallback(() => {
+    const veglegesitett: AllapotfelmeroAdatok = { ...adatokRef.current, kitoltesDatuma: formatDateHu(new Date()) }
+    setEredmenyek((lista) => [veglegesitett, ...lista])
+    setAdatokState(DEFAULT_ALLAPOTFELMERO_ADATOK)
+    setCompleted(true)
+  }, [])
 
   return (
     <AllapotfelmeroContext.Provider
-      value={{ completed, adatok, setAdatok, complete, addBodyChartStroke, extendLastBodyChartStroke, undoLastBodyChartStroke }}
+      value={{ completed, adatok, setAdatok, eredmenyek, complete, addBodyChartStroke, extendLastBodyChartStroke, undoLastBodyChartStroke }}
     >
       {children}
     </AllapotfelmeroContext.Provider>

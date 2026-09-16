@@ -2715,6 +2715,21 @@ html[data-theme='dark'] .bodychart-img {
   padding-top: 1rem;
   border-top: 1px solid var(--color-border);
 }
+/* a "Kitöltés időpontja" helyén TÖBB kitöltésnél megjelenő legördülő
+   (2026.09.16., Marci kérésére: "Újabb kitöltés... létrehoz egy újat") —
+   a környező, halványabb dátum-szöveghez igazodó, kompakt megjelenés, de
+   LÁTHATÓ kerettel/háttérrel, hogy egyértelműen kattintható vezérlőnek
+   tűnjön (nem sima szövegnek, mint az 1-kitöltéses eset). */
+.eredmeny-kitoltes-select {
+  font: inherit;
+  color: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.15rem 0.4rem;
+  cursor: pointer;
+  max-width: 100%;
+}
 /* Az oszlop-wrapperek (ld. lent) mobilon `display:contents`-ként
    "eltűnnek" — a bennük lévő kártyák egyenesen a `.eredmeny-cards`
    flex-oszlop gyerekei lesznek, a saját `order`-jük szerint besorolva. Ez

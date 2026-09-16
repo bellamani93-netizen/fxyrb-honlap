@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
 import ToggleSwitch from '../components/ToggleSwitch'
 import type { GerincterhelesReszlet } from '../components/GerincterhelesKalkulator'
 import { withBase } from '../lib/assetUrl'
 import { getSessionName } from '../lib/session'
-import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
+import { useAllapotfelmero, DEFAULT_ALLAPOTFELMERO_ADATOK, type AllapotfelmeroAdatok } from '../context/AllapotfelmeroContext'
 import { BODYCHART_IMAGES, BodyChartMarksLayer } from './Allapotfelmero'
 import { calculateAge, calculateBmi, bmiCategory, type BmiCategory } from '../lib/allapotfelmeroEredmeny'
 
@@ -466,6 +466,45 @@ function OraMegoszlasPopup({ reszletek, onClose }: { reszletek: GerincterhelesRe
   )
 }
 
+/** a "Kitöltés időpontja" sor — Marci kérésére (2026.09.16.: "Újabb kitöltés
+ * nem a jelenlegi eredménylapot írja felül, hanem létrehoz egy újat") EGYETLEN
+ * kitöltés esetén VÁLTOZATLANUL sima szöveg marad, TÖBB kitöltésnél viszont
+ * legördülővé válik, hogy a korábbi eredmények is megnézhetők legyenek — az
+ * index 0 mindig a LEGÚJABB, ezért a sorszámozás (`eredmenyek.length - i`)
+ * a LEGRÉGEBBIT jelöli 1-gyel, a LEGÚJABBAT a lista hosszával. Nyomtatáskor
+ * (`.no-print`/`.eredmeny-print-only` pár, a projekt már bevált mintája
+ * szerint) a legördülő helyett MINDIG egy egyszerű, statikus dátum-szöveg
+ * jelenik meg — egy interaktív vezérlőnek papíron nem lenne értelme. */
+function KitoltesValaszto({
+  eredmenyek,
+  valasztottIndex,
+  onValaszt,
+}: {
+  eredmenyek: AllapotfelmeroAdatok[]
+  valasztottIndex: number
+  onValaszt: (index: number) => void
+}) {
+  const aktualisDatum = eredmenyek[valasztottIndex]?.kitoltesDatuma ?? '—'
+  if (eredmenyek.length <= 1) {
+    return <>Kitöltés időpontja: {aktualisDatum}</>
+  }
+  return (
+    <>
+      <select
+        className="eredmeny-kitoltes-select no-print"
+        value={valasztottIndex}
+        onChange={(e) => onValaszt(Number(e.target.value))}
+        aria-label="korábbi állapotfelmérések"
+      >
+        {eredmenyek.map((e, i) => (
+          <option key={i} value={i}>{eredmenyek.length - i}. kitöltés — {e.kitoltesDatuma ?? '—'}</option>
+        ))}
+      </select>
+      <span className="eredmeny-print-only">Kitöltés időpontja: {aktualisDatum}</span>
+    </>
+  )
+}
+
 export default function Eredmenyeim({
   displayName,
   showPrint = false,
@@ -486,8 +525,25 @@ export default function Eredmenyeim({
    * törölve (alapértelmezetten `false`). */
   showPrint?: boolean
 }) {
-  const { adatok } = useAllapotfelmero()
+  const { eredmenyek } = useAllapotfelmero()
+  // Marci kérésére (2026.09.16.: "Újabb kitöltés nem a jelenlegi eredménylapot
+  // írja felül, hanem létrehoz egy újat") — a lap MOSTANTÓL nem a folyamatban
+  // lévő piszkozatot (`adatok`), hanem a BEKÜLDÖTT eredmények LISTÁJÁT olvassa
+  // (ld. AllapotfelmeroContext.tsx `eredmenyek`, legújabb ELÖL). Az index 0
+  // mindig a LEGÚJABB kitöltés — ez az alapértelmezett kiválasztás. Üres lista
+  // esetén (pl. GYT-oldali nézet, mielőtt bármelyik ügyfél kitöltött volna
+  // bármit is EBBEN a munkamenetben) az ALAPÉRTELMEZETT, üres adatokra esik
+  // vissza — ugyanaz a viselkedés, mint korábban a `adatok` kezdőértéke volt.
+  const [valasztottIndex, setValasztottIndex] = useState(0)
+  const adatok = eredmenyek[valasztottIndex] ?? DEFAULT_ALLAPOTFELMERO_ADATOK
   const [nezet, setNezet] = useState(adatok.bodyChartNezet)
+  // a testábra-nézet (hát/röntgen) a KIVÁLASZTOTT eredményhez tartozó, elmentett
+  // beállítást tükrözze — más korábbi kitöltésre váltva (ld. lent, a
+  // `KitoltesValaszto` `onValaszt`) ÚJRA be kell állítani, mert a `useState`
+  // fenti kezdőértéke csak az ELSŐ renderkor fut le.
+  useEffect(() => {
+    setNezet(adatok.bodyChartNezet)
+  }, [adatok])
   const imageSrc = withBase(BODYCHART_IMAGES[nezet])
   // az óra-megoszlás popup (2026.09.11., Marci kérésére) — a Gerincterhelés
   // ÉS az Aktivitási szint dial is UGYANAZT a popupot nyitja (mindkét sáv
@@ -544,7 +600,9 @@ export default function Eredmenyeim({
                 {adatok.magassag ? `${adatok.magassag} cm` : '—'}
               </div>
             </div>
-            <div className="eredmeny-header-summary-date eredmeny-desktop-only">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</div>
+            <div className="eredmeny-header-summary-date eredmeny-desktop-only">
+              <KitoltesValaszto eredmenyek={eredmenyek} valasztottIndex={valasztottIndex} onValaszt={setValasztottIndex} />
+            </div>
           </div>
           {/* Marci kérésére (2026.09.10., 3. fázis: "hogyan tudjuk ezeket egy
              A/4-es állított lapra... nyomtatóbarát legyen") — a böngésző
@@ -712,7 +770,9 @@ export default function Eredmenyeim({
            (Marci kérésére, 2. fázis: "kitöltés időpontja" a mobil sorrend
            utolsó eleme). Asztalon ugyanez az adat a fejlécben jelenik meg
            (ld. fent, `eredmeny-header-summary-date`). */}
-        <div className="eredmeny-footer-date eredmeny-mobile-only">Kitöltés időpontja: {adatok.kitoltesDatuma ?? '—'}</div>
+        <div className="eredmeny-footer-date eredmeny-mobile-only">
+          <KitoltesValaszto eredmenyek={eredmenyek} valasztottIndex={valasztottIndex} onValaszt={setValasztottIndex} />
+        </div>
       </div>
       {oraPopupOpen && gt && (
         <OraMegoszlasPopup reszletek={gt.reszletek} onClose={() => setOraPopupOpen(false)} />

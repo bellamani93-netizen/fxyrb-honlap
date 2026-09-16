@@ -6,7 +6,6 @@ import Icon from '../components/Icon'
 import ToggleSwitch from '../components/ToggleSwitch'
 import { withBase } from '../lib/assetUrl'
 import { getSessionName } from '../lib/session'
-import { formatDateHu } from '../lib/allapotfelmeroEredmeny'
 import {
   useAllapotfelmero,
   type AllapotfelmeroAdatok,
@@ -804,14 +803,16 @@ export default function Allapotfelmero() {
 
   function handleNext() {
     if (step === TOTAL_STEPS) {
+      // a beküldés PILLANATÁNAK rögzítése ÉS az előzmény-listába archiválás
+      // MOSTANTÓL a `complete()` BELSEJÉBEN történik egyetlen, funkcionális
+      // state-frissítésként (ld. AllapotfelmeroContext.tsx jegyzete) — itt
+      // már nincs külön `setAdatok({ kitoltesDatuma... })` hívás.
       complete()
-      // a beküldés PILLANATÁT rögzítjük — az Eredménylap "Kitöltés
-      // időpontja" sora ezt mutatja (2026.09.07., Marci kérésére).
-      setAdatok({ kitoltesDatuma: formatDateHu(new Date()) })
-      // KÉSŐBB (Marci A)1 válasza, 2026.09.07.): a "beküldés" majd az
-      // oktatóanyagra fog navigálni — egyelőre, amíg az oktatóanyag lapja
-      // nem készül el, marad a /gyakorlatok.
-      navigate('/gyakorlatok')
+      // Marci kérésére (2026.09.16.: "Állapotfelmérés beküldése után rögtön
+      // az Eredményeim lapra navigál az oldal") — korábban /gyakorlatok
+      // volt a cél (Marci A)1 válasza, 2026.09.07., amíg az oktatóanyag lapja
+      // el nem készül); ez a korábbi átmeneti megoldás megszűnt.
+      navigate('/eredmenyeim')
       return
     }
     setStep((s) => Math.min(TOTAL_STEPS, s + 1))
