@@ -70,8 +70,12 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   megszolitas: '',
   szuletesiEv: '',
   szuletesiHo: '',
-  magassag: '',
-  suly: '',
+  // alapértelmezett 175 cm / 80 kg (2026.09.16., Marci kérésére) — korábban
+  // üres string volt, ami a "válassz" (letiltott) placeholder opciót nem
+  // tudta ténylegesen kijelölni, ezért a legördülő a lista ELSŐ (140 cm,
+  // ill. 40 kg) elemét mutatta alapértelmezettként.
+  magassag: '175',
+  suly: '80',
   tunetLeiras: '',
   gyakorisag: '',
   idotartam: '',

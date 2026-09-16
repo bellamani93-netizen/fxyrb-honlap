@@ -1855,3 +1855,9 @@ Marci kérte, hogy a popupban a kiválasztott tevékenység címe mindig ugyanol
 A megoldás: a gyűrű-szeletek és a cím színét ugyanabból az 1 függvényből, ugyanazokkal a bemenetekkel számolom — ehhez a kiválasztott tevékenység indexét is meg kellett őrizni (nem csak magát az objektumot), hogy a cím is ugyanúgy tudja kiszámolni a saját színét, mint a gyűrű.
 
 **Tesztelve böngészőben:** 2 különböző tevékenységre kattintva megerősítettem, hogy a cím színe pontosan egyezik a hozzá tartozó gyűrű-szelet színével, világos és sötét módban is. Konzol-hiba nem jelentkezett, build hibamentes.
+
+## 2026.09.16. — Állapotfelmérő: alapértelmezett magasság 175 cm, alapértelmezett súly 80 kg
+
+Marci jelezte, hogy a magasság-legördülő 140 cm-t mutat alapértelmezettként 175 helyett, a súly pedig hasonlóan a lista elejét mutatta. Az ok: a mezők alapértelmezett értéke üres string volt, ami a letiltott "válassz" placeholder opcióhoz tartozott — mivel ez nem jelölhető ki ténylegesen, a böngésző a lista első engedélyezett elemére esett vissza. A mezők alapértelmezett értékét valódi, létező opcióra (175 cm, 80 kg) változtattam.
+
+**Tesztelve böngészőben:** megerősítettem, hogy mindkét legördülő a helyes értéket mutatja a kérdőív 2. lapján. Konzol-hiba nem jelentkezett, build hibamentes.
