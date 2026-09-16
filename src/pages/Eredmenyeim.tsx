@@ -433,13 +433,20 @@ function OraMegoszlasPopup({ reszletek, onClose }: { reszletek: GerincterhelesRe
                   )
                 })}
               </g>
-              {/* Marci kérésére (2026.09.16.: "A körön belül így jelenjen
-                 meg az idő: 'napi 4,5 óra'") — a korábbi 2 sor (nagy %+alatta
-                 óraszám) helyett 1 EGYSÉGES felirat, a % nélkül (a nevet és a
-                 %-ot MÁR a fejléc, ill. a jelmagyarázat/gyűrű-arány úgyis
-                 hordozza). */}
+              {/* Marci kérésére (2026.09.16., pontosítás: "A %-os érték
+                 maradjon bent a kör közepén, és a napi X óra is, de
+                 férjenek el, ne lógjanak rá a körcikkekre") — MINDKÉT sor
+                 (nagy %-szám + alatta "napi X óra") megmarad, de a gyűrű
+                 belső lyuka (sugár ≈55 egység a 200-as viewBox-ban) szab
+                 határt: a %-szám valamivel kisebb, mint a 132. pont előtti
+                 eredeti (30px→26px), a "napi X óra" sor pedig végig kicsi
+                 (12px) marad — így a leghosszabb, tizedesjegyes időtartam
+                 ("napi 11,95 óra") is biztosan a lyukon BELÜL fér el. */}
               {aktiv && (
-                <text x={100} y={106} textAnchor="middle" fontSize={22} fontWeight={800} fill="var(--color-text)">napi {fmtHu(aktiv.ora)} óra</text>
+                <>
+                  <text x={100} y={92} textAnchor="middle" fontSize={26} fontWeight={800} fill="var(--color-text)">{fmtHu((aktiv.ora / 24) * 100)}%</text>
+                  <text x={100} y={116} textAnchor="middle" fontSize={12} fontWeight={600} fill="var(--color-text-muted)">napi {fmtHu(aktiv.ora)} óra</text>
+                </>
               )}
             </svg>
 

@@ -1867,3 +1867,9 @@ Marci jelezte, hogy a magasság-legördülő 140 cm-t mutat alapértelmezettkén
 Marci 3 összefüggő módosítást kért a popupon: a statikus "napi 24 óra megoszlása" fejléc-szöveg törlődjön, helyette a kiválasztott tevékenység neve (a saját, színes formázásával) álljon ott; a gyűrű közepén a korábbi 2 soros (százalék + óraszám) kijelzés helyett egyetlen, egyszerűbb "napi X óra" felirat jelenjen meg; és a tevékenység neve a gyűrű alól töröljön, mert a fejlécben már úgyis ott van.
 
 **Tesztelve böngészőben:** 2 különböző tevékenységre kattintva megerősítettem, hogy a fejléc a tevékenység nevét mutatja a megfelelő színben, a gyűrű közepén egyetlen sorban jelenik meg az óraszám, és a gyűrű alatt közvetlenül a 2 hatás-sáv következik, cím nélkül. Világos és sötét módban is ellenőrizve, nincs regresszió. Konzol-hiba nem jelentkezett, build hibamentes.
+
+## 2026.09.16. — Óra-megoszlás popup: a %-os érték visszakerül a gyűrű közepébe, biztonságos méretezéssel
+
+Marci pontosított: a százalékos érték maradjon bent a gyűrű közepén a "napi X óra" felirat mellett, de úgy, hogy egyik se lógjon rá a körcikkekre. Visszaraktam a százalékot, valamivel kisebb méretben, mint az eredeti (a korábbi 30px helyett 26px), biztonsági tartalékkal a gyűrű belső lyukának méretéhez képest.
+
+**Tesztelve böngészőben:** mind a 9 tesztadat-tevékenységet sorra kiválasztva, a szöveg tényleges renderelt szélességét lemérve megerősítettem, hogy a legszélesebb előforduló szöveg is jócskán a lyuk átmérője alatt marad. Világos, sötét és mobil nézetben is ellenőrizve, nincs átlógás. Konzol-hiba nem jelentkezett, build hibamentes.
