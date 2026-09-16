@@ -18,11 +18,17 @@ export type MessageTemplate = { name: string; subject?: string; body: string }
 
 const DEFAULT_MESSAGE_TEMPLATES: [MessageTemplate, MessageTemplate] = [
   {
-    name: 'lemondás — új időpont egyeztetése',
+    // Marci kérésére (2026.09.16.: "a lemondás üzeneteknél a gombon csak
+    // ennyi legyen: lemondás1 lemondás2") — a korábbi, hosszabb elnevezések
+    // (pl. "lemondás — új időpont egyeztetése") helyett ez a rövid, sorszámozott
+    // forma jelenik meg a gombon (ld. CallDetailModal.tsx, a gomb ezt az
+    // `elnevezés` mezőt jeleníti meg) — az Üzenetek oldalon továbbra is
+    // szabadon átírható.
+    name: 'lemondás1',
     body: 'Kedves {Név}! Sajnálattal értesítünk, hogy a foglalt konzultációs időpontodat törölnünk kellett. Kérjük, vedd fel velünk a kapcsolatot egy új időpont egyeztetéséhez. Üdvözlettel, a FixYourBack csapata.',
   },
   {
-    name: 'lemondás — kapacitáshiány',
+    name: 'lemondás2',
     body: 'Kedves {Név}! Sajnos jelenleg nincs szabad gyógytornász-kapacitásunk a foglalt időpontodra, ezért azt törölnünk kellett. Hamarosan jelentkezünk egy új javaslattal. Üdvözlettel, a FixYourBack csapata.',
   },
 ]

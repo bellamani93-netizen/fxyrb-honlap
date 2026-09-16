@@ -1913,3 +1913,9 @@ Minden sales-hívás (`SalesCall`) kapott egy `answers` (Calendly kérdés-vála
 Marci megadta az előző körben létrehozott "Pozitív elbírálás" email pontos tárgyát és szövegét. A sablon-típus kapott egy új, opcionális tárgy mezőt (a 2 elutasító sablonnál nincs rá szükség), és 3 új jelölőt a meglévő {Név} mellé: {Hónap}/{Nap}/{Időpont} — ezek a hívás saját, már lefoglalt Calendly-időpontjából töltődnek ki, mert a levél "45 perces konzultációja" maga ez az időpont. Mivel a dátum/idő hívásonként eltér, a "Pozitív elbírálás" gomb mostantól — az elutasító sablonokhoz hasonlóan — egy megerősítő lépést nyit, ami a tényleges, behelyettesített tárgyat és szöveget mutatja küldés előtt.
 
 **Tesztelve böngészőben:** "Pozitív elbírálás"-ra kattintva megerősítettem, hogy mind a 4 jelölő helyesen cserélődik (egy demó-hívásnál: "Pozitív elbírálás: hívni foglak szeptember 16-n!", "...hívni foglak a lefoglalt időpontban. szeptember 16 09:00 -kor..."). "Igen, küldés" a korábbi módon lezárta a folyamatot (jelvény eltűnt), "mégse" küldés nélkül visszalépett. Az Üzenetek oldal új tárgy-mezője helyes kezdőértéket mutat. Konzol-hiba nem jelentkezett, build és típusellenőrzés hibamentes.
+
+## 2026.09.16. — lemondás-sablonok rövid elnevezése a gombon
+
+Marci kérésére a 2 elutasító email-sablon gombjának felirata (a hívás-részletek popup "email küldése" szekciójában) "lemondás1"/"lemondás2"-re rövidült a korábbi, hosszabb elnevezés helyett. Az Üzenetek oldalon továbbra is szabadon átírható.
+
+**Tesztelve böngészőben:** megerősítettem, hogy a 2 gomb pontosan ezt a 2 rövid feliratot mutatja. Konzol-hiba nem jelentkezett, build hibamentes.
