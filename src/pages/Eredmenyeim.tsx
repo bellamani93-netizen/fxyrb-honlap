@@ -373,8 +373,16 @@ function OraMegoszlasPopup({ reszletek, onClose }: { reszletek: GerincterhelesRe
   return (
     <div className="modal-backdrop-fyb no-print" onClick={onClose}>
       <div className="modal-fyb card-fyb ora-megoszlas-modal" style={{ maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
+        {/* Marci kérésére (2026.09.16.: "'napi 24 óra megoszlása' ezt
+           töröljük, a helyére tegyük át azt a címet ami most lent van...
+           A formázása megmarad") — a fejlécben MOSTANTÓL a kiválasztott
+           tevékenység NEVE áll, a korábbi (132. pont) `.ora-reszlet-nev`
+           formázással (félkövér, a gyűrű-szeletével egyező szín) — a
+           statikus "napi 24 óra megoszlása" szöveg csak a (gyakorlatban
+           szinte sose előforduló) "nincs kitöltött tevékenység" esetben
+           marad meg tartalék címként. */}
         <div className="ora-megoszlas-head">
-          <h2 className="h6 mb-0">napi 24 óra megoszlása</h2>
+          <h2 className="ora-reszlet-nev mb-0" style={{ color: aktivSzin }}>{aktiv ? aktiv.nev : 'napi 24 óra megoszlása'}</h2>
           <button type="button" className="ora-megoszlas-close" onClick={onClose} aria-label="bezárás">✕</button>
         </div>
         {reszletek.length === 0 ? (
@@ -425,17 +433,21 @@ function OraMegoszlasPopup({ reszletek, onClose }: { reszletek: GerincterhelesRe
                   )
                 })}
               </g>
+              {/* Marci kérésére (2026.09.16.: "A körön belül így jelenjen
+                 meg az idő: 'napi 4,5 óra'") — a korábbi 2 sor (nagy %+alatta
+                 óraszám) helyett 1 EGYSÉGES felirat, a % nélkül (a nevet és a
+                 %-ot MÁR a fejléc, ill. a jelmagyarázat/gyűrű-arány úgyis
+                 hordozza). */}
               {aktiv && (
-                <>
-                  <text x={100} y={94} textAnchor="middle" fontSize={30} fontWeight={800} fill="var(--color-text)">{fmtHu((aktiv.ora / 24) * 100)}%</text>
-                  <text x={100} y={116} textAnchor="middle" fontSize={12} fontWeight={600} fill="var(--color-text-muted)">{fmtHu(aktiv.ora)} óra</text>
-                </>
+                <text x={100} y={106} textAnchor="middle" fontSize={22} fontWeight={800} fill="var(--color-text)">napi {fmtHu(aktiv.ora)} óra</text>
               )}
             </svg>
 
+            {/* Marci kérésére (2026.09.16.: "A kördiagram alatt nem kell
+               mégegyszer a cím - onnan töröljük") — a tevékenység neve
+               MOSTANTÓL kizárólag a fejlécben (ld. fent) jelenik meg. */}
             {aktiv && (
               <div className="ora-reszlet">
-                <div className="ora-reszlet-nev" style={{ color: aktivSzin }}>{aktiv.nev}</div>
                 <OraContribSav label="Gerincterhelésre gyakorolt hatás" value={aktiv.terheles} min={-20} max={20} unit="pont" />
                 <OraContribSav label="Aktivitási szintre gyakorolt hatás" value={aktiv.aktivitas} min={0} max={25} unit="pont" variant="intensitas" />
               </div>

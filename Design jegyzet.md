@@ -1278,3 +1278,14 @@ Marci: "Az állapotfelmérőn a magasságod legördülő alapértelmezett 175 cm
 **Javítás.** `DEFAULT_ALLAPOTFELMERO_ADATOK` (`AllapotfelmeroContext.tsx`) `magassag`/`suly` mezője `''`-ról `'175'`-re, ill. `'80'`-ra változott — mindkét érték VALÓDI, létező opció a `HEIGHTS` (140-210 cm) ill. `WEIGHTS` (40-160 kg) tartományban, ezért a legördülő ezután TÉNYLEGESEN ezt az opciót jelöli ki (nem csak "esetlegesen" ezt mutatja egy letiltott placeholder mellett).
 
 **Böngészős tesztelés (2026.09.16.):** `npm run build`/`tsc -b` hibamentesek. A 2. lapra érve DOM-méréssel megerősítve: `magasságod (cm)` select `.value` PONTOSAN `"175"`, `súlyod (kg)` select `.value` PONTOSAN `"80"`. Screenshot-tal is megerősítve — mindkét legördülő a helyes alapértelmezett értéket mutatja. Konzol-hiba nem jelentkezett. `localStorage` törlése megerősítve.
+
+134\. ÓRA-MEGOSZLÁS POPUP ÁTRENDEZÉSE: A CÍM A FEJLÉCBE KÖLTÖZIK, A GYŰRŰ KÖZEPÉN EGYSZERŰBB IDŐ-FELIRAT (2026.09.16., Marci kérésére)
+Marci: "'napi 24 óra megoszlása' ezt töröljük, a helyére tegyük át azt a címet ami most lent van (pl. Fizikai munka-állás). A formázása megmarad. A körön belül így jelenjen meg az idő: 'napi 4,5 óra'. A kördiagram alatt nem kell mégegyszer a cím- onnan töröljük." 3 összefüggő módosítás:
+
+**(1) A fejléc statikus "napi 24 óra megoszlása" szövege megszűnt** — helyette a KIVÁLASZTOTT tevékenység NEVE áll ott, a korábbi (132. pont) `.ora-reszlet-nev` formázással (félkövér, a gyűrű-szeletével EGYEZŐ szín) — "a formázása megmarad" szó szerint: nem a fejléc korábbi, semleges `h6` stílusát vette át a név, hanem FORDÍTVA, a név SAJÁT, színes formázása költözött a fejléc helyére. A statikus szöveg tartalék címként MEGMARADT a (gyakorlatban elő nem forduló) "nincs kitöltött tevékenység" esetre, amikor `aktiv` `null`.
+
+**(2) A gyűrű közepén a korábbi 2 sor (nagy %-szám + alatta óraszám) 1 EGYSÉGES feliratra egyszerűsödött: "napi {óra} óra"** — a SZÁZALÉK teljesen eltűnt a gyűrű közepéből (a névvel együtt a fejlécbe "átemelt" infó, illetve a gyűrű-arány maga is hordozza vizuálisan; nem duplikáljuk feleslegesen).
+
+**(3) A tevékenység-név KORÁBBI, gyűrű ALATTI előfordulása (`.ora-reszlet-nev` a `.ora-reszlet` dobozban) törölve** — a név ezután KIZÁRÓLAG a fejlécben jelenik meg, nincs duplikáció.
+
+**Böngészős tesztelés (2026.09.16.):** `npm run build`/`tsc -b` hibamentesek. "Példa nap" tesztadattal 2 különböző tevékenységre kattintva megerősítve: a fejléc a tevékenység nevét mutatja, a gyűrű-szeletével EGYEZŐ színben (pl. "Aktív utazás – gyaloglás" magenta); a gyűrű közepén EGYETLEN sorban "napi 0,5 óra" (tizedesvesszős, magyar formázással, % NÉLKÜL); a gyűrű ALATT közvetlenül a 2 hatás-sáv következik, cím nélkül. Screenshot-tal is megerősítve VILÁGOS és SÖTÉT módban — nincs vizuális regresszió, a hosszabb nevek (2 sorra törve) is rendben jelennek meg a fejlécben. Konzol-hiba nem jelentkezett. `localStorage` törlése megerősítve.

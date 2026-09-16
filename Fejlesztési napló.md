@@ -1861,3 +1861,9 @@ A megoldás: a gyűrű-szeletek és a cím színét ugyanabból az 1 függvényb
 Marci jelezte, hogy a magasság-legördülő 140 cm-t mutat alapértelmezettként 175 helyett, a súly pedig hasonlóan a lista elejét mutatta. Az ok: a mezők alapértelmezett értéke üres string volt, ami a letiltott "válassz" placeholder opcióhoz tartozott — mivel ez nem jelölhető ki ténylegesen, a böngésző a lista első engedélyezett elemére esett vissza. A mezők alapértelmezett értékét valódi, létező opcióra (175 cm, 80 kg) változtattam.
 
 **Tesztelve böngészőben:** megerősítettem, hogy mindkét legördülő a helyes értéket mutatja a kérdőív 2. lapján. Konzol-hiba nem jelentkezett, build hibamentes.
+
+## 2026.09.16. — Óra-megoszlás popup átrendezése: a cím a fejlécbe költözik, a gyűrű közepén egyszerűbb idő-felirat
+
+Marci 3 összefüggő módosítást kért a popupon: a statikus "napi 24 óra megoszlása" fejléc-szöveg törlődjön, helyette a kiválasztott tevékenység neve (a saját, színes formázásával) álljon ott; a gyűrű közepén a korábbi 2 soros (százalék + óraszám) kijelzés helyett egyetlen, egyszerűbb "napi X óra" felirat jelenjen meg; és a tevékenység neve a gyűrű alól töröljön, mert a fejlécben már úgyis ott van.
+
+**Tesztelve böngészőben:** 2 különböző tevékenységre kattintva megerősítettem, hogy a fejléc a tevékenység nevét mutatja a megfelelő színben, a gyűrű közepén egyetlen sorban jelenik meg az óraszám, és a gyűrű alatt közvetlenül a 2 hatás-sáv következik, cím nélkül. Világos és sötét módban is ellenőrizve, nincs regresszió. Konzol-hiba nem jelentkezett, build hibamentes.
