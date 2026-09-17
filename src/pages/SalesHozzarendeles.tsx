@@ -458,7 +458,27 @@ export default function SalesHozzarendeles() {
       setSalesCalls((prev) =>
         prev.map((c) =>
           c.id === importedCallId
-            ? { ...c, status: 'hozzarendelve', assignedGyt: formGytName ?? undefined, assignedGytId: pendingFormSlot.gytId, assignedStart: form.startTime, assignedClientId: id }
+            ? {
+                ...c,
+                status: 'hozzarendelve',
+                assignedGyt: formGytName ?? undefined,
+                assignedGytId: pendingFormSlot.gytId,
+                assignedStart: form.startTime,
+                assignedClientId: id,
+                // hibajavítás (2026.09.17., Marci jelzésére: "a hívásaim
+                // mellől töröld a lime jelzőt, ha már nincs új hívás") — a
+                // hozzárendelés (GYT-időpont foglalása) a hívást ITT is
+                // véglegesen "elbíráltnak" minősíti, akárcsak a hívás-
+                // részletek popup "Pozitív elbírálás" gombja — enélkül egy
+                // hívás, amit valaki a "Pozitív elbírálás" gomb KIHAGYÁSÁVAL,
+                // közvetlenül a "hozzárendelések" oldalon (a fő, dokumentált
+                // munkafolyamaton át) rendelt hozzá egy GYT-hez, örökre
+                // `isNew: true` maradt volna — a "hívásaim" lime pöttye
+                // SOSEM csökkent volna, még akkor sem, ha ténylegesen már
+                // nem maradt tényleges "nyitott" hívás.
+                isNew: false,
+                positiveSent: true,
+              }
             : c
         )
       )
