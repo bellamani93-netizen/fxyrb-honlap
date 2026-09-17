@@ -301,13 +301,6 @@ export default function SalesHozzarendeles() {
     })
   }
 
-  // a "+" gomb mostantól csak a "gyt naptárak" fülre vált (2026.08.28., 7. kör,
-  // Marci kérésére) — a tényleges létrehozás onnan, egy konkrét sávra kattintva
-  // indul (ugyanaz az élmény, mint amikor valaki magától nyitja meg a naptárat)
-  function openNewBookingEditor() {
-    setTab('gyt')
-  }
-
   // "booking" módban egy ütközés VALÓDI (blokkoló, nem felülbírálható) —
   // egy GYT fizikailag nem lehet két helyen egyszerre. A "szabad" jelzésű
   // sávok nem számítanak ütközésnek (ld. getEffectiveSlot 'szabad' ága).
@@ -528,17 +521,11 @@ export default function SalesHozzarendeles() {
                 gyt naptárak
               </button>
             </div>
-            <button
-              type="button"
-              className="circle-icon-btn circle-icon-btn--add"
-              aria-label="új időpont létrehozása"
-              onClick={openNewBookingEditor}
-            >
-              +
-            </button>
-            {/* mobilon a gyt-választó pirula-sor helyett ez a kompakt legördülő
-               kerül a "+" mellé (2026.08.28., 7. kör) — a pirula-sor ilyenkor
-               lent (a naptár fölött) rejtve marad, ld. d-none d-lg-flex ott */}
+            {/* a korábbi "+" gomb (2026.08.28., 7. kör) törölve (2026.09.17.,
+               Marci kérésére: "maradt egy funkció nélküli + gomb felül") — a
+               gomb egyetlen hatása a "gyt naptárak" fülre váltás volt, ami a
+               mellette álló fül-gombbal már eleve elérhető, önmagában tehát
+               felesleges, redundáns duplikátum volt. */}
             {tab === 'gyt' && (
               <div className="d-lg-none">
                 <MobileGytPicker value={calSelectedGyt} onChange={setCalSelectedGyt} gytList={GYT_COLLEAGUES} />

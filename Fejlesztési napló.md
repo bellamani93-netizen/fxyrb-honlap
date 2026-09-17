@@ -1951,3 +1951,9 @@ Marci jelezte, hogy a lime pötty akkor is "1"-en ragad, ha már mindenkinek kik
 Marci kérésére a naptár egy üres sávjára kattintva felvett, saját hívás popupján a 2 elutasító email-sablon gomb helyett egyetlen "törlés" gomb jelenik meg — egy ilyen hívásnak nincs külső Calendly-jelentkezője, akinek elutasító e-mailt kellene küldeni. A felismerést nem kellett új adatmezővel megoldani: minden Calendly-eredetű hívásnak van rögzített válasza, a sales saját maga felvett hívásainak sosincs — ez a meglévő jel elég a megkülönböztetéshez. A tényleges törlés ugyanazt a logikát futtatja, mint a meglévő elutasítás, csak egyszerűbb megerősítéssel (sablon-név nélkül).
 
 **Tesztelve böngészőben:** megerősítettem, hogy egy meglévő, Calendly-eredetű hívásnál nincs változás. A naptárban felvéve egy saját hívást, a popupja helyesen egyetlen "törlés" gombot mutatott a 2 sablon helyett, ami a megerősítés után ténylegesen törölte a hívást. Konzol-hiba nem jelentkezett, build hibamentes.
+
+## 2026.09.17. — hozzárendelések fül: felesleges "+" gomb törlése
+
+Marci jelezte, hogy a "hozzárendelések" fülön maradt egy funkció nélküli "+" gomb. A gomb egyetlen hatása a "gyt naptárak" fülre váltás volt, ami a mellette álló fül-gombbal is elérhető — tisztán redundáns duplikátum. Töröltem a gombot és a hozzá tartozó, mostantól sehol nem hivatkozott függvényt.
+
+**Tesztelve böngészőben:** asztali és mobil nézetben is megerősítettem, hogy a gomb eltűnt, a fülváltó sora törés nélkül jelenik meg, és a mobil-specifikus GYT-választó legördülő továbbra is helyesen működik. Konzol-hiba nem jelentkezett, build hibamentes.
