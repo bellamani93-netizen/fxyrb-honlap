@@ -282,7 +282,16 @@ export function buildInitialSalesCalls(today: Date): SalesCall[] {
       name: 'Farkas Milán',
       email: 'farkas.milan@pelda.hu',
       phone: '+36 30 901 2345',
-      callTime: `${iso(5)}T16:30`,
+      // hibajavítás (2026.09.17., Marci jelzésére: "továbbra is ott van az
+      // oldalsávban a hívásaim mellett egy lime 1-es... akkor is, ha már az
+      // összesnek kiküldtem a pozitív elbírálást") — korábban `iso(5)` (5
+      // nappal későbbre) volt beállítva, ezért ez a hívás SOSEM jelent meg a
+      // "mai hívások" listában, csak a naptár-nézetben, több hetet előre
+      // lapozva — könnyű volt észre sem venni, a lime pötty emiatt "ok
+      // nélkül ragadtnak" tűnt. Mostantól, a többi "mai" demó-hívással
+      // (Hajdú Zsófia, Molnár Tamás) egy napon, hogy MINDEN el nem bírált
+      // hívás elérhető legyen a fő nézetből.
+      callTime: `${iso(0)}T16:30`,
       status: 'var_gyt_re',
       isNew: true,
       answers: calendlyAnswers(
