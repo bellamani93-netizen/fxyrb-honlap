@@ -24,8 +24,11 @@ function buildUfNavItems(felmeresKesz: boolean): NavItem[] {
     { to: '/gyakorlatok', label: 'gyakorlatok', icon: '/icons/ikon_torna.svg', locked: !felmeresKesz },
     { to: '/konzultacioim', label: 'konzultációk', icon: '/icons/ikon_naptar.svg', locked: !felmeresKesz },
     { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
-    { label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: true },
-    { label: 'oktatóanyag', icon: '/icons/ikon_tanulas.svg', locked: true },
+    // "munkafüzet" és "oktatóanyag" feloldva (2026.09.17., Marci kérésére,
+    // 3. fázis) — ugyanaz a gating, mint a "gyakorlatok"/"eredményeim"
+    // pontoknál: az állapotfelmérő kitöltéséig zárolt marad.
+    { to: '/munkafuzet', label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: !felmeresKesz },
+    { to: '/oktatoanyag', label: 'oktatóanyag', icon: '/icons/ikon_tanulas.svg', locked: !felmeresKesz },
     { to: '/eredmenyeim', label: 'eredményeim', icon: '/icons/ikon_csillag.svg', locked: !felmeresKesz },
     { label: 'kérdéseim', icon: '/icons/ikon_csengo.svg', locked: true },
   ]
