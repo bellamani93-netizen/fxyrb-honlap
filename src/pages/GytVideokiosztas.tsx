@@ -6,8 +6,45 @@ import { EXERCISES, type ExerciseCode, type ClientVariables, codeLabel, suggeste
 import { getSelectedClientId, type GytLevel, type LevelState } from '../data/initialClients'
 import { useClients } from '../context/ClientsContext'
 import { useAdminEditGuard, AdminModifiedBadge } from '../hooks/useAdminEditGuard'
+import { useMaterials, isBuiltInCode, type Material } from '../context/MaterialsContext'
 
-const VIDEOS = (Object.keys(EXERCISES) as ExerciseCode[]).map((code) => `${code} ${EXERCISES[code].name}`)
+// a beépített 20 videókiosztás-kód (VÁLTOZATLAN alaplista) — az admin által
+// feltöltött EGYEDI videók (ld. AdminAnyagok.tsx/MaterialsContext.tsx) ehhez
+// adódnak hozzá FUTÁSIDŐBEN, a `GytVideokiosztasInner`-ben (ld. `videos`
+// lent) — 2026.09.17., Marci kérésére: "a videó hozzárendeléseknél ezeket a
+// videókat fogja látni a gyt és üf is... legyen olyan lehetőség is, hogy
+// teljesen új videót... létrehozni (ez nem kerül be az automata
+// videókiosztás ajánlásba, csak a legördülő menübe)".
+const BUILT_IN_VIDEOS = (Object.keys(EXERCISES) as ExerciseCode[]).map((code) => `${code} ${EXERCISES[code].name}`)
+
+// egy kis "▶" gomb, ami a feltöltött videót nyitja meg — csak akkor jelenik
+// meg, ha az adott kódhoz TÉNYLEGESEN van feltöltött anyag (ld.
+// MaterialsContext.tsx jegyzete: ez az egyetlen hely a projektben, ahol
+// ténylegesen lejátszható videó van, a többi "videó" mindenhol statikus
+// helykitöltő doboz marad).
+function MaterialPreviewButton({ material }: { material: Material }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="d-inline-block">
+      <button
+        type="button"
+        className="btn-fyb btn-fyb-ghost"
+        style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }}
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen((o) => !o)
+        }}
+      >
+        ▶ videó
+      </button>
+      {open && (
+        <div className="mt-2" style={{ maxWidth: 280 }} onClick={(e) => e.stopPropagation()}>
+          <video src={material.videoUrl} controls style={{ width: '100%', borderRadius: 'var(--radius-sm)', display: 'block' }} />
+        </div>
+      )}
+    </div>
+  )
+}
 
 function LevelDot({ state }: { state: LevelState }) {
   return (
@@ -35,10 +72,12 @@ function splitLabel(label: string) {
 }
 
 function VideoPickerInline({
+  videos,
   suggested,
   onAssign,
   chipSized,
 }: {
+  videos: string[]
   suggested?: string
   onAssign: (video: string) => void
   /** a "még nem kiosztható" jelvénnyel megegyező méretre húzza a legördülő gombot (2026.08.31.). */
@@ -83,7 +122,7 @@ function VideoPickerInline({
 
         {pickerOpen && (
           <ul className="level-select-menu">
-            {VIDEOS.map((v) => (
+            {videos.map((v) => (
               <li key={v}>
                 <button
                   type="button"
@@ -110,18 +149,23 @@ function LevelRow({
   editable,
   onAssign,
   modified,
+  videos,
+  getMaterialByCode,
 }: {
   level: GytLevel
   suggested?: string
   editable?: boolean
   onAssign?: (video: string) => void
   modified?: boolean
+  videos: string[]
+  getMaterialByCode: (code: string) => Material | undefined
 }) {
   const [expanded, setExpanded] = useState(false)
   const [correcting, setCorrecting] = useState(false)
   const statusLabel = level.state === 'lezart' ? 'kiosztva' : level.state === 'nyitva' ? 'kiosztásra vár' : 'még nem kiosztható'
   const statusClass = level.state === 'lezart' ? 'status-chip--done' : level.state === 'nyitva' ? 'status-chip--pending' : 'status-chip--locked'
   const assigned = level.video ? splitLabel(level.video) : null
+  const assignedMaterial = assigned ? getMaterialByCode(assigned.code) : undefined
   const suggestedParsed = suggested ? splitLabel(suggested) : null
   const isDoneDisplay = level.state === 'lezart' && assigned && !correcting
   const showCorrectButton = level.state === 'lezart' && editable && !!onAssign && !correcting
@@ -168,10 +212,12 @@ function LevelRow({
           <span className="fw-bold">{assigned!.code}</span>
           <span style={{ color: 'var(--color-text-muted)' }}>{assigned!.title}</span>
           {noteSuffix}
+          {assignedMaterial && <MaterialPreviewButton material={assignedMaterial} />}
         </>
       )}
       {level.state === 'lezart' && correcting && onAssign && (
         <VideoPickerInline
+          videos={videos}
           onAssign={(video) => {
             onAssign(video)
             setCorrecting(false)
@@ -179,7 +225,7 @@ function LevelRow({
         />
       )}
       {level.state === 'zarolt' && <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
-      {level.state === 'nyitva' && onAssign && <VideoPickerInline suggested={suggested} onAssign={onAssign} />}
+      {level.state === 'nyitva' && onAssign && <VideoPickerInline videos={videos} suggested={suggested} onAssign={onAssign} />}
     </>
   )
 
@@ -214,6 +260,11 @@ function LevelRow({
             <span style={{ gridColumn: 3, color: 'var(--color-text-muted)' }}>
               {assigned!.title}
               {noteSuffix}
+              {assignedMaterial && (
+                <span className="ms-2 d-inline-block">
+                  <MaterialPreviewButton material={assignedMaterial} />
+                </span>
+              )}
             </span>
           </>
         ) : (
@@ -224,7 +275,7 @@ function LevelRow({
 
         <span style={{ gridColumn: 4, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           {isPending && onAssign ? (
-            <VideoPickerInline onAssign={onAssign} chipSized />
+            <VideoPickerInline videos={videos} onAssign={onAssign} chipSized />
           ) : (
             <>
               <span className={`status-chip ${statusClass}`} style={correctButton ? undefined : { flex: 1, textAlign: 'center' }}>
@@ -257,7 +308,7 @@ function LevelRow({
           <div className="d-flex flex-column align-items-center gap-2 mt-2 pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
             {isPending ? suggestedMobile : flowContent}
             {isPending && onAssign ? (
-              <VideoPickerInline onAssign={onAssign} />
+              <VideoPickerInline videos={videos} onAssign={onAssign} />
             ) : (
               <span className="d-flex align-items-center gap-2">
                 <span className={`status-chip ${statusClass}`}>{statusLabel}</span>
@@ -280,6 +331,8 @@ function VideoPickerRow({
   onAssign,
   onNoteChange,
   modified,
+  videos,
+  getMaterialByCode,
 }: {
   label: string
   assigned: string | null
@@ -288,7 +341,10 @@ function VideoPickerRow({
   onAssign: (video: string) => void
   onNoteChange?: (note: string) => void
   modified?: boolean
+  videos: string[]
+  getMaterialByCode: (code: string) => Material | undefined
 }) {
+  const assignedMaterial = assigned ? getMaterialByCode(splitLabel(assigned).code) : undefined
   const [open, setOpen] = useState(false)
   const [showNoteInput, setShowNoteInput] = useState(!!note)
   const ref = useRef<HTMLDivElement>(null)
@@ -321,6 +377,7 @@ function VideoPickerRow({
               javasolt: {suggested}
             </button>
           )}
+          {assignedMaterial && <MaterialPreviewButton material={assignedMaterial} />}
           <div className={`level-select ${open ? 'is-open' : ''}`} ref={ref}>
             <button type="button" className="level-select-toggle" onClick={() => setOpen((o) => !o)}>
               <span style={{ color: assigned ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
@@ -331,7 +388,7 @@ function VideoPickerRow({
 
             {open && (
               <ul className="level-select-menu">
-                {VIDEOS.map((v) => (
+                {videos.map((v) => (
                   <li key={v}>
                     <button
                       type="button"
@@ -537,6 +594,16 @@ function GytVideokiosztasInner({ clientId }: { clientId: string }) {
   const { clients, updateClient } = useClients()
   const client = clients.find((c) => c.id === clientId)!
 
+  // a legördülőben megjelenő teljes videó-lista: a beépített 20 kód + az
+  // admin által feltöltött EGYEDI videók (2026.09.17., Marci kérésére) — a
+  // beépített kódokhoz feltöltött anyagok (ld. AdminAnyagok.tsx) NEM adnak
+  // hozzá új sort a listához, mert a kódjuk már szerepel a `BUILT_IN_VIDEOS`-ban,
+  // csak a `getMaterialByCode`-on keresztül elérhető videó-előnézetet teszik
+  // lehetővé (ld. `MaterialPreviewButton` fenti jegyzete).
+  const { materials, getMaterialByCode } = useMaterials()
+  const customVideos = materials.filter((m) => !isBuiltInCode(m.code)).map((m) => `${m.code} ${m.title}`)
+  const videos = [...BUILT_IN_VIDEOS, ...customVideos]
+
   // az állapotfelmérő értékei mostantól az összevont Client rekord RÉSZE
   // (variables mező, mindig jelen van) — a korábbi, id szerint kulcsolt külön
   // "initialVariables" map megszűnt (2026.09.01., ügyfél-nyilvántartások
@@ -662,6 +729,8 @@ function GytVideokiosztasInner({ clientId }: { clientId: string }) {
                   suggested={l.state === 'nyitva' && suggested[l.num - 1] ? codeLabel(suggested[l.num - 1]) : undefined}
                   editable={editableNums.has(l.num)}
                   modified={isModified(`level-${l.num}`)}
+                  videos={videos}
+                  getMaterialByCode={getMaterialByCode}
                   onAssign={
                     l.state === 'nyitva'
                       ? (video) => adminGuard(`level-${l.num}`, () => setLevels((prev) => prev.map((x) => (x.num === l.num ? { ...x, video, state: 'lezart' as LevelState } : x))))
@@ -729,6 +798,8 @@ function GytVideokiosztasInner({ clientId }: { clientId: string }) {
                     assigned={b.video}
                     note={b.note}
                     modified={isModified(`bulk-${b.num}`)}
+                    videos={videos}
+                    getMaterialByCode={getMaterialByCode}
                     onAssign={(video) => adminGuard(`bulk-${b.num}`, () => setBulk((prev) => prev.map((x) => (x.num === b.num ? { ...x, video } : x))))}
                     onNoteChange={(note) => adminGuard(`bulk-${b.num}`, () => setBulk((prev) => prev.map((x) => (x.num === b.num ? { ...x, note } : x))))}
                   />

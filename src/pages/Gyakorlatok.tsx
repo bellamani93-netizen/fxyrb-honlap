@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { EXERCISES, SEQUENCES, HOLD_START_SECONDS, HOLD_STEP_SECONDS, HOLD_STEP_DAYS } from '../data/tornaSzintek'
+import { useMaterials } from '../context/MaterialsContext'
 
 type LevelState = 'lezart' | 'aktiv' | 'zarolt'
 
@@ -59,6 +60,11 @@ export default function Gyakorlatok() {
   const wrapRef = useRef<HTMLDivElement>(null)
   const level = levels.find((l) => l.num === selected)!
   const exercise = level.code ? EXERCISES[level.code as keyof typeof EXERCISES] : undefined
+  // ha az admin feltöltött videót ehhez a kódhoz (ld. AdminAnyagok.tsx,
+  // 2026.09.17., Marci kérésére), a statikus "▶" helykitöltő helyett a
+  // TÉNYLEGES videó jelenik meg — ld. MaterialsContext.tsx jegyzete.
+  const { getMaterialByCode } = useMaterials()
+  const material = level.code ? getMaterialByCode(level.code) : undefined
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -129,7 +135,11 @@ export default function Gyakorlatok() {
           ) : (
             <>
               <div className="video-thumb mb-2">
-                <span className="play-btn">▶</span>
+                {material ? (
+                  <video src={material.videoUrl} controls />
+                ) : (
+                  <span className="play-btn">▶</span>
+                )}
               </div>
               <p className="small mb-2" style={{ color: 'var(--color-text-muted)' }}>{level.period}</p>
 

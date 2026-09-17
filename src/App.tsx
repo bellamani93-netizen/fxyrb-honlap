@@ -21,10 +21,12 @@ import SalesHozzarendeles from './pages/SalesHozzarendeles'
 import SalesUzenetek from './pages/SalesUzenetek'
 import AdminMunkatarsak from './pages/AdminMunkatarsak'
 import AdminBlog from './pages/AdminBlog'
+import AdminAnyagok from './pages/AdminAnyagok'
 import { SalesDataProvider, useSalesData } from './context/SalesDataContext'
 import { CalendarProvider } from './context/CalendarContext'
 import { ClientsProvider, useClients } from './context/ClientsContext'
 import { BlogProvider } from './context/BlogContext'
+import { MaterialsProvider } from './context/MaterialsContext'
 import { AllapotfelmeroProvider, useAllapotfelmero } from './context/AllapotfelmeroContext'
 import { LOGGED_IN_GYT_ID } from './data/colleagues'
 
@@ -63,6 +65,10 @@ function buildSalesNavItems(newCallsCount: number): NavItem[] {
 const adminNavItems: NavItem[] = [
   { to: '/admin/munkatarsak', label: 'munkatársak', icon: '/icons/ikon_kezdolap.svg' },
   { to: '/admin/blog', label: 'blog', icon: '/icons/ikon_munkafuzet.svg' },
+  // "anyagok kezelése" (2026.09.17., Marci kérésére: "legyen egy új
+  // oldalsávelem: anyagok kezelése") — videók feltöltése a videókiosztás
+  // meglévő kódjaihoz, ill. teljesen új, egyedi kódú/című videó létrehozása.
+  { to: '/admin/anyagok', label: 'anyagok kezelése', icon: '/icons/ikon_video.svg' },
   { label: 'statisztikák', icon: '/icons/ikon_csillag.svg', locked: true },
 ]
 
@@ -80,9 +86,11 @@ export default function App() {
            "ügyfeleim" pöttyénél a ClientsProvider esetében. */}
         <SalesDataProvider>
           <BlogProvider>
-            <AllapotfelmeroProvider>
-              <AppRoutes />
-            </AllapotfelmeroProvider>
+            <MaterialsProvider>
+              <AllapotfelmeroProvider>
+                <AppRoutes />
+              </AllapotfelmeroProvider>
+            </MaterialsProvider>
           </BlogProvider>
         </SalesDataProvider>
       </CalendarProvider>
@@ -146,6 +154,7 @@ function AppRoutes() {
       <Route element={<AppLayout navItems={adminNavItems} userName="Anna" role="admin" />}>
         <Route path="/admin/munkatarsak" element={<AdminMunkatarsak />} />
         <Route path="/admin/blog" element={<AdminBlog />} />
+        <Route path="/admin/anyagok" element={<AdminAnyagok />} />
       </Route>
       </Routes>
     </>
