@@ -1919,3 +1919,9 @@ Marci megadta az előző körben létrehozott "Pozitív elbírálás" email pont
 Marci kérésére a 2 elutasító email-sablon gombjának felirata (a hívás-részletek popup "email küldése" szekciójában) "lemondás1"/"lemondás2"-re rövidült a korábbi, hosszabb elnevezés helyett. Az Üzenetek oldalon továbbra is szabadon átírható.
 
 **Tesztelve böngészőben:** megerősítettem, hogy a 2 gomb pontosan ezt a 2 rövid feliratot mutatja. Konzol-hiba nem jelentkezett, build hibamentes.
+
+## 2026.09.17. — a hívás-részletek popup asztali nézetben szélesebb, fekvő elrendezésű
+
+Marci kérésére a hívás-részletek popup asztali nézetben (992px-től) szélesebb (44rem) és 2 oszlopos lett: bal oldalt az alapadatok és a Calendly-válaszok, jobb oldalt a kimenet-gombok és az email küldése szekció. A megosztott, minden popupra érvényes alap-osztályt nem módosítottam — egy önálló, csak ehhez a popuphoz tartozó osztályt vezettem be, hogy más popupok ne változzanak. Mobilon/táblagépen a korábbi, 1 oszlopos elrendezés maradt.
+
+**Tesztelve böngészőben:** asztali nézetben (1200px, világos és sötét módban is) screenshot-tal megerősítettem a 2 oszlopos elrendezést. Mobil nézetben (375×812) megerősítettem, hogy nincs változás. A teljes megnyitási lánc (fogaskerék, időpontra kattintás, naptár-nézet) mindegyike helyesen nyitja meg a szélesített popupot. Konzol-hiba nem jelentkezett, build hibamentes.

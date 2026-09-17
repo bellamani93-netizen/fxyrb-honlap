@@ -93,83 +93,94 @@ export default function CallDetailModal({ call, onClose, onSetOutcome, onReject,
 
   return (
     <div className="modal-backdrop-fyb" onClick={onClose}>
-      <div className="modal-fyb card-fyb" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-fyb card-fyb call-detail-modal" onClick={(e) => e.stopPropagation()}>
         <h2 className="h6 mb-3">hívás módosítása</h2>
 
-        <div className="gyt-booking-preview mb-3">
-          <span className="fw-bold">{call.name}</span>
-          <span className="small" style={{ color: 'var(--color-text-muted)' }}>{formatStart(call.callTime)}</span>
-          <span className="small" style={{ color: 'var(--color-text-muted)' }}>{call.email}</span>
-          <span className="small" style={{ color: 'var(--color-text-muted)' }}>{call.phone}</span>
-        </div>
-
-        {/* Calendly-válaszok (2026.09.16., Marci kérésére: "amikor érkezik
-           egy foglalás a Calendly-től, akkor a Calendly-ben megadott
-           válaszokat látnunk kell az időpontra kattintva") — csak akkor
-           jelenik meg, ha van hozzá rögzített válasz (a sales saját maga
-           által, kézzel felvett hívásoknál, ld. SalesHivasaim.tsx
-           handleCreateCall, nincs Calendly-adat). */}
-        {call.answers && call.answers.length > 0 && (
-          <div className="mb-3">
-            <h3 className="h6 mb-2" style={{ fontSize: '0.9rem' }}>Calendly-válaszok</h3>
-            <div className="d-flex flex-column gap-2">
-              {call.answers.map((qa, i) => (
-                <div key={i}>
-                  <div className="small fw-bold">{qa.question}</div>
-                  <div className="small" style={{ color: 'var(--color-text-muted)' }}>{qa.answer}</div>
-                </div>
-              ))}
+        {/* asztali nézetben (≥992px) 2 oszlopos, fekvő elrendezés (2026.09.17.,
+           Marci kérésére) — bal: alapadatok+Calendly-válaszok, jobb: kimenet-
+           gombok+email küldése; mobilon/táblagépen a `.call-detail-modal-grid`
+           grid nélkül egyszerűen egymás alá rendezi a 2 oszlopot, UGYANABBAN a
+           sorrendben, mint eddig (ld. components.css jegyzete). */}
+        <div className="call-detail-modal-grid">
+          <div>
+            <div className="gyt-booking-preview mb-3">
+              <span className="fw-bold">{call.name}</span>
+              <span className="small" style={{ color: 'var(--color-text-muted)' }}>{formatStart(call.callTime)}</span>
+              <span className="small" style={{ color: 'var(--color-text-muted)' }}>{call.email}</span>
+              <span className="small" style={{ color: 'var(--color-text-muted)' }}>{call.phone}</span>
             </div>
-          </div>
-        )}
 
-        <div className="d-flex justify-content-center gap-4 mb-3">
-          <div className="text-center">
-            <button
-              type="button"
-              className="circle-icon-btn circle-icon-btn--warning"
-              aria-label="nem jelent meg"
-              onClick={() => {
-                onSetOutcome('nem_jelent_meg')
-                onClose()
-              }}
-            >
-              !
-            </button>
-            <p className="small mb-0 mt-1">nem jött</p>
+            {/* Calendly-válaszok (2026.09.16., Marci kérésére: "amikor
+               érkezik egy foglalás a Calendly-től, akkor a Calendly-ben
+               megadott válaszokat látnunk kell az időpontra kattintva") —
+               csak akkor jelenik meg, ha van hozzá rögzített válasz (a
+               sales saját maga által, kézzel felvett hívásoknál, ld.
+               SalesHivasaim.tsx handleCreateCall, nincs Calendly-adat). */}
+            {call.answers && call.answers.length > 0 && (
+              <div className="mb-3">
+                <h3 className="h6 mb-2" style={{ fontSize: '0.9rem' }}>Calendly-válaszok</h3>
+                <div className="d-flex flex-column gap-2">
+                  {call.answers.map((qa, i) => (
+                    <div key={i}>
+                      <div className="small fw-bold">{qa.question}</div>
+                      <div className="small" style={{ color: 'var(--color-text-muted)' }}>{qa.answer}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <div className="text-center">
-            <button
-              type="button"
-              className="circle-icon-btn circle-icon-btn--success"
-              aria-label="rendben"
-              onClick={() => {
-                onSetOutcome('rendben')
-                onClose()
-              }}
-            >
-              <Icon src="/icons/ikon_pipa.svg" />
-            </button>
-            <p className="small mb-0 mt-1">rendben</p>
-          </div>
-        </div>
 
-        <div className="mb-3">
-          <h3 className="h6 mb-2" style={{ fontSize: '0.9rem' }}>email küldése</h3>
-          <div className="d-flex flex-column gap-2">
-            <button type="button" className="btn-fyb btn-fyb-highlight text-start" onClick={() => setConfirmingAccept(true)}>
-              {positiveTemplate.name}
-            </button>
-            {messageTemplates.map((tpl, i) => (
-              <button
-                key={i}
-                type="button"
-                className="btn-fyb btn-fyb-danger text-start"
-                onClick={() => setPendingRejectIndex(i as 0 | 1)}
-              >
-                {tpl.name}
-              </button>
-            ))}
+          <div>
+            <div className="d-flex justify-content-center gap-4 mb-3">
+              <div className="text-center">
+                <button
+                  type="button"
+                  className="circle-icon-btn circle-icon-btn--warning"
+                  aria-label="nem jelent meg"
+                  onClick={() => {
+                    onSetOutcome('nem_jelent_meg')
+                    onClose()
+                  }}
+                >
+                  !
+                </button>
+                <p className="small mb-0 mt-1">nem jött</p>
+              </div>
+              <div className="text-center">
+                <button
+                  type="button"
+                  className="circle-icon-btn circle-icon-btn--success"
+                  aria-label="rendben"
+                  onClick={() => {
+                    onSetOutcome('rendben')
+                    onClose()
+                  }}
+                >
+                  <Icon src="/icons/ikon_pipa.svg" />
+                </button>
+                <p className="small mb-0 mt-1">rendben</p>
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <h3 className="h6 mb-2" style={{ fontSize: '0.9rem' }}>email küldése</h3>
+              <div className="d-flex flex-column gap-2">
+                <button type="button" className="btn-fyb btn-fyb-highlight text-start" onClick={() => setConfirmingAccept(true)}>
+                  {positiveTemplate.name}
+                </button>
+                {messageTemplates.map((tpl, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className="btn-fyb btn-fyb-danger text-start"
+                    onClick={() => setPendingRejectIndex(i as 0 | 1)}
+                  >
+                    {tpl.name}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 

@@ -1313,6 +1313,31 @@ html[data-theme='dark'] .modal-backdrop-fyb {
   max-height: calc(100dvh - 2rem);
   overflow-y: auto;
 }
+/* a hívás-részletek popup (CallDetailModal.tsx) asztali nézetben szélesebb,
+   fekvő (landscape) elrendezésű (2026.09.17., Marci kérésére) — mobilon/
+   táblagépen VÁLTOZATLANUL a `.modal-fyb` alap szélessége és az EGY oszlopos,
+   fentről lefelé sorrend marad (a `.call-detail-modal-grid` 2 gyerek-diója
+   grid NÉLKÜL egyszerűen egymás alá kerül, ugyanabban a sorrendben, mint
+   eddig). Csak `min-width:992px`-től válik ténylegesen 2 oszlopossá: bal
+   oldalt az alapadatok+Calendly-válaszok, jobb oldalt a kimenet-gombok+email
+   küldése — ugyanaz a minta, mint pl. az Eredménylap `.eredmeny-col`-jainál,
+   itt viszont csak 2 (nem 3) oszlop kell, és a `.card-fyb--lime-border`-hoz
+   hasonlóan ez is egy ÖNÁLLÓ, csak ehhez a popuphoz tartozó osztály (nem az
+   ÖSSZES `.modal-fyb`-t szélesíti — azt más popupok, pl. BodyChartSizePopup,
+   VÁLTOZATLAN, keskeny méretben használják). */
+.call-detail-modal {
+  max-width: 24rem;
+}
+@media (min-width: 992px) {
+  .call-detail-modal {
+    max-width: 44rem;
+  }
+  .call-detail-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1.75rem;
+  }
+}
 
 /* --- SALES ügyféllista: valódi rács, hogy az azonos oszlopok (név, email,
    kezdés, gyógytornász, befizetett) minden sorban pontosan egymás alá
