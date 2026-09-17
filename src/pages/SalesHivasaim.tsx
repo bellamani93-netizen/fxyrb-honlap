@@ -157,7 +157,11 @@ export default function SalesHivasaim() {
 
   // piros gomb: ha a hívás már foglalt GYT-időponttal járt, azt a naptár-
   // sávot és a belőle létrehozott ügyfelet is töröljük — nem maradhat "árva"
-  // foglalás egy elutasított hívás mögött
+  // foglalás egy elutasított hívás mögött. UGYANEZ a függvény szolgálja ki
+  // a CallDetailModal `onReject` (elutasító sablon) ÉS `onDelete` (saját
+  // hívás sima törlése, ld. ott az `isOwnCall` jegyzetét) propját is — a
+  // tényleges takarítás mindkét esetben azonos, csak a felhasználói felület
+  // (van-e sablon-választás) különbözik.
   function handleReject(call: SalesCall) {
     if (call.assignedGytId && call.assignedStart && call.assignedClientId) {
       const [dateISO, hm] = call.assignedStart.split('T')
@@ -267,6 +271,7 @@ export default function SalesHivasaim() {
             onSetOutcome={(outcome) => handleSetOutcome(modifyingCall.id, outcome)}
             onReject={() => handleReject(modifyingCall)}
             onAccept={() => handleAccept(modifyingCall.id)}
+            onDelete={() => handleReject(modifyingCall)}
           />
         )}
 
