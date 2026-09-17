@@ -117,8 +117,12 @@
      (ld. --gyt-color-* fent). Szándékosan FIX, nem mód-függő, mint a fenti
      macOS-színek. */
   --mint-rgb: 95, 211, 188; /* var(--mint) rgb-változata, "tervezett" halvány tinthez */
-  --pale-orange: #E8A968; /* "szabad" időpont jelölése */
-  --pale-orange-rgb: 232, 169, 104;
+  /* "szabad" időpont jelölése — korábban `--pale-orange` (narancssárga),
+     Marci kérésére (2026.09.17.) szürkére váltva, a token nevét is
+     követve, hogy ne maradjon félrevezető ("narancs" nevű, de szürke
+     színt adó) változó. */
+  --pale-gray: #C7CBCF;
+  --pale-gray-rgb: 199, 203, 207;
 
   /* alak / árnyék */
   --radius-pill: 999px;

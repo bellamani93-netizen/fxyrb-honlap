@@ -1967,3 +1967,9 @@ Két valós, érdemi hibát találtam. Az első: egy nem fizetett ügyfél törl
 Emellett találtam és eltávolítottam egy árva CSS-szabályt (egy korábbi popup-átalakításból maradt), és pontosítottam egy apró felirat-pontatlanságot (a "email küldése" cím helyett "teendők" jelenik meg, ha a hívás saját, nem valódi Calendly-foglalás, mert ott az egyik gomb nem email-küldés). Egy további, kisebb súlyú, már a mai kör előttről származó hiányosságot (az ügyfél "megjegyzés" mezője a listában nem látszik, csak a booking-szerkesztő újranyitásával érhető el) jeleztem, de szándékosan nem módosítottam — ez inkább tervezési döntés, mint egyértelmű hiba.
 
 **Tesztelve böngészőben:** mindkét hibát előbb reprodukáltam, majd a javítás után megerősítettem, hogy megszűntek — mind asztali, mind mobil nézetben. Konzol-hiba nem jelentkezett, build és típusellenőrzés hibamentes.
+
+## 2026.09.17. — GYT naptár: a "szabad" időpontok szürkék a narancs helyett
+
+Marci kérésére a GYT saját "naptáram" nézetében a "szabad" sávok színe narancsról szürkére változott. A design-tokent (ami kizárólag erre az egy célra létezett) átneveztem, hogy a változó neve is kövesse az új jelentését.
+
+**Tesztelve böngészőben:** világos és sötét módban is megerősítettem, hogy a szabad sávok szürkék, jól olvashatóak, a többi sáv-szín (tervezett, lefoglalt) nem változott. Konzol-hiba nem jelentkezett, build hibamentes.

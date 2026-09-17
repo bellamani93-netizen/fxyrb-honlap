@@ -269,15 +269,16 @@ export default function GytNaptar() {
               getSlotColor={(_id, dateISO, hour) => {
                 // saját naptár-színkód (2026.08.31., Marci kérésére) — MINDEN gyt
                 // ugyanígy látja a sajátját, függetlenül a SALES-oldali kolléga-
-                // színétől: szabad halvány narancssárga, tervezett (terv) MINDIG
-                // világos menta (a típus dönt, nem az alkalom-szám — 2026.09.01.,
-                // Marci hibajelzésére: korábban egy lime, 1. alkalmú bejegyzés
-                // terv-re váltva is lime maradt, mert az alkalom===1 ellenőrzés
+                // színétől: szabad szürke (2026.09.17., Marci kérésére — korábban
+                // halvány narancssárga volt), tervezett (terv) MINDIG világos
+                // menta (a típus dönt, nem az alkalom-szám — 2026.09.01., Marci
+                // hibajelzésére: korábban egy lime, 1. alkalmú bejegyzés terv-re
+                // váltva is lime maradt, mert az alkalom===1 ellenőrzés
                 // megelőzte a "terv"-ellenőrzést), lefoglalt (konzultáció) 1.
                 // alkalma lime, minden más konzultáció mentett menta.
                 const meta = getBookingMeta(OWN_ID, dateISO, hour)
                 if (meta.kind === 'szabad') {
-                  return { solid: 'var(--pale-orange)', tint: 'var(--pale-orange)', textSolid: 'var(--navy)', textTint: 'var(--navy)' }
+                  return { solid: 'var(--pale-gray)', tint: 'var(--pale-gray)', textSolid: 'var(--navy)', textTint: 'var(--navy)' }
                 }
                 if (meta.kind === 'terv') {
                   const c = 'rgba(var(--mint-rgb), 0.35)'
