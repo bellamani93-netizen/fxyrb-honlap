@@ -73,18 +73,35 @@ export default function CallDetailModal({ call, onClose, onSetOutcome, onReject,
 
   // "Pozitív elbírálás" — a 2 elutasító sablontól eltérően itt a TÉNYLEGES,
   // behelyettesített tárgyat+szöveget is megmutatjuk küldés előtt (ld.
-  // `substitute` fenti jegyzete), mert a dátum/idő hívásonként változik.
+  // `substitute` fenti jegyzete), mert a dátum/idő hívásonként változik. A
+  // `.call-detail-modal` (2026.09.17., Marci kérésére: "a pozitív elbírálás
+  // gombra kattintva felugró popup is legyen landscape") ugyanazt a szélesebb
+  // osztályt kapja, mint a fő nézet — a hosszabb, 3 bekezdéses üzenet-szöveg
+  // így kényelmesebben, kevesebb sortöréssel fér el.
   if (confirmingAccept) {
     return (
       <div className="modal-backdrop-fyb" onClick={() => setConfirmingAccept(false)}>
-        <div className="modal-fyb card-fyb" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-fyb card-fyb call-detail-modal" onClick={(e) => e.stopPropagation()}>
           <p className="small fw-bold mb-1">tárgy</p>
           <p className="mb-3">{substitute(positiveTemplate.subject ?? '', call)}</p>
           <p className="small fw-bold mb-1">üzenet</p>
           <p className="mb-3" style={{ whiteSpace: 'pre-wrap' }}>{substitute(positiveTemplate.body, call)}</p>
           <div className="d-flex justify-content-end gap-2">
             <button type="button" className="btn-fyb btn-fyb-ghost" onClick={() => setConfirmingAccept(false)}>mégse</button>
-            <button type="button" className="btn-fyb btn-fyb-highlight" onClick={onAccept}>igen, küldés</button>
+            {/* küldés UTÁN a fő nézetre lépünk vissza (NEM zárjuk be a popupot,
+               ld. SalesHivasaim.tsx handleAccept jegyzete), hogy a "Pozitív
+               elbírálás" gomb megváltozott — letiltott, "visszaigazolás
+               kiküldve" — állapota rögtön látható legyen. */}
+            <button
+              type="button"
+              className="btn-fyb btn-fyb-highlight"
+              onClick={() => {
+                onAccept()
+                setConfirmingAccept(false)
+              }}
+            >
+              igen, küldés
+            </button>
           </div>
         </div>
       </div>
@@ -166,8 +183,17 @@ export default function CallDetailModal({ call, onClose, onSetOutcome, onReject,
             <div className="mb-3">
               <h3 className="h6 mb-2" style={{ fontSize: '0.9rem' }}>email küldése</h3>
               <div className="d-flex flex-column gap-2">
-                <button type="button" className="btn-fyb btn-fyb-highlight text-start" onClick={() => setConfirmingAccept(true)}>
-                  {positiveTemplate.name}
+                {/* küldés után letiltva, felirata "visszaigazolás kiküldve"-
+                   re vált (2026.09.17., Marci kérésére) — a `.btn-fyb:disabled`
+                   meglévő stílusa (halványítás, tiltott kurzor) automatikusan
+                   érvényesül. */}
+                <button
+                  type="button"
+                  className="btn-fyb btn-fyb-highlight text-start"
+                  onClick={() => setConfirmingAccept(true)}
+                  disabled={call.positiveSent}
+                >
+                  {call.positiveSent ? 'visszaigazolás kiküldve' : positiveTemplate.name}
                 </button>
                 {messageTemplates.map((tpl, i) => (
                   <button

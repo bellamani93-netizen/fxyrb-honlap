@@ -42,7 +42,15 @@ export default function SalesHivasaim() {
   const { salesCalls, setSalesCalls, setClients, removeBooking, today } = useSalesData()
   const [view, setView] = useState<SubView>('mai')
   const [weekOffset, setWeekOffset] = useState(0)
-  const [modifyingCall, setModifyingCall] = useState<SalesCall | null>(null)
+  // hibajavítás/finomítás (2026.09.17., Marci kérésére: a "Pozitív elbírálás"
+  // küldése UTÁN a popup NYITVA marad, hogy a gomb megváltozott — kiküldve,
+  // letiltott — állapota LÁTHATÓ legyen, ld. lent handleAccept) — emiatt a
+  // modifyingCall NEM egy befagyott PILLANATKÉP (a régi `useState<SalesCall
+  // | null>` a hívás objektumot magát tárolta volna, ami a küldés utáni
+  // állapotváltozást NEM tükrözte volna), hanem csak az ID, a tényleges
+  // hívás-objektumot MINDEN renderkor frissen, a `salesCalls`-ból olvassuk ki.
+  const [modifyingCallId, setModifyingCallId] = useState<string | null>(null)
+  const modifyingCall = modifyingCallId ? salesCalls.find((c) => c.id === modifyingCallId) ?? null : null
   const [previewCall, setPreviewCall] = useState<SalesCall | null>(null)
   // egy üres sávra kattintva nyílik meg, új hívás/időpont felvételéhez a
   // saját naptárban (2026.08.28., 6. kör, Marci kérésére)
@@ -138,9 +146,13 @@ export default function SalesHivasaim() {
   // lime 'új' jelző az üf neve mellől"). A tényleges e-mail-sablon (ld.
   // `positiveTemplate`) küldése itt UI-terv szinten nem jár tényleges
   // e-mail-küldéssel — akárcsak az elutasító sablonoknál (nincs backend).
+  // `positiveSent: true` (2026.09.17., Marci kérésére: "utána a pozitív
+  // elbírálás gomb ne legyen kattintható, ez legyen rajta: 'visszaigazolás
+  // kiküldve'") — a popup NEM zárul be (ld. CallDetailModal.tsx
+  // `confirmingAccept` jegyzete), hogy a gomb megváltozott állapota
+  // AZONNAL látszódjon, "bezár"-ral kell kilépni.
   function handleAccept(callId: string) {
-    setSalesCalls((prev) => prev.map((c) => (c.id === callId ? { ...c, isNew: false } : c)))
-    setModifyingCall(null)
+    setSalesCalls((prev) => prev.map((c) => (c.id === callId ? { ...c, isNew: false, positiveSent: true } : c)))
   }
 
   // piros gomb: ha a hívás már foglalt GYT-időponttal járt, azt a naptár-
@@ -153,7 +165,7 @@ export default function SalesHivasaim() {
       setClients((prev) => prev.filter((c) => c.id !== call.assignedClientId))
     }
     setSalesCalls((prev) => prev.filter((c) => c.id !== call.id))
-    setModifyingCall(null)
+    setModifyingCallId(null)
   }
 
   return (
@@ -203,7 +215,7 @@ export default function SalesHivasaim() {
               <p className="mb-0 text-center" style={{ color: 'var(--color-text-muted)' }}>ma nincs hívás.</p>
             ) : (
               todaysCalls.map((call) => (
-                <CallRow key={call.id} call={call} onModify={() => setModifyingCall(call)} />
+                <CallRow key={call.id} call={call} onModify={() => setModifyingCallId(call.id)} />
               ))
             )}
           </div>
@@ -239,7 +251,7 @@ export default function SalesHivasaim() {
                 <button type="button" className="btn-fyb btn-fyb-ghost" onClick={() => setPreviewCall(null)}>bezár</button>
                 <GearButton
                   onClick={() => {
-                    setModifyingCall(previewCall)
+                    setModifyingCallId(previewCall.id)
                     setPreviewCall(null)
                   }}
                 />
@@ -251,7 +263,7 @@ export default function SalesHivasaim() {
         {modifyingCall && (
           <CallDetailModal
             call={modifyingCall}
-            onClose={() => setModifyingCall(null)}
+            onClose={() => setModifyingCallId(null)}
             onSetOutcome={(outcome) => handleSetOutcome(modifyingCall.id, outcome)}
             onReject={() => handleReject(modifyingCall)}
             onAccept={() => handleAccept(modifyingCall.id)}

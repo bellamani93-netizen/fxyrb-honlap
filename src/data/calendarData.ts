@@ -203,6 +203,13 @@ export type SalesCall = {
    * CallDetailModal.tsx/SalesDataContext.tsx `positiveTemplate`) elküldése
    * állítja `false`-ra. */
   isNew?: boolean
+  /** a "Pozitív elbírálás" e-mail MÁR elküldve erre a hívásra (2026.09.17.,
+   * Marci kérésére: "utána a pozitív elbírálás gomb ne legyen kattintható,
+   * ez legyen rajta: 'visszaigazolás kiküldve'") — KÜLÖN mező az `isNew`-tól,
+   * mert olyan hívásra is `true` lehet (ld. lent, a már hozzárendelt Szűcs
+   * Viktória demó-rekordja), ami sosem volt `isNew`, tehát a gomb állapotát
+   * NEM lehetne pusztán az `isNew` hiányából levezetni. */
+  positiveSent?: boolean
 }
 
 // a Calendly-ből (placeholder-adatként) érkező sales-hívások — ezek MÉG NEM
@@ -261,6 +268,9 @@ export function buildInitialSalesCalls(today: Date): SalesCall[] {
       status: 'hozzarendelve',
       assignedGyt: 'Kollé Gábor',
       assignedStart: `${iso(4)}T10:00`,
+      // már hozzárendelve egy GYT-hez, tehát a pozitív elbírálás értelemszerűen
+      // korábban megtörtént — a demó-adat itt ezt tükrözi.
+      positiveSent: true,
       answers: calendlyAnswers(
         'Nyakfájás, ülőmunka mellett.',
         'Kb. fél éve.',
