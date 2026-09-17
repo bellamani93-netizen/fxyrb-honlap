@@ -180,6 +180,19 @@ export default function CallDetailModal({ call, onClose, onSetOutcome, onReject,
                 </div>
               </div>
             )}
+
+            {/* hibajavítás (2026.09.17., alapos sales-fiók átvizsgálás közben
+               felfedezve) — a saját, kézzel felvett hívás felvételekor
+               (AppointmentEditorModal "call" módja) megadható "megjegyzés"
+               mezőt a `handleCreateCall` (SalesHivasaim.tsx) eddig is
+               elmentette a hívásra, de SEHOL nem jelent meg utána — a
+               megadott szöveg gyakorlatilag "eltűnt". */}
+            {call.note && (
+              <div className="mb-3">
+                <h3 className="h6 mb-2" style={{ fontSize: '0.9rem' }}>megjegyzés</h3>
+                <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>{call.note}</p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -215,7 +228,13 @@ export default function CallDetailModal({ call, onClose, onSetOutcome, onReject,
             </div>
 
             <div className="mb-3">
-              <h3 className="h6 mb-2" style={{ fontSize: '0.9rem' }}>email küldése</h3>
+              {/* a cím "email küldése" marad egy VALÓDI Calendly-hívásnál
+                 (mindhárom gomb ténylegesen levelet küldene), de saját,
+                 kézzel felvett hívásnál a "törlés" gomb NEM email-küldés —
+                 ott ezért egy semlegesebb cím áll (2026.09.17., alapos
+                 sales-fiók átvizsgálás közben felfedezett apró pontatlanság
+                 javítása). */}
+              <h3 className="h6 mb-2" style={{ fontSize: '0.9rem' }}>{isOwnCall ? 'teendők' : 'email küldése'}</h3>
               <div className="d-flex flex-column gap-2">
                 {/* küldés után letiltva, felirata "visszaigazolás kiküldve"-
                    re vált (2026.09.17., Marci kérésére) — a `.btn-fyb:disabled`

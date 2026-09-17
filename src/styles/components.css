@@ -1699,12 +1699,15 @@ html[data-theme='dark'] .sales-delete-icon {
   background-color: transparent;
 }
 .circle-icon-btn--gear .icon-fyb { color: var(--color-primary); }
-/* a 3 státuszgomb színe a macOS ablak-vezérlő gombok színeivel egyezik
-   (2026.08.28., 6. kör, Marci kérésére) — ez a 3 hex-érték szándékosan FIX,
-   nem a projekt szemantikus --color-danger/warning/success tokenjeiből jön,
-   mert azok más (nem macOS-imitáló) célra hangolt színek máshol az appban */
-.circle-icon-btn--danger { background-color: var(--macos-red); }
-.circle-icon-btn--danger .icon-fyb { color: var(--offwhite); }
+/* a státuszgombok színe a macOS ablak-vezérlő gombok színeivel egyezik
+   (2026.08.28., 6. kör, Marci kérésére) — ezek a hex-értékek szándékosan
+   FIXEK, nem a projekt szemantikus --color-danger/warning/success
+   tokenjeiből jönnek, mert azok más (nem macOS-imitáló) célra hangolt
+   színek máshol az appban. A korábbi, harmadik ("piros", törlés-jelentésű)
+   `.circle-icon-btn--danger` gomb a hívás-részletek popup 139. pontban
+   leírt átalakításakor (a törlés a kör-ikon helyett a "email küldése"
+   szövegesgomb-listába költözött) feleslegessé vált, törölve
+   (2026.09.17., alapos sales-fiók átvizsgálás közben). */
 .circle-icon-btn--warning { background-color: var(--macos-yellow); color: var(--navy); font-weight: 700; }
 .circle-icon-btn--success { background-color: var(--macos-green); }
 .circle-icon-btn--success .icon-fyb { color: var(--offwhite); }

@@ -1957,3 +1957,13 @@ Marci kérésére a naptár egy üres sávjára kattintva felvett, saját hívá
 Marci jelezte, hogy a "hozzárendelések" fülön maradt egy funkció nélküli "+" gomb. A gomb egyetlen hatása a "gyt naptárak" fülre váltás volt, ami a mellette álló fül-gombbal is elérhető — tisztán redundáns duplikátum. Töröltem a gombot és a hozzá tartozó, mostantól sehol nem hivatkozott függvényt.
 
 **Tesztelve böngészőben:** asztali és mobil nézetben is megerősítettem, hogy a gomb eltűnt, a fülváltó sora törés nélkül jelenik meg, és a mobil-specifikus GYT-választó legördülő továbbra is helyesen működik. Konzol-hiba nem jelentkezett, build hibamentes.
+
+## 2026.09.17. — a sales fiók alapos utóvizsgálata
+
+Marci kérésére még egyszer alaposan átvizsgáltam a teljes sales fiókot (hívásaim, hozzárendelések, üzenetek, és a mögöttes adatmodell), böngészős reprodukálással is, nem csak kódolvasással.
+
+Két valós, érdemi hibát találtam. Az első: egy nem fizetett ügyfél törlése a listából nem szabadította fel a hozzá tartozó naptár-foglalást — a sáv örökre "foglalt" maradt, a törölt ügyfél nevét mutatva, de sehonnan meg nem nyitható "szellem" sávként. Böngészőben reprodukáltam, majd javítottam: a törlés most ugyanazt a mintát követi, mint a projekt más, hasonló törlés-útjai (amik ezt már eddig is helyesen csinálták). A második: a saját, kézzel felvett hívásoknál megadható "megjegyzés" mező eddig sehol nem jelent meg a beírás után — a szöveg gyakorlatilag eltűnt. Most megjelenik a hívás-részletek popupban.
+
+Emellett találtam és eltávolítottam egy árva CSS-szabályt (egy korábbi popup-átalakításból maradt), és pontosítottam egy apró felirat-pontatlanságot (a "email küldése" cím helyett "teendők" jelenik meg, ha a hívás saját, nem valódi Calendly-foglalás, mert ott az egyik gomb nem email-küldés). Egy további, kisebb súlyú, már a mai kör előttről származó hiányosságot (az ügyfél "megjegyzés" mezője a listában nem látszik, csak a booking-szerkesztő újranyitásával érhető el) jeleztem, de szándékosan nem módosítottam — ez inkább tervezési döntés, mint egyértelmű hiba.
+
+**Tesztelve böngészőben:** mindkét hibát előbb reprodukáltam, majd a javítás után megerősítettem, hogy megszűntek — mind asztali, mind mobil nézetben. Konzol-hiba nem jelentkezett, build és típusellenőrzés hibamentes.

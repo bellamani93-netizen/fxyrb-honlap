@@ -402,8 +402,24 @@ export default function SalesHozzarendeles() {
     setClients((prev) => prev.map((c) => (c.id === id ? { ...c, paid } : c)))
   }
 
-  function deleteClient(id: string) {
-    setClients((prev) => prev.filter((c) => c.id !== id))
+  // hibajavítás (2026.09.17., alapos sales-fiók átvizsgálás közben felfedezve) —
+  // korábban ez a függvény CSAK a `clients` listából törölte az ügyfelet, a
+  // hozzá tartozó naptár-foglalást (ld. `addBooking`, amit MINDEN ügyfélnél
+  // meghívunk, a "befizetett" állapottól FÜGGETLENÜL — csak a GYT-oldali
+  // MEGJELENÍTÉS van a fizetéshez kötve) NEM szabadította fel. Egy nem
+  // fizetett ügyfél törlése (a listában csak `!c.paid`-nál elérhető gomb)
+  // emiatt egy ÖRÖKRE "foglalt", a törölt ügyfél nevét mutató, de sehonnan
+  // meg NEM nyitható ("szellem") sávot hagyott hátra a sales saját GYT-
+  // naptárában — böngészős teszttel megerősítve reprodukálható volt. A
+  // `handleReject` (SalesHivasaim.tsx) és a `handleDeleteBooking` (lent) már
+  // eddig is helyesen szabadította fel a sávot törléskor — ez a függvény
+  // most ugyanezt a mintát követi.
+  function deleteClient(client: Client) {
+    if (client.assignedGytId && client.startTime) {
+      const [dateISO, hm] = client.startTime.split('T')
+      removeBooking(client.assignedGytId, dateISO, Number(hm.split(':')[0]))
+    }
+    setClients((prev) => prev.filter((c) => c.id !== client.id))
   }
 
   // a "befizetve" kapcsoló/négyzet kikapcsolása visszavonhatatlan hatásúnak tűnhet (a GYT
@@ -767,7 +783,7 @@ export default function SalesHozzarendeles() {
             confirmLabel="igen, törlöm"
             onCancel={() => setPendingAction(null)}
             onConfirm={() => {
-              deleteClient(pendingAction.client.id)
+              deleteClient(pendingAction.client)
               setPendingAction(null)
             }}
           />
