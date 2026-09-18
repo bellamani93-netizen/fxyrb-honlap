@@ -24,7 +24,7 @@ export const WORKBOOK_FELADATOK: {
     id: 'flexio',
     cim: '1. feladat — törzsflexió (gerinc előrehajlás) kiiktatása fél évre',
     leiras:
-      'Írd le, hogy melyek azok a testhelyzetek vagy mozdulatok a mindennapjaidban, amik közben a gerincedet előre hajlítod. Nem kell maximális előrehajlásra gondolni, elég, ha már egy kicsit görbíted a hátad/derekad.',
+      'Írd le, hogy melyek azok a testhelyzetek vagy mozdulatok a mindennapjaidban, amik közben a gerincedet előre hajlítod. Nem kell maximális előrehajlásra gondolni, elég, ha már egy kicsit görbíted a hátad/derekad. A zöld oszlopba az oktatóanyagban tanultak alapján dolgozd ki, mire fogod lecserélni az adott mozdulatot úgy, hogy ne legyen benne gerinchajlítás.',
     oszlopBal: 'testhelyzet/tevékenység gerinchajlítással',
     oszlopJobb: 'új testhelyzet/mozdulat gerinchajlítás nélkül',
   },
@@ -32,7 +32,7 @@ export const WORKBOOK_FELADATOK: {
     id: 'rotacio',
     cim: '2. feladat — törzsrotáció (a gerinc csavarása) kiiktatása fél évre',
     leiras:
-      'Írd le azokat a tevékenységeket/testhelyzeteket, amik közben csavarásnak van kitéve a gerinced — vagyis amikor a medenceöved és a vállöved nem egy síkban vannak. A minimális, járás közbeni természetes csavarodást nem kell figyelembe venni, csak az ennél nagyobbakat.',
+      'Írd le azokat a tevékenységeket/testhelyzeteket, amik közben csavarásnak van kitéve a gerinced — vagyis amikor a medenceöved és a vállöved nem egy síkban vannak. A minimális, járás közbeni természetes csavarodást nem kell figyelembe venni, csak az ennél nagyobbakat. A zöld oszlopba az oktatóanyagban tanultak alapján dolgozd ki, mire fogod lecserélni az adott mozdulatot úgy, hogy ne legyen benne csavarás.',
     oszlopBal: 'testhelyzet/tevékenység csavarással',
     oszlopJobb: 'új testhelyzet/mozdulat csavarás nélkül',
   },
