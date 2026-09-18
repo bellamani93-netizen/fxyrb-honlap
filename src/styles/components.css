@@ -425,9 +425,13 @@ html[data-theme='dark'] .app-topbar {
 .workbook-table { table-layout: fixed; }
 .workbook-col { width: 46%; }
 .workbook-arrow-col { width: 8%; }
+/* Marci kérésére (2026.09.19., 5. kör: "a nyilak asztali módban feketék,
+   ez se jó, legyenek világosak") — ugyanaz a Bootstrap-táblázat-specificitási
+   hiba, mint a fejlécnél/celláknál (`.table > :not(caption) > * > *` felülírta
+   a `color`-t), csak itt még nem volt `!important` rajta. */
 .workbook-th-arrow, .workbook-arrow-cell {
   text-align: center;
-  color: var(--color-text-muted);
+  color: var(--color-text-muted) !important;
   font-weight: 700;
   background: transparent !important;
 }
@@ -456,19 +460,44 @@ html[data-theme='dark'] .app-topbar {
    háttér ELLEN dolgozott (sötét szöveg sötét dobozon = rossz kontraszt) —
    ez mobilon a pár-kártyákban feltűnőbb volt, mint az asztali táblázat
    kisebb celláiban, de ugyanaz a hiba a `<input>` mindkét megjelenésében
-   (asztal ÉS mobil ugyanezt a 2 osztályt használja). A háttér-tintézés
-   8%→16%-ra nőtt (erősebb, egyértelműbb szín), a szöveg pedig explicit
-   `var(--color-text)`-et kap (navy világos, offwhite sötét módban) —
-   mindkét témában garantáltan magas kontrasztú. */
+   (asztal ÉS mobil ugyanezt a 2 osztályt használja).
+   5. kör (ugyanaznap, Marci kérésére: "sötét módban túl sötétek a
+   beviteli mezők, világosíts rajtuk. Telefon módban a kitöltő szöveg most
+   fekete=nem látszik") — a tintezés alapja `--color-surface`-ről a
+   VILÁGOSABB `--color-bg-alt`-ra váltott (sötét módban `#33475F`, nem a
+   sötétebb `#263A50`), a keverési arány 16%→22%-ra nőtt: a doboz sötét
+   módban is érezhetően világosabb, a piros/zöld jól látszik. A szöveghez
+   a `color` mellé `-webkit-text-fill-color` is bekerült — ez Safari/WebKit
+   (mobil) alatt előfordulhat, hogy felülírja a `color`-t natív sötét-mód
+   automatizmus/autofill-stílus miatt, ha a `color-scheme` nincs explicit
+   szinkronban a saját sötét/világos móddal (ld. theme.css, ugyanekkor
+   javítva). */
 .workbook-td-bad .form-control, .workbook-input-bad {
   border-color: color-mix(in srgb, var(--z1) 55%, var(--color-border));
-  background-color: color-mix(in srgb, var(--z1) 16%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--z1) 22%, var(--color-bg-alt));
   color: var(--color-text) !important;
+  -webkit-text-fill-color: var(--color-text);
 }
 .workbook-td-good .form-control, .workbook-input-good {
   border-color: color-mix(in srgb, var(--z6) 55%, var(--color-border));
-  background-color: color-mix(in srgb, var(--z6) 16%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--z6) 22%, var(--color-bg-alt));
   color: var(--color-text) !important;
+  -webkit-text-fill-color: var(--color-text);
+}
+/* Marci kérésére (2026.09.19., 6. kör: "ha egy beviteli mezőre kattintok,
+   akkor zöld a kerete, de ez összezavaró. Legyen a piros rákattintva is
+   piros keretű") — a globális `.form-control:focus` (components.css, a
+   projekt márkaszínezési szabálya minden más formhoz) türkiz/mint keretet
+   ad fókuszra, AZONOS specificitással, mint ez a 2 osztály — a forrás-
+   sorrendben KÉSŐBB álló globális szabály nyerte a döntetlent. Itt
+   explicit, saját piros/zöld fókusz-keret + -glow felülírja ezt. */
+.workbook-input-bad:focus {
+  border-color: var(--z1) !important;
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--z1) 25%, transparent) !important;
+}
+.workbook-input-good:focus {
+  border-color: var(--z6) !important;
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--z6) 25%, transparent) !important;
 }
 /* csak-olvasható nézetnél (GytMunkafuzet.tsx) nincs input, ami a tintezett
    hátteret/keretet vihetné — ez a 2 osztály ugyanazt a piros/zöld jelzést

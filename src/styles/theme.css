@@ -17,6 +17,17 @@
   --color-warning-rgb: 201, 154, 46; /* nem vált módonként, ld. lent */
   --color-danger: #C15B4A; /* semleges piros/korall */
 
+  /* Marci kérésére (2026.09.19., a munkafüzet mezők mobil sötét-mód
+     kontraszt-hibája kapcsán) — a `color-scheme` nélkül a mobil böngészők
+     (elsősorban Safari/WebKit) a RENDSZER (OS) sötét/világos beállítása
+     alapján saját, automatikus stílust alkalmazhatnak natív form-elemekre
+     (pl. `<input>` szövegszíne), FÜGGETLENÜL a saját `data-theme`
+     attribútumunktól — ez okozhatta, hogy egy explicit `color`-ral
+     felülírt beviteli mező szövege mégis rosszul látszott. Az explicit
+     deklaráció szinkronba hozza a böngésző natív renderelését a TÉNYLEGES,
+     aktív témával. */
+  color-scheme: light;
+
   /* világos mód (alapértelmezett) */
   --color-bg: var(--offwhite);
   --color-bg-alt: #EFF2F3;
@@ -137,6 +148,7 @@
 }
 
 html[data-theme='dark'] {
+  color-scheme: dark;
   --color-bg: var(--navy);
   /* Világos módban egy kis árnyalat-különbség is jól látszik, sötétben nem —
      ezért itt (2026.08.27., kontraszt-átvizsgálás) egyértelműen lépcsőzetes
