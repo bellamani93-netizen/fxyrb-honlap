@@ -29,10 +29,16 @@ function FeladatTable({
 
       <div className="workbook-desktop-only" style={{ overflowX: 'auto' }}>
         <table className="table workbook-table mb-2">
+          <colgroup>
+            <col className="workbook-col" />
+            <col className="workbook-arrow-col" />
+            <col className="workbook-col" />
+          </colgroup>
           <thead>
             <tr>
               <th className="workbook-th-bad">{feladat.oszlopBal}</th>
-              <th className="workbook-th-good">→ helyette</th>
+              <th className="workbook-th-arrow" aria-hidden="true"></th>
+              <th className="workbook-th-good">helyette</th>
             </tr>
           </thead>
           <tbody>
@@ -46,6 +52,7 @@ function FeladatTable({
                     onChange={(e) => onRowChange(i, 'left', e.target.value)}
                   />
                 </td>
+                <td className="workbook-arrow-cell" aria-hidden="true">→</td>
                 <td className="workbook-td-good">
                   <input
                     type="text"

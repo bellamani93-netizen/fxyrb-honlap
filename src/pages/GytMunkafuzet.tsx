@@ -64,16 +64,23 @@ function GytMunkafuzetInner({ clientId }: { clientId: string }) {
                 <>
                   <div className="workbook-desktop-only" style={{ overflowX: 'auto' }}>
                     <table className="table workbook-table mb-0">
+                      <colgroup>
+                        <col className="workbook-col" />
+                        <col className="workbook-arrow-col" />
+                        <col className="workbook-col" />
+                      </colgroup>
                       <thead>
                         <tr>
                           <th className="workbook-th-bad">{feladat.oszlopBal}</th>
-                          <th className="workbook-th-good">→ helyette</th>
+                          <th className="workbook-th-arrow" aria-hidden="true"></th>
+                          <th className="workbook-th-good">helyette</th>
                         </tr>
                       </thead>
                       <tbody>
                         {rows.map((row, i) => (
                           <tr key={i}>
                             <td className="workbook-readonly-bad">{row.left || '—'}</td>
+                            <td className="workbook-arrow-cell" aria-hidden="true">→</td>
                             <td className="workbook-readonly-good">{row.right || '—'}</td>
                           </tr>
                         ))}

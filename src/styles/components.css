@@ -413,6 +413,24 @@ html[data-theme='dark'] .app-topbar {
    háttere semleges marad, a szín a SZÖVEGBEN és egy vékony, alsó
    szín-csíkban jelenik meg (mint egy fül/tab aláhúzása) — ugyanazt a
    piros/zöld jelentést adja, kevésbé "harsányan". */
+/* egyenlő oszlopszélesség + soronkénti nyíl a 2 hasáb között (2026.09.19.,
+   3. kör, Marci kérésére: "a két hasáb mérete ugyanolyan széles legyen. a
+   nyíl a két hasáb között legyen soronként") — `table-layout:fixed` +
+   `colgroup` biztosítja, hogy a 2 tartalmi oszlop PONTOSAN egyenlő
+   szélességet kapjon (a hosszabb bal oldali szöveg NE nyújtsa szélesebbre
+   a saját oszlopát), a keskeny nyíl-oszlop pedig fix, tartalom-méretű
+   marad. A fejléc "→ helyette" szövege emiatt 2 részre vált: a nyíl a
+   nyíl-oszlop FEJLÉCÉBE (üres, csak vizuális), a "helyette" szó a jobb
+   oszlop fejlécébe kerül. */
+.workbook-table { table-layout: fixed; }
+.workbook-col { width: 46%; }
+.workbook-arrow-col { width: 8%; }
+.workbook-th-arrow, .workbook-arrow-cell {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  background: transparent !important;
+}
 .workbook-table th {
   font-size: 0.78rem;
   font-weight: 700;
