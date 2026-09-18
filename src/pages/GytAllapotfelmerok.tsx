@@ -30,7 +30,11 @@ export default function GytAllapotfelmerok() {
             <Icon src="/icons/ikon_csengo.svg" style={{ width: '1.4rem', height: '1.4rem', flexShrink: 0 }} />
             <span>előbb válassz ügyfelet — az állapotfelmérő egy konkrét ügyfélhez tartozik.</span>
           </div>
-          <button type="button" className="btn-fyb btn-fyb-primary" onClick={() => navigate('/gyt/ugyfelek')}>
+          <button
+            type="button"
+            className="btn-fyb btn-fyb-primary"
+            onClick={() => navigate('/gyt/ugyfelek', { state: { from: '/gyt/allapotfelmerok' } })}
+          >
             ügyfeleim megnyitása
           </button>
         </div>

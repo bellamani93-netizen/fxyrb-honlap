@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { useClients } from '../context/ClientsContext'
 import { getSelectedClientId, setSelectedClientId } from '../data/initialClients'
@@ -22,6 +22,7 @@ function formatStartDay(startTime: string | undefined) {
 
 export default function GytUgyfelek() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { clients } = useClients()
   const [search, setSearch] = useState('')
   // csak a saját (hozzá rendelt) ügyfelek — az összevont nyilvántartásban
@@ -38,9 +39,19 @@ export default function GytUgyfelek() {
     return id === null || !ownClients.some((c) => c.id === id)
   })
 
+  // ha egy másik GYT-oldal (videókiosztás/állapotfelmérők/munkafüzet)
+  // "előbb válassz ügyfelet" jelzése miatt kerültünk ide, a `location.state`
+  // `from`-ja tárolja, honnan jöttünk (ld. a 3 érintett oldal "ügyfeleim
+  // megnyitása" gombját) — választás után ODA térünk vissza, nem mindig a
+  // videókiosztásra (2026.09.19., Marci kérésére: "miután választottam
+  // ügyfelet, akkor egyből [az onnan navigált] oldalt akarom látni").
+  // Közvetlenül a nav-menüből idenavigálva (nincs `from`) a régi, alapértelmezett
+  // célra megyünk, változatlanul.
+  const from = (location.state as { from?: string } | null)?.from
+
   function choose(id: string) {
     setSelectedClientId(id)
-    navigate('/gyt/videokiosztas')
+    navigate(from ?? '/gyt/videokiosztas')
   }
 
   const filtered = ownClients.filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase()))

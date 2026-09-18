@@ -2023,3 +2023,9 @@ Marci kérésére a munkafüzet mezői mentés után lezárulnak (csak olvashat�
 **Tesztelve böngészőben:** mentés után a gombpár és a mezők readOnly állapota azonnal megjelent, "+ új sor" eltűnt; "szerkesztés"-re minden visszaállt szerkeszthetőre. GYT-oldalon a mentett válasz változatlanul látszott. Konzol-hiba nem jelentkezett, `npm run build`/`tsc -b` hibamentesek.
 
 Még ugyanaznap Marci kérte, hogy a fejléc alatti piros/zöld aláhúzás-csík is tűnjön el mindkét feladat táblázatáról — a soronkénti nyíl-oszlop bevezetése óta ez a középső, színezetlen fejléc-cella miatt piros-fehér-zöld "zászló"-csíknak hatott. Eltávolítottam, a piros/zöld jelentés mostantól kizárólag a fejléc-szövegek színében és a mezők tintezésében marad meg. Böngészőben megerősítve, asztali nézetben, világos és sötét módban.
+
+## 2026.09.19. — GYT-oldal: ügyfélválasztás után visszatérés az eredeti oldalra
+
+Marci jelezte, hogy a GYT fiókban a "válassz ügyfelet" átirányítás után (videókiosztás, munkafüzet, állapotfelmérők oldalról) mindig a videókiosztás oldalra tért vissza, nem oda, ahonnan elindult. Bevezettem egy "honnan navigáltunk ide" mechanizmust React Router `state`-tel (a projektben ez volt az első ilyen minta) — a 3 érintett oldal átadja a saját útvonalát az ügyfélválasztónak, ami ügyfél kiválasztása után oda navigál vissza. A nav-menüből közvetlenül megnyitott ügyfélválasztó változatlanul a videókiosztásra navigál alapértelmezetten.
+
+**Tesztelve böngészőben:** mindhárom induló oldalról (munkafüzet, videókiosztás, állapotfelmérők) kiindulva az ügyfélválasztás után pontosan az induló oldalra tért vissza a GYT. Konzol-hiba nem jelentkezett, `npm run build`/`tsc -b` hibamentesek.
