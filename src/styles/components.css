@@ -435,13 +435,20 @@ html[data-theme='dark'] .app-topbar {
   font-weight: 700;
   background: transparent !important;
 }
+/* Marci kérésére (2026.09.19., 7. kör: "az oszlopok fölötti piros-fehér-
+   zöld csíkot töröld a hajolós és csavarós részről") — a korábbi (2. kör)
+   piros/zöld ALÁHÚZÁS-csík (`border-bottom-color`) a 3. kör (soronkénti
+   nyíl-oszlop) bevezetése óta a KÖZÉPSŐ, színezetlen nyíl-fejléc miatt
+   piros-fehér-zöld "zászló"-csíknak hatott — ez a sáv most teljesen eltűnt,
+   a piros/zöld jelentés innentől KIZÁRÓLAG a fejléc-szövegek színében (ld.
+   `.workbook-th-bad`/`.workbook-th-good` lent) és a mezők/cellák saját
+   tintezésében marad meg. */
 .workbook-table th {
   font-size: 0.78rem;
   font-weight: 700;
   white-space: nowrap;
   background: transparent !important;
-  padding-bottom: 0.6rem !important;
-  border-bottom-width: 2px !important;
+  border-bottom: none !important;
 }
 .workbook-table td { vertical-align: middle; }
 /* Marci kérésére (2026.09.19., 6. kör: "a sorok közül vegyük ki az
@@ -463,8 +470,8 @@ html[data-theme='dark'] .app-topbar {
    `!important` itt szándékos, kontrollált felülírás (ugyanaz az elv, mint a
    projekt más Bootstrap-alapértelmezés-felülírásainál, ld. Design jegyzet
    "Form-elemek márkaszínezése" pontja). */
-.workbook-th-bad { color: var(--z1) !important; border-bottom-color: var(--z1) !important; }
-.workbook-th-good { color: var(--z6) !important; border-bottom-color: var(--z6) !important; }
+.workbook-th-bad { color: var(--z1) !important; }
+.workbook-th-good { color: var(--z6) !important; }
 .workbook-td-bad, .workbook-td-good { background-color: transparent !important; }
 /* Marci kérésére (2026.09.19., 4. kör: "mobilon sötét módban legyen
    kontrasztosabb a beviteli mező háttere és a betűk is") — a beviteli mező
