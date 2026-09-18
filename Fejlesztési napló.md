@@ -1995,3 +1995,11 @@ Ezután 2 körben tisztázó kérdéseket tettem fel, mielőtt bármit épített
 Ez alapján épült meg a végleges verzió: az admin "anyagok kezelése" oldalon egy új szekció, ahol leckék és fejezetek vehetők fel; az ÜF "oktatóanyag" oldala ezeket a leckéket listázza, leckénként egy ideiglenes "tudáscheck teljesítése" gombbal; a "munkafüzet" csak akkor nyílik meg, ha mindkét lecke tudáscheck-je teljesítve van; a munkafüzet 2 feladata a valódi odt-tartalmat követi, bővíthető táblázatokkal; a GYT csak olvasható nézetben látja a kitöltött sorokat.
 
 **Tesztelve böngészőben:** admin oldalon új fejezet felvéve, azonnal megjelent az ÜF oldalán. Mindkét tudáscheck teljesítése után a munkafüzet azonnal feloldódott a nav-menüben. Munkafüzet-táblázatban sor kitöltve, új sor hozzáadva, mentve — a GYT nézet pontosan a mentett adatot mutatta. Világos és sötét módban, valamint mobil nézetben is megerősítve, konzol-hiba nem jelentkezett, `npm run build`/`tsc -b` hibamentesek.
+
+## 2026.09.19. — munkafüzet táblázatok: piros/zöld oszlopok, mobilon egymás alá rendezett párok
+
+Marci kérésére a munkafüzet táblázatai színjelzést kaptak: a bal ("eddigi, rossz szokás") oszlop piros, a jobb ("helyette, jó mozdulat") zöld. Rövid közös ötletelés után (mobilon a vízszintes táblázat görgetése helyett a Marci által javasolt "pár-kártyás" elrendezés mellett döntöttünk) mobilon minden sor piros mező / "↓ helyette" nyíl / zöld mező hármasra bomlik, egymás alatt — nem kell oldalra görgetni. Marci kérésére ez a nyíl+"helyette" jelzés asztali nézetben is megjelent, a jobb oszlop rövid fejléceként ("→ helyette").
+
+A színezés böngészős tesztelés közben egy valós hibát dobott fel: a Bootstrap táblázat-stílusa felülírta a piros/zöld tintézést a GYT csak-olvasható nézetében (fehéren maradt a táblázat) — ezt helyben javítottam egy szándékos, célzott CSS-felülírással.
+
+**Tesztelve böngészőben:** ÜF oldalon a szerkeszthető táblázat és a mobil pár-kártyák is helyesen piros/zöld színűek, kitöltés+mentés működik. GYT oldalon (a hiba javítása után) a csak-olvasható nézet is helyesen mutatja a színezést, asztali és mobil nézetben, világos és sötét módban egyaránt. Konzol-hiba nem jelentkezett, `npm run build`/`tsc -b` hibamentesek.

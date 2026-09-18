@@ -61,24 +61,36 @@ function GytMunkafuzetInner({ clientId }: { clientId: string }) {
               {rows.length === 0 ? (
                 <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>még nincs kitöltve</p>
               ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <table className="table workbook-table mb-0">
-                    <thead>
-                      <tr>
-                        <th>{feladat.oszlopBal}</th>
-                        <th>{feladat.oszlopJobb}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows.map((row, i) => (
-                        <tr key={i}>
-                          <td>{row.left || '—'}</td>
-                          <td>{row.right || '—'}</td>
+                <>
+                  <div className="workbook-desktop-only" style={{ overflowX: 'auto' }}>
+                    <table className="table workbook-table mb-0">
+                      <thead>
+                        <tr>
+                          <th className="workbook-th-bad">{feladat.oszlopBal}</th>
+                          <th className="workbook-th-good">→ helyette</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {rows.map((row, i) => (
+                          <tr key={i}>
+                            <td className="workbook-readonly-bad">{row.left || '—'}</td>
+                            <td className="workbook-readonly-good">{row.right || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="workbook-mobile-only">
+                    {rows.map((row, i) => (
+                      <div className="workbook-pair-card" key={i}>
+                        <div className="workbook-pair-readonly workbook-readonly-bad">{row.left || '—'}</div>
+                        <div className="workbook-pair-arrow">↓ helyette</div>
+                        <div className="workbook-pair-readonly workbook-readonly-good">{row.right || '—'}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           )

@@ -398,14 +398,86 @@ html[data-theme='dark'] .app-topbar {
   flex-shrink: 0;
 }
 
-/* --- munkafüzet táblázat (2026.09.18.) --- */
+/* --- munkafüzet táblázat (2026.09.18., piros/zöld + mobil pár-kártya
+   2026.09.19., Marci kérésére) --- */
+/* a bal ("eddigi, rossz") oszlop piros, a jobb ("helyette, jó") zöld
+   jelzést kap — a projekt meglévő --z1 (piros)/--z6 (zöld) neon-skála
+   tokenjeit újrahasznosítva (ugyanaz a pár, mint a Mozgékonyság-jelvényeknél,
+   ld. Eredmenyeim.tsx MobilityItem). A cellák/mezők csak enyhén (10-14%)
+   tintezettek, hogy a szöveg/input tartalma világos ÉS sötét módban is jól
+   olvasható maradjon. */
 .workbook-table th {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--color-text-muted);
   white-space: nowrap;
 }
 .workbook-table td { vertical-align: middle; }
+.workbook-th-bad, .workbook-th-good {
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+/* Bootstrap saját `.table` szabálya (`.table > :not(caption) > * > *`)
+   magasabb specificitású, mint egy önálló osztály-szelektor, és a
+   `--bs-table-bg`-t (fehér) érvényesítené a mi tintezésünk helyett — az
+   `!important` itt szándékos, kontrollált felülírás (ugyanaz az elv, mint a
+   projekt más Bootstrap-alapértelmezés-felülírásainál, ld. Design jegyzet
+   "Form-elemek márkaszínezése" pontja). */
+.workbook-th-bad { color: var(--z1) !important; background-color: color-mix(in srgb, var(--z1) 12%, transparent) !important; }
+.workbook-th-good { color: var(--z6) !important; background-color: color-mix(in srgb, var(--z6) 12%, transparent) !important; }
+.workbook-td-bad, .workbook-td-good { background-color: transparent !important; }
+.workbook-td-bad .form-control, .workbook-input-bad {
+  border-color: color-mix(in srgb, var(--z1) 45%, var(--color-border));
+  background-color: color-mix(in srgb, var(--z1) 8%, var(--color-surface));
+}
+.workbook-td-good .form-control, .workbook-input-good {
+  border-color: color-mix(in srgb, var(--z6) 45%, var(--color-border));
+  background-color: color-mix(in srgb, var(--z6) 8%, var(--color-surface));
+}
+/* csak-olvasható nézetnél (GytMunkafuzet.tsx) nincs input, ami a tintezett
+   hátteret/keretet vihetné — ez a 2 osztály ugyanazt a piros/zöld jelzést
+   adja a puszta szövegnek/celláknak is, a fenti `.workbook-input-*` párral
+   megegyező tónusban. Asztalon közvetlenül a `<td>`-re kerül, ezért itt is
+   `!important` kell a Bootstrap táblázat-cella szabálya ellen (ld. fenti
+   `.workbook-th-*` jegyzet) — mobilon (`<div>`-eken) ez ártalmatlan. */
+.workbook-readonly-bad {
+  color: var(--z1) !important;
+  background-color: color-mix(in srgb, var(--z1) 8%, transparent) !important;
+}
+.workbook-readonly-good {
+  color: var(--z6) !important;
+  background-color: color-mix(in srgb, var(--z6) 8%, transparent) !important;
+}
+
+/* mobilon (<992px) a táblázat helyett egymás alá rendezett "pár-kártyák"
+   jelennek meg: piros mező, egy "↓ helyette" nyíl-felirat, zöld mező — így
+   nem kell oldalra görgetni egy több-soros táblázatot. A JSX MINDIG
+   rendereli mindkét változatot (ugyanaz a minta, mint az Eredmenyeim.tsx
+   `.eredmeny-desktop-only`/`.eredmeny-mobile-only` párja), a láthatóságot
+   kizárólag ez a 2 segéd-osztály + a 992px töréspont dönti el. */
+.workbook-desktop-only { display: none; }
+.workbook-mobile-only { display: block; }
+.workbook-pair-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.workbook-pair-arrow {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin: 0.4rem 0;
+}
+.workbook-pair-readonly {
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+@media (min-width: 992px) {
+  .workbook-desktop-only { display: block; }
+  .workbook-mobile-only { display: none; }
+}
 
 /* --- hírlevél panel --- */
 .newsletter-fyb {
