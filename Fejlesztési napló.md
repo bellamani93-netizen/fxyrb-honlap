@@ -2003,3 +2003,5 @@ Marci kérésére a munkafüzet táblázatai színjelzést kaptak: a bal ("eddig
 A színezés böngészős tesztelés közben egy valós hibát dobott fel: a Bootstrap táblázat-stílusa felülírta a piros/zöld tintézést a GYT csak-olvasható nézetében (fehéren maradt a táblázat) — ezt helyben javítottam egy szándékos, célzott CSS-felülírással.
 
 **Tesztelve böngészőben:** ÜF oldalon a szerkeszthető táblázat és a mobil pár-kártyák is helyesen piros/zöld színűek, kitöltés+mentés működik. GYT oldalon (a hiba javítása után) a csak-olvasható nézet is helyesen mutatja a színezést, asztali és mobil nézetben, világos és sötét módban egyaránt. Konzol-hiba nem jelentkezett, `npm run build`/`tsc -b` hibamentesek.
+
+Ugyanezen a napon Marci jelezte, hogy az asztali fejlécek "elég bénák lettek" — a tömör piros/zöld blokk 2 külön, egymás mellé tolt pirulának hatott, látható varrattal. Letisztultabb megoldásra cseréltem: a fejléc háttere semleges maradt, a szín a szövegben és egy vékony alsó csíkban jelenik meg, egyetlen folytonos sávként. Böngészőben megerősítve, asztali nézetben, világos és sötét módban is.

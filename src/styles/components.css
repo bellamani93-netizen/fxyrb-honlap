@@ -406,23 +406,30 @@ html[data-theme='dark'] .app-topbar {
    ld. Eredmenyeim.tsx MobilityItem). A cellák/mezők csak enyhén (10-14%)
    tintezettek, hogy a szöveg/input tartalma világos ÉS sötét módban is jól
    olvasható maradjon. */
+/* Fejléc (2026.09.19., 2. kör, Marci kérésére: "a fejlécek elég bénák
+   lettek") — a kezdeti verzió a teljes th-t tömör piros/zöld blokkal
+   töltötte ki, ami két egymás mellé illesztett "pirula" hatását keltette,
+   látható varrattal középen. Ehelyett letisztultabb megoldás: a fejléc
+   háttere semleges marad, a szín a SZÖVEGBEN és egy vékony, alsó
+   szín-csíkban jelenik meg (mint egy fül/tab aláhúzása) — ugyanazt a
+   piros/zöld jelentést adja, kevésbé "harsányan". */
 .workbook-table th {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   white-space: nowrap;
+  background: transparent !important;
+  padding-bottom: 0.6rem !important;
+  border-bottom-width: 2px !important;
 }
 .workbook-table td { vertical-align: middle; }
-.workbook-th-bad, .workbook-th-good {
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-}
 /* Bootstrap saját `.table` szabálya (`.table > :not(caption) > * > *`)
    magasabb specificitású, mint egy önálló osztály-szelektor, és a
    `--bs-table-bg`-t (fehér) érvényesítené a mi tintezésünk helyett — az
    `!important` itt szándékos, kontrollált felülírás (ugyanaz az elv, mint a
    projekt más Bootstrap-alapértelmezés-felülírásainál, ld. Design jegyzet
    "Form-elemek márkaszínezése" pontja). */
-.workbook-th-bad { color: var(--z1) !important; background-color: color-mix(in srgb, var(--z1) 12%, transparent) !important; }
-.workbook-th-good { color: var(--z6) !important; background-color: color-mix(in srgb, var(--z6) 12%, transparent) !important; }
+.workbook-th-bad { color: var(--z1) !important; border-bottom-color: var(--z1) !important; }
+.workbook-th-good { color: var(--z6) !important; border-bottom-color: var(--z6) !important; }
 .workbook-td-bad, .workbook-td-good { background-color: transparent !important; }
 .workbook-td-bad .form-control, .workbook-input-bad {
   border-color: color-mix(in srgb, var(--z1) 45%, var(--color-border));
