@@ -16,11 +16,16 @@ function FeladatTable({
   rows,
   onRowChange,
   onAddRow,
+  locked,
 }: {
   feladat: (typeof WORKBOOK_FELADATOK)[number]
   rows: WorkbookRow[]
   onRowChange: (index: number, field: 'left' | 'right', value: string) => void
   onAddRow: () => void
+  /** mentés után igaz — a mezők ekkor csak olvashatók, amíg a "szerkesztés"
+   * gombbal (ld. Munkafuzet() lent) az ÜF újra meg nem nyitja a szerkesztést
+   * (2026.09.19., Marci kérésére). */
+  locked: boolean
 }) {
   return (
     <div className="card-fyb mb-4">
@@ -49,6 +54,7 @@ function FeladatTable({
                     type="text"
                     className="form-control form-control-sm workbook-input-bad"
                     value={row.left}
+                    readOnly={locked}
                     onChange={(e) => onRowChange(i, 'left', e.target.value)}
                   />
                 </td>
@@ -58,6 +64,7 @@ function FeladatTable({
                     type="text"
                     className="form-control form-control-sm workbook-input-good"
                     value={row.right}
+                    readOnly={locked}
                     onChange={(e) => onRowChange(i, 'right', e.target.value)}
                   />
                 </td>
@@ -75,6 +82,7 @@ function FeladatTable({
               className="form-control form-control-sm workbook-input-bad"
               placeholder={feladat.oszlopBal}
               value={row.left}
+              readOnly={locked}
               onChange={(e) => onRowChange(i, 'left', e.target.value)}
             />
             <div className="workbook-pair-arrow">↓ helyette</div>
@@ -83,15 +91,18 @@ function FeladatTable({
               className="form-control form-control-sm workbook-input-good"
               placeholder="új mozdulat"
               value={row.right}
+              readOnly={locked}
               onChange={(e) => onRowChange(i, 'right', e.target.value)}
             />
           </div>
         ))}
       </div>
 
-      <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={onAddRow}>
-        + új sor
-      </button>
+      {!locked && (
+        <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={onAddRow}>
+          + új sor
+        </button>
+      )}
     </div>
   )
 }
@@ -99,24 +110,32 @@ function FeladatTable({
 export default function Munkafuzet() {
   const { answers, savedAt, saveAnswers } = useWorkbook()
   const [draft, setDraft] = useState(answers)
-  const [justSaved, setJustSaved] = useState(false)
+  // Marci kérésére (2026.09.19.): "ha elmentette, akkor a 'mentés' gomb
+  // váltson át 'mentve' feliratra... A mentve gomb mellett egy új,
+  // ugyanakkor gomb jelenik meg: 'szerkesztés'." Mentés után a mezők
+  // csak olvashatók (readOnly), amíg a "szerkesztés" gomb újra meg nem
+  // nyitja őket — ha már volt korábbi mentés (pl. az oldal újranyitásakor),
+  // rögtön zárolt/"mentve" állapotban nyílik, nem szerkeszthetőn.
+  const [locked, setLocked] = useState(savedAt !== null)
 
   function handleRowChange(feladatId: WorkbookFeladatId, index: number, field: 'left' | 'right', value: string) {
     setDraft((d) => ({
       ...d,
       [feladatId]: d[feladatId].map((row, i) => (i === index ? { ...row, [field]: value } : row)),
     }))
-    setJustSaved(false)
   }
 
   function handleAddRow(feladatId: WorkbookFeladatId) {
     setDraft((d) => ({ ...d, [feladatId]: [...d[feladatId], { left: '', right: '' }] }))
-    setJustSaved(false)
   }
 
   function handleSave() {
     saveAnswers(draft)
-    setJustSaved(true)
+    setLocked(true)
+  }
+
+  function handleEdit() {
+    setLocked(false)
   }
 
   return (
@@ -137,15 +156,26 @@ export default function Munkafuzet() {
             rows={draft[feladat.id]}
             onRowChange={(i, field, value) => handleRowChange(feladat.id, i, field, value)}
             onAddRow={() => handleAddRow(feladat.id)}
+            locked={locked}
           />
         ))}
 
         <div className="d-flex align-items-center flex-wrap gap-3">
-          <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave}>
-            mentés
-          </button>
-          {justSaved && <span className="badge-fyb">✓ mentve</span>}
-          {!justSaved && savedAt && (
+          {locked ? (
+            <>
+              <button type="button" className="btn-fyb btn-fyb-primary" disabled>
+                ✓ mentve
+              </button>
+              <button type="button" className="btn-fyb btn-fyb-outline" onClick={handleEdit}>
+                szerkesztés
+              </button>
+            </>
+          ) : (
+            <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave}>
+              mentés
+            </button>
+          )}
+          {savedAt && (
             <span className="small" style={{ color: 'var(--color-text-muted)' }}>utoljára mentve: {savedAt}</span>
           )}
         </div>

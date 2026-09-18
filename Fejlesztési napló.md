@@ -2015,3 +2015,9 @@ Ugyanaznap Marci egyszerre 4 további hibát jelzett: a beviteli mezők sötét 
 Még ugyanaznap Marci kérte, hogy a sorok közötti vízszintes elválasztó vonalak tűnjenek el asztali nézetben. A Bootstrap táblázat minden sor alján automatikus szegélyt ad — ezt eltávolítottam, kicsit nagyobb sor-paddinggel kompenzálva, hogy a sorok közti tér ne szűküljön össze. A fejléc alatti szín-aláhúzás (külön szabály) változatlan maradt. Böngészőben megerősítve, asztali nézetben, világos és sötét módban, mindkét (szerkeszthető és csak-olvasható) nézetben.
 
 Utolsó kérése aznap: a feladat-leírások fejtsék ki, hogy a zöld oszlopba az oktatóanyagban tanultak alapján kell kidolgozni, mire cseréli az adott mozdulatot. Eddig a leírás csak a piros oszlop kitöltését magyarázta — mindkét feladat szövege kapott egy záró mondatot, ami kifejezetten a zöld oszlopra utasít, és explicit kapcsolatot teremt a munkafüzet és az oktatóanyag-leckék között. Böngészőben megerősítve.
+
+## 2026.09.19. — munkafüzet: mentés után zárolt nézet, "szerkesztés" gombbal újranyitva
+
+Marci kérésére a munkafüzet mezői mentés után lezárulnak (csak olvashatók), a "mentés" gomb helyén "✓ mentve" + egy új "szerkesztés" gomb jelenik meg — eddig a mezők mentés után is folyamatosan szerkeszthetők maradtak, csak egy múló jelvény jelezte a mentést. A "szerkesztés" gombra kattintva a mezők újra írhatóvá válnak, a gombsor visszavált "mentés"-re. Ha az oldal már korábban mentett adattal nyílik meg, rögtön zárolt nézetben indul. A GYT-oldal nem változott — a mentett válaszokat továbbra is azonnal, csak olvasható formában látja.
+
+**Tesztelve böngészőben:** mentés után a gombpár és a mezők readOnly állapota azonnal megjelent, "+ új sor" eltűnt; "szerkesztés"-re minden visszaállt szerkeszthetőre. GYT-oldalon a mentett válasz változatlanul látszott. Konzol-hiba nem jelentkezett, `npm run build`/`tsc -b` hibamentesek.
