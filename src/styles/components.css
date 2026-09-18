@@ -444,6 +444,19 @@ html[data-theme='dark'] .app-topbar {
   border-bottom-width: 2px !important;
 }
 .workbook-table td { vertical-align: middle; }
+/* Marci kérésére (2026.09.19., 6. kör: "a sorok közül vegyük ki az
+   elválasztó vízszintes vonalakat asztali módban") — a Bootstrap `.table`
+   minden sor alján 1px vékony szegélyt ad (a fejléc alatti, szándékosan
+   megtartott piros/zöld 2px-es aláhúzás-csíktól függetlenül) — ez a
+   sorok KÖZÖTTI vonalakra vonatkozik, a fejléc sajátját (`border-bottom-
+   width: 2px` fent) nem érinti, mert az csak a `th`-ra vonatkozik. A
+   hiányzó vonal miatt eltűnő vizuális elválasztást a sorok közötti
+   nagyobb függőleges térköz pótolja. */
+.workbook-table tbody td {
+  border-bottom: none !important;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
 /* Bootstrap saját `.table` szabálya (`.table > :not(caption) > * > *`)
    magasabb specificitású, mint egy önálló osztály-szelektor, és a
    `--bs-table-bg`-t (fehér) érvényesítené a mi tintezésünk helyett — az
