@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Icon from '../components/Icon'
 import { EXERCISES, type ExerciseCode } from '../data/tornaSzintek'
 import { useMaterials, isBuiltInCode } from '../context/MaterialsContext'
+import { useOktatoanyag, type Lecke } from '../context/OktatoanyagContext'
 
 const BUILT_IN_CODES = Object.keys(EXERCISES) as ExerciseCode[]
 
@@ -38,6 +39,71 @@ function VideoPreview({ videoUrl, videoName }: { videoUrl: string; videoName: st
   )
 }
 
+// egy lecke admin-kártyája (2026.09.18., Marci kérésére, 3. fázis) — a
+// fejezetek egyelőre CÍM-ONLY placeholderek ("most csak egy placeholder UI
+// kell, ahol látszódik, mintha ott videók lennének"), nincs fájl-feltöltés
+// hozzájuk (eltérően a fenti torna-videóktól) — ld. OktatoanyagContext.tsx.
+function LeckeAdminCard({ lecke }: { lecke: Lecke }) {
+  const { addFejezet, removeFejezet, removeLecke } = useOktatoanyag()
+  const [newFejezetTitle, setNewFejezetTitle] = useState('')
+
+  function handleAddFejezet(e: React.FormEvent) {
+    e.preventDefault()
+    const trimmed = newFejezetTitle.trim()
+    if (!trimmed) return
+    addFejezet(lecke.id, trimmed)
+    setNewFejezetTitle('')
+  }
+
+  return (
+    <div className="card-fyb mb-3">
+      <div className="d-flex align-items-center justify-content-between gap-2 mb-3">
+        <h3 className="h6 mb-0">{lecke.title}</h3>
+        <button
+          type="button"
+          onClick={() => removeLecke(lecke.id)}
+          aria-label="lecke törlése"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+        >
+          <Icon src="/icons/ikon_kuka.svg" style={{ width: '1.3rem', height: '1.3rem' }} />
+        </button>
+      </div>
+
+      {lecke.fejezetek.length === 0 ? (
+        <p className="small mb-3" style={{ color: 'var(--color-text-muted)' }}>még nincs fejezet felvéve.</p>
+      ) : (
+        <div className="d-flex flex-column mb-3">
+          {lecke.fejezetek.map((f) => (
+            <div key={f.id} className="d-flex align-items-center justify-content-between py-1" style={{ borderBottom: '1px solid var(--color-border)' }}>
+              <span>{f.title}</span>
+              <button
+                type="button"
+                onClick={() => removeFejezet(lecke.id, f.id)}
+                aria-label="fejezet törlése"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+              >
+                <Icon src="/icons/ikon_kuka.svg" style={{ width: '1.1rem', height: '1.1rem' }} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <form onSubmit={handleAddFejezet} className="d-flex gap-2 flex-wrap">
+        <input
+          type="text"
+          className="form-control form-control-sm"
+          style={{ maxWidth: 280 }}
+          placeholder="új fejezet címe"
+          value={newFejezetTitle}
+          onChange={(e) => setNewFejezetTitle(e.target.value)}
+        />
+        <button type="submit" className="btn-fyb btn-fyb-outline btn-fyb-sm" disabled={!newFejezetTitle.trim()}>+ fejezet</button>
+      </form>
+    </div>
+  )
+}
+
 // "anyagok kezelése" (2026.09.17., Marci kérésére) — 2 különálló szekció:
 // (1) a MEGLÉVŐ, tornaSzintek.ts-ben már definiált 20 videókiosztás-kód
 //     mindegyikéhez itt lehet videót feltölteni/cserélni — a cím és a
@@ -52,6 +118,17 @@ export default function AdminAnyagok() {
   const [newCode, setNewCode] = useState('')
   const [newTitle, setNewTitle] = useState('')
   const [newFile, setNewFile] = useState<File | null>(null)
+
+  const { leckek, addLecke } = useOktatoanyag()
+  const [newLeckeTitle, setNewLeckeTitle] = useState('')
+
+  function handleCreateLecke(e: React.FormEvent) {
+    e.preventDefault()
+    const trimmed = newLeckeTitle.trim()
+    if (!trimmed) return
+    addLecke(trimmed)
+    setNewLeckeTitle('')
+  }
 
   const customMaterials = materials.filter((m) => !isBuiltInCode(m.code))
 
@@ -196,6 +273,32 @@ export default function AdminAnyagok() {
             </div>
           </div>
         )}
+
+        <hr className="my-4" />
+
+        <h2 className="h5 mb-3">oktatóanyag leckéi</h2>
+        <p className="small mb-3" style={{ color: 'var(--color-text-muted)' }}>
+          itt vehetsz fel új leckét, és adhatsz hozzá fejezeteket — a fejezetek egyelőre cím-only helykitöltők (nincs videó-feltöltés hozzájuk), az ÜF "oktatóanyag" oldalán jelennek meg.
+        </p>
+
+        {leckek.map((lecke) => (
+          <LeckeAdminCard key={lecke.id} lecke={lecke} />
+        ))}
+
+        <div className="card-fyb">
+          <h2 className="h6 mb-3">új lecke létrehozása</h2>
+          <form onSubmit={handleCreateLecke} className="d-flex gap-2 flex-wrap">
+            <input
+              type="text"
+              className="form-control"
+              style={{ maxWidth: 320 }}
+              placeholder="pl. Fájdalomkezelés alapjai"
+              value={newLeckeTitle}
+              onChange={(e) => setNewLeckeTitle(e.target.value)}
+            />
+            <button type="submit" className="btn-fyb btn-fyb-primary" disabled={!newLeckeTitle.trim()}>létrehozás</button>
+          </form>
+        </div>
       </div>
     </section>
   )

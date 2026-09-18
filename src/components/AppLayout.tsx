@@ -5,6 +5,7 @@ import Icon from './Icon'
 import { getAdminView, setAdminView } from '../hooks/useAdminEditGuard'
 import { withBase } from '../lib/assetUrl'
 import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
+import { useOktatoanyag } from '../context/OktatoanyagContext'
 
 export type NavItem = {
   to?: string
@@ -18,14 +19,21 @@ export type NavItem = {
 // az "állapotfelmérő" a fiók LEGELSŐ, kötelező pontja (2026.09.03., Marci
 // kérésére, 2. fázis) — amíg nincs kitöltve és elmentve, a többi menüpont
 // zárolt marad (ld. App.tsx UgyfelGate, ami a tényleges útvonal-tiltást adja).
-function buildUfNavItems(felmeresKesz: boolean): NavItem[] {
+// "oktatóanyag" és "munkafüzet" feloldva (2026.09.18., Marci kérésére,
+// 3. fázis — a 2026.09.17-i, kérdés nélkül épített első verzió visszavonva,
+// ez az újraegyeztetett terv). Az "oktatóanyag" ugyanazzal a gatinggel
+// nyílik, mint "gyakorlatok"/"eredményeim" (állapotfelmérő kitöltéséig
+// zárolt); a "munkafüzet" EMELLETT azt is megköveteli, hogy mindkét lecke
+// tudáscheck-je teljesítve legyen (Marci kérése: "ha ezek megvannak, akkor
+// fér hozzá a munkafüzethez" — ld. OktatoanyagContext.tsx `allChecksCompleted`).
+function buildUfNavItems(felmeresKesz: boolean, oktatoanyagKesz: boolean): NavItem[] {
   return [
     { to: '/allapotfelmero', label: 'állapotfelmérő', icon: '/icons/ikon_villanykorte.svg' },
     { to: '/gyakorlatok', label: 'gyakorlatok', icon: '/icons/ikon_torna.svg', locked: !felmeresKesz },
     { to: '/konzultacioim', label: 'konzultációk', icon: '/icons/ikon_naptar.svg', locked: !felmeresKesz },
     { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
-    { label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: true },
-    { label: 'oktatóanyag', icon: '/icons/ikon_tanulas.svg', locked: true },
+    { to: '/munkafuzet', label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: !felmeresKesz || !oktatoanyagKesz },
+    { to: '/oktatoanyag', label: 'oktatóanyag', icon: '/icons/ikon_tanulas.svg', locked: !felmeresKesz },
     { to: '/eredmenyeim', label: 'eredményeim', icon: '/icons/ikon_csillag.svg', locked: !felmeresKesz },
     { label: 'kérdéseim', icon: '/icons/ikon_csengo.svg', locked: true },
   ]
@@ -59,7 +67,8 @@ export default function AppLayout({ navItems, userName = 'Péter', role }: AppLa
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const { completed: felmeresKesz } = useAllapotfelmero()
-  const items = navItems ?? buildUfNavItems(felmeresKesz)
+  const { allChecksCompleted } = useOktatoanyag()
+  const items = navItems ?? buildUfNavItems(felmeresKesz, allChecksCompleted)
   const displayName = sessionName(role, userName)
   const adminView = (role === 'gyt' || role === 'sales') ? getAdminView() : null
   const isAdminImpersonating = !!adminView && adminView.role === role

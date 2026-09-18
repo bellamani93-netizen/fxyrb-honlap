@@ -10,12 +10,15 @@ import Idopontfoglalas from './pages/Idopontfoglalas'
 import Belepes from './pages/Belepes'
 import Allapotfelmero from './pages/Allapotfelmero'
 import Gyakorlatok from './pages/Gyakorlatok'
+import Munkafuzet from './pages/Munkafuzet'
+import Oktatoanyag from './pages/Oktatoanyag'
 import Eredmenyeim from './pages/Eredmenyeim'
 import UgyfelKonzultaciok from './pages/UgyfelKonzultaciok'
 import GytUgyfelek from './pages/GytUgyfelek'
 import GytVideokiosztas from './pages/GytVideokiosztas'
 import GytNaptar from './pages/GytNaptar'
 import GytAllapotfelmerok from './pages/GytAllapotfelmerok'
+import GytMunkafuzet from './pages/GytMunkafuzet'
 import SalesHivasaim from './pages/SalesHivasaim'
 import SalesHozzarendeles from './pages/SalesHozzarendeles'
 import SalesUzenetek from './pages/SalesUzenetek'
@@ -27,6 +30,8 @@ import { CalendarProvider } from './context/CalendarContext'
 import { ClientsProvider, useClients } from './context/ClientsContext'
 import { BlogProvider } from './context/BlogContext'
 import { MaterialsProvider } from './context/MaterialsContext'
+import { OktatoanyagProvider } from './context/OktatoanyagContext'
+import { WorkbookProvider } from './context/WorkbookContext'
 import { AllapotfelmeroProvider, useAllapotfelmero } from './context/AllapotfelmeroContext'
 import { LOGGED_IN_GYT_ID } from './data/colleagues'
 
@@ -42,7 +47,11 @@ function buildGytNavItems(newClientsCount: number): NavItem[] {
     // közé) átsorolva.
     { to: '/gyt/allapotfelmerok', label: 'állapotfelmérők', icon: '/icons/ikon_kerdoiv.svg' },
     { label: 'dokumentáció', icon: '/icons/ikon_munkafuzet.svg', locked: true },
-    { label: 'munkafüzet', icon: '/icons/ikon_tanulas.svg', locked: true },
+    // "munkafüzet" feloldva (2026.09.18., Marci kérésére, 3. fázis) — a GYT
+    // itt CSAK OLVASHATÓ nézetben látja az ÜF válaszait, ld. GytMunkafuzet.tsx.
+    // Az "oktatóanyag" NEM oldódik fel a GYT oldalán — Marci kifejezetten
+    // csak a munkafüzet-hozzáférést kérte.
+    { to: '/gyt/munkafuzet', label: 'munkafüzet', icon: '/icons/ikon_tanulas.svg' },
     { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
     { label: 'oktatóanyag', icon: '/icons/ikon_villanykorte.svg', locked: true },
     { label: 'eredmények', icon: '/icons/ikon_csillag.svg', locked: true },
@@ -87,9 +96,13 @@ export default function App() {
         <SalesDataProvider>
           <BlogProvider>
             <MaterialsProvider>
-              <AllapotfelmeroProvider>
-                <AppRoutes />
-              </AllapotfelmeroProvider>
+              <OktatoanyagProvider>
+                <WorkbookProvider>
+                  <AllapotfelmeroProvider>
+                    <AppRoutes />
+                  </AllapotfelmeroProvider>
+                </WorkbookProvider>
+              </OktatoanyagProvider>
             </MaterialsProvider>
           </BlogProvider>
         </SalesDataProvider>
@@ -137,6 +150,8 @@ function AppRoutes() {
         <Route element={<UgyfelGate />}>
           <Route path="/gyakorlatok" element={<Gyakorlatok />} />
           <Route path="/konzultacioim" element={<UgyfelKonzultaciok />} />
+          <Route path="/oktatoanyag" element={<Oktatoanyag />} />
+          <Route path="/munkafuzet" element={<Munkafuzet />} />
           <Route path="/eredmenyeim" element={<Eredmenyeim />} />
         </Route>
       </Route>
@@ -145,6 +160,7 @@ function AppRoutes() {
         <Route path="/gyt/videokiosztas" element={<GytVideokiosztas />} />
         <Route path="/gyt/naptar" element={<GytNaptar />} />
         <Route path="/gyt/allapotfelmerok" element={<GytAllapotfelmerok />} />
+        <Route path="/gyt/munkafuzet" element={<GytMunkafuzet />} />
       </Route>
       <Route element={<AppLayout navItems={salesNavItems} userName="Eszter" role="sales" />}>
         <Route path="/sales/hivasaim" element={<SalesHivasaim />} />

@@ -379,6 +379,34 @@ html[data-theme='dark'] .app-topbar {
   font-size: 1.1rem;
 }
 
+/* --- oktatóanyag: lecke fejezet-lista (2026.09.18.) --- */
+/* egy leckén belül 8-10 fejezet is lehet, ezért nem a nagy 16:9-es
+   .video-thumb-kártyát (MiniKurzus.tsx mintája) hasznájuk soronként, hanem
+   egy kompakt, lejátszási-lista-szerű sor: kis kör ikon + cím. */
+.lecke-fejezet-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.lecke-fejezet-row:last-child { border-bottom: none; }
+.play-btn-sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+/* --- munkafüzet táblázat (2026.09.18.) --- */
+.workbook-table th {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.workbook-table td { vertical-align: middle; }
+
 /* --- hírlevél panel --- */
 .newsletter-fyb {
   background-color: var(--navy);
