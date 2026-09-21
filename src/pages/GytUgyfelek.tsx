@@ -2,10 +2,21 @@ import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { useClients } from '../context/ClientsContext'
-import { getSelectedClientId, setSelectedClientId } from '../data/initialClients'
+import { getSelectedClientId, setSelectedClientId, type Client } from '../data/initialClients'
 import { LOGGED_IN_GYT_ID } from '../data/colleagues'
+import { useCalendar } from '../context/CalendarContext'
+import { formatISODate } from '../data/calendarData'
 
 const WEEKDAY_NAMES = ['vasárnap', 'hétfő', 'kedd', 'szerda', 'csütörtök', 'péntek', 'szombat']
+
+type PhaseFilter = 'mai' | 'osszes' | 'utankovetes' | 'archivalt'
+
+const PHASE_FILTER_OPTIONS: { value: PhaseFilter; label: string }[] = [
+  { value: 'osszes', label: 'összes ügyfél' },
+  { value: 'mai', label: 'mai ügyfelek' },
+  { value: 'utankovetes', label: '14 hetes utánkövetés' },
+  { value: 'archivalt', label: 'archivált ügyfelek' },
+]
 
 // az ügyfél kezdő napja/dátuma a listában (2026.09.01., Marci kérésére) —
 // a "startTime" datetime-local string dátum-részéből számolt hétköznap-név
@@ -24,11 +35,31 @@ export default function GytUgyfelek() {
   const navigate = useNavigate()
   const location = useLocation()
   const { clients } = useClients()
+  const { getClientConsultations, today } = useCalendar()
   const [search, setSearch] = useState('')
+  // "Szűrés" legördülő (2026.09.21., Marci kérésére) — alapértelmezetten
+  // "mai ügyfelek", a Marci kérése szerint. A "14 hetes utánkövetés"/
+  // "archivált ügyfelek" a `Client.programPhase` mezőre épül, amit egyelőre
+  // SEMMI nem állít be (a lezáró funkció még nem létezik, ld.
+  // initialClients.ts jegyzete) — ez a 2 kategória emiatt most mindig
+  // üres listát ad, ez szándékos, nem hiba.
+  const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>('mai')
   // csak a saját (hozzá rendelt) ügyfelek — az összevont nyilvántartásban
   // MINDEN gyt ugyanazt a listát olvassa, ezért itt szűrünk (2026.09.01.,
   // ügyfél-nyilvántartások összevonása, ld. Design jegyzet 49. pont)
   const ownClients = clients.filter((c) => c.assignedGytId === LOGGED_IN_GYT_ID)
+  const todayISO = formatISODate(today)
+  // "mai ügyfelek" — akiknek VAN ténylegesen rögzített (nem "terv") mai
+  // konzultációja a naptárban (ld. CalendarContext.tsx getClientConsultations)
+  // — a demo-generált, vizuális kitöltő időpontokat figyelmen kívül hagyja.
+  function isTodayClient(client: Client): boolean {
+    return getClientConsultations(client.id).some((c) => c.dateISO === todayISO)
+  }
+  const phaseFilteredClients = ownClients.filter((c) => {
+    if (phaseFilter === 'osszes') return true
+    if (phaseFilter === 'mai') return isTodayClient(c)
+    return c.programPhase === phaseFilter
+  })
   // ha nincs kiválasztott ügyfél (első belépés, vagy egy másik almenüről
   // idekerülve, mert még nem volt kiválasztás), erre hívjuk fel a figyelmet —
   // ez a jelzés csak az induló állapotot mutatja, egy választás után eltűnik.
@@ -54,7 +85,7 @@ export default function GytUgyfelek() {
     navigate(from ?? '/gyt/videokiosztas')
   }
 
-  const filtered = ownClients.filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase()))
+  const filtered = phaseFilteredClients.filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase()))
 
   return (
     <section className="py-3 py-lg-5">
@@ -87,6 +118,23 @@ export default function GytUgyfelek() {
         <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>
           válaszd ki, melyik ügyféllel szeretnél most dolgozni — a további almenük (videókiosztás, dokumentáció stb.) innentől erre az ügyfélre vonatkoznak.
         </p>
+
+        <div className="d-flex align-items-center gap-2 mb-3">
+          <label htmlFor="phase-filter" className="small fw-bold mb-0" style={{ whiteSpace: 'nowrap' }}>
+            Szűrés:
+          </label>
+          <select
+            id="phase-filter"
+            className="form-select form-select-sm"
+            style={{ maxWidth: '14rem' }}
+            value={phaseFilter}
+            onChange={(e) => setPhaseFilter(e.target.value as PhaseFilter)}
+          >
+            {PHASE_FILTER_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
 
         <div className="card-fyb">
           {filtered.length === 0 ? (

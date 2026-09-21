@@ -40,6 +40,17 @@ export type Client = {
   bulkLevels?: { num: number; video: string | null; note?: string }[]
   /** az állapotfelmérő ("limitációk") panel értékei — korábban egy külön, id szerint kulcsolt map volt (initialVariables), most a rekord része, hogy sose maradhasson hiányzó bejegyzés. */
   variables: ClientVariables
+  /** a 10 hetes aktív együttműködés utáni programfázis (2026.09.21., Marci
+   * kérésére, a GYT "ügyfeleim" szűrőjéhez) — undefined/hiányzó mező azt
+   * jelenti, hogy az együttműködés még AKTÍV (nincs lezárva). A tényleges
+   * beállítás egy KÉSŐBBI, még nem megépített funkcióval történik majd: a
+   * GYT az utolsó (10. heti) konzultáción egy gombbal lezárja az
+   * együttműködést ('utankovetes'-re állítva), majd a 14 hetes utánkövetés
+   * leteltével, egy értesítés után kézzel archiválja ('archivalt'-ra
+   * állítva). Amíg ez a lezáró funkció nem létezik, egyetlen demó-ügyfélnél
+   * sincs beállítva — a rá épülő 2 szűrő-kategória emiatt egyelőre mindig
+   * üres listát ad. */
+  programPhase?: 'utankovetes' | 'archivalt'
 }
 
 export const DEFAULT_VARIABLES: ClientVariables = {
