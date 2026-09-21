@@ -25,7 +25,16 @@ import { createContext, useContext, useState, type ReactNode } from 'react'
 // kérdéssorra cserélni.
 
 export type Fejezet = { id: string; title: string }
-export type Lecke = { id: string; title: string; fejezetek: Fejezet[] }
+/** egy tudáspróba-kérdés (2026.09.21., Marci kérésére: "az admin felületén
+ * az anyagok kezelése fül alatt lehet létrehozni a tudáspróba kérdéseit
+ * is, egyelőre UI placeholder kerüljön ide") — leckénkénti, csak a kérdés
+ * szövegét tárolja (nincs válaszlehetőség/helyes válasz jelölés még, ld.
+ * AdminAnyagok.tsx jegyzete). Az ÜF-oldali "tudáscheck teljesítése" gomb
+ * (Oktatoanyag.tsx) egyelőre NEM olvassa/jeleníti meg ezeket a kérdéseket
+ * — ez a placeholder csak az admin-oldali RÖGZÍTÉST teszi lehetővé, a
+ * tényleges kvíz-logika egy KÉSŐBBI kérésre épül majd rá. */
+export type TudaspobaKerdes = { id: string; text: string }
+export type Lecke = { id: string; title: string; fejezetek: Fejezet[]; kerdesek: TudaspobaKerdes[] }
 
 const INITIAL_LECKEK: Lecke[] = [
   {
@@ -36,6 +45,7 @@ const INITIAL_LECKEK: Lecke[] = [
       { id: 'biomechanika-2', title: '2. fejezet' },
       { id: 'biomechanika-3', title: '3. fejezet' },
     ],
+    kerdesek: [],
   },
   {
     id: 'lecke-gyakorlat',
@@ -45,6 +55,7 @@ const INITIAL_LECKEK: Lecke[] = [
       { id: 'gyakorlat-2', title: '2. fejezet' },
       { id: 'gyakorlat-3', title: '3. fejezet' },
     ],
+    kerdesek: [],
   },
 ]
 
@@ -54,6 +65,8 @@ type OktatoanyagContextValue = {
   removeLecke: (leckeId: string) => void
   addFejezet: (leckeId: string, title: string) => void
   removeFejezet: (leckeId: string, fejezetId: string) => void
+  addKerdes: (leckeId: string, text: string) => void
+  removeKerdes: (leckeId: string, kerdesId: string) => void
   completedLeckeIds: Set<string>
   markLeckeCompleted: (leckeId: string) => void
   /** a munkafüzet ekkor nyílik meg: van legalább 1 lecke, ÉS mindegyiknek
@@ -75,7 +88,7 @@ export function OktatoanyagProvider({ children }: { children: ReactNode }) {
   const [completedLeckeIds, setCompletedLeckeIds] = useState<Set<string>>(new Set())
 
   function addLecke(title: string) {
-    setLeckek((prev) => [...prev, { id: `lecke-${Date.now()}`, title, fejezetek: [] }])
+    setLeckek((prev) => [...prev, { id: `lecke-${Date.now()}`, title, fejezetek: [], kerdesek: [] }])
   }
 
   function removeLecke(leckeId: string) {
@@ -99,6 +112,18 @@ export function OktatoanyagProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  function addKerdes(leckeId: string, text: string) {
+    setLeckek((prev) =>
+      prev.map((l) => (l.id === leckeId ? { ...l, kerdesek: [...l.kerdesek, { id: `kerdes-${Date.now()}`, text }] } : l))
+    )
+  }
+
+  function removeKerdes(leckeId: string, kerdesId: string) {
+    setLeckek((prev) =>
+      prev.map((l) => (l.id === leckeId ? { ...l, kerdesek: l.kerdesek.filter((k) => k.id !== kerdesId) } : l))
+    )
+  }
+
   function markLeckeCompleted(leckeId: string) {
     setCompletedLeckeIds((prev) => new Set(prev).add(leckeId))
   }
@@ -107,7 +132,18 @@ export function OktatoanyagProvider({ children }: { children: ReactNode }) {
 
   return (
     <OktatoanyagContext.Provider
-      value={{ leckek, addLecke, removeLecke, addFejezet, removeFejezet, completedLeckeIds, markLeckeCompleted, allChecksCompleted }}
+      value={{
+        leckek,
+        addLecke,
+        removeLecke,
+        addFejezet,
+        removeFejezet,
+        addKerdes,
+        removeKerdes,
+        completedLeckeIds,
+        markLeckeCompleted,
+        allChecksCompleted,
+      }}
     >
       {children}
     </OktatoanyagContext.Provider>

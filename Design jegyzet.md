@@ -1542,3 +1542,15 @@ Marci: "Az ügyfélválasztónál építünk egy új kiegészítést: a lista f�
 **(3) UI.** Egy `<label>Szűrés:</label>` + `<select>` pár a lista fölött (a leírás-bekezdés és a kártya-lista között), a 4 opcióval, a Marci által megadott sorrendben és feliratokkal.
 
 **Böngészős tesztelés (2026.09.21.):** alapértelmezett betöltéskor ("mai ügyfelek") a lista helyesen ÜRES ("nincs találat") — nincs valódi mai foglalás a demóban, ez szándékos. "Összes ügyfél"-re váltva mind a 4 saját ügyfél megjelent. "14 hetes utánkövetés" és "archivált ügyfelek" mindkettő helyesen ÜRES (egyetlen demó-ügyfélnek sincs `programPhase`-e beállítva). Világos ÉS sötét módban, valamint mobil nézetben (375×812) is megerősítve screenshot-tal. Konzol-hiba nem jelentkezett, `npm run build`/`tsc -b` hibamentesek.
+
+156\. ADMIN "ANYAGOK KEZELÉSE": TUDÁSPRÓBA-KÉRDÉSEK LÉTREHOZÁSA (PLACEHOLDER) (2026.09.21., Marci kérésére)
+
+Marci: "az admin felületén az anyagok kezelése fül alatt lehet létrehozni a tudáspróba kérdéseit is, egyelőre UI placeholder kerüljön ide." Kódírás előtt 2 tisztázó kérdést tettünk fel (a korábbi folyamat-hibák után ez lett a szokás): (1) leckénként vagy fejezetenként legyenek a kérdések — Marci a "leckénként" opciót választotta, összhangban a meglévő, leckénkénti tudáscheck-logikával; (2) egyelőre csak a kérdés szövege legyen rögzíthető, válaszlehetőségek/helyes válasz jelölése nélkül — Marci ezt is megerősítette ("csak a kérdés szövege").
+
+**(1) `OktatoanyagContext.tsx` — `TudaspobaKerdes` típus + `Lecke.kerdesek`.** `{ id: string; text: string }`, minden lecke (a 2 induló ÉS minden admin által később felvett is) kap egy `kerdesek: TudaspobaKerdes[]` mezőt (kezdetben üres tömb). Új CRUD-függvények: `addKerdes(leckeId, text)`/`removeKerdes(leckeId, kerdesId)` — PONTOSAN a már meglévő `addFejezet`/`removeFejezet` mintáját követve (session-szintű, `Date.now()`-alapú id).
+
+**(2) `AdminAnyagok.tsx` — új szekció leckénként, a fejezet-lista alatt.** "tudáspróba kérdései" cím + a felvett kérdések listája (törölhető, `ikon_kuka.svg`) + egy "+ kérdés" mini-form (szöveg input + gomb) — a fejezet-szekcióval TELJESEN azonos vizuális/interakciós minta, hogy az admin felület konzisztens maradjon.
+
+**(3) Tudatosan NEM módosított rész — az ÜF-oldali "tudáscheck teljesítése" gomb (`Oktatoanyag.tsx`).** Marci kifejezetten "egyelőre UI placeholder"-t kért — ez a kör KIZÁRÓLAG az admin-oldali RÖGZÍTÉST teszi lehetővé, a ténylegesen felvett kérdéseket az ÜF oldali tudáscheck egyelőre NEM olvassa/jeleníti meg (a gomb változatlanul egy egyszerű "teljesítve" kapcsoló marad) — a valódi kvíz-megjelenítő/kiértékelő logika egy KÉSŐBBI kérésre épül majd erre az adatra.
+
+**Böngészős tesztelés (2026.09.21.):** admin oldalon egy kérdést felvéve az "A gerinc biomechanikája" leckéhez — azonnal megjelent a lista tetején, a MÁSIK lecke ("Gerinchasználat a gyakorlatban") kérdés-listája változatlanul üres maradt (helyes leckénkénti elkülönítés). A törlés gomb is helyesen működött. Világos ÉS sötét módban, valamint mobil nézetben (375×812) is megerősítve screenshot-tal. Konzol-hiba nem jelentkezett, `npm run build`/`tsc -b` hibamentesek.

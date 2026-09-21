@@ -44,8 +44,9 @@ function VideoPreview({ videoUrl, videoName }: { videoUrl: string; videoName: st
 // kell, ahol látszódik, mintha ott videók lennének"), nincs fájl-feltöltés
 // hozzájuk (eltérően a fenti torna-videóktól) — ld. OktatoanyagContext.tsx.
 function LeckeAdminCard({ lecke }: { lecke: Lecke }) {
-  const { addFejezet, removeFejezet, removeLecke } = useOktatoanyag()
+  const { addFejezet, removeFejezet, addKerdes, removeKerdes, removeLecke } = useOktatoanyag()
   const [newFejezetTitle, setNewFejezetTitle] = useState('')
+  const [newKerdesText, setNewKerdesText] = useState('')
 
   function handleAddFejezet(e: React.FormEvent) {
     e.preventDefault()
@@ -53,6 +54,14 @@ function LeckeAdminCard({ lecke }: { lecke: Lecke }) {
     if (!trimmed) return
     addFejezet(lecke.id, trimmed)
     setNewFejezetTitle('')
+  }
+
+  function handleAddKerdes(e: React.FormEvent) {
+    e.preventDefault()
+    const trimmed = newKerdesText.trim()
+    if (!trimmed) return
+    addKerdes(lecke.id, trimmed)
+    setNewKerdesText('')
   }
 
   return (
@@ -100,6 +109,48 @@ function LeckeAdminCard({ lecke }: { lecke: Lecke }) {
         />
         <button type="submit" className="btn-fyb btn-fyb-outline btn-fyb-sm" disabled={!newFejezetTitle.trim()}>+ fejezet</button>
       </form>
+
+      {/* tudáspróba-kérdések (2026.09.21., Marci kérésére: "az admin felületén
+         az anyagok kezelése fül alatt lehet létrehozni a tudáspróba
+         kérdéseit is, egyelőre UI placeholder kerüljön ide") — ugyanaz a
+         cím-only mintaminta, mint a fejezeteknél: csak a kérdés szövege
+         rögzíthető, válaszlehetőség/helyes válasz jelölés még nincs, és az
+         ÜF-oldali tudáscheck gomb (Oktatoanyag.tsx) egyelőre nem olvassa
+         ezeket — a tényleges kvíz-logika egy későbbi körre vár. */}
+      <div className="mt-4 pt-3" style={{ borderTop: '1px solid var(--color-border)' }}>
+        <h4 className="small fw-bold mb-2">tudáspróba kérdései</h4>
+        {lecke.kerdesek.length === 0 ? (
+          <p className="small mb-3" style={{ color: 'var(--color-text-muted)' }}>még nincs kérdés felvéve.</p>
+        ) : (
+          <div className="d-flex flex-column mb-3">
+            {lecke.kerdesek.map((k) => (
+              <div key={k.id} className="d-flex align-items-center justify-content-between py-1" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <span>{k.text}</span>
+                <button
+                  type="button"
+                  onClick={() => removeKerdes(lecke.id, k.id)}
+                  aria-label="kérdés törlése"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+                >
+                  <Icon src="/icons/ikon_kuka.svg" style={{ width: '1.1rem', height: '1.1rem' }} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <form onSubmit={handleAddKerdes} className="d-flex gap-2 flex-wrap">
+          <input
+            type="text"
+            className="form-control form-control-sm"
+            style={{ maxWidth: 280 }}
+            placeholder="új kérdés szövege"
+            value={newKerdesText}
+            onChange={(e) => setNewKerdesText(e.target.value)}
+          />
+          <button type="submit" className="btn-fyb btn-fyb-outline btn-fyb-sm" disabled={!newKerdesText.trim()}>+ kérdés</button>
+        </form>
+      </div>
     </div>
   )
 }

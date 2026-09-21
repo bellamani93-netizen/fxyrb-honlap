@@ -2043,3 +2043,9 @@ A belépés mostantól minden alkalommal törli a mentett ügyfél-kiválasztás
 Marci kérésére egy "Szűrés" legördülő került a lista fölé, 4 opcióval: összes ügyfél, mai ügyfelek, 14 hetes utánkövetés, archivált ügyfelek — alapértelmezetten "mai ügyfelek". Mielőtt kódolni kezdtem, átnéztem az adatmodellt, és jeleztem Marcinak, hogy a "14 hetes utánkövetés"/"archivált" fogalom sehol nincs a jelenlegi adatokban — kiderült, hogy ez egy KÉSŐBBI, még nem megépített funkcióhoz (a GYT kézzel lezárja az együttműködést egy gombbal, majd 14 hét után archiválja) tartozik, amit most nem építünk meg, csak a szűrő maga. A "mai ügyfelek" a naptár valódi, rögzített konzultációs adatait használja.
 
 **Tesztelve böngészőben:** alapértelmezett betöltéskor a lista helyesen üres (nincs valódi mai foglalás a demóban). "Összes ügyfél" a teljes saját listát mutatja, a másik 2 kategória szándékosan üres (nincs beállított adat). Világos, sötét és mobil nézetben is megerősítve. Konzol-hiba nem jelentkezett, `npm run build`/`tsc -b` hibamentesek.
+
+## 2026.09.21. — admin "anyagok kezelése": tudáspróba-kérdések létrehozása (placeholder)
+
+Marci kérésére az admin "anyagok kezelése" oldalon a lecke-kártyákhoz egy új szekció került: a fejezetekkel azonos mintájú "tudáspróba kérdései" lista, ahol kérdés-szöveg vehető fel/törölhető leckénként. 2 tisztázó kérdés után (kérdések szintje: leckénként; tartalom: csak szöveg, válaszlehetőségek nélkül) épült meg. Az ÜF-oldali "tudáscheck teljesítése" gomb tudatosan változatlan maradt — ez a kör csak az admin-oldali rögzítést teszi lehetővé, a valódi kvíz-logika egy későbbi kérésre vár.
+
+**Tesztelve böngészőben:** kérdés felvétele a megfelelő leckéhez került, a másik lecke listája érintetlen maradt, a törlés is működött. Világos, sötét és mobil nézetben is megerősítve. Konzol-hiba nem jelentkezett, `npm run build`/`tsc -b` hibamentesek.
