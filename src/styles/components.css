@@ -2938,6 +2938,14 @@ html[data-theme='dark'] .bodychart-img {
 .eredmeny-print-only {
   display: none;
 }
+/* GYT "dokumentáció" (2026.09.21., Marci kérésére) — nyomtatáskor/PDF-
+   exportkor az ÖSSZES alkalom egyben, egymás után jelenik meg (ld.
+   GytDokumentacio.tsx), a képernyőn viszont csak az épp kiválasztott
+   alkalom — ugyanaz a "JSX mindig rendereli, CSS dönti el" minta, mint az
+   `.eredmeny-print-only`-nál fent. */
+.dokumentacio-print-only {
+  display: none;
+}
 .eredmeny-print-btn {
   margin-left: auto;
 }
@@ -3326,6 +3334,9 @@ html[data-theme='dark'] .bodychart-img {
   }
   .eredmeny-print-only {
     display: inline-block !important;
+  }
+  .dokumentacio-print-only {
+    display: block !important;
   }
   /* fejléc: név/kor/magasság balra, kitöltés dátuma jobbra — ugyanaz az
      elrendezés, mint asztalon. */

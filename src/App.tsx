@@ -19,6 +19,7 @@ import GytVideokiosztas from './pages/GytVideokiosztas'
 import GytNaptar from './pages/GytNaptar'
 import GytAllapotfelmerok from './pages/GytAllapotfelmerok'
 import GytMunkafuzet from './pages/GytMunkafuzet'
+import GytDokumentacio from './pages/GytDokumentacio'
 import SalesHivasaim from './pages/SalesHivasaim'
 import SalesHozzarendeles from './pages/SalesHozzarendeles'
 import SalesUzenetek from './pages/SalesUzenetek'
@@ -32,6 +33,7 @@ import { BlogProvider } from './context/BlogContext'
 import { MaterialsProvider } from './context/MaterialsContext'
 import { OktatoanyagProvider } from './context/OktatoanyagContext'
 import { WorkbookProvider } from './context/WorkbookContext'
+import { DokumentacioProvider } from './context/DokumentacioContext'
 import { AllapotfelmeroProvider, useAllapotfelmero } from './context/AllapotfelmeroContext'
 import { LOGGED_IN_GYT_ID } from './data/colleagues'
 import { getSelectedClientId } from './data/initialClients'
@@ -47,7 +49,11 @@ function buildGytNavItems(newClientsCount: number): NavItem[] {
     // átnevezve, és a többi AKTÍV menüpont mellé (nem a zárolt helyőrzők
     // közé) átsorolva.
     { to: '/gyt/allapotfelmerok', label: 'állapotfelmérők', icon: '/icons/ikon_kerdoiv.svg' },
-    { label: 'dokumentáció', icon: '/icons/ikon_munkafuzet.svg', locked: true },
+    // "dokumentáció" feloldva (2026.09.21., Marci kérésére, 4. fázis) —
+    // ügyfélhez ÉS alkalomhoz kötött szöveges dokumentáció, gyorsgombokkal,
+    // időkorlátos szerkeszthetőséggel és záró-alkalom utáni archiválással,
+    // ld. GytDokumentacio.tsx/DokumentacioContext.tsx.
+    { to: '/gyt/dokumentacio', label: 'dokumentáció', icon: '/icons/ikon_munkafuzet.svg' },
     // "munkafüzet" feloldva (2026.09.18., Marci kérésére, 3. fázis) — a GYT
     // itt CSAK OLVASHATÓ nézetben látja az ÜF válaszait, ld. GytMunkafuzet.tsx.
     // Az "oktatóanyag" NEM oldódik fel a GYT oldalán — Marci kifejezetten
@@ -99,9 +105,11 @@ export default function App() {
             <MaterialsProvider>
               <OktatoanyagProvider>
                 <WorkbookProvider>
-                  <AllapotfelmeroProvider>
-                    <AppRoutes />
-                  </AllapotfelmeroProvider>
+                  <DokumentacioProvider>
+                    <AllapotfelmeroProvider>
+                      <AppRoutes />
+                    </AllapotfelmeroProvider>
+                  </DokumentacioProvider>
                 </WorkbookProvider>
               </OktatoanyagProvider>
             </MaterialsProvider>
@@ -186,6 +194,7 @@ function AppRoutes() {
           <Route path="/gyt/videokiosztas" element={<GytVideokiosztas />} />
           <Route path="/gyt/allapotfelmerok" element={<GytAllapotfelmerok />} />
           <Route path="/gyt/munkafuzet" element={<GytMunkafuzet />} />
+          <Route path="/gyt/dokumentacio" element={<GytDokumentacio />} />
         </Route>
       </Route>
       <Route element={<AppLayout navItems={salesNavItems} userName="Eszter" role="sales" />}>
