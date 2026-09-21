@@ -104,16 +104,17 @@ function EntryEditor({ clientId, entry }: { clientId: string; entry: Dokumentaci
 
   return (
     <div>
-      {showEditor && <QuickButtons onInsert={handleInsert} />}
-
       {showEditor ? (
-        <textarea
-          className="form-control mb-3"
-          rows={6}
-          placeholder="dokumentáció szövege…"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-        />
+        <>
+          <textarea
+            className="form-control mb-3"
+            rows={6}
+            placeholder="dokumentáció szövege…"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+          />
+          <QuickButtons onInsert={handleInsert} />
+        </>
       ) : (
         <p className="mb-3" style={{ whiteSpace: 'pre-wrap' }}>
           {entry.text || <span style={{ color: 'var(--color-text-muted)' }}>még nincs dokumentáció rögzítve.</span>}
