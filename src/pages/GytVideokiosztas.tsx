@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import Chevron from '../components/Chevron'
 import { EXERCISES, type ExerciseCode, type ClientVariables, codeLabel, suggestedSequence } from '../data/tornaSzintek'
@@ -557,40 +556,17 @@ function VariablesPanel({
   )
 }
 
-// ha még nincs (érvényesen) kiválasztott ügyfél, ne a fallback első ügyféllel
-// dolgozzunk. KORÁBBAN ez egy néma átirányítás volt az "ügyfeleim" oldalra
-// (`navigate(..., { replace: true })`) — mobilon, ha valaki a hamburger-
-// menüből egyenesen a "videókiosztás" pontra koppintott anélkül, hogy előtte
-// kiválasztott volna egy ügyfelet, ez úgy nézett ki, mintha a modul EGYÁLTALÁN
-// NEM NYÍLNA MEG (a koppintás után "semmi sem történt", csak egy másik oldal
-// jelent meg magyarázat nélkül) — Marci hibajelzésére (2026.09.02.) inkább
-// MARADUNK ezen az oldalon, és egy egyértelmű üzenetet + gombot mutatunk.
+// az "előbb válassz ügyfelet" esetet korábban ez az oldal saját maga
+// kezelte (helyben maradva, egy magyarázó üzenettel + gombbal — Marci
+// 2026.09.02-i hibajelzésére, mert egy néma átirányítás mobilon úgy
+// nézett ki, mintha a modul egyáltalán nem nyílna meg). Ez mostantól a
+// `GytClientGate` (App.tsx) route-szintű kapuja: ez a komponens csak
+// akkor renderelődik, ha MÁR van kiválasztott ügyfél (2026.09.21., Marci
+// kérésére) — a kapu maga UGYANÚGY az "ügyfeleim" oldalra visz (nem néma
+// átirányítás egy üres/ismeretlen oldalra), csak a nav-menü szintjén,
+// nem ennek az oldalnak a belsejében.
 export default function GytVideokiosztas() {
-  const navigate = useNavigate()
-  const [clientId] = useState(getSelectedClientId)
-
-  if (!clientId) {
-    return (
-      <section className="py-3 py-lg-5">
-        <div className="container-fluid" style={{ maxWidth: 900 }}>
-          <div className="app-page-header mb-3">
-            <h1 className="app-page-title mb-0">videókiosztás</h1>
-          </div>
-          <div className="select-client-notice mb-3">
-            <Icon src="/icons/ikon_csengo.svg" style={{ width: '1.4rem', height: '1.4rem', flexShrink: 0 }} />
-            <span>előbb válassz ügyfelet — a videókiosztás egy konkrét ügyfélhez tartozik.</span>
-          </div>
-          <button
-            type="button"
-            className="btn-fyb btn-fyb-primary"
-            onClick={() => navigate('/gyt/ugyfelek', { state: { from: '/gyt/videokiosztas' } })}
-          >
-            ügyfeleim megnyitása
-          </button>
-        </div>
-      </section>
-    )
-  }
+  const clientId = getSelectedClientId()!
   return <GytVideokiosztasInner clientId={clientId} />
 }
 

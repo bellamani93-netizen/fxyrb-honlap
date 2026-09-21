@@ -34,6 +34,12 @@ export default function Belepes() {
       return
     }
     localStorage.setItem('fyb-session', JSON.stringify(match))
+    // Marci kérésére (2026.09.21.): "ha a gyt belép, akkor nincsen
+    // alapértelmezetten kiválasztva üf" — a korábban kiválasztott ügyfél
+    // eddig a kifejezett kijelentkezésig (ld. AppLayout.tsx "kijelentkezés"
+    // link) megmaradt, egy egyszerű belépés nem törölte. Minden belépés
+    // most nullázza, hogy a GYT mindig ügyfél nélkül induljon.
+    localStorage.removeItem('fyb-gyt-client')
     navigate(ROLE_PATH[match.role])
   }
 

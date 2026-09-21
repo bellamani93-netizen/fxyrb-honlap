@@ -1,49 +1,19 @@
-import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import Icon from '../components/Icon'
 import { useClients } from '../context/ClientsContext'
 import { getSelectedClientId } from '../data/initialClients'
 import { useWorkbook, WORKBOOK_FELADATOK } from '../context/WorkbookContext'
 
 // GYT-oldali, csak olvasható nézet az ÜF munkafüzetére (2026.09.18., Marci
-// kérésére: "munkafüzet hozzáférés a gyt számára") — ugyanaz az ügyfél-
-// választós "előbb válassz ügyfelet" minta, mint az Állapotfelmérő
-// eredménylapnál (ld. GytAllapotfelmerok.tsx). Mivel nincs backend, a
+// kérésére: "munkafüzet hozzáférés a gyt számára"). Mivel nincs backend, a
 // ténylegesen megjelenő válaszok a közös, munkamenet-szintű
 // `WorkbookContext` demó-adatai (ugyanaz, amit az ÜF a saját "munkafüzet"
 // oldalán lát/ment), a fejlécben csak a kiválasztott ügyfél NEVE cserélődik.
+// Az "előbb válassz ügyfelet" eset mostantól a `GytClientGate` (App.tsx)
+// route-szintű kapuja kezeli (2026.09.21., Marci kérésére) — ez a
+// komponens csak akkor renderelődik, ha MÁR van kiválasztott ügyfél, ezért
+// a korábbi, önálló "nincs kiválasztás" ág innen törölve.
 export default function GytMunkafuzet() {
-  const navigate = useNavigate()
-  const [clientId] = useState(getSelectedClientId)
-
-  if (!clientId) {
-    return (
-      <section className="py-3 py-lg-5">
-        <div className="container-fluid" style={{ maxWidth: 860 }}>
-          <div className="app-page-header mb-3">
-            <h1 className="app-page-title mb-0">munkafüzet</h1>
-          </div>
-          <div className="select-client-notice mb-3">
-            <Icon src="/icons/ikon_csengo.svg" style={{ width: '1.4rem', height: '1.4rem', flexShrink: 0 }} />
-            <span>előbb válassz ügyfelet — a munkafüzet egy konkrét ügyfélhez tartozik.</span>
-          </div>
-          <button
-            type="button"
-            className="btn-fyb btn-fyb-primary"
-            onClick={() => navigate('/gyt/ugyfelek', { state: { from: '/gyt/munkafuzet' } })}
-          >
-            ügyfeleim megnyitása
-          </button>
-        </div>
-      </section>
-    )
-  }
-  return <GytMunkafuzetInner clientId={clientId} />
-}
-
-function GytMunkafuzetInner({ clientId }: { clientId: string }) {
   const { clients } = useClients()
-  const client = clients.find((c) => c.id === clientId)!
+  const client = clients.find((c) => c.id === getSelectedClientId())!
   const { answers, savedAt } = useWorkbook()
 
   return (

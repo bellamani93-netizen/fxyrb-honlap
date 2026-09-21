@@ -1,4 +1,4 @@
-import { Routes, Route, Outlet, Navigate } from 'react-router-dom'
+import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom'
 import Layout from './components/Layout'
 import AppLayout, { type NavItem } from './components/AppLayout'
 import ScrollToTop from './components/ScrollToTop'
@@ -34,6 +34,7 @@ import { OktatoanyagProvider } from './context/OktatoanyagContext'
 import { WorkbookProvider } from './context/WorkbookContext'
 import { AllapotfelmeroProvider, useAllapotfelmero } from './context/AllapotfelmeroContext'
 import { LOGGED_IN_GYT_ID } from './data/colleagues'
+import { getSelectedClientId } from './data/initialClients'
 
 function buildGytNavItems(newClientsCount: number): NavItem[] {
   return [
@@ -121,6 +122,29 @@ function UgyfelGate() {
   return <Outlet />
 }
 
+// GYT-oldali ügyfél-kapu (2026.09.21., Marci kérésére: "ha a gyt belép,
+// akkor nincsen alapértelmezetten kiválasztva üf. Ha nem a naptárat
+// választja a menüsorból, hanem mást, akkor ugorjon oda az ügyfeleim
+// fülre... majd a választás után ugorjon vissza automatikusan a
+// kiválasztott menüpontra.") — a "naptár" (nincs ügyfél-specifikus
+// tartalma) és maga az "ügyfeleim" (a választó oldal) KÍVÜL marad ezen a
+// kapun, minden más GYT-oldal (videókiosztás, állapotfelmérők, munkafüzet)
+// ALÁJA kerül a Route-fában. Korábban (150-153. pont) ez a 3 oldal
+// egyenként, saját belső "select-client-notice" üzenettel jelezte ugyanezt
+// — az a minta most a nav-menü szintjére került, és feleslegessé vált,
+// ezért törölve lett az érintett oldalakból. A `state.from` ugyanaz a
+// mechanizmus, amit a 153. pontban már bevezettünk — csak eddig kézzel,
+// az oldalak saját "ügyfeleim megnyitása" gombjából hívtuk meg, mostantól
+// automatikusan, a route-váltáskor.
+function GytClientGate() {
+  const location = useLocation()
+  const clientId = getSelectedClientId()
+  if (!clientId) {
+    return <Navigate to="/gyt/ugyfelek" replace state={{ from: location.pathname }} />
+  }
+  return <Outlet />
+}
+
 // külön komponens, hogy a nav-menü "új ügyfél" pöttye REAKTÍVAN kövesse a
 // közös ügyfél-listát (ld. Design jegyzet 49. pont) — a hook csak a
 // Provider-en BELÜL hívható, ezért nem lehet magában az App()-ban, ami a
@@ -157,10 +181,12 @@ function AppRoutes() {
       </Route>
       <Route element={<AppLayout navItems={gytNavItems} userName="Judit" role="gyt" />}>
         <Route path="/gyt/ugyfelek" element={<GytUgyfelek />} />
-        <Route path="/gyt/videokiosztas" element={<GytVideokiosztas />} />
         <Route path="/gyt/naptar" element={<GytNaptar />} />
-        <Route path="/gyt/allapotfelmerok" element={<GytAllapotfelmerok />} />
-        <Route path="/gyt/munkafuzet" element={<GytMunkafuzet />} />
+        <Route element={<GytClientGate />}>
+          <Route path="/gyt/videokiosztas" element={<GytVideokiosztas />} />
+          <Route path="/gyt/allapotfelmerok" element={<GytAllapotfelmerok />} />
+          <Route path="/gyt/munkafuzet" element={<GytMunkafuzet />} />
+        </Route>
       </Route>
       <Route element={<AppLayout navItems={salesNavItems} userName="Eszter" role="sales" />}>
         <Route path="/sales/hivasaim" element={<SalesHivasaim />} />
