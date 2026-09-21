@@ -20,6 +20,7 @@ import GytNaptar from './pages/GytNaptar'
 import GytAllapotfelmerok from './pages/GytAllapotfelmerok'
 import GytMunkafuzet from './pages/GytMunkafuzet'
 import GytDokumentacio from './pages/GytDokumentacio'
+import GytDokumentacioBeallitasok from './pages/GytDokumentacioBeallitasok'
 import SalesHivasaim from './pages/SalesHivasaim'
 import SalesHozzarendeles from './pages/SalesHozzarendeles'
 import SalesUzenetek from './pages/SalesUzenetek'
@@ -54,6 +55,13 @@ function buildGytNavItems(newClientsCount: number): NavItem[] {
     // időkorlátos szerkeszthetőséggel és záró-alkalom utáni archiválással,
     // ld. GytDokumentacio.tsx/DokumentacioContext.tsx.
     { to: '/gyt/dokumentacio', label: 'dokumentáció', icon: '/icons/ikon_munkafuzet.svg' },
+    // "dokumentáció beállításai" (2026.09.21., Marci kérésére) — a GYT itt
+    // szabja személyre az 1. alkalom "állapotfelmérés folytatása"
+    // szakaszait/mezőit, közös (nem ügyfelenkénti) sablonként, ld.
+    // GytDokumentacioBeallitasok.tsx/DokumentacioContext.tsx
+    // `assessmentTemplate`. Nem ügyfélhez kötött, ezért NEM a
+    // GytClientGate alá kerül (ld. lent a Route-fában).
+    { to: '/gyt/dokumentacio-beallitasok', label: 'dokumentáció beállításai', icon: '/icons/ikon_beallitasok.svg' },
     // "munkafüzet" feloldva (2026.09.18., Marci kérésére, 3. fázis) — a GYT
     // itt CSAK OLVASHATÓ nézetben látja az ÜF válaszait, ld. GytMunkafuzet.tsx.
     // Az "oktatóanyag" NEM oldódik fel a GYT oldalán — Marci kifejezetten
@@ -190,6 +198,7 @@ function AppRoutes() {
       <Route element={<AppLayout navItems={gytNavItems} userName="Judit" role="gyt" />}>
         <Route path="/gyt/ugyfelek" element={<GytUgyfelek />} />
         <Route path="/gyt/naptar" element={<GytNaptar />} />
+        <Route path="/gyt/dokumentacio-beallitasok" element={<GytDokumentacioBeallitasok />} />
         <Route element={<GytClientGate />}>
           <Route path="/gyt/videokiosztas" element={<GytVideokiosztas />} />
           <Route path="/gyt/allapotfelmerok" element={<GytAllapotfelmerok />} />

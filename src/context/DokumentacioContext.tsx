@@ -38,74 +38,79 @@ export const ALKALOM_COUNT = 6
  * pl. 3 hét, utána nem"). */
 export const EDIT_WINDOW_WEEKS = 3
 
-// Az 1. alkalom állapotfelmérés-folytatás mezői (2026.09.21., Marci
-// kérésére, egyeztetés után): "az első alkalom dokumentációja eltér a
-// többitől, itt az állapotfelmérés folytatódik" — előre megadott CÍMKÉjű,
-// de kezdetben ÜRES mezők (nincs sablon-szöveg), amiket a GYT tölt ki. Ezek
-// az általános szöveges mező MELLÉ (nem helyette) kerülnek, és azzal EGYÜTT,
-// egyetlen "Rögzítés" gombbal kerülnek mentésre/zárolásra.
-export type AssessmentFieldId =
-  | 'tortenet'
-  | 'tunetek'
-  | 'riziko'
-  | 'inspekcioGerincGorbuletek'
-  | 'inspekcioFejHelyzet'
-  | 'mozgasFejEmeles'
-  | 'mozgasFejLehajtas'
-  | 'mozgasKarElevacio'
-  | 'mozgasGerincFlexio'
-  | 'mozgasGerincExtenzio'
-  | 'tesztSarokemeles'
+// Az 1. alkalom "állapotfelmérés folytatása" mezői SZERKESZTHETŐ SABLONNÁ
+// alakítva (2026.09.21., Marci kérésére, egyeztetés után): "jó lenne, ha a
+// gyt tudná személyre szabni, és ő tudna hozzáadni beviteli mezőket" — egy
+// KÖZÖS (nem ügyfelenkénti), beállítás-oldalon szerkeszthető sablon
+// (`assessmentTemplate`), amit minden ÚJ, még nem rögzített alkalom-1
+// dokumentáció a legfrissebb állapotában használ. Fontos, a Marci által
+// kifejezetten kért szabály: A MÓDOSÍTÁSOK NEM ÉRVÉNYESEK VISSZAMENŐLEG —
+// ha egy ügyfélnél az 1. alkalom dokumentációja már EGYSZER rögzítve lett,
+// az ELSŐ rögzítéskor "lefényképezett" szakasz/mező-szerkezetet (ld.
+// `DokumentacioEntry.assessmentSnapshot`) őrzi meg attól kezdve VÉGLEG,
+// akkor is, ha a sablont a GYT később átnevezi/bővíti/mezőt töröl belőle.
+export type AssessmentFieldDef = { id: string; label: string }
+export type AssessmentSectionDef = { id: string; title: string; fields: AssessmentFieldDef[] }
 
-export type AssessmentFields = Record<AssessmentFieldId, string>
-
-export const ASSESSMENT_SECTIONS: { title: string; fields: { id: AssessmentFieldId; label: string }[] }[] = [
-  { title: 'Történet', fields: [{ id: 'tortenet', label: 'Történet' }] },
-  { title: 'Tünetek', fields: [{ id: 'tunetek', label: 'Tünetek' }] },
-  { title: 'Rizikó', fields: [{ id: 'riziko', label: 'Rizikó' }] },
+/** a sablon kezdő állapota — a korábbi kör (157. pont) fix mezői, mostantól
+ * a GYT-oldali beállítás-oldalon (`GytDokumentacioBeallitasok.tsx`)
+ * szabadon szerkeszthető kiindulópontként. */
+export const DEFAULT_ASSESSMENT_TEMPLATE: AssessmentSectionDef[] = [
+  { id: 'szakasz-tortenet', title: 'Történet', fields: [{ id: 'mezo-tortenet', label: 'Történet' }] },
+  { id: 'szakasz-tunetek', title: 'Tünetek', fields: [{ id: 'mezo-tunetek', label: 'Tünetek' }] },
+  { id: 'szakasz-riziko', title: 'Rizikó', fields: [{ id: 'mezo-riziko', label: 'Rizikó' }] },
   {
+    id: 'szakasz-inspekcio',
     title: 'Inspekció',
     fields: [
-      { id: 'inspekcioGerincGorbuletek', label: 'gerinc görbületek' },
-      { id: 'inspekcioFejHelyzet', label: 'fej helyzet' },
+      { id: 'mezo-inspekcio-gerincgorbuletek', label: 'gerinc görbületek' },
+      { id: 'mezo-inspekcio-fejhelyzet', label: 'fej helyzet' },
     ],
   },
   {
+    id: 'szakasz-mozgasvizsgalat',
     title: 'Mozgásvizsgálat',
     fields: [
-      { id: 'mozgasFejEmeles', label: 'fej emelés' },
-      { id: 'mozgasFejLehajtas', label: 'fej lehajtás' },
-      { id: 'mozgasKarElevacio', label: 'kar eleváció' },
-      { id: 'mozgasGerincFlexio', label: 'gerinc flexió' },
-      { id: 'mozgasGerincExtenzio', label: 'gerinc extenzió' },
+      { id: 'mezo-mozgas-fejemeles', label: 'fej emelés' },
+      { id: 'mezo-mozgas-fejlehajtas', label: 'fej lehajtás' },
+      { id: 'mezo-mozgas-karelevacio', label: 'kar eleváció' },
+      { id: 'mezo-mozgas-gerincflexio', label: 'gerinc flexió' },
+      { id: 'mezo-mozgas-gerincextenzio', label: 'gerinc extenzió' },
     ],
   },
-  { title: 'Tesztek', fields: [{ id: 'tesztSarokemeles', label: 'sarokemelés jobb-bal' }] },
+  { id: 'szakasz-tesztek', title: 'Tesztek', fields: [{ id: 'mezo-tesztek-sarokemeles', label: 'sarokemelés jobb-bal' }] },
 ]
 
-export function emptyAssessment(): AssessmentFields {
-  const result = {} as AssessmentFields
-  for (const section of ASSESSMENT_SECTIONS) {
-    for (const field of section.fields) result[field.id] = ''
-  }
-  return result
+/** egy már (legalább egyszer) rögzített alkalom-1 dokumentáció saját,
+ * lefagyasztott szakasz/mező-szerkezete + a hozzá tartozó értékek. */
+export type AssessmentFieldValue = { id: string; label: string; value: string }
+export type AssessmentSectionSnapshot = { id: string; title: string; fields: AssessmentFieldValue[] }
+
+export function buildAssessmentDraft(template: AssessmentSectionDef[]): AssessmentSectionSnapshot[] {
+  return template.map((section) => ({
+    id: section.id,
+    title: section.title,
+    fields: section.fields.map((field) => ({ id: field.id, label: field.label, value: '' })),
+  }))
+}
+
+export function hasAssessmentContent(snapshot: AssessmentSectionSnapshot[] | null): boolean {
+  return !!snapshot?.some((section) => section.fields.some((field) => field.value.trim()))
 }
 
 export type DokumentacioEntry = {
   alkalom: number
   text: string
   savedAt: string | null
-  /** csak az 1. alkalomnál van kitöltve, a többinél null. */
-  assessment: AssessmentFields | null
+  /** csak az 1. alkalomnál kerül be, és csak az ELSŐ rögzítés UTÁN — attól
+   * kezdve a szerkezete fix, a sablon későbbi módosításai nem hatnak rá. */
+  assessmentSnapshot: AssessmentSectionSnapshot[] | null
 }
 
 export type QuickButton = { id: string; text: string }
 
 function emptyEntries(): DokumentacioEntry[] {
-  return Array.from({ length: ALKALOM_COUNT }, (_, i) => {
-    const alkalom = i + 1
-    return { alkalom, text: '', savedAt: null, assessment: alkalom === 1 ? emptyAssessment() : null }
-  })
+  return Array.from({ length: ALKALOM_COUNT }, (_, i) => ({ alkalom: i + 1, text: '', savedAt: null, assessmentSnapshot: null }))
 }
 
 type DokumentacioContextValue = {
@@ -113,7 +118,7 @@ type DokumentacioContextValue = {
   addQuickButton: (text: string) => void
   removeQuickButton: (id: string) => void
   getEntries: (clientId: string) => DokumentacioEntry[]
-  saveEntry: (clientId: string, alkalom: number, text: string, assessment: AssessmentFields | null) => void
+  saveEntry: (clientId: string, alkalom: number, text: string, assessmentSnapshot: AssessmentSectionSnapshot[] | null) => void
   /** true, ha az ügyfél 6. (záró) alkalma már rögzítve van — ekkortól az
    * összes alkalom véglegesen zárolt, függetlenül a 3 hetes ablaktól. */
   isArchived: (clientId: string) => boolean
@@ -121,6 +126,15 @@ type DokumentacioContextValue = {
    * elmentve, VAGY el van mentve, de a 3 hetes ablakon belül vagyunk),
    * ÉS az ügyfél még nincs archiválva. */
   isEntryEditable: (clientId: string, entry: DokumentacioEntry) => boolean
+  /** az 1. alkalom "állapotfelmérés folytatása" KÖZÖS, GYT által
+   * szerkeszthető sablonja — ld. GytDokumentacioBeallitasok.tsx. */
+  assessmentTemplate: AssessmentSectionDef[]
+  addAssessmentSection: (title: string) => void
+  renameAssessmentSection: (sectionId: string, title: string) => void
+  removeAssessmentSection: (sectionId: string) => void
+  addAssessmentField: (sectionId: string, label: string) => void
+  renameAssessmentField: (sectionId: string, fieldId: string, label: string) => void
+  removeAssessmentField: (sectionId: string, fieldId: string) => void
 }
 
 const DokumentacioContext = createContext<DokumentacioContextValue | null>(null)
@@ -134,24 +148,27 @@ export function useDokumentacio() {
 export function DokumentacioProvider({ children }: { children: ReactNode }) {
   const [entriesByClient, setEntriesByClient] = useState<Record<string, DokumentacioEntry[]>>({})
   const [quickButtons, setQuickButtons] = useState<QuickButton[]>([])
+  const [assessmentTemplate, setAssessmentTemplate] = useState<AssessmentSectionDef[]>(DEFAULT_ASSESSMENT_TEMPLATE)
 
   function getEntries(clientId: string): DokumentacioEntry[] {
     return entriesByClient[clientId] ?? emptyEntries()
   }
 
-  function saveEntry(clientId: string, alkalom: number, text: string, assessment: AssessmentFields | null) {
+  function saveEntry(clientId: string, alkalom: number, text: string, assessmentSnapshot: AssessmentSectionSnapshot[] | null) {
     setEntriesByClient((prev) => {
       const current = prev[clientId] ?? emptyEntries()
       // a `savedAt` csak az ELSŐ rögzítéskor kerül be — egy későbbi
       // szerkesztés (a 3 hetes ablakon belül) nem tolja ki a határidőt,
       // ugyanattól a rögzítés-időponttól számít (ld. Projekt specifikáció:
       // "szerkeszthető X ideig, utána nem" — abszolút, nem gördülő határidő).
-      // Az állapotfelmérés-folytatás mezők (csak az 1. alkalomnál) az
-      // általános szöveggel EGYÜTT, egyetlen rögzítéssel mentődnek.
+      // Az `assessmentSnapshot`-ot a hívó (GytDokumentacio.tsx EntryEditor)
+      // már a megfelelő szerkezettel adja át: első rögzítéskor a sablon
+      // ÉPPEN AKTUÁLIS másolatával, utána a MÁR MEGLÉVŐ, fagyasztott
+      // szerkezetével (csak az értékek frissülnek) — itt nincs több teendő.
       return {
         ...prev,
         [clientId]: current.map((e) =>
-          e.alkalom === alkalom ? { ...e, text, assessment, savedAt: e.savedAt ?? new Date().toISOString() } : e
+          e.alkalom === alkalom ? { ...e, text, assessmentSnapshot, savedAt: e.savedAt ?? new Date().toISOString() } : e
         ),
       }
     })
@@ -178,9 +195,56 @@ export function DokumentacioProvider({ children }: { children: ReactNode }) {
     setQuickButtons((prev) => prev.filter((b) => b.id !== id))
   }
 
+  function addAssessmentSection(title: string) {
+    setAssessmentTemplate((prev) => [...prev, { id: `szakasz-${Date.now()}`, title, fields: [] }])
+  }
+
+  function renameAssessmentSection(sectionId: string, title: string) {
+    setAssessmentTemplate((prev) => prev.map((s) => (s.id === sectionId ? { ...s, title } : s)))
+  }
+
+  function removeAssessmentSection(sectionId: string) {
+    setAssessmentTemplate((prev) => prev.filter((s) => s.id !== sectionId))
+  }
+
+  function addAssessmentField(sectionId: string, label: string) {
+    setAssessmentTemplate((prev) =>
+      prev.map((s) => (s.id === sectionId ? { ...s, fields: [...s.fields, { id: `mezo-${Date.now()}`, label }] } : s))
+    )
+  }
+
+  function renameAssessmentField(sectionId: string, fieldId: string, label: string) {
+    setAssessmentTemplate((prev) =>
+      prev.map((s) =>
+        s.id === sectionId ? { ...s, fields: s.fields.map((f) => (f.id === fieldId ? { ...f, label } : f)) } : s
+      )
+    )
+  }
+
+  function removeAssessmentField(sectionId: string, fieldId: string) {
+    setAssessmentTemplate((prev) =>
+      prev.map((s) => (s.id === sectionId ? { ...s, fields: s.fields.filter((f) => f.id !== fieldId) } : s))
+    )
+  }
+
   return (
     <DokumentacioContext.Provider
-      value={{ quickButtons, addQuickButton, removeQuickButton, getEntries, saveEntry, isArchived, isEntryEditable }}
+      value={{
+        quickButtons,
+        addQuickButton,
+        removeQuickButton,
+        getEntries,
+        saveEntry,
+        isArchived,
+        isEntryEditable,
+        assessmentTemplate,
+        addAssessmentSection,
+        renameAssessmentSection,
+        removeAssessmentSection,
+        addAssessmentField,
+        renameAssessmentField,
+        removeAssessmentField,
+      }}
     >
       {children}
     </DokumentacioContext.Provider>

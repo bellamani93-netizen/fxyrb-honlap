@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useClients } from '../context/ClientsContext'
 import { getSelectedClientId } from '../data/initialClients'
 import {
   useDokumentacio,
   ALKALOM_COUNT,
   EDIT_WINDOW_WEEKS,
-  ASSESSMENT_SECTIONS,
-  type AssessmentFieldId,
-  type AssessmentFields,
+  buildAssessmentDraft,
+  hasAssessmentContent,
+  type AssessmentSectionSnapshot,
   type DokumentacioEntry,
 } from '../context/DokumentacioContext'
 import Eredmenyeim from './Eredmenyeim'
@@ -24,28 +25,32 @@ function editableUntil(savedAtISO: string) {
 }
 
 // az 1. alkalom "állapotfelmérés folytatása" mezői (2026.09.21., Marci
-// kérésére) — előre megadott CÍMKÉjű, de kezdetben üres mezők, az
-// általános szöveges mező MELLETT, azzal együtt mentve. Szerkeszthető és
-// csak-olvasható (zárolt/nyomtatási) nézetben is ugyanaz a komponens.
+// kérésére) — a GYT saját, "dokumentáció beállításai" oldalon szerkeszthető
+// KÖZÖS sablonból (ld. DokumentacioContext.tsx `assessmentTemplate`)
+// származnak, de egy adott ügyfél MÁR RÖGZÍTETT alkalma a saját,
+// lefagyasztott szerkezetét (`assessmentSnapshot`) jeleníti meg — a sablon
+// későbbi módosítása nem hat visszamenőleg a már rögzített dokumentációra.
+// Szerkeszthető és csak-olvasható (zárolt/nyomtatási) nézetben is ugyanaz a
+// komponens.
 function AssessmentSection({
-  values,
+  sections,
   editable,
   onChange,
 }: {
-  values: AssessmentFields
+  sections: AssessmentSectionSnapshot[]
   editable: boolean
-  onChange?: (id: AssessmentFieldId, value: string) => void
+  onChange?: (sectionId: string, fieldId: string, value: string) => void
 }) {
   return (
     <div className="mb-4">
       <h3 className="h6 mb-3">állapotfelmérés folytatása</h3>
-      {ASSESSMENT_SECTIONS.map((section) => {
+      {sections.map((section) => {
         // ha a szakasznak egyetlen, a cím-mel megegyező nevű mezője van
         // (Történet, Tünetek, Rizikó), a mező-címke felesleges duplikáció
         // lenne — ilyenkor csak a szakasz-cím jelenik meg.
         const singleTrivialField = section.fields.length === 1 && section.fields[0].label === section.title
         return (
-          <div className="mb-3" key={section.title}>
+          <div className="mb-3" key={section.id}>
             {!singleTrivialField && <span className="small fw-bold d-block mb-2">{section.title}</span>}
             {section.fields.map((field) => (
               <div className="mb-2" key={field.id}>
@@ -54,12 +59,12 @@ function AssessmentSection({
                   <textarea
                     className="form-control"
                     rows={2}
-                    value={values[field.id]}
-                    onChange={(e) => onChange?.(field.id, e.target.value)}
+                    value={field.value}
+                    onChange={(e) => onChange?.(section.id, field.id, e.target.value)}
                   />
                 ) : (
                   <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
-                    {values[field.id] || <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
+                    {field.value || <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
                   </p>
                 )}
               </div>
@@ -132,24 +137,36 @@ function QuickButtons({ onInsert }: { onInsert: (text: string) => void }) {
 // szerkesztés mintáját követi (ld. Munkafuzet.tsx), kiegészítve az
 // időkorlátos szerkeszthetőséggel (ld. DokumentacioContext.tsx).
 function EntryEditor({ clientId, entry }: { clientId: string; entry: DokumentacioEntry }) {
-  const { saveEntry, isEntryEditable, isArchived } = useDokumentacio()
+  const { saveEntry, isEntryEditable, isArchived, assessmentTemplate } = useDokumentacio()
   const editableNow = isEntryEditable(clientId, entry)
   const [draft, setDraft] = useState(entry.text)
-  const [assessmentDraft, setAssessmentDraft] = useState(entry.assessment)
+  // az 1. alkalomnál: ha már van saját, lefagyasztott szerkezet (legalább
+  // egyszer rögzítve volt), AZT szerkesztjük tovább — egyébként a sablon
+  // ÉPPEN AKTUÁLIS másolatát, üres értékekkel (ld. modul-tető komment).
+  const [assessmentDraft, setAssessmentDraft] = useState<AssessmentSectionSnapshot[] | null>(
+    entry.alkalom === 1 ? (entry.assessmentSnapshot ?? buildAssessmentDraft(assessmentTemplate)) : null
+  )
   const [editing, setEditing] = useState(!entry.savedAt)
 
   useEffect(() => {
     setDraft(entry.text)
-    setAssessmentDraft(entry.assessment)
+    setAssessmentDraft(entry.alkalom === 1 ? (entry.assessmentSnapshot ?? buildAssessmentDraft(assessmentTemplate)) : null)
     setEditing(!entry.savedAt)
-  }, [entry.alkalom, entry.text, entry.assessment, entry.savedAt])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry.alkalom, entry.text, entry.assessmentSnapshot, entry.savedAt])
 
   function handleInsert(text: string) {
     setDraft((d) => (d.trim() ? `${d}\n${text}` : text))
   }
 
-  function handleAssessmentChange(id: AssessmentFieldId, value: string) {
-    setAssessmentDraft((prev) => (prev ? { ...prev, [id]: value } : prev))
+  function handleAssessmentChange(sectionId: string, fieldId: string, value: string) {
+    setAssessmentDraft((prev) =>
+      prev
+        ? prev.map((s) =>
+            s.id === sectionId ? { ...s, fields: s.fields.map((f) => (f.id === fieldId ? { ...f, value } : f)) } : s
+          )
+        : prev
+    )
   }
 
   function handleSave() {
@@ -158,13 +175,13 @@ function EntryEditor({ clientId, entry }: { clientId: string; entry: Dokumentaci
   }
 
   const showEditor = editing && editableNow
-  const hasAnyContent = draft.trim() || (assessmentDraft && Object.values(assessmentDraft).some((v) => v.trim()))
+  const hasAnyContent = draft.trim() || hasAssessmentContent(assessmentDraft)
 
   return (
     <div>
-      {entry.assessment && (
+      {assessmentDraft && (
         <AssessmentSection
-          values={showEditor ? assessmentDraft! : entry.assessment}
+          sections={assessmentDraft}
           editable={showEditor}
           onChange={handleAssessmentChange}
         />
@@ -231,9 +248,14 @@ export default function GytDokumentacio() {
       <div className="container-fluid" style={{ maxWidth: 900 }}>
         <div className="app-page-header mb-3 mobile-sticky-header d-flex align-items-center justify-content-between flex-wrap gap-2">
           <h1 className="app-page-title mb-0">dokumentáció — {client.name}</h1>
-          <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm no-print" onClick={() => window.print()}>
-            nyomtatás / PDF
-          </button>
+          <div className="d-flex align-items-center gap-2 no-print">
+            <Link to="/gyt/dokumentacio-beallitasok" className="btn-fyb btn-fyb-outline btn-fyb-sm">
+              beállítások
+            </Link>
+            <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => window.print()}>
+              nyomtatás / PDF
+            </button>
+          </div>
         </div>
 
         {archived && (
@@ -277,7 +299,7 @@ export default function GytDokumentacio() {
           {entries.map((e) => (
             <div className="card-fyb mb-4" key={e.alkalom}>
               <h2 className="h6 mb-3">{e.alkalom}. alkalom dokumentációja</h2>
-              {e.assessment && <AssessmentSection values={e.assessment} editable={false} />}
+              {e.assessmentSnapshot && <AssessmentSection sections={e.assessmentSnapshot} editable={false} />}
               <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
                 {e.text || 'még nincs dokumentáció rögzítve.'}
               </p>
