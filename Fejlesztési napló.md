@@ -2049,3 +2049,15 @@ Marci kérésére egy "Szűrés" legördülő került a lista fölé, 4 opcióva
 Marci kérésére az admin "anyagok kezelése" oldalon a lecke-kártyákhoz egy új szekció került: a fejezetekkel azonos mintájú "tudáspróba kérdései" lista, ahol kérdés-szöveg vehető fel/törölhető leckénként. 2 tisztázó kérdés után (kérdések szintje: leckénként; tartalom: csak szöveg, válaszlehetőségek nélkül) épült meg. Az ÜF-oldali "tudáscheck teljesítése" gomb tudatosan változatlan maradt — ez a kör csak az admin-oldali rögzítést teszi lehetővé, a valódi kvíz-logika egy későbbi kérésre vár.
 
 **Tesztelve böngészőben:** kérdés felvétele a megfelelő leckéhez került, a másik lecke listája érintetlen maradt, a törlés is működött. Világos, sötét és mobil nézetben is megerősítve. Konzol-hiba nem jelentkezett, `npm run build`/`tsc -b` hibamentesek.
+
+## 2026.09.21. — Marci "3. fázis"-a lezárva — összefoglaló
+
+Marci lezártnak nyilvánította a 2026.09.17-én indított munkakört, amit Ő maga nevezett el "3. fázisnak" (nem tévesztendő össze a Design jegyzet saját, korábbi belső 3. fázis-számozásával). Ez a kör az alábbiakat építette meg:
+
+- **Oktatóanyag** (ÜF): admin által kezelt leckék + fejezetek (cím-only placeholder videók), leckénkénti ideiglenes "tudáscheck teljesítése" gomb.
+- **Munkafüzet** (ÜF + GYT csak-olvasható nézet): a Munkafüzet.odt mintája szerinti 2 feladat, bővíthető piros/zöld táblázattal (asztalon egyenlő oszlopok + soronkénti nyíl, mobilon pár-kártyák), mentés után zárolt nézet "szerkesztés" gombbal, csak mindkét tudáscheck teljesítése után nyílik meg.
+- **GYT ügyfélválasztás átdolgozva:** belépéskor nincs alapértelmezett ügyfél, a "naptár" kivételével minden ügyfél-specifikus oldal automatikusan az ügyfélválasztóra irányít és onnan vissza.
+- **"Ügyfeleim" szűrő:** összes/mai/14 hetes utánkövetés/archivált ügyfelek — az utóbbi 2 egy jövőbeli funkcióra vár.
+- **Admin "anyagok kezelése":** tudáspróba-kérdések rögzítése leckénként (placeholder).
+
+Minden pont böngészőben tesztelve (világos/sötét mód, asztali/mobil), a build mindvégig hibamentes volt. A programozói referenciapont továbbra is a `fazis-1-lezarva` git tag — ehhez a körhöz nem készült külön tag, mert Marci csak a munka lezárását kérte, nem egy programozói átadási pontot.
