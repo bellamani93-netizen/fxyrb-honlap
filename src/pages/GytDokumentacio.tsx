@@ -5,6 +5,9 @@ import {
   useDokumentacio,
   ALKALOM_COUNT,
   EDIT_WINDOW_WEEKS,
+  ASSESSMENT_SECTIONS,
+  type AssessmentFieldId,
+  type AssessmentFields,
   type DokumentacioEntry,
 } from '../context/DokumentacioContext'
 import Eredmenyeim from './Eredmenyeim'
@@ -18,6 +21,54 @@ function editableUntil(savedAtISO: string) {
   const d = new Date(savedAtISO)
   d.setDate(d.getDate() + EDIT_WINDOW_WEEKS * 7)
   return d
+}
+
+// az 1. alkalom "állapotfelmérés folytatása" mezői (2026.09.21., Marci
+// kérésére) — előre megadott CÍMKÉjű, de kezdetben üres mezők, az
+// általános szöveges mező MELLETT, azzal együtt mentve. Szerkeszthető és
+// csak-olvasható (zárolt/nyomtatási) nézetben is ugyanaz a komponens.
+function AssessmentSection({
+  values,
+  editable,
+  onChange,
+}: {
+  values: AssessmentFields
+  editable: boolean
+  onChange?: (id: AssessmentFieldId, value: string) => void
+}) {
+  return (
+    <div className="mb-4">
+      <h3 className="h6 mb-3">állapotfelmérés folytatása</h3>
+      {ASSESSMENT_SECTIONS.map((section) => {
+        // ha a szakasznak egyetlen, a cím-mel megegyező nevű mezője van
+        // (Történet, Tünetek, Rizikó), a mező-címke felesleges duplikáció
+        // lenne — ilyenkor csak a szakasz-cím jelenik meg.
+        const singleTrivialField = section.fields.length === 1 && section.fields[0].label === section.title
+        return (
+          <div className="mb-3" key={section.title}>
+            {!singleTrivialField && <span className="small fw-bold d-block mb-2">{section.title}</span>}
+            {section.fields.map((field) => (
+              <div className="mb-2" key={field.id}>
+                <label className="small fw-bold d-block mb-1">{singleTrivialField ? section.title : field.label}</label>
+                {editable ? (
+                  <textarea
+                    className="form-control"
+                    rows={2}
+                    value={values[field.id]}
+                    onChange={(e) => onChange?.(field.id, e.target.value)}
+                  />
+                ) : (
+                  <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
+                    {values[field.id] || <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 // gyorsgombok kezelése + beszúrása (2026.09.21., Marci kérésére) — a GYT
@@ -84,26 +135,41 @@ function EntryEditor({ clientId, entry }: { clientId: string; entry: Dokumentaci
   const { saveEntry, isEntryEditable, isArchived } = useDokumentacio()
   const editableNow = isEntryEditable(clientId, entry)
   const [draft, setDraft] = useState(entry.text)
+  const [assessmentDraft, setAssessmentDraft] = useState(entry.assessment)
   const [editing, setEditing] = useState(!entry.savedAt)
 
   useEffect(() => {
     setDraft(entry.text)
+    setAssessmentDraft(entry.assessment)
     setEditing(!entry.savedAt)
-  }, [entry.alkalom, entry.text, entry.savedAt])
+  }, [entry.alkalom, entry.text, entry.assessment, entry.savedAt])
 
   function handleInsert(text: string) {
     setDraft((d) => (d.trim() ? `${d}\n${text}` : text))
   }
 
+  function handleAssessmentChange(id: AssessmentFieldId, value: string) {
+    setAssessmentDraft((prev) => (prev ? { ...prev, [id]: value } : prev))
+  }
+
   function handleSave() {
-    saveEntry(clientId, entry.alkalom, draft)
+    saveEntry(clientId, entry.alkalom, draft, assessmentDraft)
     setEditing(false)
   }
 
   const showEditor = editing && editableNow
+  const hasAnyContent = draft.trim() || (assessmentDraft && Object.values(assessmentDraft).some((v) => v.trim()))
 
   return (
     <div>
+      {entry.assessment && (
+        <AssessmentSection
+          values={showEditor ? assessmentDraft! : entry.assessment}
+          editable={showEditor}
+          onChange={handleAssessmentChange}
+        />
+      )}
+
       {showEditor ? (
         <>
           <textarea
@@ -123,7 +189,7 @@ function EntryEditor({ clientId, entry }: { clientId: string; entry: Dokumentaci
 
       <div className="d-flex align-items-center flex-wrap gap-3 no-print">
         {showEditor ? (
-          <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave} disabled={!draft.trim()}>
+          <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave} disabled={!hasAnyContent}>
             Rögzítés
           </button>
         ) : entry.savedAt ? (
@@ -211,6 +277,7 @@ export default function GytDokumentacio() {
           {entries.map((e) => (
             <div className="card-fyb mb-4" key={e.alkalom}>
               <h2 className="h6 mb-3">{e.alkalom}. alkalom dokumentációja</h2>
+              {e.assessment && <AssessmentSection values={e.assessment} editable={false} />}
               <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
                 {e.text || 'még nincs dokumentáció rögzítve.'}
               </p>

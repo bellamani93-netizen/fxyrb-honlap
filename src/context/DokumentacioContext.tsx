@@ -38,12 +38,74 @@ export const ALKALOM_COUNT = 6
  * pl. 3 hét, utána nem"). */
 export const EDIT_WINDOW_WEEKS = 3
 
-export type DokumentacioEntry = { alkalom: number; text: string; savedAt: string | null }
+// Az 1. alkalom állapotfelmérés-folytatás mezői (2026.09.21., Marci
+// kérésére, egyeztetés után): "az első alkalom dokumentációja eltér a
+// többitől, itt az állapotfelmérés folytatódik" — előre megadott CÍMKÉjű,
+// de kezdetben ÜRES mezők (nincs sablon-szöveg), amiket a GYT tölt ki. Ezek
+// az általános szöveges mező MELLÉ (nem helyette) kerülnek, és azzal EGYÜTT,
+// egyetlen "Rögzítés" gombbal kerülnek mentésre/zárolásra.
+export type AssessmentFieldId =
+  | 'tortenet'
+  | 'tunetek'
+  | 'riziko'
+  | 'inspekcioGerincGorbuletek'
+  | 'inspekcioFejHelyzet'
+  | 'mozgasFejEmeles'
+  | 'mozgasFejLehajtas'
+  | 'mozgasKarElevacio'
+  | 'mozgasGerincFlexio'
+  | 'mozgasGerincExtenzio'
+  | 'tesztSarokemeles'
+
+export type AssessmentFields = Record<AssessmentFieldId, string>
+
+export const ASSESSMENT_SECTIONS: { title: string; fields: { id: AssessmentFieldId; label: string }[] }[] = [
+  { title: 'Történet', fields: [{ id: 'tortenet', label: 'Történet' }] },
+  { title: 'Tünetek', fields: [{ id: 'tunetek', label: 'Tünetek' }] },
+  { title: 'Rizikó', fields: [{ id: 'riziko', label: 'Rizikó' }] },
+  {
+    title: 'Inspekció',
+    fields: [
+      { id: 'inspekcioGerincGorbuletek', label: 'gerinc görbületek' },
+      { id: 'inspekcioFejHelyzet', label: 'fej helyzet' },
+    ],
+  },
+  {
+    title: 'Mozgásvizsgálat',
+    fields: [
+      { id: 'mozgasFejEmeles', label: 'fej emelés' },
+      { id: 'mozgasFejLehajtas', label: 'fej lehajtás' },
+      { id: 'mozgasKarElevacio', label: 'kar eleváció' },
+      { id: 'mozgasGerincFlexio', label: 'gerinc flexió' },
+      { id: 'mozgasGerincExtenzio', label: 'gerinc extenzió' },
+    ],
+  },
+  { title: 'Tesztek', fields: [{ id: 'tesztSarokemeles', label: 'sarokemelés jobb-bal' }] },
+]
+
+export function emptyAssessment(): AssessmentFields {
+  const result = {} as AssessmentFields
+  for (const section of ASSESSMENT_SECTIONS) {
+    for (const field of section.fields) result[field.id] = ''
+  }
+  return result
+}
+
+export type DokumentacioEntry = {
+  alkalom: number
+  text: string
+  savedAt: string | null
+  /** csak az 1. alkalomnál van kitöltve, a többinél null. */
+  assessment: AssessmentFields | null
+}
 
 export type QuickButton = { id: string; text: string }
 
 function emptyEntries(): DokumentacioEntry[] {
-  return Array.from({ length: ALKALOM_COUNT }, (_, i) => ({ alkalom: i + 1, text: '', savedAt: null }))
+  return Array.from({ length: ALKALOM_COUNT }, (_, i) => {
+    const alkalom = i + 1
+    return { alkalom, text: '', savedAt: null, assessment: alkalom === 1 ? emptyAssessment() : null }
+  })
 }
 
 type DokumentacioContextValue = {
@@ -51,7 +113,7 @@ type DokumentacioContextValue = {
   addQuickButton: (text: string) => void
   removeQuickButton: (id: string) => void
   getEntries: (clientId: string) => DokumentacioEntry[]
-  saveEntry: (clientId: string, alkalom: number, text: string) => void
+  saveEntry: (clientId: string, alkalom: number, text: string, assessment: AssessmentFields | null) => void
   /** true, ha az ügyfél 6. (záró) alkalma már rögzítve van — ekkortól az
    * összes alkalom véglegesen zárolt, függetlenül a 3 hetes ablaktól. */
   isArchived: (clientId: string) => boolean
@@ -77,16 +139,20 @@ export function DokumentacioProvider({ children }: { children: ReactNode }) {
     return entriesByClient[clientId] ?? emptyEntries()
   }
 
-  function saveEntry(clientId: string, alkalom: number, text: string) {
+  function saveEntry(clientId: string, alkalom: number, text: string, assessment: AssessmentFields | null) {
     setEntriesByClient((prev) => {
       const current = prev[clientId] ?? emptyEntries()
       // a `savedAt` csak az ELSŐ rögzítéskor kerül be — egy későbbi
       // szerkesztés (a 3 hetes ablakon belül) nem tolja ki a határidőt,
       // ugyanattól a rögzítés-időponttól számít (ld. Projekt specifikáció:
       // "szerkeszthető X ideig, utána nem" — abszolút, nem gördülő határidő).
+      // Az állapotfelmérés-folytatás mezők (csak az 1. alkalomnál) az
+      // általános szöveggel EGYÜTT, egyetlen rögzítéssel mentődnek.
       return {
         ...prev,
-        [clientId]: current.map((e) => (e.alkalom === alkalom ? { ...e, text, savedAt: e.savedAt ?? new Date().toISOString() } : e)),
+        [clientId]: current.map((e) =>
+          e.alkalom === alkalom ? { ...e, text, assessment, savedAt: e.savedAt ?? new Date().toISOString() } : e
+        ),
       }
     })
   }
