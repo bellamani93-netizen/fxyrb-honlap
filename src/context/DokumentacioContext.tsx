@@ -129,12 +129,10 @@ type DokumentacioContextValue = {
   /** az 1. alkalom "állapotfelmérés folytatása" KÖZÖS, GYT által
    * szerkeszthető sablonja — ld. GytDokumentacioBeallitasok.tsx. */
   assessmentTemplate: AssessmentSectionDef[]
-  addAssessmentSection: (title: string) => void
-  renameAssessmentSection: (sectionId: string, title: string) => void
-  removeAssessmentSection: (sectionId: string) => void
-  addAssessmentField: (sectionId: string, label: string) => void
-  renameAssessmentField: (sectionId: string, fieldId: string, label: string) => void
-  removeAssessmentField: (sectionId: string, fieldId: string) => void
+  /** a beállítás-oldal SAJÁT piszkozat-állapotban szerkeszt (átnevezés,
+   * hozzáadás, törlés is), és csak a "módosítások mentése" gombra cseréli
+   * le EGYBEN a közös sablont erre — ld. 162. pont, Marci kérésére. */
+  replaceAssessmentTemplate: (template: AssessmentSectionDef[]) => void
 }
 
 const DokumentacioContext = createContext<DokumentacioContextValue | null>(null)
@@ -195,36 +193,8 @@ export function DokumentacioProvider({ children }: { children: ReactNode }) {
     setQuickButtons((prev) => prev.filter((b) => b.id !== id))
   }
 
-  function addAssessmentSection(title: string) {
-    setAssessmentTemplate((prev) => [...prev, { id: `szakasz-${Date.now()}`, title, fields: [] }])
-  }
-
-  function renameAssessmentSection(sectionId: string, title: string) {
-    setAssessmentTemplate((prev) => prev.map((s) => (s.id === sectionId ? { ...s, title } : s)))
-  }
-
-  function removeAssessmentSection(sectionId: string) {
-    setAssessmentTemplate((prev) => prev.filter((s) => s.id !== sectionId))
-  }
-
-  function addAssessmentField(sectionId: string, label: string) {
-    setAssessmentTemplate((prev) =>
-      prev.map((s) => (s.id === sectionId ? { ...s, fields: [...s.fields, { id: `mezo-${Date.now()}`, label }] } : s))
-    )
-  }
-
-  function renameAssessmentField(sectionId: string, fieldId: string, label: string) {
-    setAssessmentTemplate((prev) =>
-      prev.map((s) =>
-        s.id === sectionId ? { ...s, fields: s.fields.map((f) => (f.id === fieldId ? { ...f, label } : f)) } : s
-      )
-    )
-  }
-
-  function removeAssessmentField(sectionId: string, fieldId: string) {
-    setAssessmentTemplate((prev) =>
-      prev.map((s) => (s.id === sectionId ? { ...s, fields: s.fields.filter((f) => f.id !== fieldId) } : s))
-    )
+  function replaceAssessmentTemplate(template: AssessmentSectionDef[]) {
+    setAssessmentTemplate(template)
   }
 
   return (
@@ -238,12 +208,7 @@ export function DokumentacioProvider({ children }: { children: ReactNode }) {
         isArchived,
         isEntryEditable,
         assessmentTemplate,
-        addAssessmentSection,
-        renameAssessmentSection,
-        removeAssessmentSection,
-        addAssessmentField,
-        renameAssessmentField,
-        removeAssessmentField,
+        replaceAssessmentTemplate,
       }}
     >
       {children}
