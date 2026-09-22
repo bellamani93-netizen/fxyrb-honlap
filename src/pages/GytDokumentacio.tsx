@@ -244,51 +244,51 @@ function EntryEditor({ clientId, entry }: { clientId: string; entry: Dokumentaci
 }
 
 // "további jegyzetek" (2026.09.22., Marci kérésére) — a 6. (záró) alkalom
-// rögzítése (archiválás) UTÁN elérhető, SZABADON, zárolás és időkorlát
-// NÉLKÜL szerkeszthető szövegmező, amivel a már lezárt dokumentáció utólag
-// is kiegészíthető. Egyetlen, folyamatosan bővíthető mező (nem dátumozott
-// bejegyzés-lista). Marci utólagos kérésére (2026.09.22.): "A további
-// jegyzeteken is legyen mentés, nehogy véletlenül törlődjön egy korábban
-// beírt adat" — a mező NEM ment többé minden billentyűleütésre; helyette
-// saját piszkozatot (`draft`) tart, ami CSAK a "mentés" gombra kerül át a
-// context-be. Fontos: ez NEM egy zárolt/szerkeszthető ciklus (nincs
-// "szerkesztés" gomb, a mező mindig gépelhető marad) — kizárólag az
-// AZONNALI, véletlen felülírás ellen véd.
+// rögzítése (archiválás) UTÁN elérhető, kiegészíthető jegyzet-terület.
+// Marci pontosítása (2026.09.22., 165. pont): "a cél: a további jegyzetek
+// mentés után rögzül. Kibővíthető, de a korábban rögzített rész nem
+// szerkeszthető legyen" — ezért NEM egyetlen, folyamatosan felülírható
+// mező, hanem bejegyzések LISTÁJA: minden "mentés" egy ÚJ, attól kezdve
+// véglegesen zárolt (csak-olvasható, dátumozott) bejegyzést hoz létre, alul
+// pedig mindig ott az ÜRES, szerkeszthető mező a KÖVETKEZŐ bejegyzéshez.
 function AdditionalNotesEditor({ clientId }: { clientId: string }) {
-  const { getAdditionalNotes, setAdditionalNotes } = useDokumentacio()
-  const saved = getAdditionalNotes(clientId)
-  const [draft, setDraft] = useState(saved)
-
-  useEffect(() => {
-    setDraft(saved)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clientId])
-
-  const dirty = draft !== saved
+  const { getAdditionalNotes, addAdditionalNote } = useDokumentacio()
+  const notes = getAdditionalNotes(clientId)
+  const [draft, setDraft] = useState('')
 
   function handleSave() {
-    setAdditionalNotes(clientId, draft)
+    if (!draft.trim()) return
+    addAdditionalNote(clientId, draft)
+    setDraft('')
   }
 
   return (
     <div>
+      {notes.length > 0 && (
+        <div className="mb-4 d-flex flex-column gap-3">
+          {notes.map((note) => (
+            <div key={note.id}>
+              <p className="mb-1" style={{ whiteSpace: 'pre-wrap' }}>
+                {note.text}
+              </p>
+              <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+                rögzítve: {formatDate(note.savedAt)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <textarea
         className="form-control mb-2"
-        rows={8}
-        placeholder="további jegyzetek…"
+        rows={5}
+        placeholder="új jegyzet…"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
       />
-      <div className="d-flex align-items-center gap-3">
-        <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave} disabled={!dirty}>
-          mentés
-        </button>
-        {dirty && (
-          <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-            el nem mentett módosítás
-          </span>
-        )}
-      </div>
+      <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave} disabled={!draft.trim()}>
+        mentés
+      </button>
     </div>
   )
 }
@@ -415,9 +415,24 @@ export default function GytDokumentacio() {
           {archived && (
             <div className="card-fyb mb-4">
               <h2 className="h6 mb-3">további jegyzetek</h2>
-              <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
-                {additionalNotes || 'nincs további jegyzet.'}
-              </p>
+              {additionalNotes.length > 0 ? (
+                <div className="d-flex flex-column gap-3">
+                  {additionalNotes.map((note) => (
+                    <div key={note.id}>
+                      <p className="mb-1" style={{ whiteSpace: 'pre-wrap' }}>
+                        {note.text}
+                      </p>
+                      <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+                        rögzítve: {formatDate(note.savedAt)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
+                  nincs további jegyzet.
+                </p>
+              )}
             </div>
           )}
         </div>

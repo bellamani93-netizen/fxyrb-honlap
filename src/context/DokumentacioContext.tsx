@@ -109,6 +109,9 @@ export type DokumentacioEntry = {
 
 export type QuickButton = { id: string; text: string }
 
+/** egy "további jegyzetek" bejegyzés — mentés után véglegesen zárolt. */
+export type AdditionalNote = { id: string; text: string; savedAt: string }
+
 function emptyEntries(): DokumentacioEntry[] {
   return Array.from({ length: ALKALOM_COUNT }, (_, i) => ({ alkalom: i + 1, text: '', savedAt: null, assessmentSnapshot: null }))
 }
@@ -134,12 +137,13 @@ type DokumentacioContextValue = {
    * le EGYBEN a közös sablont erre — ld. 162. pont, Marci kérésére. */
   replaceAssessmentTemplate: (template: AssessmentSectionDef[]) => void
   /** a 6. (záró) alkalom rögzítése (archiválás) UTÁN elérhető "további
-   * jegyzetek" szabad szöveges mező — SZÁNDÉKOSAN nincs rá zárolás/
-   * időkorlát (ld. 163. pont, Marci kérésére: "az archiválás utáni
-   * kiegészítésre való"), ezért nem a `DokumentacioEntry`-k egyike, hanem
-   * saját, ügyfelenkénti állapot. */
-  getAdditionalNotes: (clientId: string) => string
-  setAdditionalNotes: (clientId: string, text: string) => void
+   * jegyzetek" — Marci kérésére (2026.09.22., 165. pont): "mentés után
+   * rögzül. Kibővíthető, de a korábban rögzített rész nem szerkeszthető
+   * legyen" — ezért ÜGYFELENKÉNT egy LISTA, minden "mentés" egy ÚJ, attól
+   * kezdve VÉGLEGESEN zárolt bejegyzést hoz létre (nincs időkorlát/
+   * szerkesztés, mint a 6 alkalomnál — ez egyszerűbb: örökre zárolt). */
+  getAdditionalNotes: (clientId: string) => AdditionalNote[]
+  addAdditionalNote: (clientId: string, text: string) => void
 }
 
 const DokumentacioContext = createContext<DokumentacioContextValue | null>(null)
@@ -154,7 +158,7 @@ export function DokumentacioProvider({ children }: { children: ReactNode }) {
   const [entriesByClient, setEntriesByClient] = useState<Record<string, DokumentacioEntry[]>>({})
   const [quickButtons, setQuickButtons] = useState<QuickButton[]>([])
   const [assessmentTemplate, setAssessmentTemplate] = useState<AssessmentSectionDef[]>(DEFAULT_ASSESSMENT_TEMPLATE)
-  const [additionalNotesByClient, setAdditionalNotesByClient] = useState<Record<string, string>>({})
+  const [additionalNotesByClient, setAdditionalNotesByClient] = useState<Record<string, AdditionalNote[]>>({})
 
   function getEntries(clientId: string): DokumentacioEntry[] {
     return entriesByClient[clientId] ?? emptyEntries()
@@ -205,12 +209,15 @@ export function DokumentacioProvider({ children }: { children: ReactNode }) {
     setAssessmentTemplate(template)
   }
 
-  function getAdditionalNotes(clientId: string): string {
-    return additionalNotesByClient[clientId] ?? ''
+  function getAdditionalNotes(clientId: string): AdditionalNote[] {
+    return additionalNotesByClient[clientId] ?? []
   }
 
-  function setAdditionalNotes(clientId: string, text: string) {
-    setAdditionalNotesByClient((prev) => ({ ...prev, [clientId]: text }))
+  function addAdditionalNote(clientId: string, text: string) {
+    setAdditionalNotesByClient((prev) => ({
+      ...prev,
+      [clientId]: [...(prev[clientId] ?? []), { id: `jegyzet-${Date.now()}`, text, savedAt: new Date().toISOString() }],
+    }))
   }
 
   return (
@@ -226,7 +233,7 @@ export function DokumentacioProvider({ children }: { children: ReactNode }) {
         assessmentTemplate,
         replaceAssessmentTemplate,
         getAdditionalNotes,
-        setAdditionalNotes,
+        addAdditionalNote,
       }}
     >
       {children}
