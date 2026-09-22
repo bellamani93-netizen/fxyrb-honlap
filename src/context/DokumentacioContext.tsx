@@ -133,6 +133,13 @@ type DokumentacioContextValue = {
    * hozzáadás, törlés is), és csak a "módosítások mentése" gombra cseréli
    * le EGYBEN a közös sablont erre — ld. 162. pont, Marci kérésére. */
   replaceAssessmentTemplate: (template: AssessmentSectionDef[]) => void
+  /** a 6. (záró) alkalom rögzítése (archiválás) UTÁN elérhető "további
+   * jegyzetek" szabad szöveges mező — SZÁNDÉKOSAN nincs rá zárolás/
+   * időkorlát (ld. 163. pont, Marci kérésére: "az archiválás utáni
+   * kiegészítésre való"), ezért nem a `DokumentacioEntry`-k egyike, hanem
+   * saját, ügyfelenkénti állapot. */
+  getAdditionalNotes: (clientId: string) => string
+  setAdditionalNotes: (clientId: string, text: string) => void
 }
 
 const DokumentacioContext = createContext<DokumentacioContextValue | null>(null)
@@ -147,6 +154,7 @@ export function DokumentacioProvider({ children }: { children: ReactNode }) {
   const [entriesByClient, setEntriesByClient] = useState<Record<string, DokumentacioEntry[]>>({})
   const [quickButtons, setQuickButtons] = useState<QuickButton[]>([])
   const [assessmentTemplate, setAssessmentTemplate] = useState<AssessmentSectionDef[]>(DEFAULT_ASSESSMENT_TEMPLATE)
+  const [additionalNotesByClient, setAdditionalNotesByClient] = useState<Record<string, string>>({})
 
   function getEntries(clientId: string): DokumentacioEntry[] {
     return entriesByClient[clientId] ?? emptyEntries()
@@ -197,6 +205,14 @@ export function DokumentacioProvider({ children }: { children: ReactNode }) {
     setAssessmentTemplate(template)
   }
 
+  function getAdditionalNotes(clientId: string): string {
+    return additionalNotesByClient[clientId] ?? ''
+  }
+
+  function setAdditionalNotes(clientId: string, text: string) {
+    setAdditionalNotesByClient((prev) => ({ ...prev, [clientId]: text }))
+  }
+
   return (
     <DokumentacioContext.Provider
       value={{
@@ -209,6 +225,8 @@ export function DokumentacioProvider({ children }: { children: ReactNode }) {
         isEntryEditable,
         assessmentTemplate,
         replaceAssessmentTemplate,
+        getAdditionalNotes,
+        setAdditionalNotes,
       }}
     >
       {children}

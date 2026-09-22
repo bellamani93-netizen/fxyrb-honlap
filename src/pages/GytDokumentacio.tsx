@@ -243,14 +243,39 @@ function EntryEditor({ clientId, entry }: { clientId: string; entry: Dokumentaci
   )
 }
 
+// "további jegyzetek" (2026.09.22., Marci kérésére) — a 6. (záró) alkalom
+// rögzítése (archiválás) UTÁN elérhető, kifejezetten SZABADON, zárolás és
+// időkorlát NÉLKÜL szerkeszthető szövegmező, amivel a már lezárt
+// dokumentáció utólag is kiegészíthető. Egyetlen, folyamatosan bővíthető
+// mező (nem dátumozott bejegyzés-lista) — a szöveg minden billentyűzés-
+// eseményre azonnal mentődik, nincs külön "mentés" lépés, mert szándékosan
+// nincs zárolható/visszavonható állapota.
+function AdditionalNotesEditor({ clientId }: { clientId: string }) {
+  const { getAdditionalNotes, setAdditionalNotes } = useDokumentacio()
+  return (
+    <div>
+      <textarea
+        className="form-control"
+        rows={8}
+        placeholder="további jegyzetek…"
+        value={getAdditionalNotes(clientId)}
+        onChange={(e) => setAdditionalNotes(clientId, e.target.value)}
+      />
+    </div>
+  )
+}
+
+type Selection = number | 'jegyzetek'
+
 export default function GytDokumentacio() {
   const { clients } = useClients()
   const client = clients.find((c) => c.id === getSelectedClientId())!
-  const { getEntries, isArchived } = useDokumentacio()
-  const [selected, setSelected] = useState(1)
+  const { getEntries, isArchived, getAdditionalNotes } = useDokumentacio()
+  const [selected, setSelected] = useState<Selection>(1)
   const entries = getEntries(client.id)
-  const activeEntry = entries.find((e) => e.alkalom === selected)!
+  const activeEntry = typeof selected === 'number' ? entries.find((e) => e.alkalom === selected)! : null
   const archived = isArchived(client.id)
+  const additionalNotes = getAdditionalNotes(client.id)
 
   return (
     <section className="py-3 py-lg-5">
@@ -285,16 +310,34 @@ export default function GytDokumentacio() {
               {e.alkalom}. alkalom{e.alkalom === ALKALOM_COUNT ? ' (záró)' : ''}
             </button>
           ))}
+          {archived && (
+            <button
+              type="button"
+              className={`auth-tab ${selected === 'jegyzetek' ? 'active' : ''}`}
+              onClick={() => setSelected('jegyzetek')}
+            >
+              további jegyzetek
+            </button>
+          )}
         </div>
 
         <div className="card-fyb mb-4 no-print">
-          {selected === 1 && (
-            <div className="mb-4">
-              <Eredmenyeim displayName={client.name} />
-            </div>
+          {selected === 'jegyzetek' ? (
+            <>
+              <h2 className="h6 mb-3">további jegyzetek</h2>
+              <AdditionalNotesEditor clientId={client.id} />
+            </>
+          ) : (
+            <>
+              {selected === 1 && (
+                <div className="mb-4">
+                  <Eredmenyeim displayName={client.name} />
+                </div>
+              )}
+              <h2 className="h6 mb-3">{selected}. alkalom dokumentációja</h2>
+              <EntryEditor clientId={client.id} entry={activeEntry!} />
+            </>
           )}
-          <h2 className="h6 mb-3">{selected}. alkalom dokumentációja</h2>
-          <EntryEditor clientId={client.id} entry={activeEntry} />
         </div>
 
         {/* nyomtatáskor (PDF-export) az ÖSSZES alkalom egyben, egymás után
@@ -314,6 +357,14 @@ export default function GytDokumentacio() {
               </p>
             </div>
           ))}
+          {archived && (
+            <div className="card-fyb mb-4">
+              <h2 className="h6 mb-3">további jegyzetek</h2>
+              <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
+                {additionalNotes || 'nincs további jegyzet.'}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </section>
