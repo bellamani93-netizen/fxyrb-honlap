@@ -1,6 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
-import { useDokumentacio, type AssessmentSectionDef } from '../context/DokumentacioContext'
+import {
+  useDokumentacio,
+  buildAssessmentDraft,
+  type AssessmentSectionDef,
+  type AssessmentSectionSnapshot,
+} from '../context/DokumentacioContext'
+import { AssessmentSection } from './GytDokumentacio'
 
 // GYT-oldali "dokumentáció beállításai" (2026.09.21., Marci kérésére): "jó
 // lenne, ha a gyt tudná személyre szabni, és ő tudna hozzáadni beviteli
@@ -92,6 +98,50 @@ function SectionCard({ section }: { section: AssessmentSectionDef }) {
   )
 }
 
+// élő előnézet (2026.09.22., Marci kérésére: "legyen egy előnézet, ahol
+// látja, hogy hogy néz ki a valóságban, amit összeállít") — a valós
+// dokumentáció-oldallal MEGEGYEZŐ `AssessmentSection` komponenst
+// használja, éles, kipróbálható mezőkkel (a beírt szöveg csak ide,
+// átmenetileg kerül, sehova nem mentődik). A sablon módosításakor (mező
+// átnevezve/törölve/hozzáadva) a struktúra frissül, de a MÁR MEGLÉVŐ
+// mezőkbe beírt kipróbálás-szöveg — id szerint — megmarad.
+function TemplatePreview({ template }: { template: AssessmentSectionDef[] }) {
+  const [preview, setPreview] = useState<AssessmentSectionSnapshot[]>(() => buildAssessmentDraft(template))
+
+  useEffect(() => {
+    setPreview((prev) => {
+      const valueByFieldId = new Map(prev.flatMap((s) => s.fields.map((f) => [f.id, f.value] as const)))
+      return template.map((section) => ({
+        id: section.id,
+        title: section.title,
+        fields: section.fields.map((field) => ({ id: field.id, label: field.label, value: valueByFieldId.get(field.id) ?? '' })),
+      }))
+    })
+  }, [template])
+
+  function handleChange(sectionId: string, fieldId: string, value: string) {
+    setPreview((prev) =>
+      prev.map((s) => (s.id === sectionId ? { ...s, fields: s.fields.map((f) => (f.id === fieldId ? { ...f, value } : f)) } : s))
+    )
+  }
+
+  return (
+    <div className="card-fyb mb-4">
+      <h2 className="h6 mb-1">előnézet</h2>
+      <p className="small mb-3" style={{ color: 'var(--color-text-muted)' }}>
+        Így fog kinézni az 1. alkalom dokumentációjánál — nyugodtan írj bele, kipróbálásképp, ez nem kerül elmentésre.
+      </p>
+      {preview.length > 0 ? (
+        <AssessmentSection sections={preview} editable onChange={handleChange} />
+      ) : (
+        <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>
+          még nincs egyetlen szakasz sem — vegyél fel legalább egyet lent.
+        </p>
+      )}
+    </div>
+  )
+}
+
 export default function GytDokumentacioBeallitasok() {
   const { assessmentTemplate, addAssessmentSection } = useDokumentacio()
   const [newSectionTitle, setNewSectionTitle] = useState('')
@@ -121,7 +171,7 @@ export default function GytDokumentacioBeallitasok() {
           <SectionCard key={section.id} section={section} />
         ))}
 
-        <div className="card-fyb">
+        <div className="card-fyb mb-4">
           <h2 className="h6 mb-3">+ új szakasz</h2>
           <form onSubmit={handleAddSection} className="d-flex gap-2 flex-wrap">
             <input
@@ -137,6 +187,8 @@ export default function GytDokumentacioBeallitasok() {
             </button>
           </form>
         </div>
+
+        <TemplatePreview template={assessmentTemplate} />
       </div>
     </section>
   )

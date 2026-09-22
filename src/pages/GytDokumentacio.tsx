@@ -32,7 +32,7 @@ function editableUntil(savedAtISO: string) {
 // későbbi módosítása nem hat visszamenőleg a már rögzített dokumentációra.
 // Szerkeszthető és csak-olvasható (zárolt/nyomtatási) nézetben is ugyanaz a
 // komponens.
-function AssessmentSection({
+export function AssessmentSection({
   sections,
   editable,
   onChange,
