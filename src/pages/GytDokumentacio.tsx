@@ -51,10 +51,19 @@ export function AssessmentSection({
         const singleTrivialField = section.fields.length === 1 && section.fields[0].label === section.title
         return (
           <div className="mb-3" key={section.id}>
-            {!singleTrivialField && <span className="small fw-bold d-block mb-2">{section.title}</span>}
+            {!singleTrivialField && (
+              <span className="small fw-bold d-block mb-2" style={{ color: 'var(--color-primary)' }}>
+                {section.title}
+              </span>
+            )}
             {section.fields.map((field) => (
               <div className="mb-2" key={field.id}>
-                <label className="small fw-bold d-block mb-1">{singleTrivialField ? section.title : field.label}</label>
+                <label
+                  className="small fw-bold d-block mb-1"
+                  style={singleTrivialField ? { color: 'var(--color-primary)' } : undefined}
+                >
+                  {singleTrivialField ? section.title : field.label}
+                </label>
                 {editable ? (
                   <textarea
                     className="form-control"

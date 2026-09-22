@@ -2083,3 +2083,7 @@ Marci felvetette: "jó lenne, ha a gyt tudná személyre szabni, és ő tudna ho
 Marci kérte, hogy a beállítások oldalon legyen egy előnézet is: "legyen egy előnézet, ahol látja, hogy hogy néz ki a valóságban, amit összeállít." Az oldal aljára került egy élő, ténylegesen kipróbálható előnézet — ugyanaz a komponens rendereli, amit a valódi dokumentáció-oldal is használ, a beírt próba-szöveg sehova nem mentődik, és a sablon szerkezetének módosítása közben (mező átnevezve/törölve) a már beírt próba-szöveg mező-azonosító szerint megmarad.
 
 **Tesztelve böngészőben:** próba-szöveget írva egy mezőbe, majd egy szakaszt átnevezve a próba-szöveg megmaradt, a cím pedig azonnal frissült az előnézetben. Világos, sötét és mobil nézetben is rendben, `npm run build`/`tsc -b` hibamentesek.
+
+Marci: "A Főcímek legyenek más színnel kiemelve (türkiz pl.)" — az "állapotfelmérés folytatása" szakasz-címek (Történet, Tünetek, stb.) türkiz színt kaptak, a meglévő `--color-primary` design-tokennel (nem új, hardcode-olt színnel), így sötét módban is automatikusan helyes marad. A mező-címkék (pl. "gerinc görbületek") változatlanul maradtak. Mivel egy közös komponens (`AssessmentSection`) rendereli mindhárom helyen (dokumentáció-oldal, nyomtatás, beállítások-előnézet), a változás mindenhol egyszerre érvényesült.
+
+**Tesztelve böngészőben:** a szakasz-címek türkiz színnel jelentek meg, a mező-címkék nem, világos és sötét módban is jó kontraszttal.
