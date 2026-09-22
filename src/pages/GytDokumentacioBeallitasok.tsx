@@ -224,7 +224,14 @@ export default function GytDokumentacioBeallitasok() {
     setNewSectionTitle('')
   }
 
+  // hibás mentést előzünk meg: egy üresre törölt szakasz-cím vagy mező-
+  // címke egy "láthatatlan fejlécű" kártyát eredményezne az éles
+  // dokumentáció-oldalon — ugyanaz az elv, mint a "+ szakasz"/"+ mező"
+  // formoknál (üres szöveggel nem lehet hozzáadni).
+  const hasBlankLabel = draft.some((s) => !s.title.trim() || s.fields.some((f) => !f.label.trim()))
+
   function handleSaveChanges() {
+    if (hasBlankLabel) return
     replaceAssessmentTemplate(draft)
     setMode('saved')
   }
@@ -286,15 +293,20 @@ export default function GytDokumentacioBeallitasok() {
           </div>
         )}
 
-        <div className="d-flex align-items-center gap-3 mb-4">
+        <div className="d-flex align-items-center flex-wrap gap-3 mb-4">
           {editing ? (
             <>
-              <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSaveChanges}>
+              <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSaveChanges} disabled={hasBlankLabel}>
                 módosítások mentése
               </button>
               <button type="button" className="btn-fyb btn-fyb-outline" onClick={handleCancel}>
                 mégse
               </button>
+              {hasBlankLabel && (
+                <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+                  minden szakasznak és mezőnek legyen neve a mentéshez
+                </span>
+              )}
             </>
           ) : (
             <>

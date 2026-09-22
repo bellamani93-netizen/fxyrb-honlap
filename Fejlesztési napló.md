@@ -2103,3 +2103,13 @@ Marci két kiegészítést kért: (1) "a kapcsolók háttere váltson át szögl
 Marci pontosította a "további jegyzetek" célját: "mentés után rögzül. Kibővíthető, de a korábban rögzített rész nem szerkeszthető legyen." Az addigi "egy mező, mentés-védelemmel" megoldás helyett a jegyzetek mostantól LISTA: minden mentés egy új, véglegesen zárolt, dátumozott bejegyzést hoz létre, alatta mindig egy üres mezővel a következőhöz — a korábbi bejegyzések innentől tényleg nem szerkeszthetők/törölhetők, csak bővíthetők.
 
 **Tesztelve böngészőben:** két egymás utáni bejegyzés mindkettő önálló, dátumozott, csak-olvasható blokként jelent meg, a korábbiak nem váltak input-mezővé. A nyomtatási blokk mindkettőt tartalmazta. Világos, sötét és mobil nézetben is rendben, `npm run build`/`tsc -b` hibamentesek.
+
+## 2026.09.22. — Marci "4. fázis"-a (dokumentáció) lezárva — teljes éles átvizsgálás
+
+Marci kérte a teljes dokumentáció-funkció éles átvizsgálását: "nézzük át élesben az egész dokumentációt a folyamatokat, workflow-t, jogosultságokat, design reszponzivitást, ami kell azt javítsuk... végül commit, push, és szakasz lezáró jegyzet." Valódi bejelentkezési folyamattal (nem csak localStorage-injektálással) végigmentem az egész funkción: ügyfélválasztás-kapu, 1. alkalom (állapotfelmérés-mezők + gyorsgombok + rögzítés/szerkesztés ciklus, a határidő nem tolódik újra-mentéskor), 2-6. alkalom, archiválás, további jegyzetek, dokumentáció-beállítások (nem-visszamenőleges sablon-módosítás egy már rögzített ÉS egy még érintetlen ügyfélnél is ellenőrizve), nyomtatási export tartalma, reszponzivitás (asztali/tablet/mobil), világos/sötét mód.
+
+Egy valódi hibát találtam és javítottam: a beállítások oldalon egy szakasz-cím vagy mező-címke üresre törölve és mentve egy "láthatatlan fejlécű", cím nélküli kártyát eredményezett az éles dokumentáció-oldalon. Javítás: a "módosítások mentése" gomb letiltva marad, amíg bármelyik szakasz-cím vagy mező-címke üres, magyarázó felirattal.
+
+Megjegyzés (nem javítva, mert túlmutat a dokumentáció-körön): a projekt egészében nincs valódi, route-szintű bejelentkezés-kényszer — ez a legelső fázis óta ismert, szándékos egyszerűsítés (nincs backend), nem a dokumentáció-kör hozta be.
+
+A "4. fázis" ezzel lezárva — a Design jegyzetben (166. pont + a dokumentum tetején lévő STÁTUSZ-blokk) részletes összefoglaló készült arról, milyen funkciókat építettünk: GYT-oldali dokumentáció (6 alkalom, mentés/szerkesztés/archiválás), 1. alkalom állapotfelmérés-folytatás strukturált mezői, GYT-szerkeszthető sablon-beállítások, "további jegyzetek", nyomtatás/PDF-export.
