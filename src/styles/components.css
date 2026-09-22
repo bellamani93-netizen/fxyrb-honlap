@@ -787,6 +787,19 @@ html[data-theme='dark'] .signature-for-light { display: none; }
   font-size: 0.8rem;
 }
 
+/* a dokumentáció-oldal alkalom-pirula sora, ha ténylegesen (JS-sel
+   mérve, ld. GytDokumentacio.tsx) több sorba tördelődik, kapja meg a
+   kevésbé lekerekített, "szögletesebb" hátteret — Marci kérésére
+   (2026.09.22.): "a kapcsolók háttere váltson át szögletesebb módra, ha
+   több sorba rendeződnek az alkalmak dokumentációi". A teljesen kerek
+   pirula-kapszula több soros elrendezésben esetlenül nézett ki. */
+.auth-tabs--wrapped {
+  border-radius: var(--radius-sm);
+}
+.auth-tabs--wrapped .auth-tab {
+  border-radius: var(--radius-sm);
+}
+
 /* a GYT naptár-popup "időpont típusa" választója (szabad/terv/konzultáció)
    mobilon is mindig 1 sorban férjen el, ne törjön 2 sorba (2026.09.02.,
    Marci kérésére) — a legszűkebb telefonokon (iPhone SE 2020, 375px) az

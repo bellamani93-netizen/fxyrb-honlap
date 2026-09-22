@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useClients } from '../context/ClientsContext'
 import { getSelectedClientId } from '../data/initialClients'
@@ -244,23 +244,51 @@ function EntryEditor({ clientId, entry }: { clientId: string; entry: Dokumentaci
 }
 
 // "további jegyzetek" (2026.09.22., Marci kérésére) — a 6. (záró) alkalom
-// rögzítése (archiválás) UTÁN elérhető, kifejezetten SZABADON, zárolás és
-// időkorlát NÉLKÜL szerkeszthető szövegmező, amivel a már lezárt
-// dokumentáció utólag is kiegészíthető. Egyetlen, folyamatosan bővíthető
-// mező (nem dátumozott bejegyzés-lista) — a szöveg minden billentyűzés-
-// eseményre azonnal mentődik, nincs külön "mentés" lépés, mert szándékosan
-// nincs zárolható/visszavonható állapota.
+// rögzítése (archiválás) UTÁN elérhető, SZABADON, zárolás és időkorlát
+// NÉLKÜL szerkeszthető szövegmező, amivel a már lezárt dokumentáció utólag
+// is kiegészíthető. Egyetlen, folyamatosan bővíthető mező (nem dátumozott
+// bejegyzés-lista). Marci utólagos kérésére (2026.09.22.): "A további
+// jegyzeteken is legyen mentés, nehogy véletlenül törlődjön egy korábban
+// beírt adat" — a mező NEM ment többé minden billentyűleütésre; helyette
+// saját piszkozatot (`draft`) tart, ami CSAK a "mentés" gombra kerül át a
+// context-be. Fontos: ez NEM egy zárolt/szerkeszthető ciklus (nincs
+// "szerkesztés" gomb, a mező mindig gépelhető marad) — kizárólag az
+// AZONNALI, véletlen felülírás ellen véd.
 function AdditionalNotesEditor({ clientId }: { clientId: string }) {
   const { getAdditionalNotes, setAdditionalNotes } = useDokumentacio()
+  const saved = getAdditionalNotes(clientId)
+  const [draft, setDraft] = useState(saved)
+
+  useEffect(() => {
+    setDraft(saved)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientId])
+
+  const dirty = draft !== saved
+
+  function handleSave() {
+    setAdditionalNotes(clientId, draft)
+  }
+
   return (
     <div>
       <textarea
-        className="form-control"
+        className="form-control mb-2"
         rows={8}
         placeholder="további jegyzetek…"
-        value={getAdditionalNotes(clientId)}
-        onChange={(e) => setAdditionalNotes(clientId, e.target.value)}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
       />
+      <div className="d-flex align-items-center gap-3">
+        <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave} disabled={!dirty}>
+          mentés
+        </button>
+        {dirty && (
+          <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+            el nem mentett módosítás
+          </span>
+        )}
+      </div>
     </div>
   )
 }
@@ -276,6 +304,29 @@ export default function GytDokumentacio() {
   const activeEntry = typeof selected === 'number' ? entries.find((e) => e.alkalom === selected)! : null
   const archived = isArchived(client.id)
   const additionalNotes = getAdditionalNotes(client.id)
+
+  // Marci kérésére (2026.09.22.): "a kapcsolók háttere váltson át
+  // szögletesebb módra, ha több sorba rendeződnek az alkalmak
+  // dokumentációi" — a pirula-sor TÉNYLEGES (nem csak viewport-szélesség
+  // szerint becsült) tördelését méri: ha bármelyik gomb `offsetTop`-ja
+  // eltér az elsőétől, a sor több sorba tördelődött. Így a "további
+  // jegyzetek" pirula archiválás utáni megjelenése is helyesen frissíti.
+  const tabsRef = useRef<HTMLDivElement>(null)
+  const [tabsWrapped, setTabsWrapped] = useState(false)
+
+  useEffect(() => {
+    const el = tabsRef.current
+    if (!el) return
+    function checkWrap() {
+      const children = Array.from(el!.children) as HTMLElement[]
+      const tops = new Set(children.map((c) => c.offsetTop))
+      setTabsWrapped(tops.size > 1)
+    }
+    checkWrap()
+    const observer = new ResizeObserver(checkWrap)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [entries.length, archived])
 
   return (
     <section className="py-3 py-lg-5">
@@ -299,7 +350,11 @@ export default function GytDokumentacio() {
           </div>
         )}
 
-        <div className="auth-tabs mb-3 no-print" style={{ flexWrap: 'wrap', height: 'auto' }}>
+        <div
+          ref={tabsRef}
+          className={`auth-tabs mb-3 no-print ${tabsWrapped ? 'auth-tabs--wrapped' : ''}`}
+          style={{ flexWrap: 'wrap', height: 'auto' }}
+        >
           {entries.map((e) => (
             <button
               key={e.alkalom}
