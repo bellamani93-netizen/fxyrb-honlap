@@ -2137,3 +2137,7 @@ Böngészős tesztelés közben egy valódi hibát találtam és javítottam: ha
 **Tesztelve böngészőben:** teljes ÜF-flow valódi bejelentkezéssel és állapotfelmérő-kitöltéssel, napi rögzítés, diagramok helyes megjelenítése, szint-váltás után a hiba reprodukálva majd a javítás után megerősítve hibamentesnek, GYT-oldali csak-olvasható nézet szint-választóval. Világos, sötét és mobil nézetben is rendben, `npm run build`/`tsc -b` hibamentesek.
 
 Tudatosan kimaradt (későbbi körre): dicséretek/figyelmeztetések, pontszámítás/ranglista, automatikus szint-zárolási szabály, checklist-adatok visszakötése a dokumentációhoz, és a checklist-szint összekötése a videókiosztás szint-adataival.
+
+Marci: "csinálj egy példaszintet, amikor ki van töltve adatokkal a Péter checklistje az 1. szintre, hogy megnézzem, mi látszik a diagramokon." Péter 1. szintjéhez egy 9 napos, szándékosan javuló tendenciájú példa-adatsor került (csökkenő tünet-időtartam/intenzitás, növekvő terhelés-optimalizálás) — a mai nap üresen maradt, hogy a napi rögzítés is kipróbálható legyen.
+
+**Tesztelve böngészőben:** mindhárom diagram a GYT-oldali nézetben jól leolvasható trendet mutatott, világos és sötét módban is jó kontraszttal.

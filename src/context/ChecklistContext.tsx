@@ -88,6 +88,39 @@ function emptyState(): ChecklistClientState {
   return { currentLevel: 1, levelStartDate: todayISO(), entries: [] }
 }
 
+function daysAgoISO(n: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() - n)
+  return d.toISOString().slice(0, 10)
+}
+
+/** Péter (ÜF-demó, `id: 'peter'`) 1. szintjéhez előre kitöltött, 9 napos
+ * példa-adatsor (2026.09.23., Marci kérésére: "csinálj egy példaszintet,
+ * amikor ki van töltve adatokkal a Péter checklistje az 1. szintre, hogy
+ * megnézzem, mi látszik a diagramokon") — SZÁNDÉKOSAN javuló tendenciájú
+ * (csökkenő tünet-időtartam/intenzitás, növekvő terhelés-optimalizálás),
+ * hogy a diagramok érdemi, jól leolvasható trendet mutassanak, ne csak
+ * szórt pontokat. A dátumok mindig a MAI naphoz képest relatívak (nem
+ * hardkódolt naptári dátumok), hogy a példa akkor is friss/értelmes
+ * maradjon, ha valaki egy KÉSŐBBI napon nyitja meg a prototípust. A MAI
+ * nap szándékosan ÜRESEN marad, hogy a napi rögzítés folyamata is
+ * kipróbálható legyen rajta keresztül. */
+const DEMO_SEED_PETER: ChecklistClientState = {
+  currentLevel: 1,
+  levelStartDate: daysAgoISO(9),
+  entries: [
+    { date: daysAgoISO(9), level: 1, trained: true, extraWorkouts: 0, symptom: 'fajdalom', symptomDurationHours: 3, symptomIntensity: 6, loadOptimization: 35, savedAt: `${daysAgoISO(9)}T18:00:00.000Z` },
+    { date: daysAgoISO(8), level: 1, trained: true, extraWorkouts: 0, symptom: 'fajdalom', symptomDurationHours: 2.5, symptomIntensity: 6, loadOptimization: 40, savedAt: `${daysAgoISO(8)}T18:00:00.000Z` },
+    { date: daysAgoISO(7), level: 1, trained: false, extraWorkouts: 0, symptom: 'pici_huzodas', symptomDurationHours: 2, symptomIntensity: 5, loadOptimization: 45, savedAt: `${daysAgoISO(7)}T18:00:00.000Z` },
+    { date: daysAgoISO(6), level: 1, trained: true, extraWorkouts: 1, symptom: 'pici_huzodas', symptomDurationHours: 1.5, symptomIntensity: 4, loadOptimization: 50, savedAt: `${daysAgoISO(6)}T18:00:00.000Z` },
+    { date: daysAgoISO(5), level: 1, trained: true, extraWorkouts: 0, symptom: 'pici_feszules', symptomDurationHours: 1.5, symptomIntensity: 4, loadOptimization: 55, savedAt: `${daysAgoISO(5)}T18:00:00.000Z` },
+    { date: daysAgoISO(4), level: 1, trained: true, extraWorkouts: 0, symptom: 'pici_feszules', symptomDurationHours: 1, symptomIntensity: 3, loadOptimization: 60, savedAt: `${daysAgoISO(4)}T18:00:00.000Z` },
+    { date: daysAgoISO(3), level: 1, trained: true, extraWorkouts: 0, symptom: 'izomlaz', symptomDurationHours: 0.75, symptomIntensity: 2, loadOptimization: 65, savedAt: `${daysAgoISO(3)}T18:00:00.000Z` },
+    { date: daysAgoISO(2), level: 1, trained: true, extraWorkouts: 1, symptom: 'nincs', symptomDurationHours: 0.5, symptomIntensity: 1, loadOptimization: 70, savedAt: `${daysAgoISO(2)}T18:00:00.000Z` },
+    { date: daysAgoISO(1), level: 1, trained: true, extraWorkouts: 0, symptom: 'nincs', symptomDurationHours: 0, symptomIntensity: 0, loadOptimization: 75, savedAt: `${daysAgoISO(1)}T18:00:00.000Z` },
+  ],
+}
+
 /** a mai napra "kitűzött" megtartás-idő (mp) — csak TÁJÉKOZTATÓ, nem
  * bevihető érték (ld. Projekt specifikáció: "Dátum: csak a kezdődátum
  * állítandó, utána automatikus számítás"). A szint kezdő dátuma óta eltelt
@@ -126,7 +159,7 @@ export function useChecklist() {
 }
 
 export function ChecklistProvider({ children }: { children: ReactNode }) {
-  const [stateByClient, setStateByClient] = useState<Record<string, ChecklistClientState>>({})
+  const [stateByClient, setStateByClient] = useState<Record<string, ChecklistClientState>>({ peter: DEMO_SEED_PETER })
 
   function getState(clientId: string): ChecklistClientState {
     return stateByClient[clientId] ?? emptyState()
