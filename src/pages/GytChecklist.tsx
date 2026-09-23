@@ -48,7 +48,7 @@ export default function GytChecklist() {
               ))}
             </select>
           </div>
-          <ChecklistCharts entries={entries} />
+          <ChecklistCharts entries={entries} levelStartDate={state.levelStartDates[viewedLevel]} />
         </div>
       </div>
     </section>

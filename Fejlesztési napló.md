@@ -2141,3 +2141,9 @@ Tudatosan kimaradt (későbbi körre): dicséretek/figyelmeztetések, pontszám�
 Marci: "csinálj egy példaszintet, amikor ki van töltve adatokkal a Péter checklistje az 1. szintre, hogy megnézzem, mi látszik a diagramokon." Péter 1. szintjéhez egy 9 napos, szándékosan javuló tendenciájú példa-adatsor került (csökkenő tünet-időtartam/intenzitás, növekvő terhelés-optimalizálás) — a mai nap üresen maradt, hogy a napi rögzítés is kipróbálható legyen.
 
 **Tesztelve böngészőben:** mindhárom diagram a GYT-oldali nézetben jól leolvasható trendet mutatott, világos és sötét módban is jó kontraszttal.
+
+Marci öt finomítást kért a checklist diagramokon/formon: tünet-napok narancssárga kiemelése az edzésnapok diagramon (alapból türkiz), egérrel ráhúzva a konkrét tünet kiírása, a napi megtartás-idő élénk lime színnel, jobban kiemelve a kártya tetején, a "volt ma tornám" szöveg "edzés megvolt"-ra cserélve, és a diagramok X-tengelye mindig a teljes 14 napos (2 hetes) idősávot mutassa, akkor is, ha kevesebb nap van kitöltve.
+
+Megvalósítás: az edzésnapok oszlopdiagram Recharts `Cell`-ekkel kapott naponta eltérő színt (narancs/türkiz), egy új egyedi tooltip-komponens írja ki a dátumot, az edzésszámot és a tünetet. Egy `last14Days()` segédfüggvény mindig 14 dátumot generál a szint kezdetétől, a hiányzó napokra `null` kerül, amit a Recharts vonaldiagramok résként (nem hamis nullaként) rajzolnak ki. A GYT-oldali szint-választó korábbi szintekre váltva is helyesen mutatja a 14 napos ablakot, mert a `ChecklistContext` mostantól minden szint saját kezdő dátumát is tárolja.
+
+**Tesztelve böngészőben:** GYT-oldalon a narancs/türkiz oszlopszínezés és a tooltip helyesen működött, a 14 napos tengely a valódi adatok után réssel folytatódott. ÜF-oldalon (valódi bejelentkezéssel és állapotfelmérő-kitöltéssel tesztelve) az új lime megtartás-idő blokk és a szövegcserék megjelentek. Világos, sötét és mobil nézetben is rendben, `npm run build`/`tsc -b` hibamentesek.

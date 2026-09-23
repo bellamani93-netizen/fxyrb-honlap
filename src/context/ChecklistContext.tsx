@@ -76,7 +76,13 @@ export type ChecklistEntry = {
 
 type ChecklistClientState = {
   currentLevel: number
+  /** a JELENLEGI szint kezdő dátuma — `computeHoldSeconds()`-hoz. */
   levelStartDate: string
+  /** MINDEN valaha elkezdett szint kezdő dátuma, szint szerint kulcsolva —
+   * a diagramok "1 szint = 2 hetes idősáv" rögzített szélességéhez kell
+   * (ld. 171. pont, Marci kérésére), akkor is, ha a GYT egy KORÁBBI
+   * szintet néz vissza, aminek már nem `levelStartDate` a kezdete. */
+  levelStartDates: Record<number, string>
   entries: ChecklistEntry[]
 }
 
@@ -85,7 +91,8 @@ function todayISO(): string {
 }
 
 function emptyState(): ChecklistClientState {
-  return { currentLevel: 1, levelStartDate: todayISO(), entries: [] }
+  const start = todayISO()
+  return { currentLevel: 1, levelStartDate: start, levelStartDates: { 1: start }, entries: [] }
 }
 
 function daysAgoISO(n: number): string {
@@ -108,6 +115,7 @@ function daysAgoISO(n: number): string {
 const DEMO_SEED_PETER: ChecklistClientState = {
   currentLevel: 1,
   levelStartDate: daysAgoISO(9),
+  levelStartDates: { 1: daysAgoISO(9) },
   entries: [
     { date: daysAgoISO(9), level: 1, trained: true, extraWorkouts: 0, symptom: 'fajdalom', symptomDurationHours: 3, symptomIntensity: 6, loadOptimization: 35, savedAt: `${daysAgoISO(9)}T18:00:00.000Z` },
     { date: daysAgoISO(8), level: 1, trained: true, extraWorkouts: 0, symptom: 'fajdalom', symptomDurationHours: 2.5, symptomIntensity: 6, loadOptimization: 40, savedAt: `${daysAgoISO(8)}T18:00:00.000Z` },
@@ -215,7 +223,17 @@ export function ChecklistProvider({ children }: { children: ReactNode }) {
     setStateByClient((prev) => {
       const current = prev[clientId] ?? emptyState()
       if (current.currentLevel >= maxLevel) return prev
-      return { ...prev, [clientId]: { ...current, currentLevel: current.currentLevel + 1, levelStartDate: todayISO() } }
+      const newLevel = current.currentLevel + 1
+      const start = todayISO()
+      return {
+        ...prev,
+        [clientId]: {
+          ...current,
+          currentLevel: newLevel,
+          levelStartDate: start,
+          levelStartDates: { ...current.levelStartDates, [newLevel]: start },
+        },
+      }
     })
   }
 
