@@ -331,16 +331,8 @@ export default function GytDokumentacio() {
   return (
     <section className="py-3 py-lg-5">
       <div className="container-fluid" style={{ maxWidth: 900 }}>
-        <div className="app-page-header mb-3 mobile-sticky-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div className="app-page-header mb-3 mobile-sticky-header">
           <h1 className="app-page-title mb-0">dokumentáció — {client.name}</h1>
-          <div className="d-flex align-items-center gap-2 no-print">
-            <Link to="/gyt/dokumentacio-beallitasok" className="btn-fyb btn-fyb-outline btn-fyb-sm">
-              beállítások
-            </Link>
-            <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => window.print()}>
-              nyomtatás / PDF
-            </button>
-          </div>
         </div>
 
         {archived && (
@@ -352,7 +344,7 @@ export default function GytDokumentacio() {
 
         <div
           ref={tabsRef}
-          className={`auth-tabs mb-3 no-print ${tabsWrapped ? 'auth-tabs--wrapped' : ''}`}
+          className={`auth-tabs dokumentacio-alkalom-tabs mb-3 no-print ${tabsWrapped ? 'auth-tabs--wrapped' : ''}`}
           style={{ flexWrap: 'wrap', height: 'auto' }}
         >
           {entries.map((e) => (
@@ -386,13 +378,25 @@ export default function GytDokumentacio() {
             <>
               {selected === 1 && (
                 <div className="mb-4">
-                  <Eredmenyeim displayName={client.name} />
+                  <Eredmenyeim displayName={client.name} embedded />
                 </div>
               )}
               <h2 className="h6 mb-3">{selected}. alkalom dokumentációja</h2>
               <EntryEditor clientId={client.id} entry={activeEntry!} />
             </>
           )}
+        </div>
+
+        {/* "beállítások"/"nyomtatás" a lap ALJÁN, a mentés/rögzítés rész
+           ALATT (2026.09.23., Marci kérésére — korábban a fejlécben
+           voltak) */}
+        <div className="d-flex align-items-center gap-2 mb-4 no-print">
+          <Link to="/gyt/dokumentacio-beallitasok" className="btn-fyb btn-fyb-outline btn-fyb-sm">
+            beállítások
+          </Link>
+          <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => window.print()}>
+            nyomtatás / PDF
+          </button>
         </div>
 
         {/* nyomtatáskor (PDF-export) az ÖSSZES alkalom egyben, egymás után

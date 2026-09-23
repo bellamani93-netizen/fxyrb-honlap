@@ -508,6 +508,7 @@ function KitoltesValaszto({
 export default function Eredmenyeim({
   displayName,
   showPrint = false,
+  embedded = false,
 }: {
   /** GYT-oldali megjelenítéskor (ld. GytAllapotfelmerok.tsx) a kiválasztott
    * ÜGYFÉL neve — mivel nincs backend, minden más mező (Tünet, mutatók stb.)
@@ -524,6 +525,16 @@ export default function Eredmenyeim({
    * oldali nézetben jelenik meg, az ÜF saját "eredményeim" oldaláról
    * törölve (alapértelmezetten `false`). */
   showPrint?: boolean
+  /** Marci kérésére (2026.09.23.) — amikor ez a komponens NEM önálló
+   * oldalként, hanem MÁS oldal tartalmába ágyazva jelenik meg (ld.
+   * GytDokumentacio.tsx), a saját fejléc-összegzés (Név/kor/magasság) NE
+   * kapjon még egy, beágyazott `mobile-sticky-header`-t — két egymásba
+   * ágyazott sticky fejléc mobilon vizuális hibát okozott (a Név-sáv
+   * "beragadt", elfedte a befoglaló oldal fejlécét, majd hirtelen
+   * továbbgördült). Önálló oldalként (GytAllapotfelmerok.tsx,
+   * `/eredmenyeim`) `embedded` marad `false`, ott ez a fejléc az EGYETLEN
+   * sticky fejléc, helyesen. */
+  embedded?: boolean
 }) {
   const { eredmenyek } = useAllapotfelmero()
   // Marci kérésére (2026.09.16.: "Újabb kitöltés nem a jelenlegi eredménylapot
@@ -590,7 +601,7 @@ export default function Eredmenyeim({
            dobozok UTÁN jelenik meg (ld. lent, `eredmeny-mobile-only`) —
            ez az EGYETLEN érdemi tartalmi különbség a 2 nézet között, minden
            más (doboz-alak, cím-stílus, neon mutató-színek stb.) közös. */}
-        <div className="app-page-header mb-3 mobile-sticky-header">
+        <div className={`app-page-header mb-3 ${embedded ? '' : 'mobile-sticky-header'}`}>
           <div className="eredmeny-header-summary">
             <div className="eredmeny-header-summary-main">
               <div className="eredmeny-header-summary-name">{becenev ? `${teljesNev} (${becenev})` : teljesNev}</div>
