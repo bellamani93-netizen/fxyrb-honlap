@@ -146,7 +146,7 @@ function QuickButtons({ onInsert }: { onInsert: (text: string) => void }) {
 // szerkesztés mintáját követi (ld. Munkafuzet.tsx), kiegészítve az
 // időkorlátos szerkeszthetőséggel (ld. DokumentacioContext.tsx).
 function EntryEditor({ clientId, entry }: { clientId: string; entry: DokumentacioEntry }) {
-  const { saveEntry, isEntryEditable, isArchived, assessmentTemplate } = useDokumentacio()
+  const { saveEntry, isEntryEditable, isArchived, isPreviousAlkalomSaved, assessmentTemplate } = useDokumentacio()
   const editableNow = isEntryEditable(clientId, entry)
   const [draft, setDraft] = useState(entry.text)
   // az 1. alkalomnál: ha már van saját, lefagyasztott szerkezet (legalább
@@ -185,6 +185,15 @@ function EntryEditor({ clientId, entry }: { clientId: string; entry: Dokumentaci
 
   const showEditor = editing && editableNow
   const hasAnyContent = draft.trim() || hasAssessmentContent(assessmentDraft)
+  // Marci kérésére (2026.09.23., 168. pont): "csak akkor lehet a következő
+  // dokumentációt szerkeszteni, ha az előző már ki lett töltve, mentve
+  // lett" — a zárolás 3 különböző okból fakadhat, itt derül ki, melyikből,
+  // hogy a megfelelő magyarázat jelenjen meg (archiválás/időkorlát/sorrend).
+  const lockedReason = isArchived(clientId)
+    ? 'az együttműködés lezárva — nem szerkeszthető'
+    : !isPreviousAlkalomSaved(clientId, entry.alkalom)
+    ? 'előbb töltsd ki és rögzítsd az előző alkalmat'
+    : 'a szerkesztési határidő lejárt'
 
   return (
     <div>
@@ -226,12 +235,12 @@ function EntryEditor({ clientId, entry }: { clientId: string; entry: Dokumentaci
                 szerkesztés
               </button>
             ) : (
-              <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-                {isArchived(clientId) ? 'az együttműködés lezárva — nem szerkeszthető' : 'a szerkesztési határidő lejárt'}
-              </span>
+              <span className="small" style={{ color: 'var(--color-text-muted)' }}>{lockedReason}</span>
             )}
           </>
-        ) : null}
+        ) : (
+          <span className="small" style={{ color: 'var(--color-text-muted)' }}>{lockedReason}</span>
+        )}
         {entry.savedAt && (
           <span className="small" style={{ color: 'var(--color-text-muted)' }}>
             rögzítve: {formatDate(entry.savedAt)}

@@ -127,8 +127,16 @@ type DokumentacioContextValue = {
   isArchived: (clientId: string) => boolean
   /** true, ha EZ a konkrét alkalom jelenleg szerkeszthető (nincs még
    * elmentve, VAGY el van mentve, de a 3 hetes ablakon belül vagyunk),
-   * ÉS az ügyfél még nincs archiválva. */
+   * ÉS az ügyfél még nincs archiválva, ÉS az ELŐZŐ alkalom már mentve
+   * lett (ld. `isPreviousAlkalomSaved`, Marci kérésére, 168. pont). */
   isEntryEditable: (clientId: string, entry: DokumentacioEntry) => boolean
+  /** true, ha az `alkalom`-nál eggyel KORÁBBI alkalom már legalább
+   * egyszer rögzítve lett (az 1. alkalomnak nincs előzménye, mindig
+   * `true`) — Marci kérésére (2026.09.23.): "csak akkor lehet a következő
+   * dokumentációt szerkeszteni, ha az előző már ki lett töltve, mentve
+   * lett." Sorban kényszeríti a kitöltést: a 2. alkalom csak az 1., a 3.
+   * csak a 2. (stb.) mentése UTÁN nyílik meg. */
+  isPreviousAlkalomSaved: (clientId: string, alkalom: number) => boolean
   /** az 1. alkalom "állapotfelmérés folytatása" KÖZÖS, GYT által
    * szerkeszthető sablonja — ld. GytDokumentacioBeallitasok.tsx. */
   assessmentTemplate: AssessmentSectionDef[]
@@ -189,8 +197,15 @@ export function DokumentacioProvider({ children }: { children: ReactNode }) {
     return !!closing?.savedAt
   }
 
+  function isPreviousAlkalomSaved(clientId: string, alkalom: number): boolean {
+    if (alkalom <= 1) return true
+    const prev = getEntries(clientId).find((e) => e.alkalom === alkalom - 1)
+    return !!prev?.savedAt
+  }
+
   function isEntryEditable(clientId: string, entry: DokumentacioEntry): boolean {
     if (isArchived(clientId)) return false
+    if (!isPreviousAlkalomSaved(clientId, entry.alkalom)) return false
     if (!entry.savedAt) return true
     const deadline = new Date(entry.savedAt)
     deadline.setDate(deadline.getDate() + EDIT_WINDOW_WEEKS * 7)
@@ -230,6 +245,7 @@ export function DokumentacioProvider({ children }: { children: ReactNode }) {
         saveEntry,
         isArchived,
         isEntryEditable,
+        isPreviousAlkalomSaved,
         assessmentTemplate,
         replaceAssessmentTemplate,
         getAdditionalNotes,
