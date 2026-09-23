@@ -10,6 +10,8 @@ import Idopontfoglalas from './pages/Idopontfoglalas'
 import Belepes from './pages/Belepes'
 import Allapotfelmero from './pages/Allapotfelmero'
 import Gyakorlatok from './pages/Gyakorlatok'
+import Checklist from './pages/Checklist'
+import GytChecklist from './pages/GytChecklist'
 import Munkafuzet from './pages/Munkafuzet'
 import Oktatoanyag from './pages/Oktatoanyag'
 import Eredmenyeim from './pages/Eredmenyeim'
@@ -35,6 +37,7 @@ import { MaterialsProvider } from './context/MaterialsContext'
 import { OktatoanyagProvider } from './context/OktatoanyagContext'
 import { WorkbookProvider } from './context/WorkbookContext'
 import { DokumentacioProvider } from './context/DokumentacioContext'
+import { ChecklistProvider } from './context/ChecklistContext'
 import { AllapotfelmeroProvider, useAllapotfelmero } from './context/AllapotfelmeroContext'
 import { LOGGED_IN_GYT_ID } from './data/colleagues'
 import { getSelectedClientId } from './data/initialClients'
@@ -67,7 +70,10 @@ function buildGytNavItems(newClientsCount: number): NavItem[] {
     // Az "oktatóanyag" NEM oldódik fel a GYT oldalán — Marci kifejezetten
     // csak a munkafüzet-hozzáférést kérte.
     { to: '/gyt/munkafuzet', label: 'munkafüzet', icon: '/icons/ikon_tanulas.svg' },
-    { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
+    // "checklist" feloldva (2026.09.23., Marci kérésére, 5. fázis) — a GYT
+    // itt CSAK OLVASHATÓ nézetben látja az ÜF napi checklist-diagramjait,
+    // szintenként választva, ld. GytChecklist.tsx/ChecklistContext.tsx.
+    { to: '/gyt/checklist', label: 'checklist', icon: '/icons/ikon_checklist.svg' },
     { label: 'oktatóanyag', icon: '/icons/ikon_villanykorte.svg', locked: true },
     { label: 'eredmények', icon: '/icons/ikon_csillag.svg', locked: true },
     { label: 'kérdések', icon: '/icons/ikon_csengo.svg', locked: true },
@@ -114,9 +120,11 @@ export default function App() {
               <OktatoanyagProvider>
                 <WorkbookProvider>
                   <DokumentacioProvider>
-                    <AllapotfelmeroProvider>
-                      <AppRoutes />
-                    </AllapotfelmeroProvider>
+                    <ChecklistProvider>
+                      <AllapotfelmeroProvider>
+                        <AppRoutes />
+                      </AllapotfelmeroProvider>
+                    </ChecklistProvider>
                   </DokumentacioProvider>
                 </WorkbookProvider>
               </OktatoanyagProvider>
@@ -189,6 +197,7 @@ function AppRoutes() {
         <Route path="/allapotfelmero" element={<Allapotfelmero />} />
         <Route element={<UgyfelGate />}>
           <Route path="/gyakorlatok" element={<Gyakorlatok />} />
+          <Route path="/checklist" element={<Checklist />} />
           <Route path="/konzultacioim" element={<UgyfelKonzultaciok />} />
           <Route path="/oktatoanyag" element={<Oktatoanyag />} />
           <Route path="/munkafuzet" element={<Munkafuzet />} />
@@ -204,6 +213,7 @@ function AppRoutes() {
           <Route path="/gyt/allapotfelmerok" element={<GytAllapotfelmerok />} />
           <Route path="/gyt/munkafuzet" element={<GytMunkafuzet />} />
           <Route path="/gyt/dokumentacio" element={<GytDokumentacio />} />
+          <Route path="/gyt/checklist" element={<GytChecklist />} />
         </Route>
       </Route>
       <Route element={<AppLayout navItems={salesNavItems} userName="Eszter" role="sales" />}>

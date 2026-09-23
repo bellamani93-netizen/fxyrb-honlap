@@ -2125,3 +2125,15 @@ Marci: "Rögzítsünk egy szabályt a dokumentációhoz: csak akkor lehet a köv
 **Tesztelve böngészőben:** egyenesen a 3. alkalomra ugorva (üres előzményekkel) a mező zárolt maradt megfelelő felirattal; az 1. alkalom rögzítése után a 2. azonnal megnyílt; a teljes sorozat végigkitöltve a záró alkalom helyesen archivált. Világos, sötét és mobil nézetben is rendben, `npm run build`/`tsc -b` hibamentesek.
 
 Marci: "ok 4. fázis kész." — a "4. fázis" (dokumentáció, 157-168. pont) ezzel véglegesen lezárva. A Design jegyzet tetején lévő STÁTUSZ-blokk frissítve a teljes kört lezáró dátumra (2026.09.23.) és a végleges pont-tartományra (157-168.), kiegészítve a 167-168. pontok (Marci saját tesztelése alapján javított 5 UX-hiba + a sorban-szerkeszthetőség szabálya) rövid összefoglalójával.
+
+## 2026.09.23. — "5. fázis" indítása: checklist
+
+Marci: "kezdjük az 5. fázist, ez a checklist megépítése. Keress meg minden ehhez kapcsolódó anyagot... Először kérdezz, tisztázzuk, utána építs." Alaposan átnéztem a Projekt specifikációt (Checklist szakasz), a `tornaSzintek.ts`-ben már korábban lerakott, checklist-fázisra várakozó konstansokat (megtartás-idő szabálya, szint-sorrendek), és a `Gyakorlatok.tsx` jelenleg statikus demó-állapotát. 4 tisztázó kérdés után (mind "Ajánlott" válasszal): egyszerűbb első verzió (dicséretek/figyelmeztetések/automatikus szint-zárolás egy későbbi körre marad), az ÜF szabadon vált szintet, egy bejegyzés naponta (extra-edzés számlálóval), és a diagramokhoz a `recharts` könyvtár bevezetése (Marci saját választása).
+
+Megépült: `ChecklistContext.tsx` (napi adatok, szint-kezelés, a "megtartás" idő automatikus számítása), egy ÜF-oldali `/checklist` (napi form + 3 diagram, "ezen a szinten"/"teljes időszak" váltóval), és egy GYT-oldali `/gyt/checklist` (csak-olvasható, szint-választóval).
+
+Böngészős tesztelés közben egy valódi hibát találtam és javítottam: ha az ÜF ugyanazon a napon váltott szintet, az új szint tévesen a régi szint már mentett adatát mutatta, ami egy render-crash-hez vezetett. Javítás: a bejegyzéseket mostantól a (dátum, szint) pár azonosítja, és a szerkesztő-nézet szinkron, származtatott értékből számolódik render közben (nem egy utólagos `useEffect`-ből, ami már késő lett volna).
+
+**Tesztelve böngészőben:** teljes ÜF-flow valódi bejelentkezéssel és állapotfelmérő-kitöltéssel, napi rögzítés, diagramok helyes megjelenítése, szint-váltás után a hiba reprodukálva majd a javítás után megerősítve hibamentesnek, GYT-oldali csak-olvasható nézet szint-választóval. Világos, sötét és mobil nézetben is rendben, `npm run build`/`tsc -b` hibamentesek.
+
+Tudatosan kimaradt (későbbi körre): dicséretek/figyelmeztetések, pontszámítás/ranglista, automatikus szint-zárolási szabály, checklist-adatok visszakötése a dokumentációhoz, és a checklist-szint összekötése a videókiosztás szint-adataival.

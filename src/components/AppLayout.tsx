@@ -31,7 +31,10 @@ function buildUfNavItems(felmeresKesz: boolean, oktatoanyagKesz: boolean): NavIt
     { to: '/allapotfelmero', label: 'állapotfelmérő', icon: '/icons/ikon_villanykorte.svg' },
     { to: '/gyakorlatok', label: 'gyakorlatok', icon: '/icons/ikon_torna.svg', locked: !felmeresKesz },
     { to: '/konzultacioim', label: 'konzultációk', icon: '/icons/ikon_naptar.svg', locked: !felmeresKesz },
-    { label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: true },
+    // "checklist" feloldva (2026.09.23., Marci kérésére, 5. fázis) —
+    // ugyanazzal a gatinggel, mint "gyakorlatok"/"konzultációk" (állapot-
+    // felmérő kitöltéséig zárolt), ld. Checklist.tsx/ChecklistContext.tsx.
+    { to: '/checklist', label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: !felmeresKesz },
     { to: '/munkafuzet', label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: !felmeresKesz || !oktatoanyagKesz },
     { to: '/oktatoanyag', label: 'oktatóanyag', icon: '/icons/ikon_tanulas.svg', locked: !felmeresKesz },
     { to: '/eredmenyeim', label: 'eredményeim', icon: '/icons/ikon_csillag.svg', locked: !felmeresKesz },
