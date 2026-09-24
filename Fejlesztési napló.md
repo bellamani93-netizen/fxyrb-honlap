@@ -2163,3 +2163,7 @@ Marci két hibát jelzett vissza az előző kör után: a "még egy edzést hozz
 Marci visszajelzése az előző javítás után: az elvárás pont a fordítottja volt annak, amit az imént beépítettünk — nem azt kérte, hogy mindhárom diagram tooltipje egyszerre jelenjen meg, hanem hogy CSAK a ténylegesen hoverelt diagramé. Mivel a Recharts `syncId`-je a tooltip aktív állapotát is szinkronizálja (nem csak a kurzor pozícióját), egy önálló, a diagramok saját `onMouseEnter`/`onMouseLeave` eseményéből számolt állapotot vezettem be, ami eldönti, MELYIK diagram van ténylegesen hoverelve — a másik két diagram tooltip-tartalma ilyenkor `null`-t ad vissza, csak a szinkronizált kurzor-vonaluk marad látható.
 
 **Tesztelve böngészőben:** mindhárom diagramra külön-külön hoverelve kizárólag az adott diagram popupja jelent meg, a másik kettőn csak a kurzor-vonal. Világos és sötét módban is rendben, `npm run build`/`tsc -b` hibamentesek.
+
+Marci: "a kurzor a mostani szaggatott helyett egy világító lime egybe csík legyen." A diagramok közös kurzor-komponense tömör, `--lime` színű vonalra váltott, egy `drop-shadow` SVG-szűrővel adott derengéssel.
+
+**Tesztelve böngészőben:** a szinkronizált kurzor mindhárom diagramon egységesen, élénk lime, világító, tömör vonalként jelent meg, világos és sötét módban is jó kontraszttal. `npm run build`/`tsc -b` hibamentesek.

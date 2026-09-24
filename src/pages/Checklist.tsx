@@ -123,13 +123,14 @@ function TrainingTooltip({
  * DIAGRAMTÍPUSONKÉNT eltér: az oszlopdiagram (Bar) egy SZÉLES, szürke
  * kitöltésű téglalapot rajzol (az egész napi sáv szélességében), a
  * vonaldiagramok (Line) viszont egy VÉKONY, függőleges vonalat — emiatt a 3,
- * `syncId`-vel összekötött diagram kurzora vizuálisan NEM egyezett, ami a
- * "csak abban ugrik fel a popup, amelyiknél vagyok" élményt is okozhatta
- * (a széles szürke sáv elnyomta/eltakarta a kis tooltip-kártyát). Ez a közös,
- * kézzel rajzolt kurzor-komponens MINDHÁROM diagramon (Bar ÉS mindkét Line)
- * ugyanazt a vékony, szaggatott vonalat rajzolja — a Bar diagramtól kapott
+ * `syncId`-vel összekötött diagram kurzora vizuálisan NEM egyezett. Ez a
+ * közös, kézzel rajzolt kurzor-komponens MINDHÁROM diagramon (Bar ÉS
+ * mindkét Line) ugyanazt a vonalat rajzolja — a Bar diagramtól kapott
  * `x`/`width`/`height` propokból a sáv KÖZEPÉN, a Line diagramoktól kapott
- * `points`-ból pedig a pontok x-koordinátáján. */
+ * `points`-ból pedig a pontok x-koordinátáján. "A kurzor a mostani
+ * szaggatott helyett egy világító lime egybe csík legyen" (2026.09.24.,
+ * Marci kérésére) — tömör (nem szaggatott), `--lime` színű, `drop-shadow`
+ * SVG-szűrővel adott derengéssel. */
 function SyncCursor(props: { points?: { x: number; y: number }[]; x?: number; y?: number; width?: number; height?: number }) {
   const { points, x, y, width, height } = props
   let cx: number | undefined
@@ -145,7 +146,17 @@ function SyncCursor(props: { points?: { x: number; y: number }[]; x?: number; y?
     bottom = y + height
   }
   if (cx === undefined) return null
-  return <line x1={cx} y1={top} x2={cx} y2={bottom} stroke="var(--color-text-muted)" strokeWidth={1} strokeDasharray="3 3" />
+  return (
+    <line
+      x1={cx}
+      y1={top}
+      x2={cx}
+      y2={bottom}
+      stroke="var(--lime)"
+      strokeWidth={2}
+      style={{ filter: 'drop-shadow(0 0 4px var(--lime))' }}
+    />
+  )
 }
 
 /** A két vonaldiagram (tünet-intenzitás/időtartam, terhelés-optimalizálás)
