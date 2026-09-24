@@ -2187,3 +2187,9 @@ Megépült: `DurationPicker` komponens a gyors gombsorral + "egyéb" esetén a m
 **Tesztelve böngészőben:** a gombsor helyesen működött, "egyéb"-re váltva a pontos csúszka nyílt meg, mentés után a helyes érték tért vissza szerkesztésre nyitva. A rögzített gomb mobil szélességen (612px) a képernyő alján, asztali szélességen (1200px) a normál helyén jelent meg. Világos és sötét módban is rendben, `npm run build`/`tsc -b` hibamentesek.
 
 Nyitva maradt (Marci döntésére vár): a szint-sáv + megtartás-idő blokk kompaktabbá tétele, és a "terhelés optimalizálás" mező érthetőségének javítása.
+
+Marci: "oldjuk meg mindkettőt, de kérdezz, és pontosítsunk." Két kör tisztázó kérdés után (az első kör válaszai kétértelműek voltak, a másodikkal pontosítottuk): a fejléc egy kompakt sorba vonva, a ritkán használt szint-váltó gombok egy "⋯" menü mögé; a "terhelés optimalizálás" csúszka alá egy rövid, szó szerinti magyarázó szöveg ("nem hajolós nap"), a szám-skála változatlanul.
+
+Megépült: a korábbi két külön blokk (szint-sáv + önálló megtartás-idő blokk) egyetlen sorrá vonva, a `HoldSecondsEditor` egy kompakt méretű változattal; egy új `LevelMenu` komponens a szint-váltó gombokhoz (kattintásra nyíló/csukódó, kívülre kattintva záródó panel); a megosztott `Slider` komponens egy opcionális `caption` propot kapott, amit csak a "terhelés optimalizálás" csúszka használ.
+
+**Tesztelve böngészőben:** a fejléc egy sorban jelent meg, a "⋯" menü helyesen nyílt/záródott; mobilon a szint-név 2 sorba törhet, de a menü-gomb mindig a sáv jobb szélén marad (egy külön CSS-javítás kellett hozzá, hogy ne csússzon le önálló sorba). A "terhelés optimalizálás" csúszka alatt megjelent a magyarázó szöveg, a szám-skála változatlan maradt. Világos és sötét módban is rendben, `npm run build`/`tsc -b` hibamentesek.

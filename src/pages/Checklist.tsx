@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ResponsiveContainer,
   LineChart,
@@ -199,6 +199,7 @@ function LineTooltip({
 
 function Slider({
   label,
+  caption,
   valueLabel,
   value,
   min,
@@ -210,6 +211,11 @@ function Slider({
   onChange,
 }: {
   label: string
+  /** rövid, magyarázó szöveg a címke alatt (179. pont javítása,
+   * 2026.09.24., Marci kérésére) — pl. a "terhelés optimalizálás"
+   * mezőnél, ami elvont szám lenne magyarázat nélkül. Opcionális, a
+   * csúszka számskáláját/lépésközét NEM érinti. */
+  caption?: string
   valueLabel: string
   value: number
   min: number
@@ -234,6 +240,11 @@ function Slider({
           {valueLabel}
         </span>
       </div>
+      {caption && (
+        <span className="small d-block mb-1" style={{ color: 'var(--color-text-muted)' }}>
+          {caption}
+        </span>
+      )}
       <input
         type="range"
         className="intensity-range"
@@ -513,8 +524,24 @@ export function ChecklistCharts({
  * felülbírálás NÉLKÜLI "javasolt" érték (nem az aktuális, esetleg már
  * lejjebb állított érték), hogy a választék minden alkalommal újra a teljes
  * [1, javasolt] tartományt kínálja. */
-function HoldSecondsEditor({ seconds, maxSeconds, onChange }: { seconds: number; maxSeconds: number; onChange: (v: number) => void }) {
+function HoldSecondsEditor({
+  seconds,
+  maxSeconds,
+  onChange,
+  compact,
+}: {
+  seconds: number
+  maxSeconds: number
+  onChange: (v: number) => void
+  /** "oldjuk meg mindkettőt" (179. pont javítása, 2026.09.24.) — a szint-sáv
+   * és a megtartás-idő EGY közös, kompakt sorba vonva (a korábbi, önálló
+   * 2rem-es kiemelés helyett) — a `compact` a kisebb betűméretű változatot
+   * kapcsolja be, funkcionálisan (kattintható, ugyanaz a [1, javasolt]
+   * legördülő) változatlan marad. */
+  compact?: boolean
+}) {
   const [editing, setEditing] = useState(false)
+  const fontSize = compact ? '1.05rem' : '2rem'
   if (editing) {
     return (
       <select
@@ -540,11 +567,83 @@ function HoldSecondsEditor({ seconds, maxSeconds, onChange }: { seconds: number;
     <button
       type="button"
       className="btn btn-link p-0"
-      style={{ color: 'var(--lime)', fontSize: '2rem', fontWeight: 800, lineHeight: 1.2, textDecoration: 'none' }}
+      style={{ color: 'var(--lime)', fontSize, fontWeight: 800, lineHeight: 1.2, textDecoration: 'none' }}
       onClick={() => setEditing(true)}
     >
       {seconds} mp
     </button>
+  )
+}
+
+/** "az előző/következő szint gombok ritkán használtak (kb. 2 hetente)" (179.
+ * pont javítása, 2026.09.24., Marci kérésére) — egy kis "⋯" menü mögé
+ * kerültek, hogy a napi fejléc-sor ne foglalja a helyet két, mindig
+ * látható gombbal. Kattintásra nyílik/csukódik, dokumentum-szintű
+ * `mousedown` figyeléssel záródik, ha máshova kattintunk. */
+function LevelMenu({
+  currentLevel,
+  maxLevel,
+  onPrevious,
+  onNext,
+}: {
+  currentLevel: number
+  maxLevel: number
+  onPrevious: () => void
+  onNext: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handleOutsideClick(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [open])
+
+  if (currentLevel <= 1 && currentLevel >= maxLevel) return null
+
+  return (
+    <div className="checklist-level-menu-wrap" ref={wrapRef}>
+      <button
+        type="button"
+        className="checklist-level-menu-toggle"
+        aria-label="szint műveletek"
+        onClick={() => setOpen((o) => !o)}
+      >
+        ⋯
+      </button>
+      {open && (
+        <div className="checklist-level-menu">
+          {currentLevel > 1 && (
+            <button
+              type="button"
+              className="btn-fyb btn-fyb-outline btn-fyb-sm"
+              onClick={() => {
+                onPrevious()
+                setOpen(false)
+              }}
+            >
+              előző szint
+            </button>
+          )}
+          {currentLevel < maxLevel && (
+            <button
+              type="button"
+              className="btn-fyb btn-fyb-outline btn-fyb-sm"
+              onClick={() => {
+                onNext()
+                setOpen(false)
+              }}
+            >
+              következő szint kezdése
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -688,9 +787,13 @@ function DailyForm({
          gerincterhelés kalkulátor csúszkái" (172. pont) — a kalkulátor
          saját `--grad-start`/`--grad-end` (teal→mint) fix, két-színű
          gradiense a kitöltött szakaszon (a korábbi, egyszínű `--z4`
-         helyett). */}
+         helyett). A `caption` (179. pont javítása, 2026.09.24., Marci
+         kérésére, szó szerint) — a szám önmagában elvont lenne, a szöveg
+         konkrét példával köti a mindennapi gerinckímélő viselkedéshez. A
+         0-100%, 1%-os lépésköz VÁLTOZATLAN maradt. */}
       <Slider
         label="terhelés optimalizálás"
+        caption="nem hajolós nap"
         valueLabel={`${load}%`}
         value={load}
         min={0}
@@ -756,45 +859,42 @@ export default function Checklist() {
         </div>
 
         <div className="card-fyb mb-4">
-          {/* "A szint neve legfelül külön szürke sávban" (172. pont) — a
-             kártya TETEJÉN, teljes szélességben kitöltő, elkülönített sáv;
-             ide kerültek a szint-váltó gombok is (előző/következő). */}
+          {/* "oldjuk meg mindkettőt" — a fejléc tömörítése (179. pont
+             javítása, 2026.09.24., Marci kérésére: "egy kompakt sorba
+             vonva") — a korábbi KÉT külön blokk (szint-sáv + önálló,
+             2rem-es megtartás-idő blokk, "mai javasolt megtartási idő"
+             felirattal) helyett EGYETLEN sor: szint neve + kompakt
+             megtartás-idő, a ritkán (kb. 2 hetente) használt szint-váltó
+             gombok pedig a `LevelMenu` "⋯" menüje mögé kerültek — kevesebb
+             görgetés a napi mezők eléréséig, minden nap. */}
           <div className="checklist-level-bar">
-            <span className="fw-bold">
-              {state.currentLevel}. szint{' '}
-              {currentCode && <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>— {codeLabel(currentCode)}</span>}
-            </span>
-            <div className="d-flex gap-2">
-              {state.currentLevel > 1 && (
-                <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => previousLevel(client.id)}>
-                  előző szint
-                </button>
-              )}
-              {state.currentLevel < maxLevel && (
-                <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => advanceLevel(client.id, maxLevel)}>
-                  következő szint kezdése
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* "Mai javasolt megtartási idő"-re módosítjuk a szöveget... a
-             'X mp'-re kattintva módosítható legyen" (172. pont). */}
-          <div className="mb-3">
-            <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>
-              mai javasolt megtartási idő
-            </span>
-            <span>
-              <HoldSecondsEditor
-                seconds={actualHoldSeconds}
-                maxSeconds={recommendedHoldSeconds}
-                onChange={(v) => setHoldOverride(client.id, todayISOStr, state.currentLevel, v)}
-              />
-              <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-                {' '}
-                / gyakorlat
+            <div className="d-flex align-items-baseline flex-wrap gap-2" style={{ minWidth: 0 }}>
+              <span className="fw-bold">
+                {state.currentLevel}. szint{' '}
+                {currentCode && <span className="small" style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>— {codeLabel(currentCode)}</span>}
               </span>
-            </span>
+              <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+                ·
+              </span>
+              <span>
+                <HoldSecondsEditor
+                  compact
+                  seconds={actualHoldSeconds}
+                  maxSeconds={recommendedHoldSeconds}
+                  onChange={(v) => setHoldOverride(client.id, todayISOStr, state.currentLevel, v)}
+                />
+                <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+                  {' '}
+                  / gyakorlat
+                </span>
+              </span>
+            </div>
+            <LevelMenu
+              currentLevel={state.currentLevel}
+              maxLevel={maxLevel}
+              onPrevious={() => previousLevel(client.id)}
+              onNext={() => advanceLevel(client.id, maxLevel)}
+            />
           </div>
 
           {showEditor ? (
