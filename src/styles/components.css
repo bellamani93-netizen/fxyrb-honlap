@@ -3485,3 +3485,35 @@ html[data-theme='dark'] .bodychart-img {
     line-height: 1.15 !important;
   }
 }
+
+/* --- checklist (172. pont, 2026.09.24., Marci kérésére) --- */
+/* "A szint neve legfelül külön szürke sávban" — a `.card-fyb` (1.75rem
+   padding) teljes szélességét/tetejét kitöltő sáv, negatív margóval
+   "kibuktatva" a kártya paddingjéből, csak a felső sarkokon lekerekítve. */
+.checklist-level-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: -1.75rem -1.75rem 1.25rem -1.75rem;
+  padding: 0.85rem 1.75rem;
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+}
+/* "az eredményeim doboz 3 grafikonja legyen vizuálisan egyben" — egy közös
+   keret, belső elválasztókkal a korábbi, különálló `gap-4` blokkok helyett
+   (a kurzor-szinkronizálást magát a diagramok közös `syncId` propja adja,
+   ld. Checklist.tsx). */
+.checklist-charts-group {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.checklist-chart-block {
+  padding: 1rem 1rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.checklist-chart-block:last-child {
+  border-bottom: none;
+}

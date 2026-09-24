@@ -14,6 +14,7 @@ import {
 import {
   useChecklist,
   computeHoldSeconds,
+  getHoldSecondsForDay,
   SYMPTOM_OPTIONS,
   DURATION_STEPS,
   type ChecklistEntry,
@@ -22,12 +23,21 @@ import {
 import { useClients } from '../context/ClientsContext'
 import { LOGGED_IN_UF_ID } from '../data/initialClients'
 import { suggestedSequence, codeLabel } from '../data/tornaSzintek'
+import { intensityColor, intensityGlow, useDarkMode } from '../utils/intensityColor'
 
 // ÜF-oldali "checklist" (2026.09.23., Marci kérésére, 5. fázis — ld.
 // ChecklistContext.tsx modul-tető jegyzete az egyeztetés részleteiért).
 // "Cél: egy olyan, nagyon egyszerűen használható felület, ahova naponta
 // tudja az üf követni az állapotát/a torna kivitelezését. Ezt szintenként
 // könnyen érthető, látványos diagramokon lehet látni."
+//
+// 172. PONT (2026.09.24., Marci kérésére) — 9 további finomítás: a
+// megtartás-idő szövege + kézi felülbírálása, a szint-név külön sávban, a
+// "edzés megvolt"/"tünet edzés közben" egymás mellett, a két csúszka
+// stílusa az állapotfelmérőből ill. a gerincterhelés kalkulátorból, a 3
+// diagram vizuális egyesítése (szinkronizált kurzor), a megtartás-idő
+// kiírása a tooltipben, egy "előző szint" gomb, és az extra edzések
+// EDZÉSENKÉNTI tünet-jelölése (halmozott oszlop-diagram).
 
 function formatDurationLabel(hours: number) {
   if (hours === 0) return 'nincs'
@@ -37,13 +47,11 @@ function formatDurationLabel(hours: number) {
 
 const SYMPTOM_LABELS: Record<string, string> = Object.fromEntries(SYMPTOM_OPTIONS.map((o) => [o.value, o.label]))
 
-/** "1 szint = 2 hetes ciklus" (Projekt specifikáció) — Marci kérésére
- * (2026.09.23., 171. pont): a szintenkénti diagramok X-tengelye MINDIG a
- * teljes, 14 napos idősávot fogja át (a szint kezdő dátumától), akkor is,
- * ha még csak néhány nap van kitöltve — így a tengely szélessége/skálája
- * nem "ugrál" naponta, amint újabb nap kerül fel. A `null` értékű napok
- * (még be nem következett/ki nem töltött napok) a diagramon egyszerűen
- * kihagyott pontként/hiányzó oszlopként jelennek meg. */
+/** "1 szint = 2 hetes ciklus" (Projekt specifikáció) — a szintenkénti
+ * diagramok X-tengelye MINDIG a teljes, 14 napos idősávot fogja át (a szint
+ * kezdő dátumától), akkor is, ha még csak néhány nap van kitöltve. A `null`
+ * értékű napok (még be nem következett/ki nem töltött napok) a diagramon
+ * egyszerűen kihagyott pontként/hiányzó oszlopként jelennek meg. */
 function last14Days(startDate: string): string[] {
   return Array.from({ length: 14 }, (_, i) => {
     const d = new Date(startDate)
@@ -52,10 +60,21 @@ function last14Days(startDate: string): string[] {
   })
 }
 
-function TrainingTooltip({ active, payload }: { active?: boolean; payload?: { payload: Record<string, unknown> }[] }) {
+type ChartPoint = {
+  date: string
+  intenzitas: number | null
+  idotartam: number | null
+  terheles: number | null
+  edzes: number | null
+  holdSeconds: number | null
+  workouts: SymptomDuringExercise[] | null
+}
+
+function TrainingTooltip({ active, payload }: { active?: boolean; payload?: { payload: ChartPoint }[] }) {
   if (!active || !payload?.length) return null
-  const point = payload[0].payload as { date: string; edzes: number | null; symptom: SymptomDuringExercise | null }
+  const point = payload[0].payload
   if (point.edzes === null) return null
+  const symptomatic = (point.workouts ?? []).filter((w) => w !== 'nincs')
   return (
     <div
       style={{
@@ -68,7 +87,16 @@ function TrainingTooltip({ active, payload }: { active?: boolean; payload?: { pa
     >
       <div className="fw-bold mb-1">{point.date}</div>
       <div>edzések száma: {point.edzes}</div>
-      <div>tünet: {point.symptom && point.symptom !== 'nincs' ? SYMPTOM_LABELS[point.symptom] : 'nincs'}</div>
+      {point.holdSeconds !== null && <div>megtartás: {point.holdSeconds} mp</div>}
+      <div>
+        tünet:{' '}
+        {symptomatic.length === 0
+          ? 'nincs'
+          : (point.workouts ?? [])
+              .map((w, i) => (w === 'nincs' ? null : `${i + 1}. edzés: ${SYMPTOM_LABELS[w]}`))
+              .filter(Boolean)
+              .join(', ')}
+      </div>
     </div>
   )
 }
@@ -81,6 +109,8 @@ function Slider({
   max,
   step,
   color,
+  gradient,
+  glow,
   onChange,
 }: {
   label: string
@@ -90,14 +120,21 @@ function Slider({
   max: number
   step: number
   color: string
+  /** ha meg van adva, a kitöltött szakasz KÉT-SZÍNŰ (bal→jobb) átmenet
+   * (pl. a gerincterhelés kalkulátor teal→mint gradiense) egyetlen `color`
+   * helyett. */
+  gradient?: [string, string]
+  glow?: string
   onChange: (v: number) => void
 }) {
   const pct = ((value - min) / (max - min)) * 100
+  const fillFrom = gradient ? gradient[0] : color
+  const fillTo = gradient ? gradient[1] : color
   return (
     <div className="mb-3">
       <div className="d-flex align-items-center justify-content-between mb-1">
         <span className="small fw-bold">{label}</span>
-        <span className="small" style={{ color }}>
+        <span className="small fw-bold" style={{ color }}>
           {valueLabel}
         </span>
       </div>
@@ -110,7 +147,8 @@ function Slider({
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         style={{
-          background: `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)`,
+          background: `linear-gradient(to right, ${fillFrom} 0%, ${fillTo} ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)`,
+          boxShadow: glow,
         }}
       />
     </div>
@@ -118,13 +156,14 @@ function Slider({
 }
 
 // a diagram-blokk közös a GYT csak-olvasható nézetével (ld.
-// GytChecklist.tsx) — kézzel rajzolt SVG helyett a `recharts` könyvtárral
-// (Marci kifejezett választása, AskUserQuestion). "Mindig az aktuális
-// szint adatai grafikonon; opcionálisan a teljes időszak is megnézhető"
-// (Projekt specifikáció) — ld. a hívó oldal `scope` váltóját.
+// GytChecklist.tsx) — kézzel rajzolt SVG helyett a `recharts` könyvtárral.
+// "Mindig az aktuális szint adatai grafikonon; opcionálisan a teljes
+// időszak is megnézhető" (Projekt specifikáció) — ld. a hívó oldal `scope`
+// váltóját.
 export function ChecklistCharts({
   entries,
   levelStartDate,
+  holdSecondsFor,
 }: {
   entries: ChecklistEntry[]
   /** ha meg van adva, a diagramok a TELJES 14 napos szint-idősávot mutatják
@@ -132,18 +171,25 @@ export function ChecklistCharts({
    * időszak" (több szint együtt) nézetben elhagyjuk, ott a tényleges
    * bejegyzések természetes szélessége marad. */
   levelStartDate?: string
+  /** az adott nap/szint TÉNYLEGES (esetleg felülbírált) megtartás-idejét
+   * adja vissza — a hívó (Checklist.tsx/GytChecklist.tsx) építi fel a
+   * `getHoldSecondsForDay`-ből, mert ahhoz `ClientVariables` és a teljes
+   * checklist-állapot kell, amit a diagram-komponens maga nem ismer. */
+  holdSecondsFor: (date: string, level: number) => number
 }) {
   const byDate = new Map(entries.map((e) => [e.date, e]))
   const dates = levelStartDate ? last14Days(levelStartDate) : [...entries.map((e) => e.date)].sort()
-  const data = dates.map((date) => {
+  const maxWorkouts = Math.max(1, ...entries.map((e) => e.workouts.length))
+  const data: ChartPoint[] = dates.map((date) => {
     const e = byDate.get(date)
     return {
       date: date.slice(5).replace('-', '.'),
       intenzitas: e ? e.symptomIntensity : null,
       idotartam: e ? e.symptomDurationHours : null,
       terheles: e ? e.loadOptimization : null,
-      edzes: e ? (e.trained ? 1 + e.extraWorkouts : 0) : null,
-      symptom: e ? e.symptom : null,
+      edzes: e ? e.workouts.length : null,
+      holdSeconds: e ? holdSecondsFor(e.date, e.level) : null,
+      workouts: e ? e.workouts : null,
     }
   })
   const hasAnyData = entries.length > 0
@@ -156,41 +202,57 @@ export function ChecklistCharts({
     )
   }
 
+  // Marci kérésére (2026.09.24.): "az eredményeim doboz 3 grafikonja legyen
+  // vizuálisan egyben... amikor a kurzort mozgatjuk akkor az egyszerre
+  // mindhárom grafikonon az adott napnál legyen" — a `syncId` a Recharts
+  // beépített, több diagram közötti kurzor-szinkronizálása (nincs kézzel
+  // írt esemény-összekötés), az azonos `YAxis width` pedig garantálja, hogy
+  // a 3 diagram rajzolt területe (és így a napok oszlopai) pontosan egymás
+  // alatt legyenek.
+  const SYNC_ID = 'checklist-charts'
+  const AXIS_WIDTH = 34
+
   return (
-    <div className="d-flex flex-column gap-4">
-      <div>
+    <div className="checklist-charts-group">
+      <div className="checklist-chart-block">
         <span className="small fw-bold d-block mb-2" style={{ color: 'var(--color-primary)' }}>
           edzésnapok
         </span>
         <ResponsiveContainer width="100%" height={140}>
-          <BarChart data={data}>
+          <BarChart data={data} syncId={SYNC_ID}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={24} />
-            {/* Marci kérésére (2026.09.23.): "ha tünet gyakorlat közben,
-               akkor az aznapi edzés váltson narancssárgára (alapértelmezetten
-               türkiz legyen), és ráhúzva az egeret írja ki, hogy konkrétan
-               mi volt a kiválasztott tünet" — a Tooltip ezért egyedi
-               (`TrainingTooltip`), a Bar pedig `Cell`-enként színezett. */}
+            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
+            {/* "ha tünet gyakorlat közben, akkor az aznapi edzés váltson
+               narancssárgára (alapértelmezetten türkiz legyen)" — mostantól
+               EDZÉSENKÉNT (halmozott oszlop-szegmensenként) színezve, nem a
+               teljes napi oszlopra egyben (172. pont). */}
             <Tooltip content={<TrainingTooltip />} />
-            <Bar dataKey="edzes" name="edzések száma" radius={[4, 4, 0, 0]}>
-              {data.map((d, i) => (
-                <Cell key={i} fill={d.symptom && d.symptom !== 'nincs' ? 'var(--z2)' : 'var(--z4)'} />
-              ))}
-            </Bar>
+            {Array.from({ length: maxWorkouts }, (_, slotIdx) => (
+              <Bar
+                key={slotIdx}
+                dataKey={(d: ChartPoint) => (d.workouts && slotIdx < d.workouts.length ? 1 : null)}
+                stackId="a"
+                radius={slotIdx === maxWorkouts - 1 ? [4, 4, 0, 0] : undefined}
+              >
+                {data.map((d, i) => (
+                  <Cell key={i} fill={d.workouts && d.workouts[slotIdx] && d.workouts[slotIdx] !== 'nincs' ? 'var(--z2)' : 'var(--z4)'} />
+                ))}
+              </Bar>
+            ))}
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      <div>
+      <div className="checklist-chart-block">
         <span className="small fw-bold d-block mb-2" style={{ color: 'var(--color-primary)' }}>
           tünet intenzitása (0-10) és időtartama (óra)
         </span>
         <ResponsiveContainer width="100%" height={160}>
-          <LineChart data={data}>
+          <LineChart data={data} syncId={SYNC_ID}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
-            <YAxis tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={24} />
+            <YAxis tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
             <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: 12 }} />
             <Line type="monotone" dataKey="intenzitas" name="intenzitás" stroke="var(--z1)" strokeWidth={2} dot={{ r: 3 }} />
             <Line type="monotone" dataKey="idotartam" name="időtartam (óra)" stroke="var(--z2)" strokeWidth={2} dot={{ r: 3 }} />
@@ -198,21 +260,110 @@ export function ChecklistCharts({
         </ResponsiveContainer>
       </div>
 
-      <div>
+      <div className="checklist-chart-block">
         <span className="small fw-bold d-block mb-2" style={{ color: 'var(--color-primary)' }}>
           terhelés optimalizálás (%)
         </span>
         <ResponsiveContainer width="100%" height={140}>
-          <LineChart data={data}>
+          <LineChart data={data} syncId={SYNC_ID}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
-            <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={28} />
+            <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
             <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: 12 }} />
             <Line type="monotone" dataKey="terheles" name="terhelés optimalizálás" stroke="var(--z4)" strokeWidth={2} dot={{ r: 3 }} />
           </LineChart>
         </ResponsiveContainer>
       </div>
     </div>
+  )
+}
+
+/** "A napi másodperc megtartást... a 'X mp'-re kattintva módosítható legyen
+ * egy legördülő menüben (csak ugyanakkora, vagy kisebb másodperc
+ * választható, min. 1-ig)" (172. pont) — `maxSeconds` MINDIG a számított,
+ * felülbírálás NÉLKÜLI "javasolt" érték (nem az aktuális, esetleg már
+ * lejjebb állított érték), hogy a választék minden alkalommal újra a teljes
+ * [1, javasolt] tartományt kínálja. */
+function HoldSecondsEditor({ seconds, maxSeconds, onChange }: { seconds: number; maxSeconds: number; onChange: (v: number) => void }) {
+  const [editing, setEditing] = useState(false)
+  if (editing) {
+    return (
+      <select
+        className="form-select form-select-sm d-inline-block"
+        style={{ width: 'auto', fontSize: '1.1rem', fontWeight: 800, color: 'var(--lime)' }}
+        autoFocus
+        value={seconds}
+        onChange={(e) => {
+          onChange(Number(e.target.value))
+          setEditing(false)
+        }}
+        onBlur={() => setEditing(false)}
+      >
+        {Array.from({ length: maxSeconds }, (_, i) => i + 1).map((s) => (
+          <option key={s} value={s}>
+            {s} mp
+          </option>
+        ))}
+      </select>
+    )
+  }
+  return (
+    <button
+      type="button"
+      className="btn btn-link p-0"
+      style={{ color: 'var(--lime)', fontSize: '2rem', fontWeight: 800, lineHeight: 1.2, textDecoration: 'none' }}
+      onClick={() => setEditing(true)}
+    >
+      {seconds} mp
+    </button>
+  )
+}
+
+/** "Ha még egy edzést hozzáadok, akkor megint lehessen jelölni, hogy volt-e
+ * közben tünet" (172. pont, Marci egyeztetés utáni döntése: a teljes 7
+ * opciós legördülő, azonnali, megerősítendő inline választóval). */
+function AddWorkoutButton({ clientId }: { clientId: string }) {
+  const { addWorkout } = useChecklist()
+  const [picking, setPicking] = useState(false)
+  const [symptom, setSymptom] = useState<SymptomDuringExercise>('nincs')
+
+  if (picking) {
+    return (
+      <div className="d-flex align-items-center gap-2 flex-wrap">
+        <select
+          className="form-select form-select-sm"
+          style={{ width: 'auto' }}
+          value={symptom}
+          onChange={(e) => setSymptom(e.target.value as SymptomDuringExercise)}
+        >
+          {SYMPTOM_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          className="btn-fyb btn-fyb-primary btn-fyb-sm"
+          onClick={() => {
+            addWorkout(clientId, symptom)
+            setPicking(false)
+            setSymptom('nincs')
+          }}
+        >
+          hozzáadás
+        </button>
+        <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => setPicking(false)}>
+          mégse
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => setPicking(true)}>
+      még egy edzést hozzáadok
+    </button>
   )
 }
 
@@ -226,8 +377,9 @@ function DailyForm({
   onSaved: () => void
 }) {
   const { saveTodayEntry } = useChecklist()
+  const dark = useDarkMode()
   const [trained, setTrained] = useState(initial?.trained ?? false)
-  const [symptom, setSymptom] = useState<SymptomDuringExercise>(initial?.symptom ?? 'nincs')
+  const [symptom, setSymptom] = useState<SymptomDuringExercise>(initial?.workouts[0] ?? 'nincs')
   const [durationIdx, setDurationIdx] = useState(() => {
     const idx = DURATION_STEPS.indexOf(initial?.symptomDurationHours ?? 0)
     return idx === -1 ? 0 : idx
@@ -248,20 +400,24 @@ function DailyForm({
 
   return (
     <div>
-      <label className="d-flex align-items-center gap-2 mb-3" style={{ cursor: 'pointer' }}>
-        <input type="checkbox" checked={trained} onChange={(e) => setTrained(e.target.checked)} />
-        <span className="fw-bold">edzés megvolt</span>
-      </label>
-
-      <div className="mb-3">
-        <span className="small fw-bold d-block mb-1">tünet gyakorlat közben</span>
-        <select className="form-select" value={symptom} onChange={(e) => setSymptom(e.target.value as SymptomDuringExercise)}>
-          {SYMPTOM_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+      {/* "'Edzés megvolt' 'tünet edzés közben' - ezek egymás mellett
+         legyenek" (172. pont) — `flex-wrap`-pel keskeny (mobil) nézetben
+         szükség esetén továbbra is 2 sorba törhet. */}
+      <div className="d-flex flex-wrap align-items-start gap-3 mb-3">
+        <label className="d-flex align-items-center gap-2 pt-1" style={{ cursor: 'pointer', flex: '0 0 auto' }}>
+          <input type="checkbox" checked={trained} onChange={(e) => setTrained(e.target.checked)} />
+          <span className="fw-bold">edzés megvolt</span>
+        </label>
+        <div style={{ flex: '1 1 200px' }}>
+          <span className="small fw-bold d-block mb-1">tünet gyakorlat közben</span>
+          <select className="form-select" value={symptom} onChange={(e) => setSymptom(e.target.value as SymptomDuringExercise)}>
+            {SYMPTOM_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <Slider
@@ -275,17 +431,47 @@ function DailyForm({
         onChange={setDurationIdx}
       />
 
-      <Slider
-        label="tünet napi intenzitása"
-        valueLabel={`${intensity}/10`}
-        value={intensity}
-        min={0}
-        max={10}
-        step={1}
-        color="var(--z1)"
-        onChange={setIntensity}
-      />
+      {/* "Tünet napi intenzitása csúszka legyen olyan, mint az
+         állapotfelmérőben a tünet intenzitása csúszka" (172. pont) — a
+         nagy, középre igazított, dinamikusan színezett szám a csúszka
+         FÖLÖTT, majd a csúszka maga (a `--z1` fix szín helyett
+         `intensityColor`-ból jövő, folytonos zöld→sötétvörös
+         interpolációval, 9-10-nél piros derengéssel), és min/max
+         szövegek — pontosan az Allapotfelmero.tsx `IntensityRange`
+         mintáját követve (a színskála-logikát innentől közösen, a
+         `src/utils/intensityColor.ts` modulból veszi mindkét hely). */}
+      <div className="mb-3">
+        <div className="d-flex align-items-center justify-content-between mb-1">
+          <span className="small fw-bold">tünet napi intenzitása</span>
+        </div>
+        <div className="text-center mb-1">
+          <span className="fw-bold" style={{ color: intensityColor(intensity, dark), fontSize: '1.75rem', lineHeight: 1 }}>
+            {intensity}
+          </span>
+        </div>
+        <input
+          type="range"
+          className="intensity-range"
+          min={0}
+          max={10}
+          value={intensity}
+          onChange={(e) => setIntensity(Number(e.target.value))}
+          style={{
+            background: `linear-gradient(to right, ${intensityColor(intensity, dark)} 0%, ${intensityColor(intensity, dark)} ${(intensity / 10) * 100}%, var(--color-border) ${(intensity / 10) * 100}%, var(--color-border) 100%)`,
+            boxShadow: intensityGlow(intensity, dark),
+          }}
+        />
+        <div className="d-flex justify-content-between small" style={{ color: 'var(--color-text-muted)' }}>
+          <span>0 — semmi</span>
+          <span>10 — max. intenzitás</span>
+        </div>
+      </div>
 
+      {/* "Terhelés optimalizálás csúszka legyen olyan, mint a
+         gerincterhelés kalkulátor csúszkái" (172. pont) — a kalkulátor
+         saját `--grad-start`/`--grad-end` (teal→mint) fix, két-színű
+         gradiense a kitöltött szakaszon (a korábbi, egyszínű `--z4`
+         helyett). */}
       <Slider
         label="terhelés optimalizálás"
         valueLabel={`${load}%`}
@@ -293,7 +479,8 @@ function DailyForm({
         min={0}
         max={100}
         step={1}
-        color="var(--z4)"
+        color="var(--teal)"
+        gradient={['var(--teal)', 'var(--mint)']}
         onChange={setLoad}
       />
 
@@ -307,7 +494,7 @@ function DailyForm({
 export default function Checklist() {
   const { clients } = useClients()
   const client = clients.find((c) => c.id === LOGGED_IN_UF_ID)!
-  const { getState, getTodayEntry, addExtraWorkout, advanceLevel } = useChecklist()
+  const { getState, getTodayEntry, advanceLevel, previousLevel, setHoldOverride } = useChecklist()
   const sequence = suggestedSequence(client.variables)
   const maxLevel = sequence.length
   const state = getState(client.id)
@@ -321,14 +508,16 @@ export default function Checklist() {
   // csak egy `useEffect`-tel tudná utólag, a COMMIT UTÁN korrigálni — de a
   // render már A RÉGI `editing=false` érték mellett, `todayEntry`
   // hiányában próbálná kiolvasni `todayEntry!.trained`-ot, ami ÖSSZEOMLIK,
-  // mielőtt az effект egyáltalán lefutna (élesben előfordult hiba,
-  // böngészős teszteléskor derült ki). Ezért a ténylegesen megjelenített
+  // mielőtt az effект egyáltalán lefutna. Ezért a ténylegesen megjelenített
   // "szerkesztő nézet"-et SZINKRON, származtatott értékként számoljuk: ha
   // nincs mai bejegyzés az AKTUÁLIS szinthez, MINDIG a szerkesztő nézet
   // jelenik meg, függetlenül a state-től.
   const showEditor = editing || !todayEntry
 
-  const todaysHoldSeconds = computeHoldSeconds(state.levelStartDate, new Date().toISOString().slice(0, 10), client.variables)
+  const todayISOStr = new Date().toISOString().slice(0, 10)
+  const recommendedHoldSeconds = computeHoldSeconds(state.levelStartDate, todayISOStr, client.variables)
+  const actualHoldSeconds = getHoldSecondsForDay(state, todayISOStr, state.currentLevel, client.variables)
+  const holdSecondsFor = (date: string, level: number) => getHoldSecondsForDay(state, date, level, client.variables)
   const visibleEntries = scope === 'szint' ? state.entries.filter((e) => e.level === state.currentLevel) : state.entries
   const visibleLevelStartDate = scope === 'szint' ? state.levelStartDates[state.currentLevel] : undefined
 
@@ -340,38 +529,45 @@ export default function Checklist() {
         </div>
 
         <div className="card-fyb mb-4">
-          {/* Marci kérésére (2026.09.23.): "a napi másodperc megtartást
-             jobban emeljük ki fent, élénk lime színnel" — a korábban a
-             DailyForm/zárolt-nézet belsejében kétszer, halványan
-             megismételt szöveg helyett EGYETLEN, a kártya TETEJÉN,
-             kiemelt, `--lime` színű blokk, függetlenül attól, hogy a mai
-             nap még szerkeszthető, vagy már rögzítve van. */}
-          <div className="mb-3">
-            <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>
-              mai kitűzött megtartás-idő
+          {/* "A szint neve legfelül külön szürke sávban" (172. pont) — a
+             kártya TETEJÉN, teljes szélességben kitöltő, elkülönített sáv;
+             ide kerültek a szint-váltó gombok is (előző/következő). */}
+          <div className="checklist-level-bar">
+            <span className="fw-bold">
+              {state.currentLevel}. szint{' '}
+              {currentCode && <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>— {codeLabel(currentCode)}</span>}
             </span>
-            <span style={{ color: 'var(--lime)', fontSize: '2rem', fontWeight: 800, lineHeight: 1.2 }}>
-              {todaysHoldSeconds} mp
-            </span>
-            <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-              {' '}
-              / gyakorlat
-            </span>
+            <div className="d-flex gap-2">
+              {state.currentLevel > 1 && (
+                <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => previousLevel(client.id)}>
+                  előző szint
+                </button>
+              )}
+              {state.currentLevel < maxLevel && (
+                <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => advanceLevel(client.id, maxLevel)}>
+                  következő szint kezdése
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-            <h2 className="h6 mb-0">
-              {state.currentLevel}. szint {currentCode ? <span style={{ color: 'var(--color-text-muted)' }}>— {codeLabel(currentCode)}</span> : null}
-            </h2>
-            {state.currentLevel < maxLevel && (
-              <button
-                type="button"
-                className="btn-fyb btn-fyb-outline btn-fyb-sm"
-                onClick={() => advanceLevel(client.id, maxLevel)}
-              >
-                következő szint kezdése
-              </button>
-            )}
+          {/* "Mai javasolt megtartási idő"-re módosítjuk a szöveget... a
+             'X mp'-re kattintva módosítható legyen" (172. pont). */}
+          <div className="mb-3">
+            <span className="small d-block" style={{ color: 'var(--color-text-muted)' }}>
+              mai javasolt megtartási idő
+            </span>
+            <span>
+              <HoldSecondsEditor
+                seconds={actualHoldSeconds}
+                maxSeconds={recommendedHoldSeconds}
+                onChange={(v) => setHoldOverride(client.id, todayISOStr, state.currentLevel, v)}
+              />
+              <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+                {' '}
+                / gyakorlat
+              </span>
+            </span>
           </div>
 
           {showEditor ? (
@@ -382,13 +578,11 @@ export default function Checklist() {
                 <span className="badge-fyb">✓ mai nap rögzítve</span>
                 <span className="small" style={{ color: 'var(--color-text-muted)' }}>
                   {todayEntry!.trained ? 'edzés megvolt' : 'ma nem volt edzés'}
-                  {todayEntry!.extraWorkouts > 0 && ` (+${todayEntry!.extraWorkouts} további edzés)`}
+                  {todayEntry!.workouts.length > 1 && ` (+${todayEntry!.workouts.length - 1} további edzés)`}
                 </span>
               </div>
               <div className="d-flex flex-wrap gap-2 mt-3">
-                <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => addExtraWorkout(client.id)}>
-                  még egy edzést hozzáadok
-                </button>
+                {todayEntry!.trained && <AddWorkoutButton clientId={client.id} />}
                 <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => setEditing(true)}>
                   szerkesztés
                 </button>
@@ -409,7 +603,7 @@ export default function Checklist() {
               </button>
             </div>
           </div>
-          <ChecklistCharts entries={visibleEntries} levelStartDate={visibleLevelStartDate} />
+          <ChecklistCharts entries={visibleEntries} levelStartDate={visibleLevelStartDate} holdSecondsFor={holdSecondsFor} />
         </div>
       </div>
     </section>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useClients } from '../context/ClientsContext'
 import { getSelectedClientId } from '../data/initialClients'
-import { useChecklist } from '../context/ChecklistContext'
+import { useChecklist, getHoldSecondsForDay } from '../context/ChecklistContext'
 import { suggestedSequence, codeLabel } from '../data/tornaSzintek'
 import { ChecklistCharts } from './Checklist'
 
@@ -21,6 +21,7 @@ export default function GytChecklist() {
   const [viewedLevel, setViewedLevel] = useState(state.currentLevel)
   const viewedCode = sequence[viewedLevel - 1]
   const entries = state.entries.filter((e) => e.level === viewedLevel)
+  const holdSecondsFor = (date: string, level: number) => getHoldSecondsForDay(state, date, level, client.variables)
 
   return (
     <section className="py-3 py-lg-5">
@@ -48,7 +49,7 @@ export default function GytChecklist() {
               ))}
             </select>
           </div>
-          <ChecklistCharts entries={entries} levelStartDate={state.levelStartDates[viewedLevel]} />
+          <ChecklistCharts entries={entries} levelStartDate={state.levelStartDates[viewedLevel]} holdSecondsFor={holdSecondsFor} />
         </div>
       </div>
     </section>

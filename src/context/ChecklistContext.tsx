@@ -16,26 +16,41 @@ import { HOLD_START_SECONDS, HOLD_STEP_SECONDS, HOLD_STEP_DAYS, maxHoldSeconds, 
 //   kezeli a "gamification"-t (dicséretek, ranglista), ami erre épül majd.
 // - a "Következő szint kezdése" gombot az ÜF maga nyomja meg, SZABADON,
 //   nincs 10/14 napos feltétel-ellenőrzés ebben a körben.
-// - egy nap EGY bejegyzés (nem edzésenkénti külön rekord) — "Még egy
-//   edzést hozzáadok" csak egy számlálót növel (`extraWorkouts`).
 // - a diagramokhoz a `recharts` könyvtár került bevezetésre (Marci
 //   kifejezett választása egy kézzel rajzolt SVG-s alternatíva helyett).
 //
 // A szint-szám ÜGYFÉLFÜGGŐ (12 VAGY 13, ld. `tornaSzintek.ts` SEQUENCES) —
-// NEM fix 12, ahogy a spec (a Design jegyzet korábban ezt jelezte,
-// tisztázandóként a checklist-fázisra) — a tényleges kiszámított
-// sorrend (`suggestedSequence`) hosszát használjuk.
+// NEM fix 12, ahogy a spec — a tényleges kiszámított sorrend
+// (`suggestedSequence`) hosszát használjuk.
 //
 // FONTOS, SZÁNDÉKOS EGYSZERŰSÍTÉS: ez a "szint" ÁLLAPOT (jelenlegi szint,
 // kezdő dátum) SAJÁT, a checklisthez tartozó állapot — NEM ugyanaz, mint a
 // GYT-oldali videókiosztás `Client.levels` (GytLevel[]) mezője, ami a
 // VIDEÓ-HOZZÁFÉRÉS zárolási állapotát követi. A két rendszer még nincs
-// összekötve (a `Gyakorlatok.tsx` ÜF-oldali "szintjeid" nézet is jelenleg
-// teljesen statikus/demó-adat, nem kontextusból jön) — ez egy tudatos,
-// dokumentált hiány, amit egy KÉSŐBBI kör köthet majd össze.
+// összekötve — ez egy tudatos, dokumentált hiány, amit egy KÉSŐBBI kör
+// köthet majd össze.
 //
 // Nincs backend, ezért session-szintű állapot — ugyanaz a minta, mint a
 // többi Provider esetében.
+//
+// 172. PONT (2026.09.24., Marci kérésére) — a fő adatmodell két helyen
+// bővült:
+// - egy nap EGY bejegyzés (`ChecklistEntry`) marad, de a "hányszor volt
+//   edzés aznap" mostantól NEM egy puszta számláló (`extraWorkouts`), hanem
+//   egy `workouts: SymptomDuringExercise[]` TÖMB, EDZÉSENKÉNT saját
+//   tünet-válasszal — "Ha még egy edzést hozzáadok, akkor megint lehessen
+//   jelölni, hogy volt-e közben tünet. Ez megjelenik a diagramon is, az
+//   adott oszlop lehet pl. alul sárga, mert ott volt tünet, de fölötte
+//   türkiz, mert ott meg nem volt" (a halmozott oszlop-diagramhoz kell). A
+//   nap ÖSSZESÍTETT tünet-időtartama/-intenzitása (`symptomDurationHours`/
+//   `symptomIntensity`) továbbra is NAPI szintű, egyetlen érték marad — nem
+//   edzésenkénti —, ahogy eddig is.
+// - a "mai javasolt megtartási idő" mostantól KÉZZEL FELÜLBÍRÁLHATÓ ("csak
+//   ugyanakkora, vagy kisebb másodperc választható, min. 1-ig") — ezt EGY
+//   ÖNÁLLÓ `holdOverrides` térkép tárolja, (dátum, szint) kulccsal, NEM a
+//   `ChecklistEntry` mezőjeként — mert a felülbírálás FÜGGETLEN attól, hogy
+//   a nap fő űrlapja (edzés/tünet/terhelés) már mentve van-e (ld.
+//   `getHoldSecondsForDay`).
 
 export type SymptomDuringExercise = 'nincs' | 'izomlaz' | 'pici_feszules' | 'pici_huzodas' | 'fajdalom' | 'gorcs' | 'egyeb'
 
@@ -64,10 +79,12 @@ export type ChecklistEntry = {
    * szinten" nézete ezzel szűr. */
   level: number
   trained: boolean
-  /** "Még egy edzést hozzáadok" — hányszor jelezte az ÜF, hogy aznap TÖBB
-   * edzés is volt (az alap `trained` mellett). */
-  extraWorkouts: number
-  symptom: SymptomDuringExercise
+  /** minden aznapi edzés (a fő + a "még egy edzést hozzáadok" extrák) saját
+   * tünet-válasza, sorrendben — a fő űrlap "tünet gyakorlat közben"
+   * mezője adja a `workouts[0]`-t, minden további edzés a saját, önállóan
+   * választott tünet-típusával kerül a tömb végére. `trained === false`
+   * esetén üres tömb. */
+  workouts: SymptomDuringExercise[]
   symptomDurationHours: number
   symptomIntensity: number
   loadOptimization: number
@@ -79,10 +96,14 @@ type ChecklistClientState = {
   /** a JELENLEGI szint kezdő dátuma — `computeHoldSeconds()`-hoz. */
   levelStartDate: string
   /** MINDEN valaha elkezdett szint kezdő dátuma, szint szerint kulcsolva —
-   * a diagramok "1 szint = 2 hetes idősáv" rögzített szélességéhez kell
-   * (ld. 171. pont, Marci kérésére), akkor is, ha a GYT egy KORÁBBI
-   * szintet néz vissza, aminek már nem `levelStartDate` a kezdete. */
+   * a diagramok "1 szint = 2 hetes idősáv" rögzített szélességéhez, és az
+   * "előző szint" gombhoz kell (a korábbi szint kezdő dátuma NEM tolódik
+   * el, amikor visszalépünk rá). */
   levelStartDates: Record<number, string>
+  /** a "mai javasolt megtartási idő" kézi felülbírálása, (dátum, szint)
+   * kulccsal (ld. `holdKey`) — ha egy adott napra/szintre nincs bejegyzés
+   * itt, a `computeHoldSeconds()` szerinti alapértelmezett érvényes. */
+  holdOverrides: Record<string, number>
   entries: ChecklistEntry[]
 }
 
@@ -90,9 +111,13 @@ function todayISO(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+function holdKey(date: string, level: number): string {
+  return `${date}_${level}`
+}
+
 function emptyState(): ChecklistClientState {
   const start = todayISO()
-  return { currentLevel: 1, levelStartDate: start, levelStartDates: { 1: start }, entries: [] }
+  return { currentLevel: 1, levelStartDate: start, levelStartDates: { 1: start }, holdOverrides: {}, entries: [] }
 }
 
 function daysAgoISO(n: number): string {
@@ -102,38 +127,37 @@ function daysAgoISO(n: number): string {
 }
 
 /** Péter (ÜF-demó, `id: 'peter'`) 1. szintjéhez előre kitöltött, 9 napos
- * példa-adatsor (2026.09.23., Marci kérésére: "csinálj egy példaszintet,
- * amikor ki van töltve adatokkal a Péter checklistje az 1. szintre, hogy
- * megnézzem, mi látszik a diagramokon") — SZÁNDÉKOSAN javuló tendenciájú
- * (csökkenő tünet-időtartam/intenzitás, növekvő terhelés-optimalizálás),
- * hogy a diagramok érdemi, jól leolvasható trendet mutassanak, ne csak
- * szórt pontokat. A dátumok mindig a MAI naphoz képest relatívak (nem
- * hardkódolt naptári dátumok), hogy a példa akkor is friss/értelmes
- * maradjon, ha valaki egy KÉSŐBBI napon nyitja meg a prototípust. A MAI
- * nap szándékosan ÜRESEN marad, hogy a napi rögzítés folyamata is
- * kipróbálható legyen rajta keresztül. */
+ * példa-adatsor (2026.09.23., Marci kérésére) — SZÁNDÉKOSAN javuló
+ * tendenciájú (csökkenő tünet-időtartam/intenzitás, növekvő
+ * terhelés-optimalizálás). A dátumok mindig a MAI naphoz képest relatívak.
+ * A MAI nap szándékosan ÜRESEN marad, hogy a napi rögzítés kipróbálható
+ * legyen. A két, extra edzést is tartalmazó nap (-6, -2) mostantól VEGYES
+ * `workouts` tömböt kap (2026.09.24., 172. pont), hogy a halmozott
+ * oszlop-diagram szín-keveredése ("alul sárga... fölötte türkiz") is
+ * rögtön látszódjon a példán. */
 const DEMO_SEED_PETER: ChecklistClientState = {
   currentLevel: 1,
   levelStartDate: daysAgoISO(9),
   levelStartDates: { 1: daysAgoISO(9) },
+  holdOverrides: {},
   entries: [
-    { date: daysAgoISO(9), level: 1, trained: true, extraWorkouts: 0, symptom: 'fajdalom', symptomDurationHours: 3, symptomIntensity: 6, loadOptimization: 35, savedAt: `${daysAgoISO(9)}T18:00:00.000Z` },
-    { date: daysAgoISO(8), level: 1, trained: true, extraWorkouts: 0, symptom: 'fajdalom', symptomDurationHours: 2.5, symptomIntensity: 6, loadOptimization: 40, savedAt: `${daysAgoISO(8)}T18:00:00.000Z` },
-    { date: daysAgoISO(7), level: 1, trained: false, extraWorkouts: 0, symptom: 'pici_huzodas', symptomDurationHours: 2, symptomIntensity: 5, loadOptimization: 45, savedAt: `${daysAgoISO(7)}T18:00:00.000Z` },
-    { date: daysAgoISO(6), level: 1, trained: true, extraWorkouts: 1, symptom: 'pici_huzodas', symptomDurationHours: 1.5, symptomIntensity: 4, loadOptimization: 50, savedAt: `${daysAgoISO(6)}T18:00:00.000Z` },
-    { date: daysAgoISO(5), level: 1, trained: true, extraWorkouts: 0, symptom: 'pici_feszules', symptomDurationHours: 1.5, symptomIntensity: 4, loadOptimization: 55, savedAt: `${daysAgoISO(5)}T18:00:00.000Z` },
-    { date: daysAgoISO(4), level: 1, trained: true, extraWorkouts: 0, symptom: 'pici_feszules', symptomDurationHours: 1, symptomIntensity: 3, loadOptimization: 60, savedAt: `${daysAgoISO(4)}T18:00:00.000Z` },
-    { date: daysAgoISO(3), level: 1, trained: true, extraWorkouts: 0, symptom: 'izomlaz', symptomDurationHours: 0.75, symptomIntensity: 2, loadOptimization: 65, savedAt: `${daysAgoISO(3)}T18:00:00.000Z` },
-    { date: daysAgoISO(2), level: 1, trained: true, extraWorkouts: 1, symptom: 'nincs', symptomDurationHours: 0.5, symptomIntensity: 1, loadOptimization: 70, savedAt: `${daysAgoISO(2)}T18:00:00.000Z` },
-    { date: daysAgoISO(1), level: 1, trained: true, extraWorkouts: 0, symptom: 'nincs', symptomDurationHours: 0, symptomIntensity: 0, loadOptimization: 75, savedAt: `${daysAgoISO(1)}T18:00:00.000Z` },
+    { date: daysAgoISO(9), level: 1, trained: true, workouts: ['fajdalom'], symptomDurationHours: 3, symptomIntensity: 6, loadOptimization: 35, savedAt: `${daysAgoISO(9)}T18:00:00.000Z` },
+    { date: daysAgoISO(8), level: 1, trained: true, workouts: ['fajdalom'], symptomDurationHours: 2.5, symptomIntensity: 6, loadOptimization: 40, savedAt: `${daysAgoISO(8)}T18:00:00.000Z` },
+    { date: daysAgoISO(7), level: 1, trained: false, workouts: [], symptomDurationHours: 2, symptomIntensity: 5, loadOptimization: 45, savedAt: `${daysAgoISO(7)}T18:00:00.000Z` },
+    { date: daysAgoISO(6), level: 1, trained: true, workouts: ['pici_huzodas', 'nincs'], symptomDurationHours: 1.5, symptomIntensity: 4, loadOptimization: 50, savedAt: `${daysAgoISO(6)}T18:00:00.000Z` },
+    { date: daysAgoISO(5), level: 1, trained: true, workouts: ['pici_feszules'], symptomDurationHours: 1.5, symptomIntensity: 4, loadOptimization: 55, savedAt: `${daysAgoISO(5)}T18:00:00.000Z` },
+    { date: daysAgoISO(4), level: 1, trained: true, workouts: ['pici_feszules'], symptomDurationHours: 1, symptomIntensity: 3, loadOptimization: 60, savedAt: `${daysAgoISO(4)}T18:00:00.000Z` },
+    { date: daysAgoISO(3), level: 1, trained: true, workouts: ['izomlaz'], symptomDurationHours: 0.75, symptomIntensity: 2, loadOptimization: 65, savedAt: `${daysAgoISO(3)}T18:00:00.000Z` },
+    { date: daysAgoISO(2), level: 1, trained: true, workouts: ['nincs', 'izomlaz'], symptomDurationHours: 0.5, symptomIntensity: 1, loadOptimization: 70, savedAt: `${daysAgoISO(2)}T18:00:00.000Z` },
+    { date: daysAgoISO(1), level: 1, trained: true, workouts: ['nincs'], symptomDurationHours: 0, symptomIntensity: 0, loadOptimization: 75, savedAt: `${daysAgoISO(1)}T18:00:00.000Z` },
   ],
 }
 
-/** a mai napra "kitűzött" megtartás-idő (mp) — csak TÁJÉKOZTATÓ, nem
- * bevihető érték (ld. Projekt specifikáció: "Dátum: csak a kezdődátum
- * állítandó, utána automatikus számítás"). A szint kezdő dátuma óta eltelt
- * napok száma alapján, `HOLD_STEP_DAYS`-enként +`HOLD_STEP_SECONDS`,
- * `maxHoldSeconds()`-ig (magas vérnyomásnál alacsonyabb felső korlát). */
+/** a "javasolt" megtartás-idő (mp) — a szint kezdő dátuma óta eltelt napok
+ * száma alapján, `HOLD_STEP_DAYS`-enként +`HOLD_STEP_SECONDS`,
+ * `maxHoldSeconds()`-ig (magas vérnyomásnál alacsonyabb felső korlát). Ez
+ * MINDIG a számított, felülbírálás NÉLKÜLI érték — a kézi felülbírálás
+ * FELSŐ HATÁRA is ebből jön (ld. `getHoldSecondsForDay`, Checklist.tsx). */
 export function computeHoldSeconds(levelStartDate: string, date: string, variables: Pick<ClientVariables, 'highBloodPressure'>): number {
   const start = new Date(levelStartDate)
   const current = new Date(date)
@@ -142,8 +166,27 @@ export function computeHoldSeconds(levelStartDate: string, date: string, variabl
   return Math.min(HOLD_START_SECONDS + steps * HOLD_STEP_SECONDS, maxHoldSeconds(variables))
 }
 
+/** a TÉNYLEGES (esetleg kézzel felülbírált) megtartás-idő egy adott
+ * napra/szintre — ha nincs felülbírálás, a `computeHoldSeconds()` szerinti
+ * javasolt érték. Tisztán függvény (nem context-hívás), hogy a diagramok
+ * (`ChecklistCharts`) és az oldal-komponensek (Checklist.tsx,
+ * GytChecklist.tsx) is egyformán, közvetlenül használhassák, akár korábbi
+ * (nem csak a "mai") napokra is. */
+export function getHoldSecondsForDay(
+  state: Pick<ChecklistClientState, 'levelStartDate' | 'levelStartDates' | 'holdOverrides'>,
+  date: string,
+  level: number,
+  variables: Pick<ClientVariables, 'highBloodPressure'>
+): number {
+  const override = state.holdOverrides[holdKey(date, level)]
+  if (override !== undefined) return override
+  const start = state.levelStartDates[level] ?? state.levelStartDate
+  return computeHoldSeconds(start, date, variables)
+}
+
 export type DailyEntryInput = {
   trained: boolean
+  /** a fő edzés (a nap `workouts[0]`-ja) tünet-válasza. */
   symptom: SymptomDuringExercise
   symptomDurationHours: number
   symptomIntensity: number
@@ -154,8 +197,17 @@ type ChecklistContextValue = {
   getState: (clientId: string) => ChecklistClientState
   getTodayEntry: (clientId: string) => ChecklistEntry | undefined
   saveTodayEntry: (clientId: string, data: DailyEntryInput) => void
-  addExtraWorkout: (clientId: string) => void
+  /** "Még egy edzést hozzáadok" — a mai bejegyzés `workouts` tömbjéhez ad
+   * egy ÚJ, önállóan választott tünet-válaszú edzést (2026.09.24., 172.
+   * pont — a korábbi, puszta számláló helyett). */
+  addWorkout: (clientId: string, symptom: SymptomDuringExercise) => void
   advanceLevel: (clientId: string, maxLevel: number) => void
+  /** "Van olyan gomb, hogy következő szint kezdése, de nincs olyan, hogy
+   * előző szint. Legyen ilyen gomb." (2026.09.24.) — a korábbi szintre
+   * lép vissza, a korábbi szint EREDETI kezdő dátumát használva (NEM
+   * indítja újra a megtartás-idő progresszióját). */
+  previousLevel: (clientId: string) => void
+  setHoldOverride: (clientId: string, date: string, level: number, seconds: number) => void
 }
 
 const ChecklistContext = createContext<ChecklistContextValue | null>(null)
@@ -174,10 +226,9 @@ export function ChecklistProvider({ children }: { children: ReactNode }) {
   }
 
   // FONTOS: egy bejegyzést a (dátum, szint) PÁR azonosít, nem csak a dátum
-  // — ha az ÜF ugyanazon a napon vált szintet (pl. "Következő szint
-  // kezdése" gomb), az ÚJ szinten a mai nap ÚJRA üresen induljon, ne a
-  // korábbi (előző szintes) mai bejegyzést mutassa/írja felül. Ez egy
-  // ténylegesen előforduló hiba volt a böngészős tesztelés során.
+  // — ha az ÜF ugyanazon a napon vált szintet, az ÚJ szinten a mai nap
+  // ÚJRA üresen induljon, ne a korábbi (előző szintes) mai bejegyzést
+  // mutassa/írja felül.
   function getTodayEntry(clientId: string): ChecklistEntry | undefined {
     const current = getState(clientId)
     const today = todayISO()
@@ -189,12 +240,20 @@ export function ChecklistProvider({ children }: { children: ReactNode }) {
       const current = prev[clientId] ?? emptyState()
       const today = todayISO()
       const existing = current.entries.find((e) => e.date === today && e.level === current.currentLevel)
+      // a "szerkesztés"-sel újra mentett fő edzés a workouts[0]-t cseréli,
+      // de a KÖZBEN esetleg már hozzáadott extra edzéseket (workouts[1..])
+      // megőrzi — ugyanaz az elv, mint korábban az `extraWorkouts` számláló
+      // megőrzésénél.
+      const existingExtras = existing?.workouts.slice(1) ?? []
       const entry: ChecklistEntry = {
         date: today,
         level: current.currentLevel,
-        extraWorkouts: existing?.extraWorkouts ?? 0,
+        trained: data.trained,
+        workouts: data.trained ? [data.symptom, ...existingExtras] : [],
+        symptomDurationHours: data.symptomDurationHours,
+        symptomIntensity: data.symptomIntensity,
+        loadOptimization: data.loadOptimization,
         savedAt: existing?.savedAt ?? new Date().toISOString(),
-        ...data,
       }
       const entries = existing
         ? current.entries.map((e) => (e.date === today && e.level === current.currentLevel ? entry : e))
@@ -203,22 +262,21 @@ export function ChecklistProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  function addExtraWorkout(clientId: string) {
+  function addWorkout(clientId: string, symptom: SymptomDuringExercise) {
     setStateByClient((prev) => {
       const current = prev[clientId] ?? emptyState()
       const today = todayISO()
       const entries = current.entries.map((e) =>
-        e.date === today && e.level === current.currentLevel ? { ...e, extraWorkouts: e.extraWorkouts + 1 } : e
+        e.date === today && e.level === current.currentLevel ? { ...e, workouts: [...e.workouts, symptom] } : e
       )
       return { ...prev, [clientId]: { ...current, entries } }
     })
   }
 
-  /** "Következő szint kezdése" — Marci kérésére (2026.09.23.) szabadon, az
-   * ÜF saját döntése alapján, feltétel-ellenőrzés NÉLKÜL (ld. modul-tető
-   * jegyzet). `maxLevel` a hívó (ÜF oldal) adja át, a kliens tényleges
-   * gyakorlat-sorrendjének hossza alapján — az utolsó szintnél a gomb
-   * onnantól nem hoz létre újabbat. */
+  /** "Következő szint kezdése" — Marci kérésére szabadon, az ÜF saját
+   * döntése alapján, feltétel-ellenőrzés NÉLKÜL. `maxLevel` a hívó (ÜF
+   * oldal) adja át, a kliens tényleges gyakorlat-sorrendjének hossza
+   * alapján — az utolsó szintnél a gomb onnantól nem hoz létre újabbat. */
   function advanceLevel(clientId: string, maxLevel: number) {
     setStateByClient((prev) => {
       const current = prev[clientId] ?? emptyState()
@@ -237,8 +295,35 @@ export function ChecklistProvider({ children }: { children: ReactNode }) {
     })
   }
 
+  function previousLevel(clientId: string) {
+    setStateByClient((prev) => {
+      const current = prev[clientId] ?? emptyState()
+      if (current.currentLevel <= 1) return prev
+      const newLevel = current.currentLevel - 1
+      // a korábbi szint MÁR ELTÁROLT kezdő dátumát használjuk — nem
+      // indítjuk újra, hogy a megtartás-idő progressziója ne csússzon.
+      const start = current.levelStartDates[newLevel] ?? todayISO()
+      return {
+        ...prev,
+        [clientId]: { ...current, currentLevel: newLevel, levelStartDate: start },
+      }
+    })
+  }
+
+  function setHoldOverride(clientId: string, date: string, level: number, seconds: number) {
+    setStateByClient((prev) => {
+      const current = prev[clientId] ?? emptyState()
+      return {
+        ...prev,
+        [clientId]: { ...current, holdOverrides: { ...current.holdOverrides, [holdKey(date, level)]: seconds } },
+      }
+    })
+  }
+
   return (
-    <ChecklistContext.Provider value={{ getState, getTodayEntry, saveTodayEntry, addExtraWorkout, advanceLevel }}>
+    <ChecklistContext.Provider
+      value={{ getState, getTodayEntry, saveTodayEntry, addWorkout, advanceLevel, previousLevel, setHoldOverride }}
+    >
       {children}
     </ChecklistContext.Provider>
   )
