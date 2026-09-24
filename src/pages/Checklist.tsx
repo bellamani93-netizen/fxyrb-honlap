@@ -332,7 +332,20 @@ export function ChecklistCharts({
             onMouseLeave={() => setHoveredChart(null)}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
+            {/* "egyeztesd a diagramok nap beosztását, hogy pontosan
+               illeszkedjenek egymáshoz" (2026.09.24., Marci kérésére) — a
+               Recharts a Bar-t tartalmazó diagramoknál ALAPÉRTELMEZETTEN
+               "band" skálát használ az XAxis-hoz (minden nap egy SÁVOT kap,
+               az oszlop a sáv KÖZEPÉN, a sáv szélétől kicsit befelé
+               tolva), a Line diagramoknál viszont "point" skálát (minden
+               nap egyetlen PONT, a tengely bal szélénél kezdve, "szünet"
+               nélkül) — emiatt a napok x-pozíciója a Bar diagramon
+               ELCSÚSZOTT a másik kettőhöz képest. A `scale="point"`
+               kényszerítésével a Bar diagram is ugyanazt a pont-skálát
+               használja, mint a két Line diagram — az oszlopok mostantól a
+               NAPOKKAL PONTOSAN EGYEZŐ x-pozíciókban (nem sáv-közepeken)
+               rajzolódnak. */}
+            <XAxis dataKey="date" scale="point" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
             {/* "ha tünet gyakorlat közben, akkor az aznapi edzés váltson
                narancssárgára (alapértelmezetten türkiz legyen)" — mostantól

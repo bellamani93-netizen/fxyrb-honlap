@@ -2167,3 +2167,7 @@ Marci visszajelzése az előző javítás után: az elvárás pont a fordítottj
 Marci: "a kurzor a mostani szaggatott helyett egy világító lime egybe csík legyen." A diagramok közös kurzor-komponense tömör, `--lime` színű vonalra váltott, egy `drop-shadow` SVG-szűrővel adott derengéssel.
 
 **Tesztelve böngészőben:** a szinkronizált kurzor mindhárom diagramon egységesen, élénk lime, világító, tömör vonalként jelent meg, világos és sötét módban is jó kontraszttal. `npm run build`/`tsc -b` hibamentesek.
+
+Marci: "egyeztesd a diagramok nap beosztását, hogy pontosan illeszkedjenek egymáshoz. Most el van csúszva: az 1. diagram kis szünettel kezd, a másik kettő egyből a nulláról." Élő DOM-méréssel derült ki a pontos ok: a Recharts az oszlopdiagramnál alapértelmezetten "band" skálát használ az X-tengelyhez (minden nap egy sávot kap, az oszlop a sáv közepén), a két vonaldiagramnál viszont "point" skálát (minden nap egyetlen pont, a tengely szélénél kezdve) — ez a két eltérő alapértelmezés okozta a kb. fél sáv-szélességnyi elcsúszást. Az oszlopdiagram X-tengelye egy explicit `scale="point"` propot kapott, hogy a másik kettővel azonos skálát használjon.
+
+**Tesztelve böngészőben:** DOM-méréssel megerősítve, hogy a javítás után mindhárom diagram rácsvonalainak x-koordinátái pixelre pontosan egyeznek, és az első oszlop középpontja egybeesik a vonaldiagramok első pontjával. Világos, sötét és mobil nézetben is rendben, `npm run build`/`tsc -b` hibamentesek.
