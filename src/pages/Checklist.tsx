@@ -541,9 +541,23 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
          vált és a gomb letiltásra kerül), MELLETTE pedig egy MÁSODIK,
          AZONOS stílusú, de továbbra is aktív gomb ("még egy edzés
          hozzáadása") végzi a tényleges hozzáadást minden további
-         alkalommal. */}
+         alkalommal.
+         "van egy 'mentve' és egy 'mai nap rögzítve' gombunk, ami ugyanazt
+         jelenti. A 'mai nap rögzítve' gomb legyen törölve, de a formázását
+         vidd át az edzés hozzáadva gombra" (184. pont, 2026.09.24., Marci
+         kérésére) — a lenti kártyafejléc "✓ mai nap rögzítve" .badge-fyb
+         jelvénye törölve lett (felesleges duplikáció volt a "mentve"
+         gombbal), a kinézete (kis, kövér, nagybetűs pirula) pedig a
+         letiltott "edzés hozzáadva" gombra került át a
+         .checklist-workout-done-badge módosító osztállyal, a
+         .btn-fyb:disabled fakítás felülírásával. */}
       <div className="d-flex flex-wrap gap-2 mb-3">
-        <button type="button" className="btn-fyb btn-fyb-highlight" onClick={handleAddWorkout} disabled={workouts.length > 0}>
+        <button
+          type="button"
+          className={`btn-fyb ${workouts.length > 0 ? 'checklist-workout-done-badge' : 'btn-fyb-highlight'}`}
+          onClick={handleAddWorkout}
+          disabled={workouts.length > 0}
+        >
           {workouts.length === 0 ? 'edzés hozzáadása' : 'edzés hozzáadva'}
           {workouts.length > 0 && <Icon src="/icons/ikon_pipa_vastag.svg" style={{ backgroundColor: 'var(--navy)' }} />}
         </button>
@@ -714,7 +728,6 @@ export default function Checklist() {
           </div>
 
           <div className="p-4">
-            {todayEntry && <span className="badge-fyb mb-3 d-inline-block">✓ mai nap rögzítve</span>}
             <DailyForm key={state.currentLevel} clientId={client.id} initial={todayEntry} />
           </div>
         </div>

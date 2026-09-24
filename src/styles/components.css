@@ -163,6 +163,26 @@ html[data-theme='dark'] .card-fyb {
   letter-spacing: 0.04em;
 }
 
+/* checklist "edzés hozzáadva" (letiltott, már rögzített) gomb — a törölt
+   "✓ mai nap rögzítve" .badge-fyb jelvény kinézetét veszi át (184. pont,
+   2026.09.24., Marci kérésére), a .btn-fyb:disabled fakítás helyett */
+.checklist-workout-done-badge {
+  background-color: var(--lime);
+  color: var(--navy);
+  padding: 0.3rem 0.85rem;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.checklist-workout-done-badge:disabled {
+  opacity: 1;
+}
+.checklist-workout-done-badge .icon-fyb {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
 /* --- eyebrow --- */
 .eyebrow-fyb {
   display: inline-flex;
