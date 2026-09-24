@@ -317,6 +317,18 @@ export function ChecklistCharts({
   // nem tud egyszerre 3 helyen felugrani.
   const SYNC_ID = 'checklist-charts'
   const AXIS_WIDTH = 34
+  // "inkább egy kis szünettel kezdődjön az összes diagram, hogy az oszlop
+  // szépen kiférjen" (2026.09.24., Marci kérésére, a 176. pont javítása) —
+  // a `scale="point"` (176. pont) az oszlopdiagramot a napokkal pontosan
+  // egyező, de a rajzterület SZÉLÉHEZ TAPADÓ pozíciókra kényszerítette,
+  // emiatt az első/utolsó oszlop csonkán, a tengely szélén "levágva"
+  // jelent meg. Megoldás: MINDHÁROM diagram XAxis-a ugyanazt az
+  // `AXIS_PADDING`-et kapja bal/jobb oldalon — ez mindhárom diagramon
+  // EGYFORMÁN "befelé" tolja az első/utolsó napi pozíciót, így az oszlop
+  // kényelmesen kifér, ÉS a 3 diagram illesztése (176. pont) is megmarad
+  // (a padding minden diagramon azonos).
+  const AXIS_PADDING = 14
+  const BAR_SIZE = 20
 
   return (
     <div className="checklist-charts-group">
@@ -345,7 +357,13 @@ export function ChecklistCharts({
                használja, mint a két Line diagram — az oszlopok mostantól a
                NAPOKKAL PONTOSAN EGYEZŐ x-pozíciókban (nem sáv-közepeken)
                rajzolódnak. */}
-            <XAxis dataKey="date" scale="point" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
+            <XAxis
+              dataKey="date"
+              scale="point"
+              padding={{ left: AXIS_PADDING, right: AXIS_PADDING }}
+              tick={{ fontSize: 11 }}
+              stroke="var(--color-text-muted)"
+            />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
             {/* "ha tünet gyakorlat közben, akkor az aznapi edzés váltson
                narancssárgára (alapértelmezetten türkiz legyen)" — mostantól
@@ -357,6 +375,7 @@ export function ChecklistCharts({
                 key={slotIdx}
                 dataKey={(d: ChartPoint) => (d.workouts && slotIdx < d.workouts.length ? 1 : null)}
                 stackId="a"
+                barSize={BAR_SIZE}
                 radius={slotIdx === maxWorkouts - 1 ? [4, 4, 0, 0] : undefined}
               >
                 {data.map((d, i) => (
@@ -380,7 +399,12 @@ export function ChecklistCharts({
             onMouseLeave={() => setHoveredChart(null)}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
+            <XAxis
+              dataKey="date"
+              padding={{ left: AXIS_PADDING, right: AXIS_PADDING }}
+              tick={{ fontSize: 11 }}
+              stroke="var(--color-text-muted)"
+            />
             <YAxis tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
             <Tooltip content={<LineTooltip show={hoveredChart === 'tunet'} />} cursor={<SyncCursor />} />
             <Line type="monotone" dataKey="intenzitas" name="intenzitás" stroke="var(--z1)" strokeWidth={2} dot={{ r: 3 }} />
@@ -401,7 +425,12 @@ export function ChecklistCharts({
             onMouseLeave={() => setHoveredChart(null)}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
+            <XAxis
+              dataKey="date"
+              padding={{ left: AXIS_PADDING, right: AXIS_PADDING }}
+              tick={{ fontSize: 11 }}
+              stroke="var(--color-text-muted)"
+            />
             <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
             <Tooltip content={<LineTooltip show={hoveredChart === 'terheles'} />} cursor={<SyncCursor />} />
             <Line type="monotone" dataKey="terheles" name="terhelés optimalizálás" stroke="var(--z4)" strokeWidth={2} dot={{ r: 3 }} />
