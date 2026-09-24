@@ -70,8 +70,25 @@ type ChartPoint = {
   workouts: SymptomDuringExercise[] | null
 }
 
-function TrainingTooltip({ active, payload }: { active?: boolean; payload?: { payload: ChartPoint }[] }) {
-  if (!active || !payload?.length) return null
+function TrainingTooltip({
+  active,
+  payload,
+  show,
+}: {
+  active?: boolean
+  payload?: { payload: ChartPoint }[]
+  /** "ha az edzésnapoknál van az egerem, akkor csak az ottani popup
+   * látszódjon, a másik kettő nem" (173. pont javítása, 2026.09.24.) — a
+   * `syncId` (171-172. pont) a kurzor-VONALAT és a `active`/`payload`
+   * állapotot IS szinkronizálja mindhárom diagram közt, tehát önmagában az
+   * `active` nem különbözteti meg, hogy a felhasználó ténylegesen EZEN a
+   * diagramon áll-e. A `show` a ténylegesen hoverelt diagramot jelző, a
+   * szülő (`ChecklistCharts`) saját `onMouseEnter`/`onMouseLeave`
+   * eseményeiből számolt állapotból jön — csak akkor `true`, ha a kurzor
+   * TÉNYLEGESEN ezen a diagramon van. */
+  show: boolean
+}) {
+  if (!show || !active || !payload?.length) return null
   const point = payload[0].payload
   if (point.edzes === null) return null
   const symptomatic = (point.workouts ?? []).filter((w) => w !== 'nincs')
@@ -129,6 +146,44 @@ function SyncCursor(props: { points?: { x: number; y: number }[]; x?: number; y?
   }
   if (cx === undefined) return null
   return <line x1={cx} y1={top} x2={cx} y2={bottom} stroke="var(--color-text-muted)" strokeWidth={1} strokeDasharray="3 3" />
+}
+
+/** A két vonaldiagram (tünet-intenzitás/időtartam, terhelés-optimalizálás)
+ * korábban a Recharts BEÉPÍTETT, `contentStyle`-lal színezett tooltipjét
+ * használta — ez nem tudta figyelembe venni, hogy MELYIK diagramon áll
+ * ténylegesen a kurzor (ld. `TrainingTooltip` `show` jegyzete), ezért egy
+ * saját, a beépítettel azonos megjelenésű komponensre cserélve, hogy a
+ * `show` gátat ide is be lehessen kötni. */
+function LineTooltip({
+  active,
+  payload,
+  label,
+  show,
+}: {
+  active?: boolean
+  payload?: { name?: string; value?: number | string; color?: string }[]
+  label?: string
+  show: boolean
+}) {
+  if (!show || !active || !payload?.length) return null
+  return (
+    <div
+      style={{
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        fontSize: 12,
+        padding: '0.4rem 0.6rem',
+        borderRadius: 'var(--radius-sm)',
+      }}
+    >
+      <div className="fw-bold mb-1">{label}</div>
+      {payload.map((p, i) => (
+        <div key={i} style={{ color: p.color }}>
+          {p.name}: {p.value}
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function Slider({
@@ -224,6 +279,12 @@ export function ChecklistCharts({
   })
   const hasAnyData = entries.length > 0
 
+  // "ha az edzésnapoknál van az egerem, akkor csak az ottani popup
+  // látszódjon, a másik kettő nem" (173. pont javítása, 2026.09.24.) —
+  // melyik diagramon áll TÉNYLEGESEN a kurzor (nem csak melyiknél a
+  // `syncId` szerint "aktív" az index, ami mindhárman egyszerre igaz).
+  const [hoveredChart, setHoveredChart] = useState<'edzes' | 'tunet' | 'terheles' | null>(null)
+
   if (!hasAnyData) {
     return (
       <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>
@@ -232,13 +293,17 @@ export function ChecklistCharts({
     )
   }
 
-  // Marci kérésére (2026.09.24.): "az eredményeim doboz 3 grafikonja legyen
-  // vizuálisan egyben... amikor a kurzort mozgatjuk akkor az egyszerre
-  // mindhárom grafikonon az adott napnál legyen" — a `syncId` a Recharts
-  // beépített, több diagram közötti kurzor-szinkronizálása (nincs kézzel
-  // írt esemény-összekötés), az azonos `YAxis width` pedig garantálja, hogy
-  // a 3 diagram rajzolt területe (és így a napok oszlopai) pontosan egymás
-  // alatt legyenek.
+  // Marci kérésére (2026.09.24., 172. pont): "az eredményeim doboz 3
+  // grafikonja legyen vizuálisan egyben... amikor a kurzort mozgatjuk akkor
+  // az egyszerre mindhárom grafikonon az adott napnál legyen" — a `syncId`
+  // a Recharts beépített, több diagram közötti KURZOR-szinkronizálása
+  // (nincs kézzel írt esemény-összekötés), az azonos `YAxis width` pedig
+  // garantálja, hogy a 3 diagram rajzolt területe (és így a napok oszlopai)
+  // pontosan egymás alatt legyenek. A POPUP (tooltip-kártya) viszont a
+  // fenti javítás óta CSAK a ténylegesen hoverelt diagramon jelenik meg
+  // (ld. `hoveredChart` + a `TrainingTooltip`/`LineTooltip` `show` propja)
+  // — a kurzor-VONAL marad szinkronban mindhárom diagramon, csak a kártya
+  // nem tud egyszerre 3 helyen felugrani.
   const SYNC_ID = 'checklist-charts'
   const AXIS_WIDTH = 34
 
@@ -249,7 +314,12 @@ export function ChecklistCharts({
           edzésnapok
         </span>
         <ResponsiveContainer width="100%" height={140}>
-          <BarChart data={data} syncId={SYNC_ID}>
+          <BarChart
+            data={data}
+            syncId={SYNC_ID}
+            onMouseEnter={() => setHoveredChart('edzes')}
+            onMouseLeave={() => setHoveredChart(null)}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
@@ -257,7 +327,7 @@ export function ChecklistCharts({
                narancssárgára (alapértelmezetten türkiz legyen)" — mostantól
                EDZÉSENKÉNT (halmozott oszlop-szegmensenként) színezve, nem a
                teljes napi oszlopra egyben (172. pont). */}
-            <Tooltip content={<TrainingTooltip />} cursor={<SyncCursor />} />
+            <Tooltip content={<TrainingTooltip show={hoveredChart === 'edzes'} />} cursor={<SyncCursor />} />
             {Array.from({ length: maxWorkouts }, (_, slotIdx) => (
               <Bar
                 key={slotIdx}
@@ -279,11 +349,16 @@ export function ChecklistCharts({
           tünet intenzitása (0-10) és időtartama (óra)
         </span>
         <ResponsiveContainer width="100%" height={160}>
-          <LineChart data={data} syncId={SYNC_ID}>
+          <LineChart
+            data={data}
+            syncId={SYNC_ID}
+            onMouseEnter={() => setHoveredChart('tunet')}
+            onMouseLeave={() => setHoveredChart(null)}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
             <YAxis tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
-            <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: 12 }} cursor={<SyncCursor />} />
+            <Tooltip content={<LineTooltip show={hoveredChart === 'tunet'} />} cursor={<SyncCursor />} />
             <Line type="monotone" dataKey="intenzitas" name="intenzitás" stroke="var(--z1)" strokeWidth={2} dot={{ r: 3 }} />
             <Line type="monotone" dataKey="idotartam" name="időtartam (óra)" stroke="var(--z2)" strokeWidth={2} dot={{ r: 3 }} />
           </LineChart>
@@ -295,11 +370,16 @@ export function ChecklistCharts({
           terhelés optimalizálás (%)
         </span>
         <ResponsiveContainer width="100%" height={140}>
-          <LineChart data={data} syncId={SYNC_ID}>
+          <LineChart
+            data={data}
+            syncId={SYNC_ID}
+            onMouseEnter={() => setHoveredChart('terheles')}
+            onMouseLeave={() => setHoveredChart(null)}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
             <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
-            <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: 12 }} cursor={<SyncCursor />} />
+            <Tooltip content={<LineTooltip show={hoveredChart === 'terheles'} />} cursor={<SyncCursor />} />
             <Line type="monotone" dataKey="terheles" name="terhelés optimalizálás" stroke="var(--z4)" strokeWidth={2} dot={{ r: 3 }} />
           </LineChart>
         </ResponsiveContainer>
