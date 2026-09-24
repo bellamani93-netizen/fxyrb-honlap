@@ -251,6 +251,72 @@ function Slider({
   )
 }
 
+/** "a lehető legkevesebb kattintással, a lehető leggyorsabban" (2026.09.24.,
+ * Marci UX-átvizsgálási kérésére) — az 51 lépéses húzható csúszka mobilon
+ * nehezen, pontatlanul találja el ujjal a kívánt értéket. Gyors,
+ * koppintható gombsor a leggyakoribb értékekkel + "egyéb" nyitja meg a
+ * pontos csúszkát (a meglévő `Slider`-t, a `DURATION_STEPS` teljes
+ * skáláján) — ha a mentett érték nem egyezik egyik gyors-gombbal sem
+ * (korábban, "egyéb"-bel mentett nap), induláskor rögtön a csúszka
+ * nézetben nyílik, hogy a pontos érték ne vesszen el. */
+const QUICK_DURATIONS: { hours: number; label: string }[] = [
+  { hours: 0, label: 'nincs' },
+  { hours: 0.25, label: '15 perc' },
+  { hours: 0.5, label: '30 perc' },
+  { hours: 1, label: '1 óra' },
+  { hours: 3, label: 'néhány óra' },
+  { hours: 24, label: 'egész nap' },
+]
+
+function DurationPicker({ hours, onChange }: { hours: number; onChange: (h: number) => void }) {
+  const [customMode, setCustomMode] = useState(() => !QUICK_DURATIONS.some((q) => q.hours === hours))
+  const durationIdx = Math.max(0, DURATION_STEPS.indexOf(hours))
+
+  return (
+    <div className="mb-3">
+      <span className="small fw-bold d-block mb-1">tünet napi időtartama</span>
+      {customMode ? (
+        <div>
+          <Slider
+            label=""
+            valueLabel={formatDurationLabel(DURATION_STEPS[durationIdx])}
+            value={durationIdx}
+            min={0}
+            max={DURATION_STEPS.length - 1}
+            step={1}
+            color="var(--z2)"
+            onChange={(idx) => onChange(DURATION_STEPS[idx])}
+          />
+          <button
+            type="button"
+            className="btn btn-link btn-sm p-0"
+            style={{ textDecoration: 'none' }}
+            onClick={() => setCustomMode(false)}
+          >
+            vissza a gyors választáshoz
+          </button>
+        </div>
+      ) : (
+        <div className="d-flex flex-wrap gap-2">
+          {QUICK_DURATIONS.map((q) => (
+            <button
+              key={q.hours}
+              type="button"
+              className={`btn-fyb btn-fyb-sm ${q.hours === hours ? 'btn-fyb-primary' : 'btn-fyb-outline'}`}
+              onClick={() => onChange(q.hours)}
+            >
+              {q.label}
+            </button>
+          ))}
+          <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => setCustomMode(true)}>
+            egyéb
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // a diagram-blokk közös a GYT csak-olvasható nézetével (ld.
 // GytChecklist.tsx) — kézzel rajzolt SVG helyett a `recharts` könyvtárral.
 // "Mindig az aktuális szint adatai grafikonon; opcionálisan a teljes
@@ -543,10 +609,7 @@ function DailyForm({
   const dark = useDarkMode()
   const [trained, setTrained] = useState(initial?.trained ?? false)
   const [symptom, setSymptom] = useState<SymptomDuringExercise>(initial?.workouts[0] ?? 'nincs')
-  const [durationIdx, setDurationIdx] = useState(() => {
-    const idx = DURATION_STEPS.indexOf(initial?.symptomDurationHours ?? 0)
-    return idx === -1 ? 0 : idx
-  })
+  const [durationHours, setDurationHours] = useState(initial?.symptomDurationHours ?? 0)
   const [intensity, setIntensity] = useState(initial?.symptomIntensity ?? 0)
   const [load, setLoad] = useState(initial?.loadOptimization ?? 50)
 
@@ -554,7 +617,7 @@ function DailyForm({
     saveTodayEntry(clientId, {
       trained,
       symptom,
-      symptomDurationHours: DURATION_STEPS[durationIdx],
+      symptomDurationHours: durationHours,
       symptomIntensity: intensity,
       loadOptimization: load,
     })
@@ -583,16 +646,7 @@ function DailyForm({
         </div>
       </div>
 
-      <Slider
-        label="tünet napi időtartama"
-        valueLabel={formatDurationLabel(DURATION_STEPS[durationIdx])}
-        value={durationIdx}
-        min={0}
-        max={DURATION_STEPS.length - 1}
-        step={1}
-        color="var(--z2)"
-        onChange={setDurationIdx}
-      />
+      <DurationPicker hours={durationHours} onChange={setDurationHours} />
 
       {/* "Tünet napi intenzitása csúszka legyen olyan, mint az
          állapotfelmérőben a tünet intenzitása csúszka" (172. pont) — a
@@ -647,9 +701,19 @@ function DailyForm({
         onChange={setLoad}
       />
 
-      <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave}>
-        Rögzítés
-      </button>
+      {/* "minden szükségtelen... görgetés árt" (2026.09.24., Marci
+         UX-átvizsgálási kérésére) — a "Rögzítés" gomb mobilon a képernyő
+         aljához rögzített (`.checklist-save-bar`, components.css), hogy a
+         napi mezők kitöltése után SOSE kelljen külön odagörgetni érte. A
+         `checklist-save-spacer` üres hely biztosítja, hogy a rögzített sáv
+         ne takarja el az utolsó mezőt (asztali nézetben mindkettő
+         hatástalan — ott a gomb a megszokott, normál helyén marad). */}
+      <div className="checklist-save-spacer" />
+      <div className="checklist-save-bar">
+        <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave}>
+          Rögzítés
+        </button>
+      </div>
     </div>
   )
 }
