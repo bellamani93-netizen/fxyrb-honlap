@@ -3486,27 +3486,31 @@ html[data-theme='dark'] .bodychart-img {
   }
 }
 
-/* --- checklist (172. pont, 2026.09.24., Marci kérésére) --- */
-/* "A szint neve legfelül külön szürke sávban" — a `.card-fyb` (1.75rem
-   padding) teljes szélességét/tetejét kitöltő sáv, negatív margóval
-   "kibuktatva" a kártya paddingjéből, csak a felső sarkokon lekerekítve. */
-.checklist-level-bar {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  /* "oldjuk meg mindkettőt" (179. pont javítása, 2026.09.24.) — SZÁNDÉKOSAN
-     `nowrap`: a bal oldali szint-név+megtartás-idő csoport a SAJÁT belső
-     `flex-wrap`-jével törhet több sorba keskeny (mobil) képernyőn, de a
-     jobb oldali "⋯" menü-gomb emiatt NE csússzon le egy önálló, saját
-     sorba (a `wrap` a teljes SÁVOT egy 2. sorba törte volna, a gombot
-     furcsán, balra igazítva hagyva) — így a gomb mindig a sáv jobb
-     szélén, a szint-név(ek) mellett marad, akárhány sorba törik is azok. */
-  flex-wrap: nowrap;
-  gap: 0.5rem;
-  margin: -1.75rem -1.75rem 1.25rem -1.75rem;
-  padding: 0.85rem 1.75rem;
-  background: var(--color-bg-alt);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
+/* --- checklist (181. pont, 2026.09.24., Marci kérésére: "A checklist
+   eredményei kártya az rendben van... de a beviteli mező nem jó.
+   Újrakészítjük nulláról.") --- */
+/* "Fejléc: sötétszürke, benne a szint neve, és a megtartás ideje lime
+   színnel (a szám nagyobb legyen, mint a szöveg többi része)" — szó
+   szerinti diktálás. FIX sötét (`--navy`) háttér, FÜGGETLENÜL a lap saját
+   világos/sötét témájától (ugyanaz a minta, mint pl. a mobil-menü sötét
+   paneljénél) — ezért a benne lévő szövegek/gombok is FIX, világos
+   színeket kapnak, nem a téma-függő `--color-text`/`--color-text-muted`
+   tokeneket. */
+.checklist-daily-header {
+  padding: 1.25rem 1.75rem;
+  background: var(--navy);
+  color: var(--offwhite);
+}
+.checklist-daily-header-level {
+  font-weight: 700;
+}
+.checklist-daily-header-code {
+  font-weight: 400;
+  color: var(--pale-gray);
+}
+.checklist-daily-header-unit {
+  color: var(--pale-gray);
+  font-size: 0.85rem;
 }
 /* "az eredményeim doboz 3 grafikonja legyen vizuálisan egyben" — egy közös
    keret, belső elválasztókkal a korábbi, különálló `gap-4` blokkok helyett
@@ -3563,12 +3567,15 @@ html[data-theme='dark'] .bodychart-img {
   padding: 0.15rem 0.5rem;
   font-size: 1.3rem;
   line-height: 1;
-  color: var(--color-text-muted);
+  /* FIX világos szín, nem a téma-függő `--color-text-muted` — a menü-gomb
+     mostantól mindig a sötét (`--navy`) fejlécen ül, világos/sötét
+     témától függetlenül (181. pont). */
+  color: var(--pale-gray);
   cursor: pointer;
   border-radius: var(--radius-sm);
 }
 .checklist-level-menu-toggle:hover {
-  background: var(--color-border);
+  background: rgba(255, 255, 255, 0.12);
 }
 .checklist-level-menu {
   position: absolute;

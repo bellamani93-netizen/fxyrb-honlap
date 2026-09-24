@@ -16,7 +16,7 @@ import {
   computeHoldSeconds,
   getHoldSecondsForDay,
   SYMPTOM_OPTIONS,
-  DURATION_STEPS,
+  DURATION_OPTIONS,
   type ChecklistEntry,
   type SymptomDuringExercise,
 } from '../context/ChecklistContext'
@@ -24,26 +24,36 @@ import { useClients } from '../context/ClientsContext'
 import { LOGGED_IN_UF_ID } from '../data/initialClients'
 import { suggestedSequence, codeLabel } from '../data/tornaSzintek'
 import { intensityColor, intensityGlow, useDarkMode } from '../utils/intensityColor'
+import Icon from '../components/Icon'
 
 // ÜF-oldali "checklist" (2026.09.23., Marci kérésére, 5. fázis — ld.
 // ChecklistContext.tsx modul-tető jegyzete az egyeztetés részleteiért).
 // "Cél: egy olyan, nagyon egyszerűen használható felület, ahova naponta
-// tudja az üf követni az állapotát/a torna kivitelezését. Ezt szintenként
-// könnyen érthető, látványos diagramokon lehet látni."
+// tudja az üf követni az állapotát/a torna kivitelezését."
 //
-// 172. PONT (2026.09.24., Marci kérésére) — 9 további finomítás: a
-// megtartás-idő szövege + kézi felülbírálása, a szint-név külön sávban, a
-// "edzés megvolt"/"tünet edzés közben" egymás mellett, a két csúszka
-// stílusa az állapotfelmérőből ill. a gerincterhelés kalkulátorból, a 3
-// diagram vizuális egyesítése (szinkronizált kurzor), a megtartás-idő
-// kiírása a tooltipben, egy "előző szint" gomb, és az extra edzések
-// EDZÉSENKÉNTI tünet-jelölése (halmozott oszlop-diagram).
-
-function formatDurationLabel(hours: number) {
-  if (hours === 0) return 'nincs'
-  if (hours < 1) return `${Math.round(hours * 60)} perc`
-  return `${hours} óra`
-}
+// 181. PONT (2026.09.24., Marci kérésére: "A checklist eredményei kártya az
+// rendben van, a logikák is rendben, de a beviteli mező nem jó.
+// Újrakészítjük nulláról.") — a napi BEVITELI ŰRLAP (`DailyForm` + a
+// `Checklist()` fejléce) TELJES ÚJRATERVEZÉSE, Marci szó szerinti
+// diktálása alapján. A diagramok (`ChecklistCharts`) és a mögöttes logika
+// VÁLTOZATLAN maradt ("a checklist eredményei kártya... rendben van") —
+// csak a `SYMPTOM_OPTIONS`/`DURATION_OPTIONS` új értékkészletéhez lettek
+// igazítva (ld. ChecklistContext.tsx).
+//
+// Egyeztetés (AskUserQuestion, kódírás előtt): (1) az "edzés rögzítése"
+// gomb TÖBBSZÖR is megnyomható egy napon belül (marad az edzésenkénti
+// tünet-jelölés + halmozott oszlop-diagram); (2) a szint-váltás egy kis
+// "⋯" menü mögött marad a fejlécben; (3) a "nem hajolós nap" lett a
+// csúszka LÁTHATÓ címe (a "terhelés optimalizálás" csak a diagram
+// címében/adatmodellben él tovább, a napi űrlapon nem jelenik meg).
+//
+// SAJÁT DÖNTÉS (nem volt explicit diktálva, de nem is mond ellent semminek):
+// az űrlap mostantól MINDIG szerkeszthető állapotban van (nincs külön
+// "szerkesztés" mód / csak-olvasható összegző nézet) — a mai bejegyzés,
+// ha van, egyszerűen előre kitöltve jelenik meg, és a "Mentés" bármikor
+// újra elmenthető. Ez elhagyja a korábbi `editing`/`showEditor` állapotot
+// és a hozzá tartozó render-crash-elhárítást (ami eleve csak azért kellett,
+// mert a nézetek közt kellett váltani) — egyszerűbb, kevesebb mozgó rész.
 
 const SYMPTOM_LABELS: Record<string, string> = Object.fromEntries(SYMPTOM_OPTIONS.map((o) => [o.value, o.label]))
 
@@ -77,21 +87,15 @@ function TrainingTooltip({
 }: {
   active?: boolean
   payload?: { payload: ChartPoint }[]
-  /** "ha az edzésnapoknál van az egerem, akkor csak az ottani popup
-   * látszódjon, a másik kettő nem" (173. pont javítása, 2026.09.24.) — a
-   * `syncId` (171-172. pont) a kurzor-VONALAT és a `active`/`payload`
-   * állapotot IS szinkronizálja mindhárom diagram közt, tehát önmagában az
-   * `active` nem különbözteti meg, hogy a felhasználó ténylegesen EZEN a
-   * diagramon áll-e. A `show` a ténylegesen hoverelt diagramot jelző, a
-   * szülő (`ChecklistCharts`) saját `onMouseEnter`/`onMouseLeave`
-   * eseményeiből számolt állapotból jön — csak akkor `true`, ha a kurzor
-   * TÉNYLEGESEN ezen a diagramon van. */
+  /** csak a ténylegesen hoverelt diagramon jelenjen meg a popup, a többi
+   * (csak a `syncId` miatt "aktív") diagramon ne — ld. `ChecklistCharts`
+   * `hoveredChart` jegyzete. */
   show: boolean
 }) {
   if (!show || !active || !payload?.length) return null
   const point = payload[0].payload
   if (point.edzes === null) return null
-  const symptomatic = (point.workouts ?? []).filter((w) => w !== 'nincs')
+  const symptomatic = (point.workouts ?? []).filter((w) => w !== 'nem')
   return (
     <div
       style={{
@@ -108,9 +112,9 @@ function TrainingTooltip({
       <div>
         tünet:{' '}
         {symptomatic.length === 0
-          ? 'nincs'
+          ? 'nem'
           : (point.workouts ?? [])
-              .map((w, i) => (w === 'nincs' ? null : `${i + 1}. edzés: ${SYMPTOM_LABELS[w]}`))
+              .map((w, i) => (w === 'nem' ? null : `${i + 1}. edzés: ${SYMPTOM_LABELS[w]}`))
               .filter(Boolean)
               .join(', ')}
       </div>
@@ -118,19 +122,9 @@ function TrainingTooltip({
   )
 }
 
-/** "A kurzor legyen egységes, ugyanúgy nézzen ki mind3 sorban" (172. pont
- * javítása, 2026.09.24.) — a Recharts alapértelmezett kurzor-rajzolása
- * DIAGRAMTÍPUSONKÉNT eltér: az oszlopdiagram (Bar) egy SZÉLES, szürke
- * kitöltésű téglalapot rajzol (az egész napi sáv szélességében), a
- * vonaldiagramok (Line) viszont egy VÉKONY, függőleges vonalat — emiatt a 3,
- * `syncId`-vel összekötött diagram kurzora vizuálisan NEM egyezett. Ez a
- * közös, kézzel rajzolt kurzor-komponens MINDHÁROM diagramon (Bar ÉS
- * mindkét Line) ugyanazt a vonalat rajzolja — a Bar diagramtól kapott
- * `x`/`width`/`height` propokból a sáv KÖZEPÉN, a Line diagramoktól kapott
- * `points`-ból pedig a pontok x-koordinátáján. "A kurzor a mostani
- * szaggatott helyett egy világító lime egybe csík legyen" (2026.09.24.,
- * Marci kérésére) — tömör (nem szaggatott), `--lime` színű, `drop-shadow`
- * SVG-szűrővel adott derengéssel. */
+/** a diagramok szinkronizált, egységes (lime, világító) kurzor-vonala —
+ * a Bar diagramtól kapott `x`/`width`/`height` propokból a sáv KÖZEPÉN, a
+ * Line diagramoktól kapott `points`-ból a pontok x-koordinátáján. */
 function SyncCursor(props: { points?: { x: number; y: number }[]; x?: number; y?: number; width?: number; height?: number }) {
   const { points, x, y, width, height } = props
   let cx: number | undefined
@@ -159,12 +153,10 @@ function SyncCursor(props: { points?: { x: number; y: number }[]; x?: number; y?
   )
 }
 
-/** A két vonaldiagram (tünet-intenzitás/időtartam, terhelés-optimalizálás)
- * korábban a Recharts BEÉPÍTETT, `contentStyle`-lal színezett tooltipjét
- * használta — ez nem tudta figyelembe venni, hogy MELYIK diagramon áll
- * ténylegesen a kurzor (ld. `TrainingTooltip` `show` jegyzete), ezért egy
- * saját, a beépítettel azonos megjelenésű komponensre cserélve, hogy a
- * `show` gátat ide is be lehessen kötni. */
+/** a két vonaldiagram (tünet-intenzitás/időtartam, terhelés-optimalizálás)
+ * saját tooltip-komponense — a beépített Recharts-tooltip helyett, hogy a
+ * `show` gátat (csak a ténylegesen hoverelt diagramon jelenjen meg) ide is
+ * be lehessen kötni. */
 function LineTooltip({
   active,
   payload,
@@ -197,142 +189,8 @@ function LineTooltip({
   )
 }
 
-function Slider({
-  label,
-  caption,
-  valueLabel,
-  value,
-  min,
-  max,
-  step,
-  color,
-  gradient,
-  glow,
-  onChange,
-}: {
-  label: string
-  /** rövid, magyarázó szöveg a címke alatt (179. pont javítása,
-   * 2026.09.24., Marci kérésére) — pl. a "terhelés optimalizálás"
-   * mezőnél, ami elvont szám lenne magyarázat nélkül. Opcionális, a
-   * csúszka számskáláját/lépésközét NEM érinti. */
-  caption?: string
-  valueLabel: string
-  value: number
-  min: number
-  max: number
-  step: number
-  color: string
-  /** ha meg van adva, a kitöltött szakasz KÉT-SZÍNŰ (bal→jobb) átmenet
-   * (pl. a gerincterhelés kalkulátor teal→mint gradiense) egyetlen `color`
-   * helyett. */
-  gradient?: [string, string]
-  glow?: string
-  onChange: (v: number) => void
-}) {
-  const pct = ((value - min) / (max - min)) * 100
-  const fillFrom = gradient ? gradient[0] : color
-  const fillTo = gradient ? gradient[1] : color
-  return (
-    <div className="mb-3">
-      <div className="d-flex align-items-center justify-content-between mb-1">
-        <span className="small fw-bold">{label}</span>
-        <span className="small fw-bold" style={{ color }}>
-          {valueLabel}
-        </span>
-      </div>
-      {caption && (
-        <span className="small d-block mb-1" style={{ color: 'var(--color-text-muted)' }}>
-          {caption}
-        </span>
-      )}
-      <input
-        type="range"
-        className="intensity-range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        style={{
-          background: `linear-gradient(to right, ${fillFrom} 0%, ${fillTo} ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)`,
-          boxShadow: glow,
-        }}
-      />
-    </div>
-  )
-}
-
-/** "a lehető legkevesebb kattintással, a lehető leggyorsabban" (2026.09.24.,
- * Marci UX-átvizsgálási kérésére) — az 51 lépéses húzható csúszka mobilon
- * nehezen, pontatlanul találja el ujjal a kívánt értéket. Gyors,
- * koppintható gombsor a leggyakoribb értékekkel + "egyéb" nyitja meg a
- * pontos csúszkát (a meglévő `Slider`-t, a `DURATION_STEPS` teljes
- * skáláján) — ha a mentett érték nem egyezik egyik gyors-gombbal sem
- * (korábban, "egyéb"-bel mentett nap), induláskor rögtön a csúszka
- * nézetben nyílik, hogy a pontos érték ne vesszen el. */
-const QUICK_DURATIONS: { hours: number; label: string }[] = [
-  { hours: 0, label: 'nincs' },
-  { hours: 0.25, label: '15 perc' },
-  { hours: 0.5, label: '30 perc' },
-  { hours: 1, label: '1 óra' },
-  { hours: 3, label: 'néhány óra' },
-  { hours: 24, label: 'egész nap' },
-]
-
-function DurationPicker({ hours, onChange }: { hours: number; onChange: (h: number) => void }) {
-  const [customMode, setCustomMode] = useState(() => !QUICK_DURATIONS.some((q) => q.hours === hours))
-  const durationIdx = Math.max(0, DURATION_STEPS.indexOf(hours))
-
-  return (
-    <div className="mb-3">
-      <span className="small fw-bold d-block mb-1">tünet napi időtartama</span>
-      {customMode ? (
-        <div>
-          <Slider
-            label=""
-            valueLabel={formatDurationLabel(DURATION_STEPS[durationIdx])}
-            value={durationIdx}
-            min={0}
-            max={DURATION_STEPS.length - 1}
-            step={1}
-            color="var(--z2)"
-            onChange={(idx) => onChange(DURATION_STEPS[idx])}
-          />
-          <button
-            type="button"
-            className="btn btn-link btn-sm p-0"
-            style={{ textDecoration: 'none' }}
-            onClick={() => setCustomMode(false)}
-          >
-            vissza a gyors választáshoz
-          </button>
-        </div>
-      ) : (
-        <div className="d-flex flex-wrap gap-2">
-          {QUICK_DURATIONS.map((q) => (
-            <button
-              key={q.hours}
-              type="button"
-              className={`btn-fyb btn-fyb-sm ${q.hours === hours ? 'btn-fyb-primary' : 'btn-fyb-outline'}`}
-              onClick={() => onChange(q.hours)}
-            >
-              {q.label}
-            </button>
-          ))}
-          <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => setCustomMode(true)}>
-            egyéb
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // a diagram-blokk közös a GYT csak-olvasható nézetével (ld.
 // GytChecklist.tsx) — kézzel rajzolt SVG helyett a `recharts` könyvtárral.
-// "Mindig az aktuális szint adatai grafikonon; opcionálisan a teljes
-// időszak is megnézhető" (Projekt specifikáció) — ld. a hívó oldal `scope`
-// váltóját.
 export function ChecklistCharts({
   entries,
   levelStartDate,
@@ -340,14 +198,10 @@ export function ChecklistCharts({
 }: {
   entries: ChecklistEntry[]
   /** ha meg van adva, a diagramok a TELJES 14 napos szint-idősávot mutatják
-   * (ld. `last14Days`) — "ezen a szinten" nézetben adjuk át. "Teljes
-   * időszak" (több szint együtt) nézetben elhagyjuk, ott a tényleges
-   * bejegyzések természetes szélessége marad. */
+   * (ld. `last14Days`) — "ezen a szinten" nézetben adjuk át. */
   levelStartDate?: string
   /** az adott nap/szint TÉNYLEGES (esetleg felülbírált) megtartás-idejét
-   * adja vissza — a hívó (Checklist.tsx/GytChecklist.tsx) építi fel a
-   * `getHoldSecondsForDay`-ből, mert ahhoz `ClientVariables` és a teljes
-   * checklist-állapot kell, amit a diagram-komponens maga nem ismer. */
+   * adja vissza. */
   holdSecondsFor: (date: string, level: number) => number
 }) {
   const byDate = new Map(entries.map((e) => [e.date, e]))
@@ -367,10 +221,10 @@ export function ChecklistCharts({
   })
   const hasAnyData = entries.length > 0
 
-  // "ha az edzésnapoknál van az egerem, akkor csak az ottani popup
-  // látszódjon, a másik kettő nem" (173. pont javítása, 2026.09.24.) —
-  // melyik diagramon áll TÉNYLEGESEN a kurzor (nem csak melyiknél a
-  // `syncId` szerint "aktív" az index, ami mindhárman egyszerre igaz).
+  // csak a ténylegesen hoverelt diagramon jelenjen meg a popup — a `syncId`
+  // a `active`/`payload` állapotot IS szinkronizálja mindhárom diagram
+  // közt, ezért önmagában az nem különbözteti meg, hogy a felhasználó
+  // ténylegesen EZEN a diagramon áll-e.
   const [hoveredChart, setHoveredChart] = useState<'edzes' | 'tunet' | 'terheles' | null>(null)
 
   if (!hasAnyData) {
@@ -381,29 +235,8 @@ export function ChecklistCharts({
     )
   }
 
-  // Marci kérésére (2026.09.24., 172. pont): "az eredményeim doboz 3
-  // grafikonja legyen vizuálisan egyben... amikor a kurzort mozgatjuk akkor
-  // az egyszerre mindhárom grafikonon az adott napnál legyen" — a `syncId`
-  // a Recharts beépített, több diagram közötti KURZOR-szinkronizálása
-  // (nincs kézzel írt esemény-összekötés), az azonos `YAxis width` pedig
-  // garantálja, hogy a 3 diagram rajzolt területe (és így a napok oszlopai)
-  // pontosan egymás alatt legyenek. A POPUP (tooltip-kártya) viszont a
-  // fenti javítás óta CSAK a ténylegesen hoverelt diagramon jelenik meg
-  // (ld. `hoveredChart` + a `TrainingTooltip`/`LineTooltip` `show` propja)
-  // — a kurzor-VONAL marad szinkronban mindhárom diagramon, csak a kártya
-  // nem tud egyszerre 3 helyen felugrani.
   const SYNC_ID = 'checklist-charts'
   const AXIS_WIDTH = 34
-  // "inkább egy kis szünettel kezdődjön az összes diagram, hogy az oszlop
-  // szépen kiférjen" (2026.09.24., Marci kérésére, a 176. pont javítása) —
-  // a `scale="point"` (176. pont) az oszlopdiagramot a napokkal pontosan
-  // egyező, de a rajzterület SZÉLÉHEZ TAPADÓ pozíciókra kényszerítette,
-  // emiatt az első/utolsó oszlop csonkán, a tengely szélén "levágva"
-  // jelent meg. Megoldás: MINDHÁROM diagram XAxis-a ugyanazt az
-  // `AXIS_PADDING`-et kapja bal/jobb oldalon — ez mindhárom diagramon
-  // EGYFORMÁN "befelé" tolja az első/utolsó napi pozíciót, így az oszlop
-  // kényelmesen kifér, ÉS a 3 diagram illesztése (176. pont) is megmarad
-  // (a padding minden diagramon azonos).
   const AXIS_PADDING = 14
   const BAR_SIZE = 20
 
@@ -421,19 +254,6 @@ export function ChecklistCharts({
             onMouseLeave={() => setHoveredChart(null)}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            {/* "egyeztesd a diagramok nap beosztását, hogy pontosan
-               illeszkedjenek egymáshoz" (2026.09.24., Marci kérésére) — a
-               Recharts a Bar-t tartalmazó diagramoknál ALAPÉRTELMEZETTEN
-               "band" skálát használ az XAxis-hoz (minden nap egy SÁVOT kap,
-               az oszlop a sáv KÖZEPÉN, a sáv szélétől kicsit befelé
-               tolva), a Line diagramoknál viszont "point" skálát (minden
-               nap egyetlen PONT, a tengely bal szélénél kezdve, "szünet"
-               nélkül) — emiatt a napok x-pozíciója a Bar diagramon
-               ELCSÚSZOTT a másik kettőhöz képest. A `scale="point"`
-               kényszerítésével a Bar diagram is ugyanazt a pont-skálát
-               használja, mint a két Line diagram — az oszlopok mostantól a
-               NAPOKKAL PONTOSAN EGYEZŐ x-pozíciókban (nem sáv-közepeken)
-               rajzolódnak. */}
             <XAxis
               dataKey="date"
               scale="point"
@@ -442,10 +262,6 @@ export function ChecklistCharts({
               stroke="var(--color-text-muted)"
             />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
-            {/* "ha tünet gyakorlat közben, akkor az aznapi edzés váltson
-               narancssárgára (alapértelmezetten türkiz legyen)" — mostantól
-               EDZÉSENKÉNT (halmozott oszlop-szegmensenként) színezve, nem a
-               teljes napi oszlopra egyben (172. pont). */}
             <Tooltip content={<TrainingTooltip show={hoveredChart === 'edzes'} />} cursor={<SyncCursor />} />
             {Array.from({ length: maxWorkouts }, (_, slotIdx) => (
               <Bar
@@ -456,7 +272,7 @@ export function ChecklistCharts({
                 radius={slotIdx === maxWorkouts - 1 ? [4, 4, 0, 0] : undefined}
               >
                 {data.map((d, i) => (
-                  <Cell key={i} fill={d.workouts && d.workouts[slotIdx] && d.workouts[slotIdx] !== 'nincs' ? 'var(--z2)' : 'var(--z4)'} />
+                  <Cell key={i} fill={d.workouts && d.workouts[slotIdx] && d.workouts[slotIdx] !== 'nem' ? 'var(--z2)' : 'var(--z4)'} />
                 ))}
               </Bar>
             ))}
@@ -518,35 +334,16 @@ export function ChecklistCharts({
   )
 }
 
-/** "A napi másodperc megtartást... a 'X mp'-re kattintva módosítható legyen
- * egy legördülő menüben (csak ugyanakkora, vagy kisebb másodperc
- * választható, min. 1-ig)" (172. pont) — `maxSeconds` MINDIG a számított,
- * felülbírálás NÉLKÜLI "javasolt" érték (nem az aktuális, esetleg már
- * lejjebb állított érték), hogy a választék minden alkalommal újra a teljes
- * [1, javasolt] tartományt kínálja. */
-function HoldSecondsEditor({
-  seconds,
-  maxSeconds,
-  onChange,
-  compact,
-}: {
-  seconds: number
-  maxSeconds: number
-  onChange: (v: number) => void
-  /** "oldjuk meg mindkettőt" (179. pont javítása, 2026.09.24.) — a szint-sáv
-   * és a megtartás-idő EGY közös, kompakt sorba vonva (a korábbi, önálló
-   * 2rem-es kiemelés helyett) — a `compact` a kisebb betűméretű változatot
-   * kapcsolja be, funkcionálisan (kattintható, ugyanaz a [1, javasolt]
-   * legördülő) változatlan marad. */
-  compact?: boolean
-}) {
+/** "a 'X mp'-re kattintva módosítható legyen egy legördülő menüben (csak
+ * ugyanakkora, vagy kisebb másodperc választható, min. 1-ig)" — `maxSeconds`
+ * MINDIG a számított, felülbírálás NÉLKÜLI "javasolt" érték. */
+function HoldSecondsEditor({ seconds, maxSeconds, onChange }: { seconds: number; maxSeconds: number; onChange: (v: number) => void }) {
   const [editing, setEditing] = useState(false)
-  const fontSize = compact ? '1.05rem' : '2rem'
   if (editing) {
     return (
       <select
         className="form-select form-select-sm d-inline-block"
-        style={{ width: 'auto', fontSize: '1.1rem', fontWeight: 800, color: 'var(--lime)' }}
+        style={{ width: 'auto', fontSize: '1.25rem', fontWeight: 800, color: 'var(--lime)' }}
         autoFocus
         value={seconds}
         onChange={(e) => {
@@ -567,7 +364,7 @@ function HoldSecondsEditor({
     <button
       type="button"
       className="btn btn-link p-0"
-      style={{ color: 'var(--lime)', fontSize, fontWeight: 800, lineHeight: 1.2, textDecoration: 'none' }}
+      style={{ color: 'var(--lime)', fontSize: '2.25rem', fontWeight: 800, lineHeight: 1.2, textDecoration: 'none' }}
       onClick={() => setEditing(true)}
     >
       {seconds} mp
@@ -575,11 +372,9 @@ function HoldSecondsEditor({
   )
 }
 
-/** "az előző/következő szint gombok ritkán használtak (kb. 2 hetente)" (179.
- * pont javítása, 2026.09.24., Marci kérésére) — egy kis "⋯" menü mögé
- * kerültek, hogy a napi fejléc-sor ne foglalja a helyet két, mindig
- * látható gombbal. Kattintásra nyílik/csukódik, dokumentum-szintű
- * `mousedown` figyeléssel záródik, ha máshova kattintunk. */
+/** "a szint-váltás egy kis '⋯' menü mögé kerüljön a fejlécben" —
+ * kattintásra nyíló/csukódó panel, dokumentum-szintű `mousedown`
+ * figyeléssel záródik, ha máshova kattintunk. */
 function LevelMenu({
   currentLevel,
   maxLevel,
@@ -647,174 +442,193 @@ function LevelMenu({
   )
 }
 
-/** "Ha még egy edzést hozzáadok, akkor megint lehessen jelölni, hogy volt-e
- * közben tünet" (172. pont, Marci egyeztetés utáni döntése: a teljes 7
- * opciós legördülő, azonnali, megerősítendő inline választóval). */
-function AddWorkoutButton({ clientId }: { clientId: string }) {
-  const { addWorkout } = useChecklist()
-  const [picking, setPicking] = useState(false)
-  const [symptom, setSymptom] = useState<SymptomDuringExercise>('nincs')
-
-  if (picking) {
-    return (
-      <div className="d-flex align-items-center gap-2 flex-wrap">
-        <select
-          className="form-select form-select-sm"
-          style={{ width: 'auto' }}
-          value={symptom}
-          onChange={(e) => setSymptom(e.target.value as SymptomDuringExercise)}
-        >
-          {SYMPTOM_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="btn-fyb btn-fyb-primary btn-fyb-sm"
-          onClick={() => {
-            addWorkout(clientId, symptom)
-            setPicking(false)
-            setSymptom('nincs')
-          }}
-        >
-          hozzáadás
-        </button>
-        <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => setPicking(false)}>
-          mégse
-        </button>
-      </div>
-    )
-  }
-
+/** "Alatta csúszka, mint az állapotfelmérőben" / "mint a gerincterhelés
+ * kalkulátorban... a csúszka fölött középen írja ki az értéket, mint az
+ * intenzitás csúszkán" (181. pont) — mindkét csúszka UGYANAZT a
+ * "nagy szám középen a sáv fölött" elrendezést kapja, csak a kitöltés
+ * színe tér el: `dynamicColor` (intenzitás, `intensityColor()`-ból) VAGY
+ * `gradient` (nem hajolós nap, fix teal→mint) — a kettő kölcsönösen
+ * kizárja egymást. */
+function CenteredSlider({
+  label,
+  value,
+  min,
+  max,
+  valueText,
+  valueColor,
+  gradient,
+  glow,
+  captions,
+  onChange,
+}: {
+  label: string
+  value: number
+  min: number
+  max: number
+  valueText: string
+  valueColor: string
+  gradient?: [string, string]
+  glow?: string
+  captions?: [string, string]
+  onChange: (v: number) => void
+}) {
+  const pct = ((value - min) / (max - min)) * 100
+  const fillFrom = gradient ? gradient[0] : valueColor
+  const fillTo = gradient ? gradient[1] : valueColor
   return (
-    <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => setPicking(true)}>
-      még egy edzést hozzáadok
-    </button>
+    <div className="mb-3">
+      <span className="small fw-bold d-block mb-1">{label}</span>
+      <div className="text-center mb-1">
+        <span className="fw-bold" style={{ color: valueColor, fontSize: '1.75rem', lineHeight: 1 }}>
+          {valueText}
+        </span>
+      </div>
+      <input
+        type="range"
+        className="intensity-range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        style={{
+          background: `linear-gradient(to right, ${fillFrom} 0%, ${fillTo} ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)`,
+          boxShadow: glow,
+        }}
+      />
+      {captions && (
+        <div className="d-flex justify-content-between small" style={{ color: 'var(--color-text-muted)' }}>
+          <span>{captions[0]}</span>
+          <span>{captions[1]}</span>
+        </div>
+      )}
+    </div>
   )
 }
 
-function DailyForm({
-  clientId,
-  initial,
-  onSaved,
-}: {
-  clientId: string
-  initial: ChecklistEntry | undefined
-  onSaved: () => void
-}) {
+function DailyForm({ clientId, initial }: { clientId: string; initial: ChecklistEntry | undefined }) {
   const { saveTodayEntry } = useChecklist()
   const dark = useDarkMode()
-  const [trained, setTrained] = useState(initial?.trained ?? false)
-  const [symptom, setSymptom] = useState<SymptomDuringExercise>(initial?.workouts[0] ?? 'nincs')
+  const [workouts, setWorkouts] = useState<SymptomDuringExercise[]>(initial?.workouts ?? [])
   const [durationHours, setDurationHours] = useState(initial?.symptomDurationHours ?? 0)
   const [intensity, setIntensity] = useState(initial?.symptomIntensity ?? 0)
   const [load, setLoad] = useState(initial?.loadOptimization ?? 50)
 
+  function handleAddWorkout() {
+    setWorkouts((w) => [...w, 'nem'])
+  }
+  function handleWorkoutChange(index: number, symptom: SymptomDuringExercise) {
+    setWorkouts((w) => w.map((s, i) => (i === index ? symptom : s)))
+  }
+  function handleRemoveWorkout(index: number) {
+    setWorkouts((w) => w.filter((_, i) => i !== index))
+  }
   function handleSave() {
-    saveTodayEntry(clientId, {
-      trained,
-      symptom,
-      symptomDurationHours: durationHours,
-      symptomIntensity: intensity,
-      loadOptimization: load,
-    })
-    onSaved()
+    saveTodayEntry(clientId, { workouts, symptomDurationHours: durationHours, symptomIntensity: intensity, loadOptimization: load })
   }
 
   return (
     <div>
-      {/* "'Edzés megvolt' 'tünet edzés közben' - ezek egymás mellett
-         legyenek" (172. pont) — `flex-wrap`-pel keskeny (mobil) nézetben
-         szükség esetén továbbra is 2 sorba törhet. */}
-      <div className="d-flex flex-wrap align-items-start gap-3 mb-3">
-        <label className="d-flex align-items-center gap-2 pt-1" style={{ cursor: 'pointer', flex: '0 0 auto' }}>
-          <input type="checkbox" checked={trained} onChange={(e) => setTrained(e.target.checked)} />
-          <span className="fw-bold">edzés megvolt</span>
-        </label>
-        <div style={{ flex: '1 1 200px' }}>
-          <span className="small fw-bold d-block mb-1">tünet gyakorlat közben</span>
-          <select className="form-select" value={symptom} onChange={(e) => setSymptom(e.target.value as SymptomDuringExercise)}>
-            {SYMPTOM_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* "edzés rögzítése, mellette kör alapon pipa ikon. Ezt megnyomva:
+         edzés rögzítve, és felugrik egy kérdés: volt közben tünet?..." (181.
+         pont, Marci szó szerinti diktálása) — a `.circle-icon-btn--success`
+         + `ikon_pipa.svg` már meglévő, más oldalakon (pl. hívás-részletek
+         "rendben" gombja) is használt mintája. A gomb TÖBBSZÖR is
+         megnyomható egy napon belül (egyeztetés, AskUserQuestion) — minden
+         nyomás egy ÚJ, "nem" alapértelmezésű edzést ad a listához, saját,
+         azonnal módosítható tünet-legördülővel. */}
+      <div className="d-flex align-items-center gap-3 mb-3">
+        <span className="fw-bold">{workouts.length === 0 ? 'edzés rögzítése' : 'edzés rögzítve'}</span>
+        <button type="button" className="circle-icon-btn circle-icon-btn--success" aria-label="edzés rögzítése" onClick={handleAddWorkout}>
+          <Icon src="/icons/ikon_pipa.svg" />
+        </button>
       </div>
 
-      <DurationPicker hours={durationHours} onChange={setDurationHours} />
+      {workouts.length > 0 && (
+        <div className="mb-3">
+          {workouts.map((symptom, i) => (
+            <div key={i} className="d-flex align-items-center gap-2 mb-2">
+              <span className="small" style={{ minWidth: 0, flex: workouts.length > 1 ? '0 0 auto' : '0 0 auto' }}>
+                {workouts.length > 1 ? `${i + 1}. edzés — volt közben tünet?` : 'volt közben tünet?'}
+              </span>
+              <select
+                className="form-select form-select-sm"
+                style={{ width: 'auto' }}
+                value={symptom}
+                onChange={(e) => handleWorkoutChange(i, e.target.value as SymptomDuringExercise)}
+              >
+                {SYMPTOM_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+              {workouts.length > 1 && (
+                <button
+                  type="button"
+                  className="btn btn-link btn-sm p-0"
+                  style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}
+                  aria-label={`${i + 1}. edzés törlése`}
+                  onClick={() => handleRemoveWorkout(i)}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+          <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={handleAddWorkout}>
+            + még egy edzés
+          </button>
+        </div>
+      )}
 
-      {/* "Tünet napi intenzitása csúszka legyen olyan, mint az
-         állapotfelmérőben a tünet intenzitása csúszka" (172. pont) — a
-         nagy, középre igazított, dinamikusan színezett szám a csúszka
-         FÖLÖTT, majd a csúszka maga (a `--z1` fix szín helyett
-         `intensityColor`-ból jövő, folytonos zöld→sötétvörös
-         interpolációval, 9-10-nél piros derengéssel), és min/max
-         szövegek — pontosan az Allapotfelmero.tsx `IntensityRange`
-         mintáját követve (a színskála-logikát innentől közösen, a
-         `src/utils/intensityColor.ts` modulból veszi mindkét hely). */}
+      {/* "Mai tünetek" (181. pont) — a nap EGÉSZÉNEK tünet-állapota, nem
+         csak a gyakorlat közbeni (ld. korábbi egyeztetés: "ez másra kérdez
+         rá" — az itteni Időtartam/Intenzitás mindig releváns, akkor is, ha
+         nem volt edzés aznap). */}
+      <h3 className="h6 mt-4 mb-3">Mai tünetek</h3>
+
       <div className="mb-3">
-        <div className="d-flex align-items-center justify-content-between mb-1">
-          <span className="small fw-bold">tünet napi intenzitása</span>
-        </div>
-        <div className="text-center mb-1">
-          <span className="fw-bold" style={{ color: intensityColor(intensity, dark), fontSize: '1.75rem', lineHeight: 1 }}>
-            {intensity}
-          </span>
-        </div>
-        <input
-          type="range"
-          className="intensity-range"
-          min={0}
-          max={10}
-          value={intensity}
-          onChange={(e) => setIntensity(Number(e.target.value))}
-          style={{
-            background: `linear-gradient(to right, ${intensityColor(intensity, dark)} 0%, ${intensityColor(intensity, dark)} ${(intensity / 10) * 100}%, var(--color-border) ${(intensity / 10) * 100}%, var(--color-border) 100%)`,
-            boxShadow: intensityGlow(intensity, dark),
-          }}
-        />
-        <div className="d-flex justify-content-between small" style={{ color: 'var(--color-text-muted)' }}>
-          <span>0 — semmi</span>
-          <span>10 — max. intenzitás</span>
-        </div>
+        <span className="small fw-bold d-block mb-1">időtartam</span>
+        <select className="form-select" value={durationHours} onChange={(e) => setDurationHours(Number(e.target.value))}>
+          {DURATION_OPTIONS.map((o) => (
+            <option key={o.label} value={o.hours}>
+              {o.label}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* "Terhelés optimalizálás csúszka legyen olyan, mint a
-         gerincterhelés kalkulátor csúszkái" (172. pont) — a kalkulátor
-         saját `--grad-start`/`--grad-end` (teal→mint) fix, két-színű
-         gradiense a kitöltött szakaszon (a korábbi, egyszínű `--z4`
-         helyett). A `caption` (179. pont javítása, 2026.09.24., Marci
-         kérésére, szó szerint) — a szám önmagában elvont lenne, a szöveg
-         konkrét példával köti a mindennapi gerinckímélő viselkedéshez. A
-         0-100%, 1%-os lépésköz VÁLTOZATLAN maradt. */}
-      <Slider
-        label="terhelés optimalizálás"
-        caption="nem hajolós nap"
-        valueLabel={`${load}%`}
+      <CenteredSlider
+        label="intenzitás"
+        value={intensity}
+        min={0}
+        max={10}
+        valueText={String(intensity)}
+        valueColor={intensityColor(intensity, dark)}
+        glow={intensityGlow(intensity, dark)}
+        captions={['0 — semmi', '10 — max. intenzitás']}
+        onChange={setIntensity}
+      />
+
+      {/* "nem hajolós nap" — a "terhelés optimalizálás" csúszka ÚJ,
+         látható címe (181. pont, Marci döntése) — a gerincterhelés
+         kalkulátor teal→mint gradiense, de az intenzitás csúszka
+         elrendezésével (nagy szám középen, a sáv fölött). */}
+      <CenteredSlider
+        label="nem hajolós nap"
         value={load}
         min={0}
         max={100}
-        step={1}
-        color="var(--teal)"
+        valueText={`${load}%`}
+        valueColor="var(--teal)"
         gradient={['var(--teal)', 'var(--mint)']}
         onChange={setLoad}
       />
 
-      {/* "minden szükségtelen... görgetés árt" (2026.09.24., Marci
-         UX-átvizsgálási kérésére) — a "Rögzítés" gomb mobilon a képernyő
-         aljához rögzített (`.checklist-save-bar`, components.css), hogy a
-         napi mezők kitöltése után SOSE kelljen külön odagörgetni érte. A
-         `checklist-save-spacer` üres hely biztosítja, hogy a rögzített sáv
-         ne takarja el az utolsó mezőt (asztali nézetben mindkettő
-         hatástalan — ott a gomb a megszokott, normál helyén marad). */}
       <div className="checklist-save-spacer" />
       <div className="checklist-save-bar">
         <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave}>
-          Rögzítés
+          Mentés
         </button>
       </div>
     </div>
@@ -830,19 +644,7 @@ export default function Checklist() {
   const state = getState(client.id)
   const currentCode = sequence[state.currentLevel - 1]
   const todayEntry = getTodayEntry(client.id)
-  const [editing, setEditing] = useState(!todayEntry)
   const [scope, setScope] = useState<'szint' | 'teljes'>('szint')
-
-  // "Következő szint kezdése" ÚJ szintre vált, aminek a mai napja még
-  // üres (`todayEntry` `undefined`-ra vált). A puszta `editing` STATE ezt
-  // csak egy `useEffect`-tel tudná utólag, a COMMIT UTÁN korrigálni — de a
-  // render már A RÉGI `editing=false` érték mellett, `todayEntry`
-  // hiányában próbálná kiolvasni `todayEntry!.trained`-ot, ami ÖSSZEOMLIK,
-  // mielőtt az effект egyáltalán lefutna. Ezért a ténylegesen megjelenített
-  // "szerkesztő nézet"-et SZINKRON, származtatott értékként számoljuk: ha
-  // nincs mai bejegyzés az AKTUÁLIS szinthez, MINDIG a szerkesztő nézet
-  // jelenik meg, függetlenül a state-től.
-  const showEditor = editing || !todayEntry
 
   const todayISOStr = new Date().toISOString().slice(0, 10)
   const recommendedHoldSeconds = computeHoldSeconds(state.levelStartDate, todayISOStr, client.variables)
@@ -858,77 +660,40 @@ export default function Checklist() {
           <h1 className="app-page-title mb-0">checklist</h1>
         </div>
 
-        <div className="card-fyb mb-4">
-          {/* "oldjuk meg mindkettőt" — a fejléc tömörítése (179. pont
-             javítása, 2026.09.24., Marci kérésére: "egy kompakt sorba
-             vonva") — a korábbi KÉT külön blokk (szint-sáv + önálló,
-             2rem-es megtartás-idő blokk, "mai javasolt megtartási idő"
-             felirattal) helyett EGYETLEN sor: szint neve + kompakt
-             megtartás-idő, a ritkán (kb. 2 hetente) használt szint-váltó
-             gombok pedig a `LevelMenu` "⋯" menüje mögé kerültek — kevesebb
-             görgetés a napi mezők eléréséig, minden nap. */}
-          <div className="checklist-level-bar">
-            <div className="d-flex align-items-baseline flex-wrap gap-2" style={{ minWidth: 0 }}>
-              <span className="fw-bold">
+        {/* "Fejléc: sötétszürke, benne a szint neve, és a megtartás ideje
+           lime színnel (a szám nagyobb legyen, mint a szöveg többi része)"
+           (181. pont, Marci szó szerinti diktálása) — a `.card-fyb` saját
+           paddingja itt 0-ra állítva (a fejléc teljes szélességben,
+           kártya-padding NÉLKÜL fut ki), a tartalom egy külön, saját
+           paddingú blokkba kerül alá. */}
+        <div className="card-fyb mb-4" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="checklist-daily-header">
+            <div className="d-flex align-items-start justify-content-between gap-2">
+              <span className="checklist-daily-header-level">
                 {state.currentLevel}. szint{' '}
-                {currentCode && <span className="small" style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>— {codeLabel(currentCode)}</span>}
+                {currentCode && <span className="checklist-daily-header-code">— {codeLabel(currentCode)}</span>}
               </span>
-              <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-                ·
-              </span>
-              <span>
-                <HoldSecondsEditor
-                  compact
-                  seconds={actualHoldSeconds}
-                  maxSeconds={recommendedHoldSeconds}
-                  onChange={(v) => setHoldOverride(client.id, todayISOStr, state.currentLevel, v)}
-                />
-                <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-                  {' '}
-                  / gyakorlat
-                </span>
-              </span>
+              <LevelMenu
+                currentLevel={state.currentLevel}
+                maxLevel={maxLevel}
+                onPrevious={() => previousLevel(client.id)}
+                onNext={() => advanceLevel(client.id, maxLevel)}
+              />
             </div>
-            <LevelMenu
-              currentLevel={state.currentLevel}
-              maxLevel={maxLevel}
-              onPrevious={() => previousLevel(client.id)}
-              onNext={() => advanceLevel(client.id, maxLevel)}
-            />
+            <div>
+              <HoldSecondsEditor
+                seconds={actualHoldSeconds}
+                maxSeconds={recommendedHoldSeconds}
+                onChange={(v) => setHoldOverride(client.id, todayISOStr, state.currentLevel, v)}
+              />
+              <span className="checklist-daily-header-unit"> / gyakorlat</span>
+            </div>
           </div>
 
-          {showEditor ? (
-            <DailyForm key={state.currentLevel} clientId={client.id} initial={todayEntry} onSaved={() => setEditing(false)} />
-          ) : (
-            <div>
-              <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
-                <span className="badge-fyb">✓ mai nap rögzítve</span>
-                <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-                  {todayEntry!.trained ? 'edzés megvolt' : 'ma nem volt edzés'}
-                  {todayEntry!.workouts.length > 1 && ` (+${todayEntry!.workouts.length - 1} további edzés)`}
-                </span>
-              </div>
-              {/* "a mégegy edzést hozzáadok-nál, ha rákattintok, akkor
-                 eltűnik a szerkesztés gomb" (172. pont javítása,
-                 2026.09.24.) — a két vezérlő korábban EGY közös
-                 `flex-wrap` sorban élt, ahol a "még egy edzést hozzáadok"
-                 kattintás utáni, szélesebb (legördülő + 2 gomb) nézete
-                 kitolta/eltüntette a "szerkesztés" gombot. Mostantól két
-                 KÜLÖN sor — a "szerkesztés" gomb helye és láthatósága
-                 attól függetlenül fix, hogy az edzés-hozzáadó widget épp
-                 milyen (össze- vagy kinyitott) állapotban van. */}
-              <div className="d-flex flex-wrap gap-2 mt-3">
-                <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => setEditing(true)}>
-                  szerkesztés
-                </button>
-              </div>
-              {todayEntry!.trained && (
-                <div className="mt-2">
-                  <AddWorkoutButton clientId={client.id} />
-                </div>
-              )}
-            </div>
-          )}
+          <div className="p-4">
+            {todayEntry && <span className="badge-fyb mb-3 d-inline-block">✓ mai nap rögzítve</span>}
+            <DailyForm key={state.currentLevel} clientId={client.id} initial={todayEntry} />
+          </div>
         </div>
 
         <div className="card-fyb">
