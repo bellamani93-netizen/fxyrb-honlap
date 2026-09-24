@@ -101,6 +101,36 @@ function TrainingTooltip({ active, payload }: { active?: boolean; payload?: { pa
   )
 }
 
+/** "A kurzor legyen egységes, ugyanúgy nézzen ki mind3 sorban" (172. pont
+ * javítása, 2026.09.24.) — a Recharts alapértelmezett kurzor-rajzolása
+ * DIAGRAMTÍPUSONKÉNT eltér: az oszlopdiagram (Bar) egy SZÉLES, szürke
+ * kitöltésű téglalapot rajzol (az egész napi sáv szélességében), a
+ * vonaldiagramok (Line) viszont egy VÉKONY, függőleges vonalat — emiatt a 3,
+ * `syncId`-vel összekötött diagram kurzora vizuálisan NEM egyezett, ami a
+ * "csak abban ugrik fel a popup, amelyiknél vagyok" élményt is okozhatta
+ * (a széles szürke sáv elnyomta/eltakarta a kis tooltip-kártyát). Ez a közös,
+ * kézzel rajzolt kurzor-komponens MINDHÁROM diagramon (Bar ÉS mindkét Line)
+ * ugyanazt a vékony, szaggatott vonalat rajzolja — a Bar diagramtól kapott
+ * `x`/`width`/`height` propokból a sáv KÖZEPÉN, a Line diagramoktól kapott
+ * `points`-ból pedig a pontok x-koordinátáján. */
+function SyncCursor(props: { points?: { x: number; y: number }[]; x?: number; y?: number; width?: number; height?: number }) {
+  const { points, x, y, width, height } = props
+  let cx: number | undefined
+  let top = 0
+  let bottom = 0
+  if (points && points.length > 0) {
+    cx = points[0].x
+    top = Math.min(...points.map((p) => p.y))
+    bottom = Math.max(...points.map((p) => p.y))
+  } else if (typeof x === 'number' && typeof width === 'number' && typeof y === 'number' && typeof height === 'number') {
+    cx = x + width / 2
+    top = y
+    bottom = y + height
+  }
+  if (cx === undefined) return null
+  return <line x1={cx} y1={top} x2={cx} y2={bottom} stroke="var(--color-text-muted)" strokeWidth={1} strokeDasharray="3 3" />
+}
+
 function Slider({
   label,
   valueLabel,
@@ -227,7 +257,7 @@ export function ChecklistCharts({
                narancssárgára (alapértelmezetten türkiz legyen)" — mostantól
                EDZÉSENKÉNT (halmozott oszlop-szegmensenként) színezve, nem a
                teljes napi oszlopra egyben (172. pont). */}
-            <Tooltip content={<TrainingTooltip />} />
+            <Tooltip content={<TrainingTooltip />} cursor={<SyncCursor />} />
             {Array.from({ length: maxWorkouts }, (_, slotIdx) => (
               <Bar
                 key={slotIdx}
@@ -253,7 +283,7 @@ export function ChecklistCharts({
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
             <YAxis tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
-            <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: 12 }} />
+            <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: 12 }} cursor={<SyncCursor />} />
             <Line type="monotone" dataKey="intenzitas" name="intenzitás" stroke="var(--z1)" strokeWidth={2} dot={{ r: 3 }} />
             <Line type="monotone" dataKey="idotartam" name="időtartam (óra)" stroke="var(--z2)" strokeWidth={2} dot={{ r: 3 }} />
           </LineChart>
@@ -269,7 +299,7 @@ export function ChecklistCharts({
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" />
             <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
-            <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: 12 }} />
+            <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontSize: 12 }} cursor={<SyncCursor />} />
             <Line type="monotone" dataKey="terheles" name="terhelés optimalizálás" stroke="var(--z4)" strokeWidth={2} dot={{ r: 3 }} />
           </LineChart>
         </ResponsiveContainer>
@@ -581,12 +611,25 @@ export default function Checklist() {
                   {todayEntry!.workouts.length > 1 && ` (+${todayEntry!.workouts.length - 1} további edzés)`}
                 </span>
               </div>
+              {/* "a mégegy edzést hozzáadok-nál, ha rákattintok, akkor
+                 eltűnik a szerkesztés gomb" (172. pont javítása,
+                 2026.09.24.) — a két vezérlő korábban EGY közös
+                 `flex-wrap` sorban élt, ahol a "még egy edzést hozzáadok"
+                 kattintás utáni, szélesebb (legördülő + 2 gomb) nézete
+                 kitolta/eltüntette a "szerkesztés" gombot. Mostantól két
+                 KÜLÖN sor — a "szerkesztés" gomb helye és láthatósága
+                 attól függetlenül fix, hogy az edzés-hozzáadó widget épp
+                 milyen (össze- vagy kinyitott) állapotban van. */}
               <div className="d-flex flex-wrap gap-2 mt-3">
-                {todayEntry!.trained && <AddWorkoutButton clientId={client.id} />}
                 <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={() => setEditing(true)}>
                   szerkesztés
                 </button>
               </div>
+              {todayEntry!.trained && (
+                <div className="mt-2">
+                  <AddWorkoutButton clientId={client.id} />
+                </div>
+              )}
             </div>
           )}
         </div>
