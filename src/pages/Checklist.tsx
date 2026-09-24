@@ -528,20 +528,22 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
 
   return (
     <div>
-      {/* "edzés rögzítése, mellette kör alapon pipa ikon. Ezt megnyomva:
-         edzés rögzítve, és felugrik egy kérdés: volt közben tünet?..." (181.
-         pont, Marci szó szerinti diktálása) — a `.circle-icon-btn--success`
-         + `ikon_pipa.svg` már meglévő, más oldalakon (pl. hívás-részletek
-         "rendben" gombja) is használt mintája. A gomb TÖBBSZÖR is
-         megnyomható egy napon belül (egyeztetés, AskUserQuestion) — minden
-         nyomás egy ÚJ, "nem" alapértelmezésű edzést ad a listához, saját,
-         azonnal módosítható tünet-legördülővel. */}
-      <div className="d-flex align-items-center gap-3 mb-3">
-        <span className="fw-bold">{workouts.length === 0 ? 'edzés rögzítése' : 'edzés rögzítve'}</span>
-        <button type="button" className="circle-icon-btn circle-icon-btn--success" aria-label="edzés rögzítése" onClick={handleAddWorkout}>
-          <Icon src="/icons/ikon_pipa.svg" />
-        </button>
-      </div>
+      {/* "edzés rögzítve + pipa helyett legyen egy lime gomb: 'edzés
+         rögzítése'. Amikor egyszer kattintva lett, akkor a szöveg váltson
+         át '1 mai edzés rögzítve' és mellette a pipa" (181. pont javítása,
+         2026.09.24., Marci kérésére) — a projektben már meglévő lime CTA
+         mintát vettem át (`.btn-fyb-highlight` + a szöveg UTÁN fűzött
+         `ikon_pipa_vastag.svg`, ugyanaz, mint az állapotfelmérő "beküldés"
+         gombja, Allapotfelmero.tsx). A gomb TÖBBSZÖR is megnyomható egy
+         napon belül (egyeztetés, AskUserQuestion) — minden nyomás egy ÚJ,
+         "nem" alapértelmezésű edzést ad a listához, saját, azonnal
+         módosítható tünet-legördülővel; a korábbi, külön "+ még egy
+         edzés" gomb emiatt feleslegessé vált (maga ez a gomb tölti be
+         azt a szerepet is), törölve. */}
+      <button type="button" className="btn-fyb btn-fyb-highlight mb-3" onClick={handleAddWorkout}>
+        {workouts.length === 0 ? 'edzés rögzítése' : `${workouts.length} mai edzés rögzítve`}
+        {workouts.length > 0 && <Icon src="/icons/ikon_pipa_vastag.svg" style={{ backgroundColor: 'var(--navy)' }} />}
+      </button>
 
       {workouts.length > 0 && (
         <div className="mb-3">
@@ -575,9 +577,6 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
               )}
             </div>
           ))}
-          <button type="button" className="btn-fyb btn-fyb-outline btn-fyb-sm" onClick={handleAddWorkout}>
-            + még egy edzés
-          </button>
         </div>
       )}
 
@@ -625,8 +624,12 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
         onChange={setLoad}
       />
 
-      <div className="checklist-save-spacer" />
-      <div className="checklist-save-bar">
+      {/* "A mentés gomb maradjon az első dobozban alul középen" (2026.09.24.,
+         Marci kérésére) — a korábbi, mobilon a képernyő aljához rögzített
+         (`position: fixed`, teljes szélességű) sáv helyett egy egyszerű,
+         a kártya SAJÁT alján, KÖZÉPRE igazított gomb — a kártyán belül
+         marad, nem "szakad ki" a dokumentum-áramlásból. */}
+      <div className="text-center mt-4">
         <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave}>
           Mentés
         </button>

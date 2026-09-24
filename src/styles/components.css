@@ -3528,31 +3528,6 @@ html[data-theme='dark'] .bodychart-img {
 .checklist-chart-block:last-child {
   border-bottom: none;
 }
-/* "minden szükségtelen... görgetés árt" (2026.09.24., Marci UX-átvizsgálási
-   kérésére) — mobilon a napi "Rögzítés" gomb a képernyő aljához rögzítve
-   (fixed), hogy a mezők kitöltése után sose kelljen külön odagörgetni érte.
-   Asztali nézetben (a media query nem illeszkedik) mindkét osztály
-   hatástalan — a gomb a szokott, dokumentum-áramlásbeli helyén marad. */
-@media (max-width: 767.98px) {
-  .checklist-save-bar {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 20;
-    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
-    background: var(--color-surface);
-    border-top: 1px solid var(--color-border);
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.12);
-  }
-  .checklist-save-bar .btn-fyb {
-    width: 100%;
-  }
-  /* üres helykitöltő, hogy a rögzített sáv ne takarja el az utolsó mezőt */
-  .checklist-save-spacer {
-    height: 4.5rem;
-  }
-}
 /* "az előző/következő szint gombok egy kis '⋯' menü mögé kerüljenek" (179.
    pont javítása, 2026.09.24., Marci kérésére) — egyszerű, saját állapotú
    lenyíló panel (nincs portál/harmadik féltől származó dropdown-könyvtár a
