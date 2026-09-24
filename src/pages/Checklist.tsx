@@ -512,6 +512,7 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
   const [durationHours, setDurationHours] = useState(initial?.symptomDurationHours ?? 0)
   const [intensity, setIntensity] = useState(initial?.symptomIntensity ?? 0)
   const [load, setLoad] = useState(initial?.loadOptimization ?? 50)
+  const [saved, setSaved] = useState(false)
 
   function handleAddWorkout() {
     setWorkouts((w) => [...w, 'nem'])
@@ -524,26 +525,34 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
   }
   function handleSave() {
     saveTodayEntry(clientId, { workouts, symptomDurationHours: durationHours, symptomIntensity: intensity, loadOptimization: load })
+    setSaved(true)
   }
 
   return (
     <div>
-      {/* "edzés rögzítve + pipa helyett legyen egy lime gomb: 'edzés
-         rögzítése'. Amikor egyszer kattintva lett, akkor a szöveg váltson
-         át '1 mai edzés rögzítve' és mellette a pipa" (181. pont javítása,
-         2026.09.24., Marci kérésére) — a projektben már meglévő lime CTA
-         mintát vettem át (`.btn-fyb-highlight` + a szöveg UTÁN fűzött
-         `ikon_pipa_vastag.svg`, ugyanaz, mint az állapotfelmérő "beküldés"
-         gombja, Allapotfelmero.tsx). A gomb TÖBBSZÖR is megnyomható egy
-         napon belül (egyeztetés, AskUserQuestion) — minden nyomás egy ÚJ,
-         "nem" alapértelmezésű edzést ad a listához, saját, azonnal
-         módosítható tünet-legördülővel; a korábbi, külön "+ még egy
-         edzés" gomb emiatt feleslegessé vált (maga ez a gomb tölti be
-         azt a szerepet is), törölve. */}
-      <button type="button" className="btn-fyb btn-fyb-highlight mb-3" onClick={handleAddWorkout}>
-        {workouts.length === 0 ? 'edzés rögzítése' : `${workouts.length} mai edzés rögzítve`}
-        {workouts.length > 0 && <Icon src="/icons/ikon_pipa_vastag.svg" style={{ backgroundColor: 'var(--navy)' }} />}
-      </button>
+      {/* "edzés rögzítése helyett hívjuk így: 'edzés hozzáadása'. Amikor
+         lekattintottuk, akkor jelenjen meg a pipás gomb, hogy 'edzés
+         hozzáadva'. Mellette pedig egy ugyanilyen fazonú gomb: 'mégegy
+         edzés hozzáadása'" (182. pont, 2026.09.24., Marci kérésére) — az
+         ELSŐ gomb az első kattintás UTÁN egy STATIKUS, `disabled`
+         visszaigazolássá válik ("edzés hozzáadva" + pipa-ikon — ugyanaz a
+         minta, mint a sales hívás-részletek "visszaigazolás kiküldve"
+         gombja, CallDetailModal.tsx: a lime háttér marad, csak a szöveg
+         vált és a gomb letiltásra kerül), MELLETTE pedig egy MÁSODIK,
+         AZONOS stílusú, de továbbra is aktív gomb ("még egy edzés
+         hozzáadása") végzi a tényleges hozzáadást minden további
+         alkalommal. */}
+      <div className="d-flex flex-wrap gap-2 mb-3">
+        <button type="button" className="btn-fyb btn-fyb-highlight" onClick={handleAddWorkout} disabled={workouts.length > 0}>
+          {workouts.length === 0 ? 'edzés hozzáadása' : 'edzés hozzáadva'}
+          {workouts.length > 0 && <Icon src="/icons/ikon_pipa_vastag.svg" style={{ backgroundColor: 'var(--navy)' }} />}
+        </button>
+        {workouts.length > 0 && (
+          <button type="button" className="btn-fyb btn-fyb-highlight" onClick={handleAddWorkout}>
+            még egy edzés hozzáadása
+          </button>
+        )}
+      </div>
 
       {workouts.length > 0 && (
         <div className="mb-3">
@@ -597,6 +606,13 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
         </select>
       </div>
 
+      {/* "Az időtartam, intenzitás, nem hajolós napok közt legyen egy
+         dobozhatártól dobozhatárig tartó halvány vékony csík" (182. pont,
+         2026.09.24., Marci kérésére) — negatív margóval a kártya SAJÁT
+         (`.p-4`, 1.5rem) paddingján is túlnyúlva, hogy TÉNYLEG a doboz
+         szélétől szélig érjen, ne csak a mező-tartalom szélességéig. */}
+      <div className="checklist-field-divider" />
+
       <CenteredSlider
         label="intenzitás"
         value={intensity}
@@ -608,6 +624,8 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
         captions={['0 — semmi', '10 — max. intenzitás']}
         onChange={setIntensity}
       />
+
+      <div className="checklist-field-divider" />
 
       {/* "nem hajolós nap" — a "terhelés optimalizálás" csúszka ÚJ,
          látható címe (181. pont, Marci döntése) — a gerincterhelés
@@ -629,9 +647,11 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
          (`position: fixed`, teljes szélességű) sáv helyett egy egyszerű,
          a kártya SAJÁT alján, KÖZÉPRE igazított gomb — a kártyán belül
          marad, nem "szakad ki" a dokumentum-áramlásból. */}
+      {/* "A mentésre kattintva váltson át: 'mentve'" (182. pont, 2026.09.24.,
+         Marci kérésére). */}
       <div className="text-center mt-4">
         <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave}>
-          Mentés
+          {saved ? 'mentve' : 'Mentés'}
         </button>
       </div>
     </div>

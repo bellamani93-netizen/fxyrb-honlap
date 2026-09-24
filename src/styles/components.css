@@ -3568,3 +3568,14 @@ html[data-theme='dark'] .bodychart-img {
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-card);
 }
+/* "az időtartam, intenzitás, nem hajolós napok közt legyen egy
+   dobozhatártól dobozhatárig tartó halvány vékony csík" (182. pont,
+   2026.09.24., Marci kérésére) — a napi mezőket tartalmazó `.p-4`
+   (1.5rem paddingú) blokk paddingján negatív margóval túlnyúlva, hogy
+   TÉNYLEG a kártya szélétől szélig érjen. */
+.checklist-field-divider {
+  height: 1px;
+  margin: 1.25rem -1.5rem;
+  background: var(--color-border);
+  opacity: 0.5;
+}
