@@ -638,10 +638,15 @@ function workoutButtonLabel(count: number): string {
   return `mai ${count} edzés hozzáadva`
 }
 
-/** a "közben '...'" sor SZÖVEGE a tünet-válaszhoz — "nem" esetén Marci
+/** a "közben ..." sor SZÖVEGE a tünet-válaszhoz — "nem" esetén Marci
  * szó szerinti példáját ("nem volt tünet") használva, a többi tünetre
  * pedig ugyanezt a mondat-mintát követve ("{tünet} volt") — SAJÁT DÖNTÉS,
- * mert Marci csak az alapértelmezett ("nem") esetet diktálta. */
+ * mert Marci csak az alapértelmezett ("nem") esetet diktálta. Az idézőjelek
+ * (eredetileg "'nem volt tünet'") KIVÉVE (2026.09.25., Marci kérésére: "ne
+ * legyen ott a '' körülötte"), a szöveg színe a "közben" felirattal
+ * megegyező, halvány `--color-text-muted` (korábban a `.btn-link`
+ * alapértelmezett kék színét viselte — "ne legyen kék, olyan színű
+ * legyen, mint a 'közben'"). */
 function symptomSentence(label: string, value: SymptomDuringExercise): string {
   return value === 'nem' ? 'nem volt tünet' : `${label} volt`
 }
@@ -786,8 +791,8 @@ function DailyForm({
                   options={SYMPTOM_OPTIONS}
                   onChange={(v) => handleWorkoutChange(i, v)}
                   triggerClassName="btn btn-link p-0 small"
-                  triggerStyle={{ textDecoration: 'underline' }}
-                  renderTrigger={() => `'${symptomSentence(option?.label ?? '', symptom)}'`}
+                  triggerStyle={{ textDecoration: 'underline', color: 'var(--color-text-muted)' }}
+                  renderTrigger={() => symptomSentence(option?.label ?? '', symptom)}
                 />
                 {workouts.length > 1 && (
                   <button
