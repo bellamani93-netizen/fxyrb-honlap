@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from 'react'
 import {
   ResponsiveContainer,
   LineChart,
@@ -15,14 +15,16 @@ import {
   useChecklist,
   computeHoldSeconds,
   getHoldSecondsForDay,
+  mapAssessmentDurationToHours,
   SYMPTOM_OPTIONS,
   DURATION_OPTIONS,
   type ChecklistEntry,
   type SymptomDuringExercise,
 } from '../context/ChecklistContext'
 import { useClients } from '../context/ClientsContext'
+import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
 import { LOGGED_IN_UF_ID } from '../data/initialClients'
-import { suggestedSequence, codeLabel } from '../data/tornaSzintek'
+import { suggestedSequence, EXERCISES } from '../data/tornaSzintek'
 import { intensityColor, intensityGlow, useDarkMode } from '../utils/intensityColor'
 import Icon from '../components/Icon'
 
@@ -122,33 +124,40 @@ function TrainingTooltip({
   )
 }
 
-/** a diagramok szinkronizált, egységes (lime, világító) kurzor-vonala —
- * a Bar diagramtól kapott `x`/`width`/`height` propokból a sáv KÖZEPÉN, a
- * Line diagramoktól kapott `points`-ból a pontok x-koordinátáján. */
-function SyncCursor(props: { points?: { x: number; y: number }[]; x?: number; y?: number; width?: number; height?: number }) {
-  const { points, x, y, width, height } = props
-  let cx: number | undefined
-  let top = 0
-  let bottom = 0
-  if (points && points.length > 0) {
-    cx = points[0].x
-    top = Math.min(...points.map((p) => p.y))
-    bottom = Math.max(...points.map((p) => p.y))
-  } else if (typeof x === 'number' && typeof width === 'number' && typeof y === 'number' && typeof height === 'number') {
-    cx = x + width / 2
-    top = y
-    bottom = y + height
-  }
-  if (cx === undefined) return null
+/** "Mobil kurzor továbbra sem mozog együtt, ezt korrigáld, hogy együtt
+ * mozogjon" (2026.09.25., Marci kérésére) — a korábbi próbálkozás
+ * (`touch-action: pan-y`) a recharts SAJÁT, `syncId`-alapú kereszt-diagram
+ * szinkronjára épített, ami forráskód-elemzés szerint érintőn is működnie
+ * KÉNE, de a valóságban (Marci telefonján) mégsem szinkronizált — ennek
+ * pontos oka innen nem deríthető ki biztosan (a jelen böngésző-eszközök
+ * mobil-emulációban is EGÉR-eseményeket küldenek, valódi touch-gesztus
+ * nem tesztelhető). Ezért a kurzort mostantól TELJESEN A SAJÁT KEZÜNKBEN
+ * tartjuk, függetlenül attól, hogy a recharts belső touch-szinkronja
+ * ténylegesen működik-e: A `ChecklistCharts` egyetlen, közös `cursorX`
+ * állapotot tart (pixel-koordináta), amit BÁRMELYIK diagram saját
+ * `onMouseMove`/`onTouchMove` eseménye frissít (a recharts ezekben a
+ * callback-ekben MÁR kiszámolt, pontos `activeCoordinate.x`-et ad —
+ * ugyanazt a logikát használva egérre és érintésre is). Mivel mindhárom
+ * diagram AZONOS szélességű/tengelyű/paddingú konténerben fut, ez az egy
+ * `x` érték közvetlenül újrafelhasználható mindhárom diagramon — nincs
+ * szükség a recharts saját (bizonytalanul viselkedő) kereszt-diagram
+ * szinkronjára. A vonalat ez a komponens rajzolja, egy a diagram fölé
+ * abszolút pozícionált overlay-ben (ld. `ChecklistCharts`), NEM a
+ * recharts `Tooltip`/`cursor` propján keresztül. */
+function CursorOverlay({ x }: { x: number | null }) {
+  if (x === null) return null
   return (
-    <line
-      x1={cx}
-      y1={top}
-      x2={cx}
-      y2={bottom}
-      stroke="var(--lime)"
-      strokeWidth={2}
-      style={{ filter: 'drop-shadow(0 0 4px var(--lime))' }}
+    <div
+      style={{
+        position: 'absolute',
+        top: 5,
+        bottom: 20,
+        left: x,
+        width: 2,
+        background: 'var(--lime)',
+        boxShadow: '0 0 4px var(--lime)',
+        pointerEvents: 'none',
+      }}
     />
   )
 }
@@ -257,6 +266,17 @@ export function ChecklistCharts({
   // közt, ezért önmagában az nem különbözteti meg, hogy a felhasználó
   // ténylegesen EZEN a diagramon áll-e.
   const [hoveredChart, setHoveredChart] = useState<'edzes' | 'tunet' | 'terheles' | null>(null)
+  // a 3 diagram közös, ÁLTALUNK kezelt kurzor-pozíciója (pixel-x) — ld.
+  // `CursorOverlay` jegyzete: nem a recharts `syncId`-jára támaszkodik.
+  const [cursorX, setCursorX] = useState<number | null>(null)
+  function handleChartInteract(chart: 'edzes' | 'tunet' | 'terheles', state?: { activeCoordinate?: { x: number; y: number } }) {
+    setHoveredChart(chart)
+    if (state?.activeCoordinate) setCursorX(state.activeCoordinate.x)
+  }
+  function handleChartLeave() {
+    setHoveredChart(null)
+    setCursorX(null)
+  }
 
   if (!hasAnyData) {
     return (
@@ -277,95 +297,110 @@ export function ChecklistCharts({
         <span className="small fw-bold d-block mb-2" style={{ color: 'var(--color-primary)' }}>
           edzésnapok
         </span>
-        <ResponsiveContainer width="100%" height={140}>
-          <BarChart
-            data={data}
-            syncId={SYNC_ID}
-            onMouseEnter={() => setHoveredChart('edzes')}
-            onMouseLeave={() => setHoveredChart(null)}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            <XAxis
-              dataKey="date"
-              scale="point"
-              padding={{ left: AXIS_PADDING, right: AXIS_PADDING }}
-              tick={{ fontSize: 11 }}
-              stroke="var(--color-text-muted)"
-            />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
-            <Tooltip content={<TrainingTooltip show={hoveredChart === 'edzes'} />} cursor={<SyncCursor />} />
-            {Array.from({ length: maxWorkouts }, (_, slotIdx) => (
-              <Bar
-                key={slotIdx}
-                dataKey={(d: ChartPoint) => (d.workouts && slotIdx < d.workouts.length ? 1 : null)}
-                stackId="a"
-                barSize={BAR_SIZE}
-                /* `isAnimationActive={false}`: recharts v3-nál a belépő-animáció (magasság
-                   0-ról a végsőre) EGYEDI `shape` függvénnyel kombinálva egy recharts-oldali
-                   hibába fut — a `shape` mindig `height: 0`-t kap, a tween sosem ér véget
-                   (élő DOM-vizsgálattal megerősítve). Animáció nélkül a `shape` azonnal a
-                   végső, helyes méretekkel hívódik. */
-                isAnimationActive={false}
-                shape={(shapeProps: object) => <StackTopRoundedBar {...shapeProps} slotIndex={slotIdx} radius={4} />}
-              >
-                {data.map((d, i) => (
-                  <Cell key={i} fill={d.workouts && d.workouts[slotIdx] && d.workouts[slotIdx] !== 'nem' ? 'var(--z2)' : 'var(--z4)'} />
-                ))}
-              </Bar>
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
+        <div style={{ position: 'relative' }}>
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart
+              data={data}
+              syncId={SYNC_ID}
+              onMouseMove={(state) => handleChartInteract('edzes', state)}
+              onMouseLeave={handleChartLeave}
+              onTouchMove={(state) => handleChartInteract('edzes', state)}
+              onTouchEnd={handleChartLeave}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+              <XAxis
+                dataKey="date"
+                scale="point"
+                padding={{ left: AXIS_PADDING, right: AXIS_PADDING }}
+                tick={{ fontSize: 11 }}
+                stroke="var(--color-text-muted)"
+              />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
+              <Tooltip content={<TrainingTooltip show={hoveredChart === 'edzes'} />} cursor={false} />
+              {Array.from({ length: maxWorkouts }, (_, slotIdx) => (
+                <Bar
+                  key={slotIdx}
+                  dataKey={(d: ChartPoint) => (d.workouts && slotIdx < d.workouts.length ? 1 : null)}
+                  stackId="a"
+                  barSize={BAR_SIZE}
+                  /* `isAnimationActive={false}`: recharts v3-nál a belépő-animáció (magasság
+                     0-ról a végsőre) EGYEDI `shape` függvénnyel kombinálva egy recharts-oldali
+                     hibába fut — a `shape` mindig `height: 0`-t kap, a tween sosem ér véget
+                     (élő DOM-vizsgálattal megerősítve). Animáció nélkül a `shape` azonnal a
+                     végső, helyes méretekkel hívódik. */
+                  isAnimationActive={false}
+                  shape={(shapeProps: object) => <StackTopRoundedBar {...shapeProps} slotIndex={slotIdx} radius={4} />}
+                >
+                  {data.map((d, i) => (
+                    <Cell key={i} fill={d.workouts && d.workouts[slotIdx] && d.workouts[slotIdx] !== 'nem' ? 'var(--z2)' : 'var(--z4)'} />
+                  ))}
+                </Bar>
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+          <CursorOverlay x={cursorX} />
+        </div>
       </div>
 
       <div className="checklist-chart-block">
         <span className="small fw-bold d-block mb-2" style={{ color: 'var(--color-primary)' }}>
           tünet intenzitása (0-10) és időtartama (óra)
         </span>
-        <ResponsiveContainer width="100%" height={160}>
-          <LineChart
-            data={data}
-            syncId={SYNC_ID}
-            onMouseEnter={() => setHoveredChart('tunet')}
-            onMouseLeave={() => setHoveredChart(null)}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            <XAxis
-              dataKey="date"
-              padding={{ left: AXIS_PADDING, right: AXIS_PADDING }}
-              tick={{ fontSize: 11 }}
-              stroke="var(--color-text-muted)"
-            />
-            <YAxis tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
-            <Tooltip content={<LineTooltip show={hoveredChart === 'tunet'} />} cursor={<SyncCursor />} />
-            <Line type="monotone" dataKey="intenzitas" name="intenzitás" stroke="var(--z1)" strokeWidth={2} dot={{ r: 3 }} />
-            <Line type="monotone" dataKey="idotartam" name="időtartam (óra)" stroke="var(--z2)" strokeWidth={2} dot={{ r: 3 }} />
-          </LineChart>
-        </ResponsiveContainer>
+        <div style={{ position: 'relative' }}>
+          <ResponsiveContainer width="100%" height={160}>
+            <LineChart
+              data={data}
+              syncId={SYNC_ID}
+              onMouseMove={(state) => handleChartInteract('tunet', state)}
+              onMouseLeave={handleChartLeave}
+              onTouchMove={(state) => handleChartInteract('tunet', state)}
+              onTouchEnd={handleChartLeave}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+              <XAxis
+                dataKey="date"
+                padding={{ left: AXIS_PADDING, right: AXIS_PADDING }}
+                tick={{ fontSize: 11 }}
+                stroke="var(--color-text-muted)"
+              />
+              <YAxis tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
+              <Tooltip content={<LineTooltip show={hoveredChart === 'tunet'} />} cursor={false} />
+              <Line type="monotone" dataKey="intenzitas" name="intenzitás" stroke="var(--z1)" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="idotartam" name="időtartam (óra)" stroke="var(--z2)" strokeWidth={2} dot={{ r: 3 }} />
+            </LineChart>
+          </ResponsiveContainer>
+          <CursorOverlay x={cursorX} />
+        </div>
       </div>
 
       <div className="checklist-chart-block">
         <span className="small fw-bold d-block mb-2" style={{ color: 'var(--color-primary)' }}>
           terhelés optimalizálás (%)
         </span>
-        <ResponsiveContainer width="100%" height={140}>
-          <LineChart
-            data={data}
-            syncId={SYNC_ID}
-            onMouseEnter={() => setHoveredChart('terheles')}
-            onMouseLeave={() => setHoveredChart(null)}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            <XAxis
-              dataKey="date"
-              padding={{ left: AXIS_PADDING, right: AXIS_PADDING }}
-              tick={{ fontSize: 11 }}
-              stroke="var(--color-text-muted)"
-            />
-            <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
-            <Tooltip content={<LineTooltip show={hoveredChart === 'terheles'} />} cursor={<SyncCursor />} />
-            <Line type="monotone" dataKey="terheles" name="terhelés optimalizálás" stroke="var(--z4)" strokeWidth={2} dot={{ r: 3 }} />
-          </LineChart>
-        </ResponsiveContainer>
+        <div style={{ position: 'relative' }}>
+          <ResponsiveContainer width="100%" height={140}>
+            <LineChart
+              data={data}
+              syncId={SYNC_ID}
+              onMouseMove={(state) => handleChartInteract('terheles', state)}
+              onMouseLeave={handleChartLeave}
+              onTouchMove={(state) => handleChartInteract('terheles', state)}
+              onTouchEnd={handleChartLeave}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+              <XAxis
+                dataKey="date"
+                padding={{ left: AXIS_PADDING, right: AXIS_PADDING }}
+                tick={{ fontSize: 11 }}
+                stroke="var(--color-text-muted)"
+              />
+              <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="var(--color-text-muted)" width={AXIS_WIDTH} />
+              <Tooltip content={<LineTooltip show={hoveredChart === 'terheles'} />} cursor={false} />
+              <Line type="monotone" dataKey="terheles" name="terhelés optimalizálás" stroke="var(--z4)" strokeWidth={2} dot={{ r: 3 }} />
+            </LineChart>
+          </ResponsiveContainer>
+          <CursorOverlay x={cursorX} />
+        </div>
       </div>
     </div>
   )
@@ -538,11 +573,99 @@ function CenteredSlider({
   )
 }
 
-function DailyForm({ clientId, initial }: { clientId: string; initial: ChecklistEntry | undefined }) {
+/** "Csak rákattintásra lesz legördülő menü, és ki lehet választani ezeket"
+ * (2026.09.25., Marci kérésére, a "Tünet időtartama" mezőről, de a
+ * "közben 'nem volt tünet'" edzésenkénti sorra is UGYANEZ a minta
+ * vonatkozik) — általános, ÚJRAFELHASZNÁLHATÓ "kattintásra szerkeszthető"
+ * komponens (a `HoldSecondsEditor` bevált mintáját követve): alapból egy
+ * kattintható SZÖVEG, kattintásra egy natív `<select>`-té alakul (auto-
+ * fókusszal), amit a kiválasztás VAGY elkattintás zár vissza szöveggé. A
+ * `renderTrigger` teszi lehetővé, hogy a bezárt állapot MÁS szöveget
+ * mutasson, mint amit a legördülőben az opció felirata ad (pl. a tünet
+ * "húzódás" felirata bezárva "'húzódás volt'" mondatrészletté alakul). */
+function ClickToSelect<T extends string | number>({
+  value,
+  options,
+  onChange,
+  renderTrigger,
+  triggerClassName = 'btn btn-link p-0',
+  triggerStyle,
+}: {
+  value: T
+  options: { value: T; label: string }[]
+  onChange: (v: T) => void
+  renderTrigger?: (label: string) => ReactNode
+  triggerClassName?: string
+  triggerStyle?: CSSProperties
+}) {
+  const [editing, setEditing] = useState(false)
+  const current = options.find((o) => o.value === value)
+  if (editing) {
+    return (
+      <select
+        className="form-select form-select-sm"
+        style={{ width: 'auto' }}
+        autoFocus
+        value={String(value)}
+        onChange={(e) => {
+          const opt = options.find((o) => String(o.value) === e.target.value)
+          if (opt) onChange(opt.value)
+          setEditing(false)
+        }}
+        onBlur={() => setEditing(false)}
+      >
+        {options.map((o) => (
+          <option key={String(o.value)} value={String(o.value)}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    )
+  }
+  return (
+    <button type="button" className={triggerClassName} style={triggerStyle} onClick={() => setEditing(true)}>
+      {renderTrigger ? renderTrigger(current?.label ?? '') : current?.label}
+    </button>
+  )
+}
+
+/** a lime "+mai edzés" gomb felirata — 0/1/több edzésre (2026.09.25.,
+ * Marci kérésére: "'mai edzés hozzáadva'... a felirat változik 'mai 2
+ * edzés hozzáadva'"). */
+function workoutButtonLabel(count: number): string {
+  if (count === 0) return '+ mai edzés'
+  if (count === 1) return 'mai edzés hozzáadva'
+  return `mai ${count} edzés hozzáadva`
+}
+
+/** a "közben '...'" sor SZÖVEGE a tünet-válaszhoz — "nem" esetén Marci
+ * szó szerinti példáját ("nem volt tünet") használva, a többi tünetre
+ * pedig ugyanezt a mondat-mintát követve ("{tünet} volt") — SAJÁT DÖNTÉS,
+ * mert Marci csak az alapértelmezett ("nem") esetet diktálta. */
+function symptomSentence(label: string, value: SymptomDuringExercise): string {
+  return value === 'nem' ? 'nem volt tünet' : `${label} volt`
+}
+
+function DailyForm({
+  clientId,
+  initial,
+  defaultDurationHours,
+}: {
+  clientId: string
+  initial: ChecklistEntry | undefined
+  /** "Alapértelmezettként első kitöltésnél az állapotfelmérő 'tünet
+   * időtartama' értéket mutatja, később mindig a tegnapi érték a mai
+   * alapértelmezett" (2026.09.25., Marci kérésére) — ezt a szülő
+   * (`Checklist()`) számolja ki (onnan érhető el az állapotfelmérő
+   * válasza ÉS a korábbi bejegyzések listája is), a `DailyForm` csak
+   * akkor használja, ha a MAI napra még nincs mentett érték
+   * (`initial` — ld. lent). */
+  defaultDurationHours: number
+}) {
   const { saveTodayEntry } = useChecklist()
   const dark = useDarkMode()
   const [workouts, setWorkouts] = useState<SymptomDuringExercise[]>(initial?.workouts ?? [])
-  const [durationHours, setDurationHours] = useState(initial?.symptomDurationHours ?? 0)
+  const [durationHours, setDurationHours] = useState(initial?.symptomDurationHours ?? defaultDurationHours)
   const [intensity, setIntensity] = useState(initial?.symptomIntensity ?? 0)
   const [load, setLoad] = useState(initial?.loadOptimization ?? 50)
   const [saved, setSaved] = useState(false)
@@ -563,98 +686,31 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
 
   return (
     <div>
-      {/* "találj ki egy olyan elrendezést, amivel a checklist beviteli
-         doboza elfér görgetés nélkül telefonon. Bármit megváltoztathatsz,
-         csak a funkciók maradjanak" (2026.09.25., Marci kérésére) — a teljes
-         űrlap ÁTTÖMÖRÍTVE (a mezők/gombok KÖRE és VISELKEDÉSE
-         VÁLTOZATLAN, csak a köztük lévő térköz/sortördelés lett kisebb):
-         a gombsor és a mezők közti margók 16px-esre egységesítve
-         (korábban helyenként 16-24px), a "Mai tünetek" önálló alcím-sor
-         törölve (egy vékony elválasztó csík veszi át a szerepét, ld.
-         lent), az "időtartam" mező a régi "címke fölötte, teljes
-         szélességű legördülő alatta" (2 sor) helyett EGY sorban, a
-         munkaedzés-mezőkhöz hasonló "címke — kompakt legördülő"
-         elrendezést kapott, a csúszkák (`CenteredSlider`) pedig a cím+nagy
-         szám egy sorba vonásával (ld. a komponens jegyzete) lettek
-         kb. felényire tömörítve. Élő méréssel ellenőrizve: az eredeti
-         ~698px magas doboz (fejléccel együtt) ~430px-re csökkent, ami
-         mobilon (375×812) MÁR görgetés nélkül elfér a fejléc alatt. */}
-      <div className="d-flex flex-wrap gap-2 mb-2">
-        <button
-          type="button"
-          className={`btn-fyb ${workouts.length > 0 ? 'checklist-workout-done-badge' : 'btn-fyb-highlight'}`}
-          onClick={handleAddWorkout}
-          disabled={workouts.length > 0}
-        >
-          {workouts.length === 0 ? 'edzés hozzáadása' : 'edzés hozzáadva'}
-          {workouts.length > 0 && <Icon src="/icons/ikon_pipa_vastag.svg" style={{ backgroundColor: 'var(--navy)' }} />}
-        </button>
-        {workouts.length > 0 && (
-          <button type="button" className="btn-fyb btn-fyb-highlight" onClick={handleAddWorkout}>
-            még egy edzés hozzáadása
-          </button>
-        )}
-      </div>
+      {/* "Checklistet újratervezzük. Telefonra optimalizálva, hogy a
+         beviteli rész kiférjen görgetés nélkül" (2026.09.25., Marci
+         kérésére) — a napi ŰRLAP TELJES újra-diktálása, a korábbi
+         (185. pont) sorrendet is felcserélve: előbb "Milyen napod volt?"
+         (tünet-időtartam + intenzitás + "nem hajolás"), CSAK ez UTÁN az
+         edzés-rögzítés, majd a Mentés. A "tünet időtartama" és az
+         edzésenkénti "közben '...'" tünet-válasz mostantól KATTINTÁSRA
+         nyíló legördülőként jelenik meg (ld. `ClickToSelect`), nem
+         mindig-látható `<select>`-ként — ez önmagában is tömörebb, mint a
+         185. pontban bevezetett "címke — kompakt legördülő" sor. */}
+      <h3 className="h6 mb-2">Milyen napod volt?</h3>
 
-      {workouts.length > 0 && (
-        <div className="mb-2">
-          {workouts.map((symptom, i) => (
-            <div key={i} className="d-flex align-items-center gap-2 mb-1">
-              <span className="small" style={{ minWidth: 0, flex: workouts.length > 1 ? '0 0 auto' : '0 0 auto' }}>
-                {workouts.length > 1 ? `${i + 1}. edzés — volt közben tünet?` : 'volt közben tünet?'}
-              </span>
-              <select
-                className="form-select form-select-sm"
-                style={{ width: 'auto' }}
-                value={symptom}
-                onChange={(e) => handleWorkoutChange(i, e.target.value as SymptomDuringExercise)}
-              >
-                {SYMPTOM_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-              {workouts.length > 1 && (
-                <button
-                  type="button"
-                  className="btn btn-link btn-sm p-0"
-                  style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}
-                  aria-label={`${i + 1}. edzés törlése`}
-                  onClick={() => handleRemoveWorkout(i)}
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="checklist-field-divider checklist-field-divider--tight" />
-
-      <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
-        <span className="small fw-bold">időtartam</span>
-        <select
-          className="form-select form-select-sm"
-          style={{ width: 'auto' }}
+      <div className="d-flex align-items-baseline flex-wrap gap-1 mb-2">
+        <span className="fw-bold">Tünet</span>
+        <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+          időtartama
+        </span>
+        <ClickToSelect
           value={durationHours}
-          onChange={(e) => setDurationHours(Number(e.target.value))}
-        >
-          {DURATION_OPTIONS.map((o) => (
-            <option key={o.label} value={o.hours}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          options={DURATION_OPTIONS.map((o) => ({ value: o.hours, label: o.label }))}
+          onChange={setDurationHours}
+          triggerClassName="btn btn-link p-0 fw-bold"
+          triggerStyle={{ color: 'var(--lime)', textDecoration: 'none' }}
+        />
       </div>
-
-      {/* "Az időtartam, intenzitás, nem hajolós napok közt legyen egy
-         dobozhatártól dobozhatárig tartó halvány vékony csík" (182. pont,
-         2026.09.24., Marci kérésére) — negatív margóval a kártya SAJÁT
-         (`.p-3`, ld. lent) paddingján is túlnyúlva, hogy TÉNYLEG a doboz
-         szélétől szélig érjen, ne csak a mező-tartalom szélességéig. */}
-      <div className="checklist-field-divider checklist-field-divider--tight" />
 
       <CenteredSlider
         label="intenzitás"
@@ -667,14 +723,12 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
         onChange={setIntensity}
       />
 
+      {/* "Ezalatt külön leválasztva 'nem hajolás' és a százalékos csúszka"
+         (2026.09.25., Marci kérésére) — a meglévő elválasztó-csík minta. */}
       <div className="checklist-field-divider checklist-field-divider--tight" />
 
-      {/* "nem hajolós nap" — a "terhelés optimalizálás" csúszka ÚJ,
-         látható címe (181. pont, Marci döntése) — a gerincterhelés
-         kalkulátor teal→mint gradiense, de az intenzitás csúszka
-         elrendezésével (cím + nagy szám egy sorban, ld. `CenteredSlider`). */}
       <CenteredSlider
-        label="nem hajolós nap"
+        label="nem hajolás"
         value={load}
         min={0}
         max={100}
@@ -684,13 +738,76 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
         onChange={setLoad}
       />
 
-      {/* "A mentés gomb maradjon az első dobozban alul középen" (2026.09.24.,
-         Marci kérésére) — a korábbi, mobilon a képernyő aljához rögzített
-         (`position: fixed`, teljes szélességű) sáv helyett egy egyszerű,
-         a kártya SAJÁT alján, KÖZÉPRE igazított gomb — a kártyán belül
-         marad, nem "szakad ki" a dokumentum-áramlásból. */}
-      {/* "A mentésre kattintva váltson át: 'mentve'" (182. pont, 2026.09.24.,
-         Marci kérésére). */}
+      <div className="checklist-field-divider checklist-field-divider--tight" />
+
+      {/* "lime gomb: +mai edzés. Ezt kattintva a gomb feiratot vált: 'mai
+         edzés hozzáadva'... lime gomb mellett egyszerű + gomb, amivel
+         hozzá lehet adni újabb edzést, ilyenkor a felirat változik 'mai 2
+         edzés hozzáadva'" (2026.09.25., Marci kérésére) — az ELSŐ (lime)
+         gomb csak addig aktív kattintható CTA, amíg 0 edzés van rögzítve;
+         utána STATIKUS visszaigazolássá válik (ugyanaz a
+         `.checklist-workout-done-badge` minta, mint a 184. pontban), és a
+         további edzéseket a MELLETTE megjelenő, egyszerű "+" gomb adja
+         hozzá. */}
+      <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
+        <button
+          type="button"
+          className={`btn-fyb ${workouts.length > 0 ? 'checklist-workout-done-badge' : 'btn-fyb-highlight'}`}
+          onClick={handleAddWorkout}
+          disabled={workouts.length > 0}
+        >
+          {workoutButtonLabel(workouts.length)}
+          {workouts.length > 0 && <Icon src="/icons/ikon_pipa_vastag.svg" style={{ backgroundColor: 'var(--navy)' }} />}
+        </button>
+        {workouts.length > 0 && (
+          <button
+            type="button"
+            className="btn-fyb btn-fyb-outline btn-fyb-sm"
+            style={{ padding: '0.4rem 0.75rem' }}
+            aria-label="még egy edzés hozzáadása"
+            onClick={handleAddWorkout}
+          >
+            +
+          </button>
+        )}
+      </div>
+
+      {workouts.length > 0 && (
+        <div className="mb-2">
+          {workouts.map((symptom, i) => {
+            const option = SYMPTOM_OPTIONS.find((o) => o.value === symptom)
+            return (
+              <div key={i} className="d-flex align-items-baseline gap-1 mb-1">
+                <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+                  {workouts.length > 1 ? `${i + 1}. edzés közben` : 'közben'}
+                </span>
+                <ClickToSelect
+                  value={symptom}
+                  options={SYMPTOM_OPTIONS}
+                  onChange={(v) => handleWorkoutChange(i, v)}
+                  triggerClassName="btn btn-link p-0 small"
+                  triggerStyle={{ textDecoration: 'underline' }}
+                  renderTrigger={() => `'${symptomSentence(option?.label ?? '', symptom)}'`}
+                />
+                {workouts.length > 1 && (
+                  <button
+                    type="button"
+                    className="btn btn-link btn-sm p-0"
+                    style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}
+                    aria-label={`${i + 1}. edzés törlése`}
+                    onClick={() => handleRemoveWorkout(i)}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* "Ezek alatt középen mentés gomb. Lekattintva mentve felirat."
+         (2026.09.25., Marci kérésére). */}
       <div className="text-center mt-2">
         <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave}>
           {saved ? 'mentve' : 'Mentés'}
@@ -704,6 +821,7 @@ export default function Checklist() {
   const { clients } = useClients()
   const client = clients.find((c) => c.id === LOGGED_IN_UF_ID)!
   const { getState, getTodayEntry, advanceLevel, previousLevel, setHoldOverride } = useChecklist()
+  const { adatok } = useAllapotfelmero()
   const sequence = suggestedSequence(client.variables)
   const maxLevel = sequence.length
   const state = getState(client.id)
@@ -718,55 +836,67 @@ export default function Checklist() {
   const visibleEntries = scope === 'szint' ? state.entries.filter((e) => e.level === state.currentLevel) : state.entries
   const visibleLevelStartDate = scope === 'szint' ? state.levelStartDates[state.currentLevel] : undefined
 
+  // "Alapértelmezettként első kitöltésnél az állapotfelmérő 'tünet
+  // időtartama' értéket mutatja, később mindig a tegnapi érték a mai
+  // alapértelmezett" (2026.09.25., Marci kérésére) — a "tegnapi" itt a
+  // LEGUTÓBBI, a mai nap ELŐTTI bejegyzést jelenti (bármelyik szinten;
+  // ez a napi kitöltés szokásos, hézagmentes menetében ténylegesen a
+  // tegnapi napot adja, de egy kihagyott nap esetén sem szakad meg).
+  const mostRecentPriorEntry = [...state.entries].filter((e) => e.date < todayISOStr).sort((a, b) => (a.date < b.date ? 1 : -1))[0]
+  const defaultDurationHours = mostRecentPriorEntry
+    ? mostRecentPriorEntry.symptomDurationHours
+    : mapAssessmentDurationToHours(adatok.idotartam)
+
   return (
     <section className="py-3 py-lg-5">
       <div className="container-fluid" style={{ maxWidth: 720 }}>
-        <div className="app-page-header mb-3 mobile-sticky-header">
+        {/* "Kivesszük felülről (csak telefonon) a 'checklist' sort"
+           (2026.09.25., Marci kérésére) — `d-none d-md-block`: a Bootstrap
+           `md` töréspontja (768px) ALATT (telefon) teljesen eltűnik, FELETTE
+           (tablet/asztal) változatlanul megjelenik. */}
+        <div className="app-page-header mb-3 mobile-sticky-header d-none d-md-block">
           <h1 className="app-page-title mb-0">checklist</h1>
         </div>
 
-        {/* "Fejléc: sötétszürke, benne a szint neve, és a megtartás ideje
-           lime színnel (a szám nagyobb legyen, mint a szöveg többi része)"
-           (181. pont, Marci szó szerinti diktálása) — a `.card-fyb` saját
-           paddingja itt 0-ra állítva (a fejléc teljes szélességben,
-           kártya-padding NÉLKÜL fut ki), a tartalom egy külön, saját
-           paddingú blokkba kerül alá.
-           "találj ki egy olyan elrendezést, amivel a checklist beviteli
-           doboza elfér görgetés nélkül telefonon" (2026.09.25., Marci
-           kérésére) — a korábbi KÉT sor (szint+menü / megtartás-idő) EGY
-           flex-wrap sorba vonva (a szint-név `min-width: 0`-val zsugorodik/
-           törik, ha kell, a megtartás-idő és a "⋯" menü flex:0-val mindig a
-           teljes méretét tartja) — ez önmagában ~50px-et takarít meg a
-           fejlécen, szűk mobil-szélességen (ahol a szint-név amúgy is
-           2 sorba törne) pedig NEM ront semmin, mert a `flex-wrap` ott is
-           ugyanoda, 2 sorba engedi visszaesni. A megtartás-idő számának
-           betűmérete 2.25rem→1.6rem (a HoldSecondsEditor-ban), hogy a
-           szint-névvel egy sorba férjen, de VIZUÁLISAN TOVÁBBRA IS
-           nagyobb maradjon a környező szövegnél, ahogy Marci diktálta. */}
+        {/* "Alatta checklist doboz sötét fejléccel. A fejlécben: 1.szint
+           Háton fekvés, alsó tartás (nem kell a S01 kód... az üf-nek nem
+           releváns infó). Ez ki kell férjen egy sorba. Alatta még a
+           fejlécben: mai megtartás: 7mp (ez csak rákattintva válik
+           legördülővé)... Mellette '...' mindig jobbra igazítva"
+           (2026.09.25., Marci kérésére) — KÉT sor: (1) szint + gyakorlat
+           NEVE (a `codeLabel()`-ből ismert "S01 ..." kód-előtag nélkül —
+           az a GYT-oldali nézetnek (GytChecklist.tsx) továbbra is
+           megmarad, ott releváns), `white-space: nowrap` + ellipsis
+           biztonsági hálóval, ha egy különösen hosszú gyakorlat-név mégis
+           túlfutna a legkeskenyebb telefon-szélességen is; (2) "mai
+           megtartás: {N} mp" (a `HoldSecondsEditor` változatlan
+           kattintásra-szerkeszthető logikájával) + a "⋯" szint-váltó menü,
+           `margin-left: auto`-val MINDIG a sor jobb szélén. */}
         <div className="card-fyb mb-4" style={{ padding: 0, overflow: 'hidden' }}>
-          <div className="checklist-daily-header d-flex flex-wrap align-items-center gap-2">
-            <span className="checklist-daily-header-level" style={{ flex: '1 1 auto', minWidth: 0 }}>
-              {state.currentLevel}. szint{' '}
-              {currentCode && <span className="checklist-daily-header-code">— {codeLabel(currentCode)}</span>}
-            </span>
-            <span className="d-inline-flex align-items-baseline" style={{ flex: '0 0 auto' }}>
-              <HoldSecondsEditor
-                seconds={actualHoldSeconds}
-                maxSeconds={recommendedHoldSeconds}
-                onChange={(v) => setHoldOverride(client.id, todayISOStr, state.currentLevel, v)}
+          <div className="checklist-daily-header">
+            <div className="checklist-daily-header-level">
+              {state.currentLevel}. szint {currentCode && EXERCISES[currentCode].name}
+            </div>
+            <div className="d-flex align-items-baseline justify-content-between gap-2">
+              <span className="checklist-daily-header-unit">
+                mai megtartás:{' '}
+                <HoldSecondsEditor
+                  seconds={actualHoldSeconds}
+                  maxSeconds={recommendedHoldSeconds}
+                  onChange={(v) => setHoldOverride(client.id, todayISOStr, state.currentLevel, v)}
+                />
+              </span>
+              <LevelMenu
+                currentLevel={state.currentLevel}
+                maxLevel={maxLevel}
+                onPrevious={() => previousLevel(client.id)}
+                onNext={() => advanceLevel(client.id, maxLevel)}
               />
-              <span className="checklist-daily-header-unit"> / gyakorlat</span>
-            </span>
-            <LevelMenu
-              currentLevel={state.currentLevel}
-              maxLevel={maxLevel}
-              onPrevious={() => previousLevel(client.id)}
-              onNext={() => advanceLevel(client.id, maxLevel)}
-            />
+            </div>
           </div>
 
           <div className="p-3">
-            <DailyForm key={state.currentLevel} clientId={client.id} initial={todayEntry} />
+            <DailyForm key={state.currentLevel} clientId={client.id} initial={todayEntry} defaultDurationHours={defaultDurationHours} />
           </div>
         </div>
 

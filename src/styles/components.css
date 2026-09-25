@@ -3521,12 +3521,19 @@ html[data-theme='dark'] .bodychart-img {
   background: var(--navy);
   color: var(--offwhite);
 }
+/* "1.szint Háton fekvés, alsó tartás... Ez ki kell férjen egy sorba"
+   (2026.09.25., Marci kérésére) — `nowrap`+ellipsis BIZTONSÁGI HÁLÓ, ha egy
+   különösen hosszú gyakorlat-név a legkeskenyebb telefon-szélességen sem
+   férne el (a leghosszabb jelenlegi név, "Hason fekvés, dinamikus alsó
+   tartással", 375px-en még nem futna túl, de ez a szabály minden JÖVŐBENI
+   névre is garantálja az egy-soros elrendezést). */
 .checklist-daily-header-level {
+  display: block;
+  margin-bottom: 0.35rem;
   font-weight: 700;
-}
-.checklist-daily-header-code {
-  font-weight: 400;
-  color: var(--pale-gray);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .checklist-daily-header-unit {
   color: var(--pale-gray);

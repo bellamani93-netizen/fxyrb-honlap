@@ -52,26 +52,47 @@ export const SYMPTOM_OPTIONS: { value: SymptomDuringExercise; label: string }[] 
   { value: 'mas', label: 'más' },
 ]
 
-/** "Időtartam: legördülő menü (5 perc, 10 perc, fél óra, 1 óra, 2 óra, 3
- * óra, 4-6 óra, 7-9 óra, 10-12 óra, 12 óra+)" (181. pont, Marci diktálása,
- * 2026.09.24.) — a korábbi, folytonos csúszka helyett DISZKRÉT, sávos
- * legördülő. A sávos ("4-6 óra" stb.) opciók tárolt `hours` értéke a sáv
- * KÖZÉPPONTJA (pl. "4-6 óra" → 5) — ez az egyetlen szám, amit menteni/
- * diagramon ábrázolni lehet egy sávból, a sáv szövege (`label`) viszont a
- * FELHASZNÁLÓ felé mindig a teljes tartományt mutatja. */
+/** "Csak rákattintásra lesz legördülő menü, és ki lehet választani ezeket
+ * (5 perc, 10 perc, fél óra, 1 óra, 2 óra .... egészen 24 óráig óránként)"
+ * (2026.09.25., Marci kérésére) — a 181. pontban bevezetett SÁVOS ("4-6
+ * óra" stb.) legördülő helyett most PONTOS, óránkénti bontás 2 órától
+ * 24 óráig, a rövidebb időtartamokra pedig ugyanaz a finomabb bontás
+ * (5 perc/10 perc/fél óra/1 óra), mint korábban. A "nincs" (0 óra) opciót
+ * Marci diktálása ezúttal SEM tartalmazta explicit módon, de — ugyanúgy,
+ * mint a 181. pontnál — a hiánya ellentmondana a napi alapértelmezésnek
+ * (tünetmentes nap), ezért pótolva, a lista elején. */
 export const DURATION_OPTIONS: { hours: number; label: string }[] = [
   { hours: 0, label: 'nincs' },
   { hours: 5 / 60, label: '5 perc' },
   { hours: 10 / 60, label: '10 perc' },
   { hours: 0.5, label: 'fél óra' },
-  { hours: 1, label: '1 óra' },
-  { hours: 2, label: '2 óra' },
-  { hours: 3, label: '3 óra' },
-  { hours: 5, label: '4-6 óra' },
-  { hours: 8, label: '7-9 óra' },
-  { hours: 11, label: '10-12 óra' },
-  { hours: 13, label: '12 óra+' },
+  ...Array.from({ length: 24 }, (_, i) => ({ hours: i + 1, label: `${i + 1} óra` })),
 ]
+
+/** az állapotfelmérő "időtartam (óra/nap)" kérdésének (durva, sávos)
+ * válaszát képezi le az ÚJ, óránkénti `DURATION_OPTIONS` egy konkrét
+ * értékére — a checklist ELSŐ kitöltésekor ez adja az alapértelmezett
+ * "tünet időtartama" értéket (2026.09.25., Marci kérésére: "Alapértelmezettként
+ * első kitöltésnél az állapotfelmérő 'tünet időtartama' értéket mutatja").
+ * SAJÁT DÖNTÉS (a konkrét óraszám nem volt diktálva): minden sáv a sáv
+ * KÖZEPÉHEZ (vagy annak a `DURATION_OPTIONS`-ban ténylegesen létező,
+ * legközelebbi értékéhez) lett hozzárendelve. */
+export function mapAssessmentDurationToHours(idotartam: string): number {
+  switch (idotartam) {
+    case 'kevesebb, mint 1 óra':
+      return 0.5
+    case '1–2 óra':
+      return 2
+    case '3–5 óra':
+      return 4
+    case '6–8 óra':
+      return 7
+    case 'szinte egész nap':
+      return 24
+    default:
+      return 0
+  }
+}
 
 export type ChecklistEntry = {
   /** ISO dátum (YYYY-MM-DD) — naponta egy bejegyzés. */
