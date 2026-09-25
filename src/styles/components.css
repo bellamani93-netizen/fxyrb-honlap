@@ -3517,7 +3517,7 @@ html[data-theme='dark'] .bodychart-img {
    színeket kapnak, nem a téma-függő `--color-text`/`--color-text-muted`
    tokeneket. */
 .checklist-daily-header {
-  padding: 1.25rem 1.75rem;
+  padding: 1rem 1.25rem;
   background: var(--navy);
   color: var(--offwhite);
 }
@@ -3547,6 +3547,21 @@ html[data-theme='dark'] .bodychart-img {
 }
 .checklist-chart-block:last-child {
   border-bottom: none;
+}
+/* "telefonos nézetben is egyszerre mozogjon a kurzor a 3 grafikonon"
+   (2026.09.25., Marci kérésére) — érintőn a `.recharts-wrapper` alapból
+   `touch-action: auto`-t örököl, ezért egy vízszintes húzás-gesztus (a
+   diagramok közti kurzor-szinkron `syncId`-je ezt figyeli, ld. fent) az
+   első, akár apró függőleges elmozdulásra a MOBIL BÖNGÉSZŐ natív
+   görgetésévé alakulhat, mielőtt a recharts saját touchmove-figyelője
+   (ami a szinkront magát is küldi a másik 2 diagramnak) egyáltalán
+   megkapná az eseményt — emiatt tűnhet úgy, hogy a kurzor NEM mozog
+   együtt. `touch-action: pan-y` a diagram-blokkon: az oldal FÜGGŐLEGES
+   görgetése a diagramon indítva is natívan működik tovább, de a
+   VÍZSZINTES húzást a böngésző nem "viszi el" elsőre görgetésnek —
+   így az mindig eljut a recharts touchmove-kezelőjéhez. */
+.checklist-chart-block .recharts-wrapper {
+  touch-action: pan-y;
 }
 /* "az előző/következő szint gombok egy kis '⋯' menü mögé kerüljenek" (179.
    pont javítása, 2026.09.24., Marci kérésére) — egyszerű, saját állapotú
@@ -3590,12 +3605,22 @@ html[data-theme='dark'] .bodychart-img {
 }
 /* "az időtartam, intenzitás, nem hajolós napok közt legyen egy
    dobozhatártól dobozhatárig tartó halvány vékony csík" (182. pont,
-   2026.09.24., Marci kérésére) — a napi mezőket tartalmazó `.p-4`
-   (1.5rem paddingú) blokk paddingján negatív margóval túlnyúlva, hogy
-   TÉNYLEG a kártya szélétől szélig érjen. */
+   2026.09.24., Marci kérésére) — a napi mezőket tartalmazó `.p-3`
+   (1rem paddingú, ld. lent) blokk paddingján negatív margóval túlnyúlva,
+   hogy TÉNYLEG a kártya szélétől szélig érjen. */
 .checklist-field-divider {
   height: 1px;
   margin: 1.25rem -1.5rem;
   background: var(--color-border);
   opacity: 0.5;
+}
+/* "találj ki egy olyan elrendezést, amivel a checklist beviteli doboza
+   elfér görgetés nélkül telefonon" (2026.09.25., Marci kérésére) — a
+   napi űrlap `.p-3`-ra tömörített paddingjához igazított, KISEBB
+   függőleges margójú csík-változat (a korábbi 1.25rem helyett 0.75rem,
+   a vízszintes túlnyúlás is az új 1rem paddinghoz igazítva). Ez a
+   csík EGYBEN a törölt "Mai tünetek" alcím szerepét is átveszi (a
+   gombsor és az "időtartam" mező közt), nem csak a meglévő 2 helyen. */
+.checklist-field-divider--tight {
+  margin: 0.75rem -1rem;
 }

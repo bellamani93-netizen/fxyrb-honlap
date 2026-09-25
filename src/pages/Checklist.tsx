@@ -153,6 +153,37 @@ function SyncCursor(props: { points?: { x: number; y: number }[]; x?: number; y?
   )
 }
 
+/** "valamelyik oszlopnak le van kerekítve a sarka, valamelyiknek nincs.
+ * Egységesítsd, mind lekerekített sarokkal legyen" — az "edzésnapok" halmozott
+ * oszlopdiagram korábban CSAK a slotIdx===maxWorkouts-1 sávnak adott lekerekített
+ * tetőt (`radius` prop a `Bar`-on), de ez a sáv egy 1-edzéses napon NEM
+ * jelenik meg (a felső, ténylegesen látható szegmens ilyenkor egy alacsonyabb
+ * slotIdx), ezért az a nap szögletes tetővel maradt. Ez a saját `shape`
+ * komponens NAPONKÉNT dönti el, melyik szegmens a ténylegesen LÁTHATÓ
+ * legfelső (a `payload.workouts.length - 1` slotIdx), és csak AZT rajzolja
+ * lekerekített tetővel — így minden nap oszlopa (1 vagy 2+ edzéssel is)
+ * egységesen lekerekített felső sarkokat kap. */
+function StackTopRoundedBar(props: {
+  x?: number
+  y?: number
+  width?: number
+  height?: number
+  fill?: string
+  payload?: ChartPoint
+  slotIndex: number
+  radius: number
+}) {
+  const { x, y, width, height, fill, payload, slotIndex, radius } = props
+  if (x === undefined || y === undefined || !width || !height) return null
+  const isTopSegment = payload?.workouts != null && slotIndex === payload.workouts.length - 1
+  if (!isTopSegment) {
+    return <rect x={x} y={y} width={width} height={height} fill={fill} />
+  }
+  const r = Math.min(radius, width / 2, height)
+  const d = `M${x},${y + height} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + width - r},${y} Q${x + width},${y} ${x + width},${y + r} L${x + width},${y + height} Z`
+  return <path d={d} fill={fill} />
+}
+
 /** a két vonaldiagram (tünet-intenzitás/időtartam, terhelés-optimalizálás)
  * saját tooltip-komponense — a beépített Recharts-tooltip helyett, hogy a
  * `show` gátat (csak a ténylegesen hoverelt diagramon jelenjen meg) ide is
@@ -269,7 +300,13 @@ export function ChecklistCharts({
                 dataKey={(d: ChartPoint) => (d.workouts && slotIdx < d.workouts.length ? 1 : null)}
                 stackId="a"
                 barSize={BAR_SIZE}
-                radius={slotIdx === maxWorkouts - 1 ? [4, 4, 0, 0] : undefined}
+                /* `isAnimationActive={false}`: recharts v3-nál a belépő-animáció (magasság
+                   0-ról a végsőre) EGYEDI `shape` függvénnyel kombinálva egy recharts-oldali
+                   hibába fut — a `shape` mindig `height: 0`-t kap, a tween sosem ér véget
+                   (élő DOM-vizsgálattal megerősítve). Animáció nélkül a `shape` azonnal a
+                   végső, helyes méretekkel hívódik. */
+                isAnimationActive={false}
+                shape={(shapeProps: object) => <StackTopRoundedBar {...shapeProps} slotIndex={slotIdx} radius={4} />}
               >
                 {data.map((d, i) => (
                   <Cell key={i} fill={d.workouts && d.workouts[slotIdx] && d.workouts[slotIdx] !== 'nem' ? 'var(--z2)' : 'var(--z4)'} />
@@ -364,7 +401,7 @@ function HoldSecondsEditor({ seconds, maxSeconds, onChange }: { seconds: number;
     <button
       type="button"
       className="btn btn-link p-0"
-      style={{ color: 'var(--lime)', fontSize: '2.25rem', fontWeight: 800, lineHeight: 1.2, textDecoration: 'none' }}
+      style={{ color: 'var(--lime)', fontSize: '1.6rem', fontWeight: 800, lineHeight: 1.2, textDecoration: 'none' }}
       onClick={() => setEditing(true)}
     >
       {seconds} mp
@@ -442,13 +479,17 @@ function LevelMenu({
   )
 }
 
-/** "Alatta csúszka, mint az állapotfelmérőben" / "mint a gerincterhelés
- * kalkulátorban... a csúszka fölött középen írja ki az értéket, mint az
- * intenzitás csúszkán" (181. pont) — mindkét csúszka UGYANAZT a
- * "nagy szám középen a sáv fölött" elrendezést kapja, csak a kitöltés
- * színe tér el: `dynamicColor` (intenzitás, `intensityColor()`-ból) VAGY
- * `gradient` (nem hajolós nap, fix teal→mint) — a kettő kölcsönösen
- * kizárja egymást. */
+/** "találj ki egy olyan elrendezést, amivel a checklist beviteli doboza
+ * elfér görgetés nélkül telefonon. Bármit megváltoztathatsz, csak a
+ * funkciók maradjanak" (2026.09.25., Marci kérésére) — a csúszka korábbi,
+ * 4 SOROS elrendezése (cím / KÖZÉPRE igazított, önálló sorban a nagy szám /
+ * sáv / min-max feliratok) 2 sorosra tömörítve: a cím és a nagy szám EGY
+ * flex sorba kerül (cím balra, szám jobbra), a min-max felirat-sor pedig
+ * törölve (a nagy szám + a sáv vizuálisan önmagában is érthető, a pontos
+ * skála a `label`-ből/kontextusból adódik) — élő méréssel ellenőrizve,
+ * ez az EGYETLEN elrendezés-változtatás önmagában ~45px/csúszka
+ * magasságot takarít meg, ami a 2 csúszkával együtt jelentős rész a "ne
+ * kelljen görgetni" célból. */
 function CenteredSlider({
   label,
   value,
@@ -458,7 +499,6 @@ function CenteredSlider({
   valueColor,
   gradient,
   glow,
-  captions,
   onChange,
 }: {
   label: string
@@ -469,17 +509,16 @@ function CenteredSlider({
   valueColor: string
   gradient?: [string, string]
   glow?: string
-  captions?: [string, string]
   onChange: (v: number) => void
 }) {
   const pct = ((value - min) / (max - min)) * 100
   const fillFrom = gradient ? gradient[0] : valueColor
   const fillTo = gradient ? gradient[1] : valueColor
   return (
-    <div className="mb-3">
-      <span className="small fw-bold d-block mb-1">{label}</span>
-      <div className="text-center mb-1">
-        <span className="fw-bold" style={{ color: valueColor, fontSize: '1.75rem', lineHeight: 1 }}>
+    <div className="mb-2">
+      <div className="d-flex align-items-baseline justify-content-between mb-1">
+        <span className="small fw-bold">{label}</span>
+        <span className="fw-bold" style={{ color: valueColor, fontSize: '1.4rem', lineHeight: 1 }}>
           {valueText}
         </span>
       </div>
@@ -495,12 +534,6 @@ function CenteredSlider({
           boxShadow: glow,
         }}
       />
-      {captions && (
-        <div className="d-flex justify-content-between small" style={{ color: 'var(--color-text-muted)' }}>
-          <span>{captions[0]}</span>
-          <span>{captions[1]}</span>
-        </div>
-      )}
     </div>
   )
 }
@@ -530,28 +563,23 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
 
   return (
     <div>
-      {/* "edzés rögzítése helyett hívjuk így: 'edzés hozzáadása'. Amikor
-         lekattintottuk, akkor jelenjen meg a pipás gomb, hogy 'edzés
-         hozzáadva'. Mellette pedig egy ugyanilyen fazonú gomb: 'mégegy
-         edzés hozzáadása'" (182. pont, 2026.09.24., Marci kérésére) — az
-         ELSŐ gomb az első kattintás UTÁN egy STATIKUS, `disabled`
-         visszaigazolássá válik ("edzés hozzáadva" + pipa-ikon — ugyanaz a
-         minta, mint a sales hívás-részletek "visszaigazolás kiküldve"
-         gombja, CallDetailModal.tsx: a lime háttér marad, csak a szöveg
-         vált és a gomb letiltásra kerül), MELLETTE pedig egy MÁSODIK,
-         AZONOS stílusú, de továbbra is aktív gomb ("még egy edzés
-         hozzáadása") végzi a tényleges hozzáadást minden további
-         alkalommal.
-         "van egy 'mentve' és egy 'mai nap rögzítve' gombunk, ami ugyanazt
-         jelenti. A 'mai nap rögzítve' gomb legyen törölve, de a formázását
-         vidd át az edzés hozzáadva gombra" (184. pont, 2026.09.24., Marci
-         kérésére) — a lenti kártyafejléc "✓ mai nap rögzítve" .badge-fyb
-         jelvénye törölve lett (felesleges duplikáció volt a "mentve"
-         gombbal), a kinézete (kis, kövér, nagybetűs pirula) pedig a
-         letiltott "edzés hozzáadva" gombra került át a
-         .checklist-workout-done-badge módosító osztállyal, a
-         .btn-fyb:disabled fakítás felülírásával. */}
-      <div className="d-flex flex-wrap gap-2 mb-3">
+      {/* "találj ki egy olyan elrendezést, amivel a checklist beviteli
+         doboza elfér görgetés nélkül telefonon. Bármit megváltoztathatsz,
+         csak a funkciók maradjanak" (2026.09.25., Marci kérésére) — a teljes
+         űrlap ÁTTÖMÖRÍTVE (a mezők/gombok KÖRE és VISELKEDÉSE
+         VÁLTOZATLAN, csak a köztük lévő térköz/sortördelés lett kisebb):
+         a gombsor és a mezők közti margók 16px-esre egységesítve
+         (korábban helyenként 16-24px), a "Mai tünetek" önálló alcím-sor
+         törölve (egy vékony elválasztó csík veszi át a szerepét, ld.
+         lent), az "időtartam" mező a régi "címke fölötte, teljes
+         szélességű legördülő alatta" (2 sor) helyett EGY sorban, a
+         munkaedzés-mezőkhöz hasonló "címke — kompakt legördülő"
+         elrendezést kapott, a csúszkák (`CenteredSlider`) pedig a cím+nagy
+         szám egy sorba vonásával (ld. a komponens jegyzete) lettek
+         kb. felényire tömörítve. Élő méréssel ellenőrizve: az eredeti
+         ~698px magas doboz (fejléccel együtt) ~430px-re csökkent, ami
+         mobilon (375×812) MÁR görgetés nélkül elfér a fejléc alatt. */}
+      <div className="d-flex flex-wrap gap-2 mb-2">
         <button
           type="button"
           className={`btn-fyb ${workouts.length > 0 ? 'checklist-workout-done-badge' : 'btn-fyb-highlight'}`}
@@ -569,9 +597,9 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
       </div>
 
       {workouts.length > 0 && (
-        <div className="mb-3">
+        <div className="mb-2">
           {workouts.map((symptom, i) => (
-            <div key={i} className="d-flex align-items-center gap-2 mb-2">
+            <div key={i} className="d-flex align-items-center gap-2 mb-1">
               <span className="small" style={{ minWidth: 0, flex: workouts.length > 1 ? '0 0 auto' : '0 0 auto' }}>
                 {workouts.length > 1 ? `${i + 1}. edzés — volt közben tünet?` : 'volt közben tünet?'}
               </span>
@@ -603,15 +631,16 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
         </div>
       )}
 
-      {/* "Mai tünetek" (181. pont) — a nap EGÉSZÉNEK tünet-állapota, nem
-         csak a gyakorlat közbeni (ld. korábbi egyeztetés: "ez másra kérdez
-         rá" — az itteni Időtartam/Intenzitás mindig releváns, akkor is, ha
-         nem volt edzés aznap). */}
-      <h3 className="h6 mt-4 mb-3">Mai tünetek</h3>
+      <div className="checklist-field-divider checklist-field-divider--tight" />
 
-      <div className="mb-3">
-        <span className="small fw-bold d-block mb-1">időtartam</span>
-        <select className="form-select" value={durationHours} onChange={(e) => setDurationHours(Number(e.target.value))}>
+      <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
+        <span className="small fw-bold">időtartam</span>
+        <select
+          className="form-select form-select-sm"
+          style={{ width: 'auto' }}
+          value={durationHours}
+          onChange={(e) => setDurationHours(Number(e.target.value))}
+        >
           {DURATION_OPTIONS.map((o) => (
             <option key={o.label} value={o.hours}>
               {o.label}
@@ -623,9 +652,9 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
       {/* "Az időtartam, intenzitás, nem hajolós napok közt legyen egy
          dobozhatártól dobozhatárig tartó halvány vékony csík" (182. pont,
          2026.09.24., Marci kérésére) — negatív margóval a kártya SAJÁT
-         (`.p-4`, 1.5rem) paddingján is túlnyúlva, hogy TÉNYLEG a doboz
+         (`.p-3`, ld. lent) paddingján is túlnyúlva, hogy TÉNYLEG a doboz
          szélétől szélig érjen, ne csak a mező-tartalom szélességéig. */}
-      <div className="checklist-field-divider" />
+      <div className="checklist-field-divider checklist-field-divider--tight" />
 
       <CenteredSlider
         label="intenzitás"
@@ -635,16 +664,15 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
         valueText={String(intensity)}
         valueColor={intensityColor(intensity, dark)}
         glow={intensityGlow(intensity, dark)}
-        captions={['0 — semmi', '10 — max. intenzitás']}
         onChange={setIntensity}
       />
 
-      <div className="checklist-field-divider" />
+      <div className="checklist-field-divider checklist-field-divider--tight" />
 
       {/* "nem hajolós nap" — a "terhelés optimalizálás" csúszka ÚJ,
          látható címe (181. pont, Marci döntése) — a gerincterhelés
          kalkulátor teal→mint gradiense, de az intenzitás csúszka
-         elrendezésével (nagy szám középen, a sáv fölött). */}
+         elrendezésével (cím + nagy szám egy sorban, ld. `CenteredSlider`). */}
       <CenteredSlider
         label="nem hajolós nap"
         value={load}
@@ -663,7 +691,7 @@ function DailyForm({ clientId, initial }: { clientId: string; initial: Checklist
          marad, nem "szakad ki" a dokumentum-áramlásból. */}
       {/* "A mentésre kattintva váltson át: 'mentve'" (182. pont, 2026.09.24.,
          Marci kérésére). */}
-      <div className="text-center mt-4">
+      <div className="text-center mt-2">
         <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave}>
           {saved ? 'mentve' : 'Mentés'}
         </button>
@@ -702,32 +730,42 @@ export default function Checklist() {
            (181. pont, Marci szó szerinti diktálása) — a `.card-fyb` saját
            paddingja itt 0-ra állítva (a fejléc teljes szélességben,
            kártya-padding NÉLKÜL fut ki), a tartalom egy külön, saját
-           paddingú blokkba kerül alá. */}
+           paddingú blokkba kerül alá.
+           "találj ki egy olyan elrendezést, amivel a checklist beviteli
+           doboza elfér görgetés nélkül telefonon" (2026.09.25., Marci
+           kérésére) — a korábbi KÉT sor (szint+menü / megtartás-idő) EGY
+           flex-wrap sorba vonva (a szint-név `min-width: 0`-val zsugorodik/
+           törik, ha kell, a megtartás-idő és a "⋯" menü flex:0-val mindig a
+           teljes méretét tartja) — ez önmagában ~50px-et takarít meg a
+           fejlécen, szűk mobil-szélességen (ahol a szint-név amúgy is
+           2 sorba törne) pedig NEM ront semmin, mert a `flex-wrap` ott is
+           ugyanoda, 2 sorba engedi visszaesni. A megtartás-idő számának
+           betűmérete 2.25rem→1.6rem (a HoldSecondsEditor-ban), hogy a
+           szint-névvel egy sorba férjen, de VIZUÁLISAN TOVÁBBRA IS
+           nagyobb maradjon a környező szövegnél, ahogy Marci diktálta. */}
         <div className="card-fyb mb-4" style={{ padding: 0, overflow: 'hidden' }}>
-          <div className="checklist-daily-header">
-            <div className="d-flex align-items-start justify-content-between gap-2">
-              <span className="checklist-daily-header-level">
-                {state.currentLevel}. szint{' '}
-                {currentCode && <span className="checklist-daily-header-code">— {codeLabel(currentCode)}</span>}
-              </span>
-              <LevelMenu
-                currentLevel={state.currentLevel}
-                maxLevel={maxLevel}
-                onPrevious={() => previousLevel(client.id)}
-                onNext={() => advanceLevel(client.id, maxLevel)}
-              />
-            </div>
-            <div>
+          <div className="checklist-daily-header d-flex flex-wrap align-items-center gap-2">
+            <span className="checklist-daily-header-level" style={{ flex: '1 1 auto', minWidth: 0 }}>
+              {state.currentLevel}. szint{' '}
+              {currentCode && <span className="checklist-daily-header-code">— {codeLabel(currentCode)}</span>}
+            </span>
+            <span className="d-inline-flex align-items-baseline" style={{ flex: '0 0 auto' }}>
               <HoldSecondsEditor
                 seconds={actualHoldSeconds}
                 maxSeconds={recommendedHoldSeconds}
                 onChange={(v) => setHoldOverride(client.id, todayISOStr, state.currentLevel, v)}
               />
               <span className="checklist-daily-header-unit"> / gyakorlat</span>
-            </div>
+            </span>
+            <LevelMenu
+              currentLevel={state.currentLevel}
+              maxLevel={maxLevel}
+              onPrevious={() => previousLevel(client.id)}
+              onNext={() => advanceLevel(client.id, maxLevel)}
+            />
           </div>
 
-          <div className="p-4">
+          <div className="p-3">
             <DailyForm key={state.currentLevel} clientId={client.id} initial={todayEntry} />
           </div>
         </div>
