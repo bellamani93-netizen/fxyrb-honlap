@@ -1971,6 +1971,16 @@ html[data-theme='dark'] .sales-delete-icon {
   background-color: var(--sagegray);
   color: var(--offwhite);
 }
+/* checklist "+" (további edzés hozzáadása) gomb — "a + gomb is lime kör
+   legyen benne a + jellel" (2026.09.25., Marci kérésére), a mellette lévő
+   lime CTA-gombokkal (`.btn-fyb-highlight`) megegyező lime/navy párral. */
+.circle-icon-btn--lime {
+  background-color: var(--lime);
+  color: var(--navy);
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
 
 /* a hívás utólagos kimenete ("nem jelent meg" / "rendben") — 2026.08.28.,
    6. kör: Marci kérésére szöveg nélküli, kis színes pötty (a korábbi

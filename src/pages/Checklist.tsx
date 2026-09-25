@@ -764,11 +764,14 @@ function DailyForm({
           {workoutButtonLabel(workouts.length)}
           {workouts.length > 0 && <Icon src="/icons/ikon_pipa_vastag.svg" style={{ backgroundColor: 'var(--navy)' }} />}
         </button>
+        {/* "a + gomb is lime kör legyen benne a + jellel" (2026.09.25.,
+           Marci kérésére) — a projekt már meglévő `.circle-icon-btn`
+           mintáját (SALES hívás-sorok kör-gombjai) viseli, egy ÚJ
+           `--lime` módosítóval. */}
         {workouts.length > 0 && (
           <button
             type="button"
-            className="btn-fyb btn-fyb-outline btn-fyb-sm"
-            style={{ padding: '0.4rem 0.75rem' }}
+            className="circle-icon-btn circle-icon-btn--lime"
             aria-label="még egy edzés hozzáadása"
             onClick={handleAddWorkout}
           >

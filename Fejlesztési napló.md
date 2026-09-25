@@ -2235,3 +2235,7 @@ Ezután Marci egy teljes újratervezést diktált a napi beviteli dobozhoz: a "c
 Marci szólt, hogy a "közben '...'" sorban a tünet-szöveg ("nem volt tünet") kék színű volt (a Bootstrap `.btn-link` alapértelmezett színe), és kérte, hogy legyen ugyanolyan színű, mint a "közben" szó, idézőjelek nélkül. A `ClickToSelect` trigger-stílusában a szín explicit a "közben" felirattal megegyező halvány `--color-text-muted`-ra állítva, az idézőjeleket hozzáfűző kód pedig törölve.
 
 **Tesztelve böngészőben:** élő számított-stílus-lekérdezéssel megerősítve, hogy a "közben nem volt tünet" sor mindkét fele pontosan ugyanazt a színt viseli, idézőjelek nélkül, csak az aláhúzás jelzi a kattinthatóságot. Világos és sötét módban is rendben, `npm run build`/`tsc -b` hibamentesek.
+
+Marci kérte, hogy a "még egy edzés hozzáadása" sima szöveges gomb helyett egy lime kör legyen, benne a "+" jellel. A projekt már meglévő `.circle-icon-btn` kör-gomb mintáját (SALES hívás-sorok) használtam fel egy új lime-módosítóval, egyedi CSS írása helyett.
+
+**Tesztelve böngészőben:** a "+" gomb lime kör alakban jelenik meg, és kattintásra változatlanul helyesen ad hozzá egy újabb edzést. Világos és sötét módban is rendben, `npm run build`/`tsc -b` hibamentesek.

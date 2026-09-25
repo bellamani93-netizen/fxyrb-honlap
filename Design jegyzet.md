@@ -1938,3 +1938,11 @@ Marci: "a 'nem volt tünet' ne legyen kék, olyan színű legyen, mint a 'közbe
 **Technikai megvalósítás.** A `ClickToSelect` `triggerStyle`-jában a szín explicit `var(--color-text-muted)`-ra állítva (felülírva a `.btn-link` alapértelmezett kék színét) — pontosan az a token, amit a "közben" `<span>` is használ, így a két szövegrész MINDIG egyező színt kap, világos ÉS sötét módban is. A `renderTrigger` visszatérési értékéből a körülvevő `'...'` idézőjelek eltávolítva — a `symptomSentence()` függvény maga már eddig is idézőjel NÉLKÜLI szöveget adott vissza, az idézőjeleket a hívási hely (`` `'${...}'` ``) fűzte hozzá; ez a fűzés törölve.
 
 **Böngészős tesztelés (2026.09.25.):** valódi ÜF-bejelentkezéssel megerősítve: "+ mai edzés"-re kattintva a "közben nem volt tünet" sor mostantól idézőjelek NÉLKÜL, a "közben" szóval TELJESEN EGYEZŐ, halvány színnel jelenik meg (élő számított-stílus-lekérdezéssel is megerősítve: mindkét elem `rgb(94, 128, 127)` színű) — csak az aláhúzás jelzi, hogy kattintható. Világos ÉS sötét módban is megerősítve screenshot-tal. `npm run build`/`tsc -b` hibamentesek.
+
+188\. A "+" (TOVÁBBI EDZÉS) GOMB LIME KÖRRÉ ALAKÍTÁSA (2026.09.25., Marci kérésére)
+
+Marci: "a + gomb is lime kör legyen benne a + jellel." A 186. pontban bevezetett, sima szöveges pirula-gomb (`btn-fyb btn-fyb-outline btn-fyb-sm`) helyett kör alakú, lime hátterű gombot kért.
+
+**Technikai megvalósítás.** A projektben már meglévő `.circle-icon-btn` mintát (SALES hívás-sorok kör-gombjai, `components.css`) használtam fel egy ÚJ `.circle-icon-btn--lime` módosítóval (`background-color: var(--lime); color: var(--navy);`), ahelyett hogy egyedi CSS-t írtam volna — ugyanaz a 2,2rem méretű, körkörös, középre igazított alap, mint a projekt többi kör-gombjánál.
+
+**Böngészős tesztelés (2026.09.25.):** valódi ÜF-bejelentkezéssel megerősítve: "+ mai edzés"-re kattintva a MELLETTE megjelenő "+" gomb lime kör alakban, benne a "+" jellel jelenik meg, és kattintásra helyesen ad hozzá egy újabb edzést ("MAI 2 EDZÉS HOZZÁADVA"-ra vált, 2. sor jelenik meg). Világos ÉS sötét módban is megerősítve screenshot-tal. `npm run build`/`tsc -b` hibamentesek.
