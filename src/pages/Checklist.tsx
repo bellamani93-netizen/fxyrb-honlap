@@ -639,16 +639,20 @@ function workoutButtonLabel(count: number): string {
 }
 
 /** a "közben ..." sor SZÖVEGE a tünet-válaszhoz — "nem" esetén Marci
- * szó szerinti példáját ("nem volt tünet") használva, a többi tünetre
- * pedig ugyanezt a mondat-mintát követve ("{tünet} volt") — SAJÁT DÖNTÉS,
- * mert Marci csak az alapértelmezett ("nem") esetet diktálta. Az idézőjelek
- * (eredetileg "'nem volt tünet'") KIVÉVE (2026.09.25., Marci kérésére: "ne
- * legyen ott a '' körülötte"), a szöveg színe a "közben" felirattal
- * megegyező, halvány `--color-text-muted` (korábban a `.btn-link`
- * alapértelmezett kék színét viselte — "ne legyen kék, olyan színű
- * legyen, mint a 'közben'"). */
+ * szó szerinti példáját ("nem volt tünet") használva, "más" esetén a
+ * Marci által diktált teljes mondatot ("közben valami más tünet volt" —
+ * ld. lent, a "közben" előtag a hívási helyen külön span, ezért itt csak
+ * "valami más tünet volt" a rész), a többi tünetre pedig a korábbi,
+ * mondat-mintát követve ("{tünet} volt") — SAJÁT DÖNTÉS, mert Marci csak
+ * a "nem" és a "más" esetet diktálta. Az idézőjelek (eredetileg "'nem
+ * volt tünet'") KIVÉVE (2026.09.25., Marci kérésére: "ne legyen ott a ''
+ * körülötte"); a megjelenítés stílusa (kövér, lime, aláhúzás nélkül) a
+ * hívási helyen, a "Tünet időtartama" mintáját követve (189. pont,
+ * 2026.09.28.). */
 function symptomSentence(label: string, value: SymptomDuringExercise): string {
-  return value === 'nem' ? 'nem volt tünet' : `${label} volt`
+  if (value === 'nem') return 'nem volt tünet'
+  if (value === 'mas') return 'valami más tünet volt'
+  return `${label} volt`
 }
 
 function DailyForm({
@@ -709,23 +713,27 @@ function DailyForm({
       {/* "Checklistet újratervezzük. Telefonra optimalizálva, hogy a
          beviteli rész kiférjen görgetés nélkül" (2026.09.25., Marci
          kérésére) — a napi ŰRLAP TELJES újra-diktálása, a korábbi
-         (185. pont) sorrendet is felcserélve: előbb "Milyen napod volt?"
-         (tünet-időtartam + intenzitás + "nem hajolás"), CSAK ez UTÁN az
-         edzés-rögzítés, majd a Mentés. A "tünet időtartama" és az
-         edzésenkénti "közben '...'" tünet-válasz mostantól KATTINTÁSRA
-         nyíló legördülőként jelenik meg (ld. `ClickToSelect`), nem
-         mindig-látható `<select>`-ként — ez önmagában is tömörebb, mint a
-         185. pontban bevezetett "címke — kompakt legördülő" sor. */}
-      <h3 className="h6 mb-2">Milyen napod volt?</h3>
+         (185. pont) sorrendet is felcserélve: előbb a tünet-időtartam +
+         intenzitás + "nem hajolás", CSAK ez UTÁN az edzés-rögzítés, majd
+         a Mentés. A "tünet időtartama" és az edzésenkénti "közben '...'"
+         tünet-válasz mostantól KATTINTÁSRA nyíló legördülőként jelenik
+         meg (ld. `ClickToSelect`), nem mindig-látható `<select>`-ként —
+         ez önmagában is tömörebb, mint a 185. pontban bevezetett
+         "címke — kompakt legördülő" sor.
+         "Töröljük a 'milyen napod volt?' sort" (2026.09.28., Marci
+         kérésére) — a 186. pontban bevezetett `<h3>` alcím törölve, a
+         szekció most közvetlenül a "Tünet mai időtartama" sorral indul. */}
 
       {/* "'Tünet időtartama' ugyanolyan legyen, mint eddig a 'Tünet'"
          (2026.09.28., Marci kérésére) — a korábbi 2 részre bontott felirat
          (kövér "Tünet" + halvány, kisbetűs "időtartama") EGYSÉGES, kövér,
          normál méretű szöveggé vonva, ugyanúgy, mint a lenti "közben"
          felirat (ld. ott a jegyzetet) — csak a VÁLTOZÓ érték (itt: az
-         időtartam) marad lime színű. */}
+         időtartam) marad lime színű.
+         "'Tünet időtartama' helyett 'Tüneted mai időtartama'" (2026.09.28.,
+         Marci kérésére, ugyanebben a körben). */}
       <div className="d-flex align-items-baseline flex-wrap gap-1 mb-2">
-        <span className="fw-bold">Tünet időtartama</span>
+        <span className="fw-bold">Tüneted mai időtartama</span>
         <ClickToSelect
           value={durationHours}
           options={DURATION_OPTIONS.map((o) => ({ value: o.hours, label: o.label }))}
@@ -736,9 +744,11 @@ function DailyForm({
       </div>
 
       {/* "Alatta 'Tüneted intenzitása' legyen a csúszka felirat" (2026.09.28.,
-         Marci kérésére — korábban csak "intenzitás"). */}
+         Marci kérésére — korábban csak "intenzitás"), majd ugyanebben a
+         körben tovább pontosítva: "'Tüneted intenzitása' helyett:
+         'Tüneted mai intenzitása'". */}
       <CenteredSlider
-        label="Tüneted intenzitása"
+        label="Tüneted mai intenzitása"
         value={intensity}
         min={0}
         max={10}

@@ -2247,3 +2247,7 @@ Marci több finomítást kért egy körben a checklist adatbeviteli dobozon: a "
 A "grafikonra csak mentéskor kerüljön" kérés már eddig is teljesült — a napi űrlap adatai a `DailyForm` helyi állapotában élnek, a grafikonok által olvasott állapot csak a Mentés gombra frissül, nem kellett hozzá kódmódosítás.
 
 **Tesztelve böngészőben:** valódi ÜF-bejelentkezéssel megerősítve minden formázás-változást élő számított-stílus-lekérdezéssel; a Mentés gomb helyesen rejtve maradt üres/félig kitöltött állapotban, megjelent a csúszka megérintése + edzés hozzáadása után, asztali nézetben jobbra igazítva (mobilon középen maradt), "mentve"-re kattintva halványabb lett, új edzés hozzáadására pedig azonnal visszaváltott "Mentés"-re, teljes telítettséggel. Világos és sötét módban is rendben, `npm run build`/`tsc -b` hibamentesek.
+
+Marci négy további finomítást kért: a "Milyen napod volt?" alcím törölve; "Tünet időtartama" → "Tüneted mai időtartama"; "Tüneted intenzitása" → "Tüneted mai intenzitása"; a "közben ..." tünet-mondat "más" választásra mostantól "valami más tünet volt"-ot ad (a korábbi, minta-alapú "más volt" helyett).
+
+**Tesztelve böngészőben:** az alcím eltűnt, mindkét felirat helyesen cserélődött, a "más" tünet kiválasztására a sor "↳ közben valami más tünet volt"-ra váltott. Mobilnézetben a doboz a törölt alcím miatt még kevesebb hellyel is elfér görgetés nélkül. Világos és sötét módban is rendben, `npm run build`/`tsc -b` hibamentesek.
