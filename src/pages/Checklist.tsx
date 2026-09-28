@@ -935,7 +935,7 @@ export default function Checklist() {
            túlfutna a legkeskenyebb telefon-szélességen is; (2) "mai
            megtartás: {N} mp" (a `HoldSecondsEditor` változatlan
            kattintásra-szerkeszthető logikájával) + a "⋯" szint-váltó menü,
-           `margin-left: auto`-val MINDIG a sor jobb szélén. */}
+           `justify-content-between` flex-sorban MINDIG a sor jobb szélén. */}
         <div className="card-fyb mb-4" style={{ padding: 0, overflow: 'hidden' }}>
           <div className="checklist-daily-header">
             <div className="checklist-daily-header-level">

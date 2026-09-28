@@ -3636,8 +3636,10 @@ html[data-theme='dark'] .bodychart-img {
    napi űrlap `.p-3`-ra tömörített paddingjához igazított, KISEBB
    függőleges margójú csík-változat (a korábbi 1.25rem helyett 0.75rem,
    a vízszintes túlnyúlás is az új 1rem paddinghoz igazítva). Ez a
-   csík EGYBEN a törölt "Mai tünetek" alcím szerepét is átveszi (a
-   gombsor és az "időtartam" mező közt), nem csak a meglévő 2 helyen. */
+   csík. Eredetileg a törölt "Mai tünetek" alcím szerepét is átvette (a
+   gombsor és az "időtartam" mező közt), de ez a hely a 189/190. pontban
+   (2026.09.28.) a napi űrlap sorrendjének átalakításával megszűnt —
+   mostanra csak a 2, a csúszkák közti helyen fut. */
 .checklist-field-divider--tight {
   margin: 0.75rem -1rem;
 }

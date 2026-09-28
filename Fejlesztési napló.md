@@ -2251,3 +2251,7 @@ A "grafikonra csak mentéskor kerüljön" kérés már eddig is teljesült — a
 Marci négy további finomítást kért: a "Milyen napod volt?" alcím törölve; "Tünet időtartama" → "Tüneted mai időtartama"; "Tüneted intenzitása" → "Tüneted mai intenzitása"; a "közben ..." tünet-mondat "más" választásra mostantól "valami más tünet volt"-ot ad (a korábbi, minta-alapú "más volt" helyett).
 
 **Tesztelve böngészőben:** az alcím eltűnt, mindkét felirat helyesen cserélődött, a "más" tünet kiválasztására a sor "↳ közben valami más tünet volt"-ra váltott. Mobilnézetben a doboz a törölt alcím miatt még kevesebb hellyel is elfér görgetés nélkül. Világos és sötét módban is rendben, `npm run build`/`tsc -b` hibamentesek.
+
+Marci kérte a checklist beviteli doboz teljes átvizsgálását, hogy ne maradjanak benne rögzítetlen/fölösleges/értelmetlen részletek, majd a fázis lezárását. Funkcionális hibát nem találtam, de a sok, gyors egymást követő kör miatt 2 kód-jegyzet lemaradt a tényleges implementációtól: a fejléc "⋯" menüjének jobbra igazítását tévesen `margin-left: auto`-nak írta le egy komment (valójában `justify-content-between`), a `.checklist-field-divider--tight` CSS-jegyzet pedig egy már megszűnt, harmadik csík-helyet (a törölt "Mai tünetek" alcím helyén) írt le. Mindkettő javítva.
+
+Ezzel a checklist beviteli doboz fejlesztési fázisa (179–191. pont) lezárul.
