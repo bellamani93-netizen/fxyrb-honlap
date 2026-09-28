@@ -2239,3 +2239,11 @@ Marci szólt, hogy a "közben '...'" sorban a tünet-szöveg ("nem volt tünet")
 Marci kérte, hogy a "még egy edzés hozzáadása" sima szöveges gomb helyett egy lime kör legyen, benne a "+" jellel. A projekt már meglévő `.circle-icon-btn` kör-gomb mintáját (SALES hívás-sorok) használtam fel egy új lime-módosítóval, egyedi CSS írása helyett.
 
 **Tesztelve böngészőben:** a "+" gomb lime kör alakban jelenik meg, és kattintásra változatlanul helyesen ad hozzá egy újabb edzést. Világos és sötét módban is rendben, `npm run build`/`tsc -b` hibamentesek.
+
+## 2026.09.28. — formázás-egységesítés, lefele-jobbra nyíl, és a Mentés gomb feltételes megjelenése/állapotai
+
+Marci több finomítást kért egy körben a checklist adatbeviteli dobozon: a "Tünet időtartama" felirat (korábban 2 részre bontva — kövér "Tünet" + halvány "időtartama") egységesen kövérré vált; a csúszka felirata "intenzitás"-ról "Tüneted intenzitása"-ra változott; az edzés-gomb alatt egy "↳" nyíl köti össze vizuálisan a gombot a "közben ..." sorral, aminek formázása is a "Tünet időtartama" mintáját követi (egységes betűméret/vastagság, csak a változó rész lime, aláhúzás nélkül); a Mentés gomb asztali nézetben jobbra igazítva, "mentve" állapotban halványabb (0,75 opacitás), új edzés hozzáadásakor visszavált "Mentés"-re, és csak akkor jelenik meg ELŐSZÖR, ha a "nem hajolás" csúszkát megérintették ÉS legalább egy edzés hozzá lett adva.
+
+A "grafikonra csak mentéskor kerüljön" kérés már eddig is teljesült — a napi űrlap adatai a `DailyForm` helyi állapotában élnek, a grafikonok által olvasott állapot csak a Mentés gombra frissül, nem kellett hozzá kódmódosítás.
+
+**Tesztelve böngészőben:** valódi ÜF-bejelentkezéssel megerősítve minden formázás-változást élő számított-stílus-lekérdezéssel; a Mentés gomb helyesen rejtve maradt üres/félig kitöltött állapotban, megjelent a csúszka megérintése + edzés hozzáadása után, asztali nézetben jobbra igazítva (mobilon középen maradt), "mentve"-re kattintva halványabb lett, új edzés hozzáadására pedig azonnal visszaváltott "Mentés"-re, teljes telítettséggel. Világos és sötét módban is rendben, `npm run build`/`tsc -b` hibamentesek.

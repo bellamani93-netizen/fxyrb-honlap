@@ -674,9 +674,19 @@ function DailyForm({
   const [intensity, setIntensity] = useState(initial?.symptomIntensity ?? 0)
   const [load, setLoad] = useState(initial?.loadOptimization ?? 50)
   const [saved, setSaved] = useState(false)
+  // "A mentés gomb akkor jelenik meg először, ha a nem hajlás[t
+  // megérintették], és legalább egy mai edzés hozzá lett adva" (2026.09.28.,
+  // Marci kérésére) — SAJÁT ÉRTELMEZÉS: a "nem hajolás" csúszkának MINDIG
+  // van értéke (alapból 50%), ezért a feltétel csak úgy értelmezhető, hogy a
+  // felhasználó ténylegesen HOZZÁNYÚLT (elmozdította) — ha már van mentett
+  // mai bejegyzés (`initial`), ez a feltétel eleve teljesült korábban.
+  const [loadTouched, setLoadTouched] = useState(initial !== undefined)
 
   function handleAddWorkout() {
     setWorkouts((w) => [...w, 'nem'])
+    // "Ha új edzést adtak hozzá, akkor megint váltson erre: 'mentés'"
+    // (2026.09.28., Marci kérésére).
+    setSaved(false)
   }
   function handleWorkoutChange(index: number, symptom: SymptomDuringExercise) {
     setWorkouts((w) => w.map((s, i) => (i === index ? symptom : s)))
@@ -684,10 +694,15 @@ function DailyForm({
   function handleRemoveWorkout(index: number) {
     setWorkouts((w) => w.filter((_, i) => i !== index))
   }
+  function handleLoadChange(v: number) {
+    setLoad(v)
+    setLoadTouched(true)
+  }
   function handleSave() {
     saveTodayEntry(clientId, { workouts, symptomDurationHours: durationHours, symptomIntensity: intensity, loadOptimization: load })
     setSaved(true)
   }
+  const showSaveButton = loadTouched && workouts.length > 0
 
   return (
     <div>
@@ -703,11 +718,14 @@ function DailyForm({
          185. pontban bevezetett "címke — kompakt legördülő" sor. */}
       <h3 className="h6 mb-2">Milyen napod volt?</h3>
 
+      {/* "'Tünet időtartama' ugyanolyan legyen, mint eddig a 'Tünet'"
+         (2026.09.28., Marci kérésére) — a korábbi 2 részre bontott felirat
+         (kövér "Tünet" + halvány, kisbetűs "időtartama") EGYSÉGES, kövér,
+         normál méretű szöveggé vonva, ugyanúgy, mint a lenti "közben"
+         felirat (ld. ott a jegyzetet) — csak a VÁLTOZÓ érték (itt: az
+         időtartam) marad lime színű. */}
       <div className="d-flex align-items-baseline flex-wrap gap-1 mb-2">
-        <span className="fw-bold">Tünet</span>
-        <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-          időtartama
-        </span>
+        <span className="fw-bold">Tünet időtartama</span>
         <ClickToSelect
           value={durationHours}
           options={DURATION_OPTIONS.map((o) => ({ value: o.hours, label: o.label }))}
@@ -717,8 +735,10 @@ function DailyForm({
         />
       </div>
 
+      {/* "Alatta 'Tüneted intenzitása' legyen a csúszka felirat" (2026.09.28.,
+         Marci kérésére — korábban csak "intenzitás"). */}
       <CenteredSlider
-        label="intenzitás"
+        label="Tüneted intenzitása"
         value={intensity}
         min={0}
         max={10}
@@ -740,7 +760,7 @@ function DailyForm({
         valueText={`${load}%`}
         valueColor="var(--teal)"
         gradient={['var(--teal)', 'var(--mint)']}
-        onChange={setLoad}
+        onChange={handleLoadChange}
       />
 
       <div className="checklist-field-divider checklist-field-divider--tight" />
@@ -786,15 +806,30 @@ function DailyForm({
             const option = SYMPTOM_OPTIONS.find((o) => o.value === symptom)
             return (
               <div key={i} className="d-flex align-items-baseline gap-1 mb-1">
-                <span className="small" style={{ color: 'var(--color-text-muted)' }}>
-                  {workouts.length > 1 ? `${i + 1}. edzés közben` : 'közben'}
-                </span>
+                {/* "Az edzés hozzáadása gomb alatt egy nyíl mutasson ebből
+                   lefele-jobbra (mint egy megfordított enter nyíl) erre a
+                   feliratra: 'közben nem volt tünet'" (2026.09.28., Marci
+                   kérésére) — csak az ELSŐ (a gombhoz vizuálisan
+                   legközelebbi) soron jelenik meg. */}
+                {i === 0 && (
+                  <span className="checklist-workout-arrow" aria-hidden="true">
+                    ↳
+                  </span>
+                )}
+                {/* "Formázás: ugyanaz, mint a 'tünet időtartama nincs'-nél,
+                   vagyis egységes betűméret, és szedésvastagság, nincs
+                   aláhúzás, csak lime színű a változó szöveg" (2026.09.28.,
+                   Marci kérésére) — a korábbi halvány/aláhúzott stílus a
+                   "Tünet időtartama" sorral EGYEZŐ mintára cserélve: a
+                   címke (`fw-bold`, alapszín) + a VÁLTOZÓ érték (`fw-bold`,
+                   lime, aláhúzás nélkül). */}
+                <span className="fw-bold">{workouts.length > 1 ? `${i + 1}. edzés közben` : 'közben'}</span>
                 <ClickToSelect
                   value={symptom}
                   options={SYMPTOM_OPTIONS}
                   onChange={(v) => handleWorkoutChange(i, v)}
-                  triggerClassName="btn btn-link p-0 small"
-                  triggerStyle={{ textDecoration: 'underline', color: 'var(--color-text-muted)' }}
+                  triggerClassName="btn btn-link p-0 fw-bold"
+                  triggerStyle={{ color: 'var(--lime)', textDecoration: 'none' }}
                   renderTrigger={() => symptomSentence(option?.label ?? '', symptom)}
                 />
                 {workouts.length > 1 && (
@@ -814,13 +849,24 @@ function DailyForm({
         </div>
       )}
 
-      {/* "Ezek alatt középen mentés gomb. Lekattintva mentve felirat."
-         (2026.09.25., Marci kérésére). */}
-      <div className="text-center mt-2">
-        <button type="button" className="btn-fyb btn-fyb-primary" onClick={handleSave}>
-          {saved ? 'mentve' : 'Mentés'}
-        </button>
-      </div>
+      {/* "A mentés gomb akkor jelenik meg először, ha a nem hajlás, és
+         legalább egy mai edzés hozzá lett adva" (2026.09.28., Marci
+         kérésére) — ld. `showSaveButton` fenti jegyzete. "A mentés gomb
+         asztali nézetben legyen jobbra rendezve" — `text-center` (mobil,
+         alapértelmezett) `text-md-end`-del felülírva 768px+ szélességen.
+         "Ha 'mentve', akkor legyen kicsit kisebb telítettségű a gomb
+         színe" — `.checklist-save-btn--saved` módosító osztály. */}
+      {showSaveButton && (
+        <div className="text-center text-md-end mt-2">
+          <button
+            type="button"
+            className={`btn-fyb btn-fyb-primary ${saved ? 'checklist-save-btn--saved' : ''}`}
+            onClick={handleSave}
+          >
+            {saved ? 'mentve' : 'Mentés'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

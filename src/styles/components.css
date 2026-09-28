@@ -3641,3 +3641,19 @@ html[data-theme='dark'] .bodychart-img {
 .checklist-field-divider--tight {
   margin: 0.75rem -1rem;
 }
+/* "Az edzés hozzáadása gomb alatt egy nyíl mutasson ebből lefele-jobbra
+   (mint egy megfordított enter nyíl) erre a feliratra: 'közben nem volt
+   tünet'" (2026.09.28., Marci kérésére) — halvány, a gomb és a felirat
+   közti vizuális kapcsolatot jelző díszítő karakter. */
+.checklist-workout-arrow {
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+/* "Ha 'mentve', akkor legyen kicsit kisebb telítettségű a gomb színe"
+   (2026.09.28., Marci kérésére) — a `.btn-fyb:disabled` 0,5-ös, ERŐSEN
+   fakító mintájánál SZÁNDÉKOSAN enyhébb csökkentés, mert ez nem letiltott
+   állapot (a gomb továbbra is kattintható, újra menthető). */
+.checklist-save-btn--saved {
+  opacity: 0.75;
+}
