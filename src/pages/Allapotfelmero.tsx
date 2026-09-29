@@ -777,9 +777,15 @@ function BodyChartStep() {
 }
 
 function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
-  const { adatok, setAdatok } = useAllapotfelmero()
+  const { adatok, setAdatok, eredmenyek } = useAllapotfelmero()
   const displayName = getSessionName('Péter')
   const dark = useDarkMode()
+  // "ha már van egy kitöltött állapotfelmérő, akkor a 'kezdjük' gomb helyett
+  // legyen 'újabb állapotfelmérő kitöltése'" (2026.09.29., Marci kérésére) —
+  // az `eredmenyek` a korábban BEKÜLDÖTT kitöltések listája (ld.
+  // AllapotfelmeroContext.tsx `complete()`), nem az éppen folyamatban lévő
+  // piszkozat, tehát pontosan azt jelzi, volt-e már legalább egy beküldés.
+  const hasCorabbiKitoltes = eredmenyek.length > 0
 
   switch (step) {
     case 1:
@@ -801,7 +807,7 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
              pontosítására — "jobb alsóban"), ugyanoda, ahol egy normál lapon
              a "következő" nyíl állna. */}
           <button type="button" className="btn-fyb btn-fyb-highlight btn-fyb-lg allapotfelmero-welcome-cta" onClick={onNext}>
-            kezdjük
+            {hasCorabbiKitoltes ? 'újabb állapotfelmérő kitöltése' : 'kezdjük'}
             <Chevron direction="right" color="var(--navy)" />
           </button>
         </div>
