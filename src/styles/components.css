@@ -2567,6 +2567,28 @@ html[data-theme='dark'] .bodychart-img {
   }
 }
 
+/* --- állapotfelmérő: több-választásos legördülő (2026.09.28., Marci
+   kérésére) — a szabad szöveges mezők (Tünet, Hogyan kezdődött, Mi esik
+   jól, Mikor érzed leginkább, Szerinted mi lehet az oka) helyett. A zárt
+   trigger a natív `.form-select` kinézetét kapja (de `<button>`-ön), a
+   nyitott panel a `.risk-checkbox-item` stílusát használja ÚJRA (ld. fent),
+   de SAJÁT, mindig 1 oszlopos elrendezéssel — a `.risk-checkbox-list`
+   desktopon 2-hasábos szabálya (a 15 tételes rizikófaktor-listához
+   kalibrálva) itt nem kívánatos, ezért nem azt az osztályt használja. */
+.multiselect-trigger {
+  width: 100%;
+  cursor: pointer;
+}
+.multiselect-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.multiselect-item {
+  width: 100%;
+}
+
 /* --- csúszka (range) márkaszínezése --- */
 .form-range {
   accent-color: var(--color-primary);

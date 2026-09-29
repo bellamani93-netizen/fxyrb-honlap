@@ -49,6 +49,57 @@ const IDOTARTAM_OPTIONS = ['kevesebb, mint 1 óra', '1–2 óra', '3–5 óra', 
 const TORTENET_OPTIONS = ['sose', 'volt egyszer', 'volt többször is']
 const KEZDODES_OPTIONS = ['Most', 'pár napja', 'néhány hete', 'hónapokkal ezelőtt', 'évekkel ezelőtt']
 
+// a korábbi szabad szöveges mezők (Tünet: mit érzel MOST?, Hogyan kezdődött,
+// Mi esik jól, Mikor érzed leginkább, Szerinted mi lehet az oka) mostantól
+// legördülő, több egyszerre választható opciós mezők, mindegyik alján egy
+// "inkább leírom" opcióval, ami egy szabad szöveges mezőt nyit meg
+// (2026.09.28., Marci kérésére). A listák tartalma és sorrendje Marci saját
+// diktálása.
+export const LEIROM_OPTION = 'inkább leírom'
+
+const TUNET_OPTIONS = [
+  'instabil', 'bizonytalan', 'húzódik', 'feszül', '"be van állva"', 'hasogat',
+  'élesen fáj', 'tompán fáj', 'zsibbad', 'lüktet', 'egyszerűen fáj',
+]
+
+const HOGYAN_KEZDODOTT_OPTIONS = ['hirtelen', 'lassacskán']
+
+const MI_ESIK_JOL_OPTIONS = [
+  'nyújtózás', 'előrehajlás', 'hátrahajlás', 'karokkal magasba nyújtózás',
+  'intenzív sport', 'laza mozgás', 'torna', 'lefekvés', 'leülés', 'felállás',
+  'munka/tevékenység abbahagyása',
+]
+
+const MIKOR_ERZED_LEGINKABB_OPTIONS = [
+  'állásnál', 'ülés közben', 'előrehajlásnál', 'földön ülve/felhúzott lábbal ülve',
+  'guggolva', 'könnyű fizikai munka közben', 'nehéz fizikai munka közben',
+  'kényszertartásban végzett munka közben', 'sportolás közben', 'sportolás után',
+  'reggelente', 'ha fáradok', 'esténként', 'éjjelente', 'teljesen random',
+  'ha stresszelek', 'ha sietek', 'evés után', 'ha lépcsőzök',
+]
+
+const SZERINTED_MI_OKA_OPTIONS = [
+  'túlerőltettem hajolgatással', 'túlerőltettem munkával', 'túlerőltettem edzéssel',
+  'gerincbetegség miatt: Bechterew', 'gerincbetegség miatt: Scheuermann',
+  'gerincbetegség miatt: csontritkulás', 'gerincbetegség miatt: Baastrup-szindróma',
+  'gerincbetegség miatt: Spondilolysis', 'gerincbetegség miatt: Spondilolysthesis',
+  'gerincbetegség miatt: porckorong kiboltosulás (protrusio)',
+  'gerincbetegség miatt: porckorongsérv', 'gerincbetegség miatt: kiszakad porckorongsérv',
+  'megfázás', 'huztatot kaptam', 'hanyag tartás', 'stressz', 'túlsúly',
+  'passzív életmód', 'baleset',
+]
+
+/** a `MultiSelectField` megjelenített összefoglalója ÉS az Eredménylap
+ * (Eredmenyeim.tsx) is ugyanezt a logikát használja: a kiválasztott opciók
+ * (az "inkább leírom" jelölő NÉLKÜL) vesszővel elválasztva, a végén a
+ * szabad szöveggel kiegészítve, ha az "inkább leírom" is ki lett jelölve és
+ * van beírt szöveg. */
+export function formatMultiSelect(selected: string[], sajatSzoveg: string): string {
+  const items = selected.filter((o) => o !== LEIROM_OPTION)
+  if (selected.includes(LEIROM_OPTION) && sajatSzoveg.trim()) items.push(sajatSzoveg.trim())
+  return items.join(', ')
+}
+
 // a korábbi 2 külön lap (rizikófaktorok I/II) 1 lappá vonódott össze
 // (2026.09.11., Marci kérésére: "Rizikófaktorok I és II legyen egy lapon...
 // A lista elemei abc sorrendben kövessék egymást") — a 2 korábbi lista
@@ -160,6 +211,83 @@ function TextField({
         onChange={(e) => onChange(e.target.value)}
       />
       {hint && <span className="small d-block mt-1" style={{ color: 'var(--color-text-muted)' }}>{hint}</span>}
+    </div>
+  )
+}
+
+/** legördülő, több egyszerre kiválasztható opcióval — a korábbi szabad
+ * szöveges mezők (Tünet, Hogyan kezdődött, Mi esik jól, Mikor érzed
+ * leginkább, Szerinted mi lehet az oka) helyett (2026.09.28., Marci
+ * kérésére). Zárt állapotban egy `.form-select`-stílusú gomb mutatja a
+ * kiválasztást (vesszővel elválasztva), rákattintva egy jelölőnégyzet-panel
+ * nyílik (a `RiskCheckboxList` bevált vizuális mintáját követve, de saját,
+ * mindig 1 oszlopos CSS-osztályokkal, ld. components.css). Az opciólista
+ * VÉGÉRE mindig automatikusan bekerül a `LEIROM_OPTION` ("inkább leírom") —
+ * ennek kijelölésekor egy szabad szöveges mező is megjelenik. */
+function MultiSelectField({
+  label,
+  options,
+  selected,
+  onChange,
+  sajatSzoveg,
+  onSajatSzovegChange,
+  sajatSzovegPlaceholder,
+  centered,
+}: {
+  label: string
+  options: string[]
+  selected: string[]
+  onChange: (v: string[]) => void
+  sajatSzoveg: string
+  onSajatSzovegChange: (v: string) => void
+  sajatSzovegPlaceholder?: string
+  centered?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const hasLeiras = selected.includes(LEIROM_OPTION)
+  const summary = formatMultiSelect(selected, '') || (hasLeiras ? LEIROM_OPTION : '')
+
+  function toggle(opt: string) {
+    onChange(selected.includes(opt) ? selected.filter((o) => o !== opt) : [...selected, opt])
+  }
+
+  return (
+    <div className={`mb-4 ${centered ? 'allapotfelmero-field-centered' : ''}`}>
+      <FieldLabel>{label}</FieldLabel>
+      <button
+        type="button"
+        className={`form-select text-start multiselect-trigger ${centered ? 'allapotfelmero-field-centered-control' : ''}`}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {summary || <span style={{ color: 'var(--color-text-muted)' }}>válassz</span>}
+      </button>
+      {open && (
+        <div className="multiselect-panel">
+          {[...options, LEIROM_OPTION].map((opt) => {
+            const active = selected.includes(opt)
+            return (
+              <button
+                key={opt}
+                type="button"
+                className={`risk-checkbox-item multiselect-item ${active ? 'is-active' : ''}`}
+                onClick={() => toggle(opt)}
+              >
+                <span className="risk-checkbox-box">{active && '✓'}</span>
+                <span>{opt}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+      {hasLeiras && (
+        <input
+          type="text"
+          className="form-control mt-2"
+          value={sajatSzoveg}
+          placeholder={sajatSzovegPlaceholder ?? 'írd le szabadon'}
+          onChange={(e) => onSajatSzovegChange(e.target.value)}
+        />
+      )}
     </div>
   )
 }
@@ -601,7 +729,16 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
     case 3:
       return (
         <>
-          <TextField label="Tünet: mit érzel MOST?" value={adatok.tunetLeiras} onChange={(v) => setAdatok({ tunetLeiras: v })} placeholder="pl: fájdalom/húzódás/nyilallás stb." hint="max. 15 szó" centered />
+          <MultiSelectField
+            label="Tünet: mit érzel MOST?"
+            options={TUNET_OPTIONS}
+            selected={adatok.tunetTipusok}
+            onChange={(v) => setAdatok({ tunetTipusok: v })}
+            sajatSzoveg={adatok.tunetSajatLeiras}
+            onSajatSzovegChange={(v) => setAdatok({ tunetSajatLeiras: v })}
+            sajatSzovegPlaceholder="pl: fájdalom/húzódás/nyilallás stb. (max. 15 szó)"
+            centered
+          />
           <SelectField label="gyakoriság" value={adatok.gyakorisag} onChange={(v) => setAdatok({ gyakorisag: v })} options={GYAKORISAG_OPTIONS} />
           <SelectField label="időtartam (óra/nap)" value={adatok.idotartam} onChange={(v) => setAdatok({ idotartam: v })} options={IDOTARTAM_OPTIONS} />
           <div className="mb-2">
@@ -619,10 +756,6 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
               <span>10 — max. intenzitás</span>
             </div>
           </div>
-          {/* új mező (2026.09.11., Marci kérésére) — a `kezdodesIdo` (5. lap,
-             "mikor kezdődött?" select) MELLETT, azt kiegészítve: itt szabad
-             szöveggel, vázlatpontokban foglalható össze a történet eleje. */}
-          <TextAreaField label="Előzmények:" value={adatok.elozmenyek} onChange={(v) => setAdatok({ elozmenyek: v })} placeholder="Foglald össze vázlatpontokban, hogyan kezdődött." rows={3} />
         </>
       )
     case 5:
@@ -633,10 +766,46 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
       return (
         <>
           <SelectField label="mikor kezdődött?" value={adatok.kezdodesIdo} onChange={(v) => setAdatok({ kezdodesIdo: v })} options={KEZDODES_OPTIONS} centered />
+          {/* a korábbi "Előzmények" szabad szöveges mező (3. lap) FUNKCIÓJA
+             (Marci kérésére, 2026.09.28.) — ugyanaz a legördülő + "inkább
+             leírom" minta, mint a többi mezőnél ezen a lapon. */}
+          <MultiSelectField
+            label="hogyan kezdődött?"
+            options={HOGYAN_KEZDODOTT_OPTIONS}
+            selected={adatok.hogyanKezdodott}
+            onChange={(v) => setAdatok({ hogyanKezdodott: v })}
+            sajatSzoveg={adatok.hogyanKezdodottSajat}
+            onSajatSzovegChange={(v) => setAdatok({ hogyanKezdodottSajat: v })}
+            sajatSzovegPlaceholder="Foglald össze vázlatpontokban, hogyan kezdődött."
+          />
           <SelectField label="volt már ehhez hasonló korábban is?" value={adatok.voltMarKorabban} onChange={(v) => setAdatok({ voltMarKorabban: v })} options={TORTENET_OPTIONS} />
-          <TextAreaField label="mi esik jól, amikor fáj?" rows={2} value={adatok.miEsikJol} onChange={(v) => setAdatok({ miEsikJol: v })} placeholder="pl. pihentetés, nyújtás, meleg…" />
-          <TextAreaField label="mikor érzed leginkább? (helyzet, mozdulat, napszak)" rows={2} value={adatok.mikorErzedLegjobban} onChange={(v) => setAdatok({ mikorErzedLegjobban: v })} placeholder="helyzet, mozdulat, napszak…" />
-          <TextAreaField label="szerinted mi lehet az oka?" rows={2} value={adatok.szerintedMiOka} onChange={(v) => setAdatok({ szerintedMiOka: v })} placeholder="a saját megérzésed is számít" />
+          <MultiSelectField
+            label="mi esik jól, amikor fáj?"
+            options={MI_ESIK_JOL_OPTIONS}
+            selected={adatok.miEsikJol}
+            onChange={(v) => setAdatok({ miEsikJol: v })}
+            sajatSzoveg={adatok.miEsikJolSajat}
+            onSajatSzovegChange={(v) => setAdatok({ miEsikJolSajat: v })}
+            sajatSzovegPlaceholder="pl. pihentetés, nyújtás, meleg…"
+          />
+          <MultiSelectField
+            label="mikor érzed leginkább?"
+            options={MIKOR_ERZED_LEGINKABB_OPTIONS}
+            selected={adatok.mikorErzedLegjobban}
+            onChange={(v) => setAdatok({ mikorErzedLegjobban: v })}
+            sajatSzoveg={adatok.mikorErzedLegjobbanSajat}
+            onSajatSzovegChange={(v) => setAdatok({ mikorErzedLegjobbanSajat: v })}
+            sajatSzovegPlaceholder="helyzet, mozdulat, napszak…"
+          />
+          <MultiSelectField
+            label="szerinted mi lehet az oka?"
+            options={SZERINTED_MI_OKA_OPTIONS}
+            selected={adatok.szerintedMiOka}
+            onChange={(v) => setAdatok({ szerintedMiOka: v })}
+            sajatSzoveg={adatok.szerintedMiOkaSajat}
+            onSajatSzovegChange={(v) => setAdatok({ szerintedMiOkaSajat: v })}
+            sajatSzovegPlaceholder="a saját megérzésed is számít"
+          />
         </>
       )
     case 6:

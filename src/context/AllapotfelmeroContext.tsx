@@ -26,23 +26,35 @@ export type AllapotfelmeroAdatok = {
   szuletesiHo: string
   magassag: string
   suly: string
-  tunetLeiras: string
+  /** korábban szabad szöveg volt — Marci kérésére (2026.09.28.) legördülő,
+   * több egyszerre választható tünet-leírással váltva (ld. Allapotfelmero.tsx
+   * TUNET_OPTIONS + a közös `MultiSelectField`/"inkább leírom" mintát). Az
+   * "inkább leírom" opció választásakor a szabad szöveg a `tunetSajatLeiras`
+   * mezőbe kerül. */
+  tunetTipusok: string[]
+  tunetSajatLeiras: string
   gyakorisag: string
   idotartam: string
   intenzitas: number
-  /** új mező (2026.09.11., Marci kérésére) — "Előzmények: foglald össze
-   * vázlatpontokban, hogyan kezdődött" — szabad szöveges összefoglaló a
-   * Tünet lapon, a `kezdodesIdo` (mikor kezdődött, ld. lent) select-mezőt
-   * egészíti ki, nem váltja ki. */
-  elozmenyek: string
   bodyChartNezet: BodyChartNezet
   bodyChartMeret: BodyChartMeret
   bodyChartJelek: BodyChartJel[]
   kezdodesIdo: string
+  /** a korábbi "Előzmények" szabad szöveges mező (3. lap) FUNKCIÓJA került
+   * ide, az 5. lapra, "Hogyan kezdődött" legördülőként (2026.09.28., Marci
+   * kérésére) — a régi `elozmenyek` mező megszűnt. */
+  hogyanKezdodott: string[]
+  hogyanKezdodottSajat: string
   voltMarKorabban: string
-  miEsikJol: string
-  mikorErzedLegjobban: string
-  szerintedMiOka: string
+  /** a lenti 3 mező is a korábbi szabad szöveg helyett legördülő + "inkább
+   * leírom" mintát követi (2026.09.28., Marci kérésére, ugyanaz a szabály,
+   * mint a Tünet lapon). */
+  miEsikJol: string[]
+  miEsikJolSajat: string
+  mikorErzedLegjobban: string[]
+  mikorErzedLegjobbanSajat: string
+  szerintedMiOka: string[]
+  szerintedMiOkaSajat: string
   /** a korábbi, 2 külön lapon (rizikófaktorok I/II) megjelenő 2 lista
    * EGYETLEN mezőbe összevonva (2026.09.11., Marci kérésére: "Rizikófaktorok
    * I és II legyen egy lapon") — a 2 kérdőív-lap ténylegesen 1 kérdéssé
@@ -77,21 +89,26 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   // ill. 40 kg) elemét mutatta alapértelmezettként.
   magassag: '175',
   suly: '80',
-  tunetLeiras: '',
+  tunetTipusok: [],
+  tunetSajatLeiras: '',
   gyakorisag: '',
   idotartam: '',
   intenzitas: 0,
-  elozmenyek: '',
   bodyChartNezet: 'hat',
   // alapértelmezett rajzolás-méret "kicsi" (2026.09.15., Marci kérésére) —
   // korábban "pontszerű" volt.
   bodyChartMeret: 'kis',
   bodyChartJelek: [],
   kezdodesIdo: '',
+  hogyanKezdodott: [],
+  hogyanKezdodottSajat: '',
   voltMarKorabban: '',
-  miEsikJol: '',
-  mikorErzedLegjobban: '',
-  szerintedMiOka: '',
+  miEsikJol: [],
+  miEsikJolSajat: '',
+  mikorErzedLegjobban: [],
+  mikorErzedLegjobbanSajat: '',
+  szerintedMiOka: [],
+  szerintedMiOkaSajat: '',
   rizikofaktorok: [],
   proneOk: true,
   shoulderOk: 'igen',
