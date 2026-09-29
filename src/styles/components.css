@@ -2570,23 +2570,60 @@ html[data-theme='dark'] .bodychart-img {
 /* --- állapotfelmérő: több-választásos legördülő (2026.09.28., Marci
    kérésére) — a szabad szöveges mezők (Tünet, Hogyan kezdődött, Mi esik
    jól, Mikor érzed leginkább, Szerinted mi lehet az oka) helyett. A zárt
-   trigger a natív `.form-select` kinézetét kapja (de `<button>`-ön), a
-   nyitott panel a `.risk-checkbox-item` stílusát használja ÚJRA (ld. fent),
-   de SAJÁT, mindig 1 oszlopos elrendezéssel — a `.risk-checkbox-list`
-   desktopon 2-hasábos szabálya (a 15 tételes rizikófaktor-listához
-   kalibrálva) itt nem kívánatos, ezért nem azt az osztályt használja. */
+   trigger a natív `.form-select` kinézetét kapja (de `<button>`-ön).
+   KORREKCIÓ (2026.09.29., Marci kérésére): a trigger nyitáskor A HELYÉN
+   marad, alatta pedig VELE VIZUÁLISAN EGYBEFÜGGŐ (a keretet folytató,
+   közös háttérszínű) egyetlen dobozban nyílik le a panel — az opciók NEM
+   külön, margóval elválasztott kártyák (mint a `.risk-checkbox-item`),
+   hanem egyetlen dobozon belül, vékony, a doboz teljes szélességében
+   (faltól-falig) érő elválasztó vonallal tagoltak. */
+.multiselect-wrap {
+  position: relative;
+}
 .multiselect-trigger {
   width: 100%;
   cursor: pointer;
 }
+/* nyitva a trigger alsó sarkai egyenesbe váltanak, hogy a panel felső éle
+   folytatásnak, ne külön doboznak hasson. */
+.multiselect-trigger.is-open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-color: var(--color-primary);
+}
 .multiselect-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  border: 1px solid var(--color-primary);
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background-color: var(--color-surface);
+  overflow: hidden;
 }
 .multiselect-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+/* az első opció fölött NINCS vonal — a trigger saját alsó kerete már
+   lezárja a dobozt fölötte, egy második vonal duplázást adna. */
+.multiselect-item:not(:first-child) {
+  border-top: 1px solid var(--color-border);
+}
+.multiselect-item.is-active {
+  background-color: rgba(var(--color-primary-rgb), 0.1);
+}
+.multiselect-item.is-active .risk-checkbox-box {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 /* --- csúszka (range) márkaszínezése --- */

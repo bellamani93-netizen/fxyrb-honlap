@@ -219,11 +219,15 @@ function TextField({
  * szöveges mezők (Tünet, Hogyan kezdődött, Mi esik jól, Mikor érzed
  * leginkább, Szerinted mi lehet az oka) helyett (2026.09.28., Marci
  * kérésére). Zárt állapotban egy `.form-select`-stílusú gomb mutatja a
- * kiválasztást (vesszővel elválasztva), rákattintva egy jelölőnégyzet-panel
- * nyílik (a `RiskCheckboxList` bevált vizuális mintáját követve, de saját,
- * mindig 1 oszlopos CSS-osztályokkal, ld. components.css). Az opciólista
- * VÉGÉRE mindig automatikusan bekerül a `LEIROM_OPTION` ("inkább leírom") —
- * ennek kijelölésekor egy szabad szöveges mező is megjelenik. */
+ * kiválasztást (vesszővel elválasztva); rákattintva a gomb A HELYÉN marad,
+ * és közvetlenül ALATTA, egyetlen, vele vizuálisan egybefüggő dobozban
+ * nyílik le az opciólista — az egyes opciók NEM külön, margóval elválasztott
+ * kártyák, hanem egyetlen dobozon belül, vékony, faltól-falig érő
+ * elválasztó vonalakkal tagolva (2026.09.29., Marci korrekciójára — a
+ * korábbi, a `RiskCheckboxList` mintáját követő, margóval elválasztott
+ * kártya-lista helyett). Az opciólista VÉGÉRE mindig automatikusan bekerül
+ * a `LEIROM_OPTION` ("inkább leírom") — ennek kijelölésekor egy szabad
+ * szöveges mező is megjelenik. */
 function MultiSelectField({
   label,
   options,
@@ -254,31 +258,33 @@ function MultiSelectField({
   return (
     <div className={`mb-4 ${centered ? 'allapotfelmero-field-centered' : ''}`}>
       <FieldLabel>{label}</FieldLabel>
-      <button
-        type="button"
-        className={`form-select text-start multiselect-trigger ${centered ? 'allapotfelmero-field-centered-control' : ''}`}
-        onClick={() => setOpen((o) => !o)}
-      >
-        {summary || <span style={{ color: 'var(--color-text-muted)' }}>válassz</span>}
-      </button>
-      {open && (
-        <div className="multiselect-panel">
-          {[...options, LEIROM_OPTION].map((opt) => {
-            const active = selected.includes(opt)
-            return (
-              <button
-                key={opt}
-                type="button"
-                className={`risk-checkbox-item multiselect-item ${active ? 'is-active' : ''}`}
-                onClick={() => toggle(opt)}
-              >
-                <span className="risk-checkbox-box">{active && '✓'}</span>
-                <span>{opt}</span>
-              </button>
-            )
-          })}
-        </div>
-      )}
+      <div className="multiselect-wrap">
+        <button
+          type="button"
+          className={`form-select text-start multiselect-trigger ${open ? 'is-open' : ''} ${centered ? 'allapotfelmero-field-centered-control' : ''}`}
+          onClick={() => setOpen((o) => !o)}
+        >
+          {summary || <span style={{ color: 'var(--color-text-muted)' }}>válassz</span>}
+        </button>
+        {open && (
+          <div className="multiselect-panel">
+            {[...options, LEIROM_OPTION].map((opt) => {
+              const active = selected.includes(opt)
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  className={`multiselect-item ${active ? 'is-active' : ''}`}
+                  onClick={() => toggle(opt)}
+                >
+                  <span className="risk-checkbox-box">{active && '✓'}</span>
+                  <span>{opt}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
       {hasLeiras && (
         <input
           type="text"
