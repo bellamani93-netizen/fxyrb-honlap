@@ -35,6 +35,18 @@ const BODY_CHART_STEP = 4
  * form-mezős sablont. */
 const WELCOME_STEP = 1
 
+/** a lapok, amelyeken `MultiSelectField` van (Tünet, ill. Történet — ld.
+ * StepContent case 3/5) — ezek tartalma NYITÁSKOR jelentősen megnőhet (pl. a
+ * 19 opciós "szerinted mi lehet az oka" panel), ezért táblagépen/asztalin
+ * KIVÉTELEK a `.allapotfelmero-content` alap, függőlegesen középre igazító
+ * szabálya alól (ld. components.css `@media (min-width:768px)` blokkját) —
+ * enélkül a MEGNÖVEKEDETT tartalom közepre igazítása a lap TETEJÉT a
+ * görgethető terület 0-s pozíciója FÖLÉ tolná, ahonnan felfelé görgetve sem
+ * érhető el (2026.09.29., Marci hibajelzésére: "felugrik a legördülő...
+ * felül kilóg a képből") — UGYANEZ a hibaosztály, amit a kalkulátor lapján a
+ * `allapotfelmero-content--calc` már korábban (2026.09.04.) orvosolt. */
+const DROPDOWN_STEPS = new Set([3, 5])
+
 const CURRENT_YEAR = new Date().getFullYear()
 const BIRTH_YEARS = Array.from({ length: 76 }, (_, i) => String(CURRENT_YEAR - 14 - i))
 const MONTHS = [
@@ -978,7 +990,7 @@ export default function Allapotfelmero() {
 
       <div
         ref={contentRef}
-        className={`allapotfelmero-content ${step === TOTAL_STEPS ? 'allapotfelmero-content--scrollable allapotfelmero-content--calc' : ''} ${step === BODY_CHART_STEP ? 'allapotfelmero-content--full' : ''} ${step === WELCOME_STEP ? 'allapotfelmero-content--center' : ''}`}
+        className={`allapotfelmero-content ${step === TOTAL_STEPS ? 'allapotfelmero-content--scrollable allapotfelmero-content--calc' : ''} ${step === BODY_CHART_STEP ? 'allapotfelmero-content--full' : ''} ${step === WELCOME_STEP ? 'allapotfelmero-content--center' : ''} ${DROPDOWN_STEPS.has(step) ? 'allapotfelmero-content--top' : ''}`}
       >
         {step === BODY_CHART_STEP ? (
           <BodyChartStep />

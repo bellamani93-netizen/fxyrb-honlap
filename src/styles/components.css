@@ -2250,6 +2250,17 @@ html[data-theme='dark'] .allapotfelmero-content--full {
   .allapotfelmero-content--calc {
     justify-content: flex-start;
   }
+  /* UGYANEZ a hibaosztály, mint fent a kalkulátornál: a Tünet (3.) és a
+     Történet (5.) lapon lévő `MultiSelectField`-ek nyitáskor jelentősen
+     megnövelhetik a tartalom magasságát (pl. a 19 opciós "szerinted mi
+     lehet az oka" panel) — a `justify-content:center` ilyenkor a
+     MEGNÖVEKEDETT tartalmat úgy középre tolná, hogy a teteje a görgethető
+     terület 0-s pozíciója FÖLÉ kerülne, ahonnan felfelé görgetve sem
+     érhető el (2026.09.29., Marci hibajelzésére: "felugrik a legördülő...
+     felül kilóg a képből"). */
+  .allapotfelmero-content--top {
+    justify-content: flex-start;
+  }
   /* a form-doboz középre kerül és szélesebb lesz — nem tapad a bal szélhez,
      jobban arányos a sidebar melletti, gyakran jóval szélesebb területhez
      képest. */
