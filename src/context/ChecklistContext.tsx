@@ -69,29 +69,17 @@ export const DURATION_OPTIONS: { hours: number; label: string }[] = [
   ...Array.from({ length: 24 }, (_, i) => ({ hours: i + 1, label: `${i + 1} óra` })),
 ]
 
-/** az állapotfelmérő "időtartam (óra/nap)" kérdésének (durva, sávos)
- * válaszát képezi le az ÚJ, óránkénti `DURATION_OPTIONS` egy konkrét
- * értékére — a checklist ELSŐ kitöltésekor ez adja az alapértelmezett
- * "tünet időtartama" értéket (2026.09.25., Marci kérésére: "Alapértelmezettként
+/** az állapotfelmérő "időtartam (óra/nap)" kérdésének válaszát képezi le
+ * órákra — a checklist ELSŐ kitöltésekor ez adja az alapértelmezett "tünet
+ * időtartama" értéket (2026.09.25., Marci kérésére: "Alapértelmezettként
  * első kitöltésnél az állapotfelmérő 'tünet időtartama' értéket mutatja").
- * SAJÁT DÖNTÉS (a konkrét óraszám nem volt diktálva): minden sáv a sáv
- * KÖZEPÉHEZ (vagy annak a `DURATION_OPTIONS`-ban ténylegesen létező,
- * legközelebbi értékéhez) lett hozzárendelve. */
+ * Az állapotfelmérő "időtartam (óra/nap)" mezője 2026.09.29-től (Marci
+ * kérésére) UGYANAZT a `DURATION_OPTIONS` listát használja legördülőként,
+ * mint a checklist — a válasz tehát már egy MEGLÉVŐ `DURATION_OPTIONS`
+ * címke, ezért a korábbi, külön sáv→óraszám leképezés (5 sávos becslés)
+ * megszűnt, egyszerű listakeresésre cserélve. */
 export function mapAssessmentDurationToHours(idotartam: string): number {
-  switch (idotartam) {
-    case 'kevesebb, mint 1 óra':
-      return 0.5
-    case '1–2 óra':
-      return 2
-    case '3–5 óra':
-      return 4
-    case '6–8 óra':
-      return 7
-    case 'szinte egész nap':
-      return 24
-    default:
-      return 0
-  }
+  return DURATION_OPTIONS.find((o) => o.label === idotartam)?.hours ?? 0
 }
 
 export type ChecklistEntry = {

@@ -42,8 +42,11 @@ export type AllapotfelmeroAdatok = {
   kezdodesIdo: string
   /** a korábbi "Előzmények" szabad szöveges mező (3. lap) FUNKCIÓJA került
    * ide, az 5. lapra, "Hogyan kezdődött" legördülőként (2026.09.28., Marci
-   * kérésére) — a régi `elozmenyek` mező megszűnt. */
-  hogyanKezdodott: string[]
+   * kérésére) — a régi `elozmenyek` mező megszűnt. Egyszerű, egyválaszos
+   * legördülő (2026.09.29., Marci korrekciójára — nem többválasztós, mint a
+   * lenti 3 mező), az "inkább leírom" választásakor a szabad szöveg a
+   * `hogyanKezdodottSajat` mezőbe kerül. */
+  hogyanKezdodott: string
   hogyanKezdodottSajat: string
   voltMarKorabban: string
   /** a lenti 3 mező is a korábbi szabad szöveg helyett legördülő + "inkább
@@ -100,7 +103,7 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   bodyChartMeret: 'kis',
   bodyChartJelek: [],
   kezdodesIdo: '',
-  hogyanKezdodott: [],
+  hogyanKezdodott: '',
   hogyanKezdodottSajat: '',
   voltMarKorabban: '',
   miEsikJol: [],

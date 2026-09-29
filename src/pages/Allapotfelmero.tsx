@@ -13,6 +13,7 @@ import {
   type BodyChartMeret,
   type BodyChartNezet,
 } from '../context/AllapotfelmeroContext'
+import { DURATION_OPTIONS } from '../context/ChecklistContext'
 import { intensityColor, intensityGlow, useDarkMode } from '../utils/intensityColor'
 
 // Az ÜF fiók legelső, kötelező lépése (2026.09.03., Marci kérésére, 2. fázis
@@ -57,7 +58,10 @@ const HEIGHTS = Array.from({ length: 71 }, (_, i) => String(140 + i))
 const WEIGHTS = Array.from({ length: 121 }, (_, i) => String(40 + i))
 
 const GYAKORISAG_OPTIONS = ['napi szinten', 'heti szinten', 'havi szinten', 'félévente', 'évente', 'néhány évente']
-const IDOTARTAM_OPTIONS = ['kevesebb, mint 1 óra', '1–2 óra', '3–5 óra', '6–8 óra', 'szinte egész nap']
+/** ugyanaz az opciólista, mint a checklist "Tüneted mai időtartama" mezőjéé
+ * (2026.09.29., Marci kérésére) — a korábbi, 5 sávos saját lista helyett a
+ * `ChecklistContext.tsx` közös `DURATION_OPTIONS`-ából. */
+const IDOTARTAM_OPTIONS = DURATION_OPTIONS.map((o) => o.label)
 const TORTENET_OPTIONS = ['sose', 'volt egyszer', 'volt többször is']
 const KEZDODES_OPTIONS = ['Most', 'pár napja', 'néhány hete', 'hónapokkal ezelőtt', 'évekkel ezelőtt']
 
@@ -110,6 +114,13 @@ export function formatMultiSelect(selected: string[], sajatSzoveg: string): stri
   const items = selected.filter((o) => o !== LEIROM_OPTION)
   if (selected.includes(LEIROM_OPTION) && sajatSzoveg.trim()) items.push(sajatSzoveg.trim())
   return items.join(', ')
+}
+
+/** ugyanaz, mint `formatMultiSelect`, de egyválaszos mezőkhöz (ld. "hogyan
+ * kezdődött?", 2026.09.29., Marci korrekciójára: egyszerű, egyválaszos
+ * legördülő, nem többválasztós). */
+export function formatSingleSelect(value: string, sajatSzoveg: string): string {
+  return value === LEIROM_OPTION ? sajatSzoveg.trim() : value
 }
 
 // a korábbi 2 külön lap (rizikófaktorok I/II) 1 lappá vonódott össze
@@ -197,6 +208,57 @@ function SelectField({
   )
 }
 
+/** natív, egyválaszos legördülő, az opciólista VÉGÉN a `LEIROM_OPTION`
+ * ("inkább leírom") opcióval — ennek kijelölésekor egy szabad szöveges mező
+ * is megjelenik alatta (2026.09.29., Marci korrekciójára: "hogyan
+ * kezdődött?" egyszerű, EGYVÁLASZTÁSOS kérdés legyen, NEM a többi mezőnél
+ * használt többválasztós `MultiSelectField`). */
+function SelectWithLeirasField({
+  label,
+  options,
+  value,
+  onChange,
+  sajatSzoveg,
+  onSajatSzovegChange,
+  sajatSzovegPlaceholder,
+  centered,
+}: {
+  label: string
+  options: string[]
+  value: string
+  onChange: (v: string) => void
+  sajatSzoveg: string
+  onSajatSzovegChange: (v: string) => void
+  sajatSzovegPlaceholder?: string
+  centered?: boolean
+}) {
+  return (
+    <div className={`mb-4 ${centered ? 'allapotfelmero-field-centered' : ''}`}>
+      <FieldLabel>{label}</FieldLabel>
+      <select
+        className={`form-select ${centered ? 'allapotfelmero-field-centered-control' : ''}`}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="" disabled>válassz</option>
+        {options.map((o) => (
+          <option key={o} value={o}>{o}</option>
+        ))}
+        <option value={LEIROM_OPTION}>{LEIROM_OPTION}</option>
+      </select>
+      {value === LEIROM_OPTION && (
+        <input
+          type="text"
+          className="form-control mt-2"
+          value={sajatSzoveg}
+          placeholder={sajatSzovegPlaceholder ?? 'írd le szabadon'}
+          onChange={(e) => onSajatSzovegChange(e.target.value)}
+        />
+      )}
+    </div>
+  )
+}
+
 function TextField({
   label,
   value,
@@ -260,15 +322,31 @@ function MultiSelectField({
   centered?: boolean
 }) {
   const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
   const hasLeiras = selected.includes(LEIROM_OPTION)
   const summary = formatMultiSelect(selected, '') || (hasLeiras ? LEIROM_OPTION : '')
+
+  // "ha a dobozon kívül kattintunk, akkor csukódjon vissza" (2026.09.29.,
+  // Marci kérésére) — a `Checklist.tsx` `LevelMenu`-jének bevált mintáját
+  // követve: dokumentum-szintű `mousedown` figyelés, amíg a panel nyitva
+  // van. A `wrapRef` a TELJES mezőt (trigger + panel + a "leírom" szabad
+  // szöveges mező) öleli körül, hogy a szöveges mezőbe kattintás NE zárja be
+  // a még nyitott panelt.
+  useEffect(() => {
+    if (!open) return
+    function handleOutsideClick(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [open])
 
   function toggle(opt: string) {
     onChange(selected.includes(opt) ? selected.filter((o) => o !== opt) : [...selected, opt])
   }
 
   return (
-    <div className={`mb-4 ${centered ? 'allapotfelmero-field-centered' : ''}`}>
+    <div ref={wrapRef} className={`mb-4 ${centered ? 'allapotfelmero-field-centered' : ''}`}>
       <FieldLabel>{label}</FieldLabel>
       <div className="multiselect-wrap">
         <button
@@ -785,12 +863,13 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
         <>
           <SelectField label="mikor kezdődött?" value={adatok.kezdodesIdo} onChange={(v) => setAdatok({ kezdodesIdo: v })} options={KEZDODES_OPTIONS} centered />
           {/* a korábbi "Előzmények" szabad szöveges mező (3. lap) FUNKCIÓJA
-             (Marci kérésére, 2026.09.28.) — ugyanaz a legördülő + "inkább
-             leírom" minta, mint a többi mezőnél ezen a lapon. */}
-          <MultiSelectField
+             (Marci kérésére, 2026.09.28.) — egyszerű, egyválaszos legördülő
+             (2026.09.29., Marci korrekciójára: NEM többválasztós, mint a
+             többi mező ezen a lapon). */}
+          <SelectWithLeirasField
             label="hogyan kezdődött?"
             options={HOGYAN_KEZDODOTT_OPTIONS}
-            selected={adatok.hogyanKezdodott}
+            value={adatok.hogyanKezdodott}
             onChange={(v) => setAdatok({ hogyanKezdodott: v })}
             sajatSzoveg={adatok.hogyanKezdodottSajat}
             onSajatSzovegChange={(v) => setAdatok({ hogyanKezdodottSajat: v })}

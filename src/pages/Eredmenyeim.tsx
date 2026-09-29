@@ -5,7 +5,8 @@ import type { GerincterhelesReszlet } from '../components/GerincterhelesKalkulat
 import { withBase } from '../lib/assetUrl'
 import { getSessionName } from '../lib/session'
 import { useAllapotfelmero, DEFAULT_ALLAPOTFELMERO_ADATOK, type AllapotfelmeroAdatok } from '../context/AllapotfelmeroContext'
-import { BODYCHART_IMAGES, BodyChartMarksLayer, formatMultiSelect } from './Allapotfelmero'
+import { DURATION_OPTIONS } from '../context/ChecklistContext'
+import { BODYCHART_IMAGES, BodyChartMarksLayer, formatMultiSelect, formatSingleSelect } from './Allapotfelmero'
 import { calculateAge, calculateBmi, bmiCategory, type BmiCategory } from '../lib/allapotfelmeroEredmeny'
 
 // Az Eredménylap (2026.09.07., Marci kérésére, 2. fázis) — az "allapot
@@ -196,18 +197,6 @@ const BMI_CATEGORY_COLOR: Record<BmiCategory['key'], string> = {
   elhizas: 'var(--z1)',
 }
 
-/** az IDOTARTAM_OPTIONS (Allapotfelmero.tsx) kategorikus válaszai nincsenek
- * konkrét óraszámhoz kötve, ezért mindegyikhez egy jellemző napi óraszámot
- * rendelünk (a sáv középértéke) — ezt mutatja az Időtartam `DialGauge`
- * (2026.09.10-től MINDEN képernyőméreten ez az egy komponens jeleníti meg,
- * a korábbi, csak mobilra szánt `DurationDonut` megszűnt). */
-const IDOTARTAM_HOURS: Record<string, number> = {
-  'kevesebb, mint 1 óra': 0.5,
-  '1–2 óra': 1.5,
-  '3–5 óra': 4,
-  '6–8 óra': 7,
-  'szinte egész nap': 20,
-}
 /** semleges (nem piros→zöld) egyetlen szín — az időtartamnak nincs
  * "jó/rossz" jelentése, mint pl. a BMI-nek, ezért nem kap zóna-skálát.
  * Marci kérésére (2026.09.09., 4. kör: "a mutatók színskálájához... használj
@@ -553,7 +542,7 @@ export default function Eredmenyeim({
   const rizikoTetelek = adatok.rizikofaktorok
 
   const gt = adatok.gerincterhelesEredmeny
-  const idotartamOra = IDOTARTAM_HOURS[adatok.idotartam] ?? 0
+  const idotartamOra = DURATION_OPTIONS.find((o) => o.label === adatok.idotartam)?.hours ?? 0
 
   const bodyChartImg = (
     <>
@@ -710,7 +699,7 @@ export default function Eredmenyeim({
                  (5. lap) került (2026.09.28., Marci kérésére), a "Mikor
                  kezdődött?" mellé, azzal tematikusan összetartozva. */}
               <InfoRow label="Mikor kezdődött?" value={adatok.kezdodesIdo} />
-              <InfoRow label="Hogyan kezdődött?" value={formatMultiSelect(adatok.hogyanKezdodott, adatok.hogyanKezdodottSajat)} />
+              <InfoRow label="Hogyan kezdődött?" value={formatSingleSelect(adatok.hogyanKezdodott, adatok.hogyanKezdodottSajat)} />
               <InfoRow label="Volt már korábban is?" value={adatok.voltMarKorabban} />
               <InfoRow label="Szerinted mi lehet az oka?" value={formatMultiSelect(adatok.szerintedMiOka, adatok.szerintedMiOkaSajat)} />
             </SectionCard>
