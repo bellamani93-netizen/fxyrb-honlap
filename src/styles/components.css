@@ -369,11 +369,16 @@ html[data-theme='dark'] .app-topbar {
 }
 
 /* --- carousel (vélemények: Google-értékelések, videós értékelések) ---
-   vízszintes scroll-snap sáv, mobilon 1, ≥768px-en 2 elem látszik egyszerre;
-   a kártyák azonos magasságúak (flex stretch). */
+   vízszintes scroll-snap sáv: a következő elem kissé belóg a képbe (mobilon
+   ~1,15, ≥768px-en ~2,4 elem látszik), a nyilak a sáv két oldalán,
+   függőlegesen középen állnak; a kártyák azonos magasságúak. */
+.carousel-fyb {
+  position: relative;
+  --carousel-gap: 1.25rem;
+}
 .carousel-fyb-track {
   display: flex;
-  gap: 1.25rem;
+  gap: var(--carousel-gap);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
@@ -382,33 +387,37 @@ html[data-theme='dark'] .app-topbar {
 }
 .carousel-fyb-track::-webkit-scrollbar { display: none; }
 .carousel-fyb-item {
-  flex: 0 0 100%;
+  flex: 0 0 calc((100% - var(--carousel-gap)) / 1.15);
   scroll-snap-align: start;
   display: flex;
   flex-direction: column;
 }
 .carousel-fyb-item > * { flex: 1 1 auto; }
 @media (min-width: 768px) {
-  .carousel-fyb-item { flex-basis: calc(50% - 0.625rem); }
-}
-.carousel-fyb-nav {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 1rem;
+  .carousel-fyb-item { flex-basis: calc((100% - 2 * var(--carousel-gap)) / 2.4); }
 }
 .carousel-fyb-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 50%;
   border: none;
   background-color: var(--lime);
+  box-shadow: var(--shadow-card-hover);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
 }
-.carousel-fyb-btn:disabled { opacity: 0.35; cursor: default; }
+.carousel-fyb-btn--prev { left: -0.5rem; }
+.carousel-fyb-btn--next { right: -0.5rem; }
+@media (min-width: 1200px) {
+  .carousel-fyb-btn--prev { left: -1.375rem; }
+  .carousel-fyb-btn--next { right: -1.375rem; }
+}
 .video-embed-fyb {
   position: relative;
   aspect-ratio: 16 / 9;

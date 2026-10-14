@@ -49,7 +49,19 @@ export type VideoReview = {
   caption?: string
 }
 
-export const videoReviews: VideoReview[] = []
+export const videoReviews: VideoReview[] = [
+  { url: 'https://youtu.be/RQhrppEPMUw' },
+  { url: 'https://youtu.be/1sQOeK1YgWI' },
+  { url: 'https://youtu.be/o3KqdiRJM64' },
+  { url: 'https://youtu.be/HETu7hlhaJA' },
+  { url: 'https://youtu.be/BDge_Iu8R4I' },
+  { url: 'https://youtu.be/KyIcI44KUdE' },
+  { url: 'https://youtu.be/wk8F0dDKZNg' },
+  { url: 'https://youtu.be/PVTqGHiOmo0' },
+  { url: 'https://youtu.be/iAmtmwO3gtg' },
+  { url: 'https://youtu.be/uZ1TQtpvz2M' },
+  { url: 'https://youtu.be/atRoWNlRKLU' },
+]
 
 /** a YouTube-linkből a videó azonosítója; ismeretlen formátumnál null */
 export function youtubeId(url: string): string | null {
