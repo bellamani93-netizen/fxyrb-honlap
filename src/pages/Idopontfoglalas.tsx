@@ -53,6 +53,7 @@ export default function Idopontfoglalas() {
       {videoReviews.length > 0 && (
         <section className="pt-5">
           <div className="container">
+            <span className="eyebrow-fyb">visszajelzések <Chevron double /></span>
             <h2 className="h3 mb-4">így mesélnek róla</h2>
             <VideoReviewsCarousel />
           </div>
@@ -61,7 +62,6 @@ export default function Idopontfoglalas() {
 
       <section className="pt-5">
         <div className="container">
-          <span className="eyebrow-fyb">visszajelzések <Chevron double /></span>
           <h2 className="mb-4">akik már végigcsinálták</h2>
           <GoogleReviewsCarousel />
         </div>
