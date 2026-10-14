@@ -2,6 +2,7 @@ import { Fragment } from 'react'
 import Chevron from '../components/Chevron'
 import Icon from '../components/Icon'
 import { withBase } from '../lib/assetUrl'
+import { GoogleReviewsCarousel } from '../components/ReviewCarousels'
 import { useMiniKurzusModal } from '../context/MiniKurzusModalContext'
 
 const helpCards = [
@@ -23,9 +24,21 @@ const helpCards = [
 ]
 
 const processSteps = [
-  { title: 'megnézed a 4 videós mini-kurzust', text: 'megérted, mi okozza a fájdalmad, és mit tud ellene tenni a HÁTrendben módszer.', icon: '/icons/ikon_video.svg' },
-  { title: 'lefoglalod az ingyenes konzultációt', text: 'egy rövid hívás keretében megnézzük, illik-e hozzád a program.', icon: '/icons/ikon_naptar.svg' },
-  { title: 'elindulsz a 10+14 hetes programon', text: 'személyre szabott gyakorlatok, heti dokumentáció, folyamatos visszajelzés.', icon: '/icons/ikon_szintek.svg' },
+  {
+    title: 'végighaladsz a gyorsítósávon',
+    text: '4 videó, amit a saját tempódban tudsz feldolgozni. Minden videó után van egy rövid kérdés, hogy valóban megértsd a lényeget. Erre válaszolva tudsz a következő videóra jutni. Ha végigértél, akkor érteni fogod az eddigi kudarcaidat, és azt is, hogy a rendszerünk miben ad többet.',
+    icon: '/icons/ikon_video.svg',
+  },
+  {
+    title: 'foglalsz egy ingyenes konzultációt',
+    text: 'egy hívás keretében felmérjük a problémádat, a kihívásaidat, céljaidat, és ezek alapján megnézzük, hogy tudunk-e rajtad segíteni. Csak akkor ajánljuk fel a közös munka lehetőségét, ha úgy látjuk, hogy a problémád a módszerünkkel hatékonyan kezelhető.',
+    icon: '/icons/ikon_naptar.svg',
+  },
+  {
+    title: 'elindulsz a 10+14 hetes programon',
+    text: '10 hetes együttműködés életmód optimalizálással, személyre szabott, a pillanatnyi terhelhetőséghez és tünetekhez igazított mozgásprogrammal, utána 14 hetes utánkövetés, hogy maximálisan elsajátíts mindent, ami a hosszú távú egészséges gerinchez szükséges.',
+    icon: '/icons/ikon_szintek.svg',
+  },
 ]
 
 /* kézzel rajzolt, monoline (egyenletes vonalvastagságú) számjegy-vázlatok —
@@ -35,21 +48,6 @@ const stepNumberPaths = [
   'M18 24 L32 8 L32 92',
   'M14 22 C14 12 22 6 32 6 C44 6 50 14 50 24 C50 42 14 58 14 92 L50 92',
   'M14 14 C18 8 26 6 32 6 C43 6 50 13 50 23 C50 32 43 38 34 40 C44 42 51 49 51 62 C51 76 43 92 30 92 C19 92 12 86 12 78',
-]
-
-const testimonials = [
-  {
-    name: 'Tóth Barnabás',
-    role: 'Google-értékelés · 5/5',
-    quote: 'Hiánypótló! Sokkal több ehhez hasonló kezdeményezésnek kellene lenni. Remélem még sok derékfájósnak tudtok irányt mutatni a gyógyulás felé.',
-    initials: 'T',
-  },
-  {
-    name: 'Peter Csurgay',
-    role: 'Google-értékelés · 5/5',
-    quote: 'Ülőmunkával, tenisszel, következetesen nyírtam ki a gerincemet egészen a beszakadt sérvig és műtét kapujáig. Próbáltam mindent, ez a program az első, ami tartós javulást hozott. A cél itt nem a tüneti kezelés, hanem a probléma megértése és megszűntetése.',
-    initials: 'P',
-  },
 ]
 
 export default function Home() {
@@ -153,24 +151,8 @@ export default function Home() {
       <section className="py-5">
         <div className="container">
           <span className="eyebrow-fyb">visszajelzések <Chevron double /></span>
-          <h2 className="mb-4">nem csak mi mondjuk</h2>
-          <div className="row gy-4 justify-content-center">
-            {testimonials.map((t) => (
-              <div className="col-md-6" key={t.name}>
-                <div className="card-fyb testimonial-fyb h-100">
-                  <div className="stars mb-2">★★★★★</div>
-                  <p className="mb-3">„{t.quote}”</p>
-                  <div className="d-flex align-items-center gap-3">
-                    <div className="avatar">{t.initials}</div>
-                    <div>
-                      <div className="fw-bold">{t.name}</div>
-                      <div className="small" style={{ color: 'var(--color-text-muted)' }}>{t.role}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h2 className="mb-4">akik már végigcsinálták</h2>
+          <GoogleReviewsCarousel />
         </div>
       </section>
 

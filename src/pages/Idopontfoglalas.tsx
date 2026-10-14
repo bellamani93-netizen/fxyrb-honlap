@@ -1,14 +1,7 @@
 import Chevron from '../components/Chevron'
 import Icon from '../components/Icon'
-
-const testimonials = [
-  {
-    name: 'Tóth Barnabás',
-    role: 'Google-értékelés · 5/5',
-    quote: 'Hiánypótló! Sokkal több ehhez hasonló kezdeményezésnek kellene lenni. Remélem még sok derékfájósnak tudtok irányt mutatni a gyógyulás felé.',
-    initials: 'T',
-  },
-]
+import { GoogleReviewsCarousel, VideoReviewsCarousel } from '../components/ReviewCarousels'
+import { videoReviews } from '../data/reviews'
 
 export default function Idopontfoglalas() {
   return (
@@ -18,25 +11,16 @@ export default function Idopontfoglalas() {
           <div className="col-lg-5">
             <span className="eyebrow-fyb">időpontfoglalás <Chevron double /></span>
             <h1 className="mb-3">foglalj egy ingyenes konzultációt</h1>
-            <p className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
-              egy 20 perces hívás keretében átbeszéljük a panaszod, és megmutatom, hogyan illeszkedne a HÁTrendben
-              program a mindennapjaidba. nincs kötelezettség — csak egy őszinte beszélgetés.
-            </p>
-
-            <div className="d-flex flex-column gap-4">
-              {testimonials.map((t) => (
-                <div className="card-fyb testimonial-fyb" key={t.name}>
-                  <div className="stars mb-2">★★★★★</div>
-                  <p className="mb-3">„{t.quote}”</p>
-                  <div className="d-flex align-items-center gap-3">
-                    <div className="avatar">{t.initials}</div>
-                    <div>
-                      <div className="fw-bold">{t.name}</div>
-                      <div className="small" style={{ color: 'var(--color-text-muted)' }}>{t.role}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
+              <p>
+                Egy 45 perces ingyenes telefonhívás keretében átbeszéljük a panaszaidat, tüneteidet, céljaidat, és ha úgy
+                látjuk, hogy érdemes együtt dolgozni a megoldáson, akkor erről is tudunk dönteni.
+              </p>
+              <p>A konzultáció ingyenes, de nem korlátlan.</p>
+              <p className="mb-0">
+                Az időpont foglalásakor felteszünk néhány kérdést, és az erre adott válaszaid alapján bíráljuk el, hogy
+                vállaljuk-e a hívást.
+              </p>
             </div>
           </div>
 
@@ -51,6 +35,19 @@ export default function Idopontfoglalas() {
             </div>
           </div>
         </div>
+
+        <div className="mt-5">
+          <span className="eyebrow-fyb">visszajelzések <Chevron double /></span>
+          <h2 className="mb-4">akik már végigcsinálták</h2>
+          <GoogleReviewsCarousel />
+        </div>
+
+        {videoReviews.length > 0 && (
+          <div className="mt-5">
+            <h2 className="h3 mb-4">így mesélnek róla</h2>
+            <VideoReviewsCarousel />
+          </div>
+        )}
       </div>
     </section>
   )

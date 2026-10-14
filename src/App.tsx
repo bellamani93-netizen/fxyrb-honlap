@@ -189,7 +189,7 @@ function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/melyedukacio" element={<MelyEdukacio />} />
         <Route path="/melyedukacio/:id" element={<MelyEdukacioCikk />} />
-        <Route path="/mini-kurzus" element={<MiniKurzus />} />
+        <Route path="/gyorsitosav" element={<MiniKurzus />} />
         <Route path="/idopontfoglalas" element={<Idopontfoglalas />} />
         <Route path="/belepes" element={<Belepes />} />
       </Route>

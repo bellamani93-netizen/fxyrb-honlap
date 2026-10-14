@@ -4,7 +4,7 @@ import ThemeToggle from './ThemeToggle'
 import { withBase } from '../lib/assetUrl'
 import { useMiniKurzusModal } from '../context/MiniKurzusModalContext'
 
-// a "mini-kurzus" még nincs kész (2026.09.03., Marci kérésére) — a rá mutató
+// a "gyorsítósáv" (korábban: mini-kurzus) még nincs kész (2026.09.03., Marci kérésére) — a rá mutató
 // nav-elem `to` helyett `comingSoon`-t kap, és a "hamarosan" popupot nyitja
 // meg navigáció helyett (ld. MiniKurzusModalContext).
 type NavItem = { label: string } & ({ to: string; comingSoon?: false } | { to?: undefined; comingSoon: true })
@@ -12,7 +12,7 @@ type NavItem = { label: string } & ({ to: string; comingSoon?: false } | { to?: 
 const navItems: NavItem[] = [
   { to: '/', label: 'főoldal' },
   { to: '/melyedukacio', label: 'mélyedukáció' },
-  { comingSoon: true, label: 'mini-kurzus' },
+  { comingSoon: true, label: 'gyorsítósáv' },
   { to: '/idopontfoglalas', label: 'időpontfoglalás' },
 ]
 

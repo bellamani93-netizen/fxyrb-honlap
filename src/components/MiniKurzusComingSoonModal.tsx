@@ -22,7 +22,7 @@ export default function MiniKurzusComingSoonModal({ onClose }: { onClose: () => 
         <div className="newsletter-icon-badge mb-3" style={{ width: '3.5rem', height: '3.5rem' }}>
           <Icon src="/icons/ikon_video.svg" style={{ width: '1.6rem', height: '1.6rem' }} />
         </div>
-        <h2 className="h5 mb-3">a mini-kurzus még készül</h2>
+        <h2 className="h5 mb-3">a gyorsítósáv még készül</h2>
         <p className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
           A 4 videós gyorsítósávon még dolgozunk. Addig is iratkozz fel a Derekas Levelekre — jelenleg ott, illetve a Facebookon kommunikálunk.
         </p>
