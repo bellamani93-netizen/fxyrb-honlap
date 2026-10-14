@@ -16,7 +16,7 @@ export default function MiniKurzus() {
         <span className="eyebrow-fyb">mini-kurzus <Chevron double /></span>
         <h1 className="mb-2">4 videós gyorsítósáv</h1>
         <p className="mb-5" style={{ color: 'var(--color-text-muted)' }}>
-          nézd meg mind a négy videót — a végén egyenesen a konzultációs időpontfoglalóhoz jutsz.
+          nézd meg mind a négy videót — a végén ott a konzultációs időpontfoglaló.
         </p>
 
         <div className="d-flex flex-column gap-4 mb-5">
@@ -37,10 +37,10 @@ export default function MiniKurzus() {
 
         <div className="locked-card text-center">
           <div className="locked-header justify-content-center">
-            <Icon src="/icons/ikon_lakat.svg" />
+            <Icon src="/icons/ikon_naptar.svg" />
             konzultációs időpontfoglaló
           </div>
-          <p className="mb-3">nézd végig mind a 4 videót, és megnyílik az ingyenes konzultáció foglalása.</p>
+          <p className="mb-3">ha megnézted a videókat, foglalj egy ingyenes konzultációt.</p>
           <Link to="/idopontfoglalas" className="btn-fyb btn-fyb-primary">
             ugrás az időpontfoglalóhoz →
           </Link>

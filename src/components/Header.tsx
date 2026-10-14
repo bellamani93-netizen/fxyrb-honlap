@@ -1,20 +1,19 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
-import Icon from './Icon'
 import { withBase } from '../lib/assetUrl'
 import { useMiniKurzusModal } from '../context/MiniKurzusModalContext'
 
 // a "mini-kurzus" még nincs kész (2026.09.03., Marci kérésére) — a rá mutató
 // nav-elem `to` helyett `comingSoon`-t kap, és a "hamarosan" popupot nyitja
 // meg navigáció helyett (ld. MiniKurzusModalContext).
-type NavItem = { label: string; locked?: boolean } & ({ to: string; comingSoon?: false } | { to?: undefined; comingSoon: true })
+type NavItem = { label: string } & ({ to: string; comingSoon?: false } | { to?: undefined; comingSoon: true })
 
 const navItems: NavItem[] = [
   { to: '/', label: 'főoldal' },
   { to: '/melyedukacio', label: 'mélyedukáció' },
   { comingSoon: true, label: 'mini-kurzus' },
-  { to: '/idopontfoglalas', label: 'időpontfoglalás', locked: true },
+  { to: '/idopontfoglalas', label: 'időpontfoglalás' },
 ]
 
 export default function Header() {
@@ -67,9 +66,6 @@ export default function Header() {
                 onClick={() => setOpen(false)}
               >
                 {item.label}
-                {item.locked && (
-                  <Icon src="/icons/ikon_lakat.svg" style={{ width: '0.85em', height: '0.85em', opacity: 0.7 }} label="feltételes hozzáférés" />
-                )}
               </NavLink>
             )
           )}
