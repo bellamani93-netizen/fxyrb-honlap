@@ -20,6 +20,26 @@ export const googleReviews: GoogleReview[] = [
     stars: 5,
     quote: 'Ülőmunkával, tenisszel, következetesen nyírtam ki a gerincemet egészen a beszakadt sérvig és műtét kapujáig. Próbáltam mindent, ez a program az első, ami tartós javulást hozott. A cél itt nem a tüneti kezelés, hanem a probléma megértése és megszűntetése.',
   },
+  {
+    name: 'Szilárd Fata',
+    stars: 5,
+    quote: 'Bella Mártont talán másfél éve találtam meg a Facebook-on. Sokat tanultam tőle, az anyagaiból a gerinc működéséről és úgy döntöttem, részt szeretnék venni a programjában. Egyeztettünk időpontot és elkezdtük a közös munkát. Én már az első héttől úgy éreztem megtaláltam azt a programot amit kerestem. Most egy év elteltével azt tudom mondani, hogy tünetmentes a gerincem. (MRI alapján kiszakadt sérv, kiboltosulás, csigolya elcsúszás, és kisizületi kopás) Eléggé túlterheltem a gerincemet.',
+  },
+  {
+    name: 'Ádám Kovács',
+    stars: 5,
+    quote: 'Sokáig csak követtem Mártont és tanultam, majd úgy döntöttem részt veszek a programjában és teljesen megérte! Nagyon sokmindent tanultam a gerincről és a működéséről, a tornával pedig úgy érzem elég jól sikerült helyretenni, kiváncsi leszek az egésznek a végén a végeredményre 🙂 bele kell tenni a munkát és oda kell figyelni, de nagyon hatásos! Köszönöm, hogy újra működök 😃',
+  },
+  {
+    name: 'Tibor Halupka',
+    stars: 5,
+    quote: 'Nekem nagyon bevált. Korrekt, egyenes kommunikáció. Nem tesznek felelőtlen ígéreteket. Ha a program során végig beleteszed a szükséges munkát, ha alkalmazod a megszerzett tudást, akkor garantált a javulás. Az én esetemben ez a gyakorlatilag teljesen fájdalommentes életet jelenti. Ezért vágtam bele, ezt vártam, ezt kaptam.',
+  },
+  {
+    name: 'Tamás Kovács',
+    stars: 5,
+    quote: 'Szia Márton. Azóta is csinálom a programot 💪 Telljesen a mindennapjaim részévé vált. Hetente legalább 6szor de jellemzőbben 7szer tornázom. Most csinálom harmadjára a programot! Extra jól terhelhető vagyok. Kisebb hullámok mostmár inkább csak akkor jellemzőek amikor valamilyen betegség elkap. Fantasztikus az eredmény!',
+  },
 ]
 
 export type VideoReview = {
