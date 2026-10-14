@@ -887,49 +887,6 @@ html[data-theme='dark'] .signature-for-light { display: none; }
   box-shadow: 0 0 0 0.2rem rgba(95, 211, 188, 0.25);
 }
 
-/* --- feltételes hozzáférés: elhomályosított oldal + üzenet-doboz --- */
-.locked-page-wrap {
-  position: relative;
-}
-.locked-page-blur {
-  filter: blur(6px);
-  pointer-events: none;
-  user-select: none;
-}
-.locked-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  z-index: 10;
-}
-.locked-overlay-card {
-  max-width: 480px;
-  width: 100%;
-  background-color: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: var(--radius-card);
-  padding: 2rem;
-  box-shadow: var(--shadow-card-hover);
-  text-align: center;
-  color: var(--color-text);
-}
-.locked-overlay-card p {
-  text-align: left;
-  color: var(--color-text);
-}
-.locked-overlay-card .icon-fyb {
-  color: var(--color-primary);
-}
-html[data-theme='dark'] .locked-overlay-card {
-  background-color: rgba(26, 38, 52, 0.78);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
 /* --- App-elrendezés (Együttműködés oldal, bejelentkezés utáni felület) ---
    Külön elrendezés a nyilvános marketing-oldaltól: oldalsávos navigáció,
    nincs footer dísz-csík/hírlevél stb. 2026.08.25., 3. fázis, új. */
