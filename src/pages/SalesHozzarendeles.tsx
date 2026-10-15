@@ -7,6 +7,7 @@ import GytWeeklyCalendar from '../components/GytWeeklyCalendar'
 import WeekNavHeader from '../components/WeekNavHeader'
 import AppointmentEditorModal, { type AppointmentEditorInitial, type AppointmentEditorResult, type ConflictInfo } from '../components/AppointmentEditorModal'
 import { useSalesData } from '../context/SalesDataContext'
+import { revealMenu } from '../utils/revealMenu'
 
 // "adatok importálása" legördülő — a "hívásaim" oldalról érkezett, MÉG NEM
 // GYT-hez rendelt hívások neveit listázza, hogy egy kattintással átvehető
@@ -29,7 +30,7 @@ function ImportCallDropdown({ calls, onSelect }: { calls: SalesCall[]; onSelect:
         adatok importálása
       </button>
       {open && (
-        <ul className="level-select-menu">
+        <ul className="level-select-menu" ref={revealMenu}>
           {calls.length === 0 ? (
             <li className="px-3 py-2 small" style={{ color: 'var(--color-text-muted)' }}>nincs importálható hívás</li>
           ) : (
@@ -77,7 +78,7 @@ function MobileGytPicker({ value, onChange, gytList }: { value: string | null; o
         <span className="level-select-chevron">▾</span>
       </button>
       {open && (
-        <ul className="level-select-menu">
+        <ul className="level-select-menu" ref={revealMenu}>
           <li>
             <button type="button" className={`level-select-item ${value === null ? 'is-selected' : ''}`} onClick={() => { onChange(null); setOpen(false) }}>
               <span>összes</span>
@@ -111,7 +112,7 @@ function SwitchToggle({ checked, onChange, label }: { checked: boolean; onChange
 
 // a lista "befizetve" mezője klasszikus pipálható négyzet (nem csúszka-kapcsoló) —
 // az űrlap saját "befizetett" mezője továbbra is a SwitchToggle-t használja
-function CheckboxToggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+function CheckboxToggle({ checked, onChange, name }: { checked: boolean; onChange: (v: boolean) => void; name: string }) {
   return (
     <input
       type="checkbox"
@@ -119,17 +120,17 @@ function CheckboxToggle({ checked, onChange }: { checked: boolean; onChange: (v:
       style={{ width: '1.4rem', height: '1.4rem', cursor: 'pointer', flexShrink: 0 }}
       checked={checked}
       onChange={(e) => onChange(e.target.checked)}
-      aria-label="befizetve"
+      aria-label={`${name} — befizetve`}
     />
   )
 }
 
-function DeleteButton({ onClick }: { onClick: () => void }) {
+function DeleteButton({ onClick, name }: { onClick: () => void; name: string }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label="ügyfél törlése"
+      aria-label={`${name} törlése`}
       style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}
     >
       <Icon src="/icons/ikon_kuka.svg" className="sales-delete-icon" style={{ width: '1.4rem', height: '1.4rem' }} />
@@ -277,6 +278,8 @@ export default function SalesHozzarendeles() {
   }
 
   function handleFreeSlotClick(gytId: string, _gytName: string, dateISO: string, hour: number) {
+    // múltbeli időpontra nem lehet ügyfelet foglalni
+    if (new Date(`${dateISO}T${String(hour).padStart(2, '0')}:00`).getTime() < today.getTime()) return
     if (pickingMode) {
       setForm((prev) => ({ ...prev, gytId, startTime: `${dateISO}T${String(hour).padStart(2, '0')}:00` }))
       setPendingFormSlot({ gytId, dateISO, hour })
@@ -690,9 +693,9 @@ export default function SalesHozzarendeles() {
                   <span className="small" style={{ color: c.assignedGytId ? 'var(--color-text)' : 'var(--color-text-muted)' }}>
                     {gytNameFor(c.assignedGytId) ?? '—'}
                   </span>
-                  <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
+                  <CheckboxToggle name={c.name} checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
                   <span className="sales-delete-cell">
-                    {!c.paid && <DeleteButton onClick={() => setPendingAction({ type: 'delete', client: c })} />}
+                    {!c.paid && <DeleteButton name={c.name} onClick={() => setPendingAction({ type: 'delete', client: c })} />}
                   </span>
                 </div>
 
@@ -706,8 +709,8 @@ export default function SalesHozzarendeles() {
                     {gytNameFor(c.assignedGytId) ?? '—'}
                   </span>
                   <span className="sales-action-cell">
-                    <CheckboxToggle checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
-                    {!c.paid && <DeleteButton onClick={() => setPendingAction({ type: 'delete', client: c })} />}
+                    <CheckboxToggle name={c.name} checked={c.paid} onChange={(paid) => handleTogglePaid(c, paid)} />
+                    {!c.paid && <DeleteButton name={c.name} onClick={() => setPendingAction({ type: 'delete', client: c })} />}
                   </span>
                 </div>
 

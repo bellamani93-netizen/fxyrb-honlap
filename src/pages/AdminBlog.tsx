@@ -107,7 +107,7 @@ export default function AdminBlog() {
           {posts.map((p) => (
             <div key={p.id} className="py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
               <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
-                <span className="fw-bold">{p.title}</span>
+                <span className="fw-bold" style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{p.title}</span>
                 <span className="small" style={{ color: 'var(--color-text-muted)' }}>{p.date}</span>
               </div>
               <span className="badge-fyb mt-1">{p.category}</span>

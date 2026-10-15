@@ -4216,6 +4216,8 @@ h1, h2, h3, h4, h5, h6, p, li, blockquote, figcaption {
   overflow-wrap: break-word;
 }
 h1, h2, h3, h4 { hyphens: auto; }
+/* a címsorokban kiemelt (kulcs)szó ne legyen elválasztva — inkább kerüljön új sorba */
+h1 .gy-accent, h1 .accent, h1 mark { hyphens: manual; }
 
 /* az Eredménylap mutatóinak kategória-felirata a zónaszínnel (sárga/narancs
    stb.) világos háttéren olvashatatlan lenne — világos módban sötétítve */
@@ -4229,4 +4231,28 @@ code {
   background-color: var(--color-bg-alt);
   padding: 0.1em 0.35em;
   border-radius: 4px;
+}
+
+/* a mezők példaszövege (placeholder) a halvány-szövegszínt kapja, hogy első
+   pillantásra ne tűnjön már kitöltött értéknek (a Bootstrap alapértelmezett
+   75%-os áttetszősége szinte egyezett a beírt szöveg színével); a kontraszt
+   a muted tokenen így is ≥ 4,5:1 */
+.form-control::placeholder,
+textarea::placeholder,
+input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+/* a sales-lista cellái: a hosszú, szóköz nélküli név/e-mail tördelődjön a
+   cellán belül, ne tolja ki az oldalt */
+.sales-row-grid > *,
+.sales-row-grid-mobile > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* listaelemek (pl. ügyfeleim): a hosszú, szóköz nélküli név tördelődjön */
+.module-item {
+  overflow-wrap: anywhere;
 }

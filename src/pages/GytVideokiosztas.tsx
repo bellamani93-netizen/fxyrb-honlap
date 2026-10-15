@@ -6,6 +6,7 @@ import { getSelectedClientId, type GytLevel, type LevelState } from '../data/ini
 import { useClients } from '../context/ClientsContext'
 import { useAdminEditGuard, AdminModifiedBadge } from '../hooks/useAdminEditGuard'
 import { useMaterials, isBuiltInCode, type Material } from '../context/MaterialsContext'
+import { revealMenu } from '../utils/revealMenu'
 
 // a beépített 20 videókiosztás-kód (VÁLTOZATLAN alaplista) — az admin által
 // feltöltött EGYEDI videók (ld. AdminAnyagok.tsx/MaterialsContext.tsx) ehhez
@@ -120,7 +121,7 @@ function VideoPickerInline({
         </button>
 
         {pickerOpen && (
-          <ul className="level-select-menu">
+          <ul className="level-select-menu" ref={revealMenu}>
             {videos.map((v) => (
               <li key={v}>
                 <button
@@ -386,7 +387,7 @@ function VideoPickerRow({
             </button>
 
             {open && (
-              <ul className="level-select-menu">
+              <ul className="level-select-menu" ref={revealMenu}>
                 {videos.map((v) => (
                   <li key={v}>
                     <button

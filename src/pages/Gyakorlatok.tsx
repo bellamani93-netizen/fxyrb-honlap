@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { EXERCISES, SEQUENCES, HOLD_START_SECONDS, HOLD_STEP_SECONDS, HOLD_STEP_DAYS } from '../data/tornaSzintek'
 import { useMaterials } from '../context/MaterialsContext'
+import { revealMenu } from '../utils/revealMenu'
 
 type LevelState = 'lezart' | 'aktiv' | 'zarolt'
 
@@ -96,7 +97,7 @@ export default function Gyakorlatok() {
             </button>
 
             {open && (
-              <ul className="level-select-menu">
+              <ul className="level-select-menu" ref={revealMenu}>
                 {levels.map((l) => (
                   <li key={l.num}>
                     <button

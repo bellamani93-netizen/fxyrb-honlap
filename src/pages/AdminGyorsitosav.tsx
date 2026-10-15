@@ -252,7 +252,7 @@ export default function AdminGyorsitosav() {
                   <div className="ms-auto d-flex gap-1">
                     <button type="button" className="btn-fyb btn-fyb-ghost" style={{ padding: '0.2rem 0.7rem' }} disabled={i === 0} onClick={() => moveVideo(v.id, -1)} aria-label="feljebb">↑</button>
                     <button type="button" className="btn-fyb btn-fyb-ghost" style={{ padding: '0.2rem 0.7rem' }} disabled={i === config.videos.length - 1} onClick={() => moveVideo(v.id, 1)} aria-label="lejjebb">↓</button>
-                    <button type="button" className="btn-fyb btn-fyb-ghost" style={{ padding: '0.2rem 0.7rem' }} onClick={() => removeVideo(v.id)}>törlés</button>
+                    <button type="button" className="btn-fyb btn-fyb-ghost" style={{ padding: '0.2rem 0.7rem' }} onClick={() => removeVideo(v.id)} aria-label="videó törlése">törlés</button>
                   </div>
                 </div>
 
@@ -296,7 +296,7 @@ export default function AdminGyorsitosav() {
                             value={q.text}
                             onChange={(e) => patchQuestion(v.id, q.id, e.target.value)}
                           />
-                          <button type="button" className="btn-fyb btn-fyb-ghost text-nowrap" onClick={() => removeQuestion(v.id, q.id)}>törlés</button>
+                          <button type="button" className="btn-fyb btn-fyb-ghost text-nowrap" onClick={() => removeQuestion(v.id, q.id)} aria-label="kérdés törlése">törlés</button>
                         </div>
                       ))}
                     </div>
@@ -317,7 +317,7 @@ export default function AdminGyorsitosav() {
                               <span className="fw-bold">{c.email}</span> · {c.question}
                               <div>{c.text}</div>
                             </div>
-                            <button type="button" className="btn-fyb btn-fyb-ghost text-nowrap" style={{ padding: '0.15rem 0.6rem', fontSize: '0.8rem' }} onClick={() => removeComment(c.id)}>törlés</button>
+                            <button type="button" className="btn-fyb btn-fyb-ghost text-nowrap" style={{ padding: '0.15rem 0.6rem', fontSize: '0.8rem' }} onClick={() => removeComment(c.id)} aria-label="komment törlése">törlés</button>
                           </div>
                         ))}
                       </div>

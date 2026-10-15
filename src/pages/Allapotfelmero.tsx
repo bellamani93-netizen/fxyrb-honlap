@@ -835,11 +835,11 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
       return (
         <>
           <TextField label="hogyan szólítsunk?" value={adatok.megszolitas} onChange={(v) => setAdatok({ megszolitas: v })} placeholder="pl. Peti" centered />
-          <div className="row gx-3">
-            <div className="col-7">
+          <div className="d-flex flex-wrap column-gap-3">
+            <div style={{ flex: '1 1 7rem' }}>
               <SelectField label="születési év" value={adatok.szuletesiEv} onChange={(v) => setAdatok({ szuletesiEv: v })} options={BIRTH_YEARS} />
             </div>
-            <div className="col-5">
+            <div style={{ flex: '1 1 10.5rem' }}>
               <SelectField label="hónap" value={adatok.szuletesiHo} onChange={(v) => setAdatok({ szuletesiHo: v })} options={MONTHS} />
             </div>
           </div>
