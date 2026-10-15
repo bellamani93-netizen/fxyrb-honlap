@@ -65,6 +65,7 @@ export default function GytChecklist() {
           </div>
           {scope === 'szint' && (
             <select
+              aria-label="szint kiválasztása"
               className="form-select form-select-sm mb-3"
               style={{ width: 'auto' }}
               value={viewedLevel}

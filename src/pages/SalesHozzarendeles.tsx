@@ -642,6 +642,7 @@ export default function SalesHozzarendeles() {
 
         <input
           type="search"
+          aria-label="keresés név szerint"
           className="form-control mb-3"
           style={{ maxWidth: '16rem' }}
           placeholder="keresés név szerint…"

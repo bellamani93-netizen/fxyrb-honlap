@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Chevron from '../components/Chevron'
 import Icon from '../components/Icon'
@@ -51,6 +51,9 @@ const stepNumberPaths = [
 ]
 
 export default function Home() {
+  const [newsletterEmail, setNewsletterEmail] = useState('')
+  const [subscribed, setSubscribed] = useState(false)
+
   return (
     <>
       {/* HERO */}
@@ -177,10 +180,30 @@ export default function Home() {
                   rosszabb? Akkor iratkozz fel a Derekas Levelekre. Ezek emailek általában hetente 1-2 alkalommal,
                   amiben személyesen tanítalak.
                 </p>
-                <form className="d-flex flex-wrap gap-2" onSubmit={(e) => e.preventDefault()}>
-                  <input type="email" className="form-control" placeholder="e-mail címed" aria-label="e-mail cím" />
-                  <button type="submit" className="btn-fyb btn-fyb-highlight text-nowrap">feliratkozom</button>
-                </form>
+                {subscribed ? (
+                  <p className="fw-bold mb-0" style={{ color: 'var(--mint)' }} role="status">
+                    Köszi a feliratkozást! Hamarosan jelentkezünk.
+                  </p>
+                ) : (
+                  <form
+                    className="d-flex flex-wrap gap-2"
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      if (newsletterEmail.trim()) setSubscribed(true)
+                    }}
+                  >
+                    <input
+                      type="email"
+                      className="form-control"
+                      placeholder="e-mail címed"
+                      aria-label="e-mail cím"
+                      required
+                      value={newsletterEmail}
+                      onChange={(e) => setNewsletterEmail(e.target.value)}
+                    />
+                    <button type="submit" className="btn-fyb btn-fyb-highlight text-nowrap">feliratkozom</button>
+                  </form>
+                )}
               </div>
               <div className="col-lg-4 text-center">
                 <div className="newsletter-icon-badge mx-auto">

@@ -50,6 +50,34 @@ export function intensityColor(value: number, dark: boolean): string {
   return `rgb(${r}, ${g}, ${b})`
 }
 
+function relLum(c: number[]): number {
+  const f = (v: number) => {
+    const x = v / 255
+    return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4)
+  }
+  return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2])
+}
+
+/** A csúszka színével azonos árnyalatú, de SZÖVEGKÉNT is olvasható szín
+ * (végső kontraszt-átvizsgálás, 2026.10.15.): világos módban a skála sárga/
+ * halványzöld szakasza fehér háttéren 1,3–2:1 kontrasztot adna a számnak —
+ * ezért itt ugyanabból az árnyalatból annyira sötétítünk, hogy a nagy,
+ * félkövér szám ≥3,3:1 legyen. Sötét módban az eredeti szín marad. A
+ * csúszka kitöltése továbbra is a tiszta `intensityColor`. */
+export function intensityTextColor(value: number, dark: boolean): string {
+  const base = intensityColor(value, dark)
+  if (dark) return base
+  const m = (base.match(/\d+/g) ?? []).map(Number)
+  if (m.length < 3) return base
+  const whiteLum = 1
+  for (let f = 1; f > 0.3; f -= 0.04) {
+    const c = m.map((v) => Math.round(v * f))
+    const ratio = (whiteLum + 0.05) / (relLum(c) + 0.05)
+    if (ratio >= 3.3) return `rgb(${c[0]}, ${c[1]}, ${c[2]})`
+  }
+  return base
+}
+
 /** Marci kérésére (2026.09.15.: "a 9, 10-es értékek túl sötétek. jelenjen meg
  * egy piros derengés a csík körül 9-nél, 10-nél ez a derengés legyen
  * nagyobb"). */

@@ -38,7 +38,7 @@ import { ClientsProvider, useClients } from './context/ClientsContext'
 import { BlogProvider } from './context/BlogContext'
 import { MaterialsProvider } from './context/MaterialsContext'
 import { GyorsitosavProvider } from './context/GyorsitosavContext'
-import { OktatoanyagProvider } from './context/OktatoanyagContext'
+import { OktatoanyagProvider, useOktatoanyag } from './context/OktatoanyagContext'
 import { WorkbookProvider } from './context/WorkbookContext'
 import { DokumentacioProvider } from './context/DokumentacioContext'
 import { ChecklistProvider } from './context/ChecklistContext'
@@ -51,7 +51,7 @@ import GytUtankoveses from './pages/GytUtankoveses'
 import Utankoveses from './pages/Utankoveses'
 import { UtankovetesProvider } from './context/UtankovetesContext'
 import { LOGGED_IN_GYT_ID } from './data/colleagues'
-import { getSelectedClientId } from './data/initialClients'
+import { LOGGED_IN_UF_ID, getSelectedClientId } from './data/initialClients'
 
 // A GYT menüsor sorrendje (Marci pontos diktálása): ügyfeleim, dokumentáció,
 // videókiosztás, munkafüzet, checklist, kérdések, naptár, utánkövetés,
@@ -155,6 +155,53 @@ function UgyfelGate() {
   return <Outlet />
 }
 
+// Szerepkör-kapu (végső átvizsgálás, 2026.10.15.): a belépés utáni oldalak
+// közvetlen címmel sem nyithatók meg másik szerepkörként vagy belépés nélkül
+// — korábban csak a menü különítette el őket. Az admin "mindent lát": a GYT
+// és SALES felületet is megnyithatja (munkatárs nevében belépés). Backend
+// nincs, ezért ez a böngészőbeli munkamenet-jelölőt ellenőrzi; éles
+// működéshez ugyanezt szerver-oldalon kell érvényesíteni.
+type AppRole = 'ugyfel' | 'gyt' | 'sales' | 'admin'
+function currentRole(): AppRole | null {
+  try {
+    const raw = localStorage.getItem('fyb-session')
+    return raw ? ((JSON.parse(raw) as { role?: AppRole }).role ?? null) : null
+  } catch {
+    return null
+  }
+}
+const ROLE_HOME: Record<AppRole, string> = {
+  ugyfel: '/checklist',
+  gyt: '/gyt/ugyfelek',
+  sales: '/sales/hivasaim',
+  admin: '/admin/munkatarsak',
+}
+function RoleGate({ role }: { role: AppRole }) {
+  const location = useLocation()
+  const current = currentRole()
+  const allowed = current === role || (current === 'admin' && (role === 'gyt' || role === 'sales'))
+  if (allowed) return <Outlet />
+  // belépve, de más szerepkörrel: a saját kezdőoldalára; belépés nélkül: a belépéshez
+  if (current) return <Navigate to={ROLE_HOME[current]} replace />
+  return <Navigate to="/belepes" replace state={{ from: location.pathname }} />
+}
+
+// a munkafüzet csak az oktatóanyag mindkét tudáscheckje után nyílik meg — a
+// menü zárja mellett az útvonal is ezt kényszeríti (közvetlen címmel sem érhető el)
+function MunkafuzetGate() {
+  const { allChecksCompleted } = useOktatoanyag()
+  if (!allChecksCompleted) return <Navigate to="/oktatoanyag" replace />
+  return <Outlet />
+}
+
+// az utánkövetés csak akkor érhető el, ha a GYT az ügyfelet utánkövetésbe tette
+function UtankovetesGate() {
+  const { clients } = useClients()
+  const inFollowUp = clients.find((c) => c.id === LOGGED_IN_UF_ID)?.programPhase === 'utankovetes'
+  if (!inFollowUp) return <Navigate to="/checklist" replace />
+  return <Outlet />
+}
+
 // GYT-oldali ügyfél-kapu (2026.09.21., Marci kérésére: "ha a gyt belép,
 // akkor nincsen alapértelmezetten kiválasztva üf. Ha nem a naptárat
 // választja a menüsorból, hanem mást, akkor ugorjon oda az ügyfeleim
@@ -208,6 +255,7 @@ function AppRoutes() {
         <Route path="/adatvedelem" element={<JogiOldal title="Adatvédelmi tájékoztató" />} />
         <Route path="/cookie" element={<JogiOldal title="Cookie-tájékoztató" />} />
       </Route>
+      <Route element={<RoleGate role="ugyfel" />}>
       <Route element={<AppLayout role="ugyfel" />}>
         <Route path="/allapotfelmero" element={<Allapotfelmero />} />
         <Route element={<UgyfelGate />}>
@@ -215,12 +263,18 @@ function AppRoutes() {
           <Route path="/checklist" element={<Checklist />} />
           <Route path="/konzultacioim" element={<UgyfelKonzultaciok />} />
           <Route path="/oktatoanyag" element={<Oktatoanyag />} />
-          <Route path="/munkafuzet" element={<Munkafuzet />} />
+          <Route element={<MunkafuzetGate />}>
+            <Route path="/munkafuzet" element={<Munkafuzet />} />
+          </Route>
           <Route path="/eredmenyeim" element={<Eredmenyeim onboarding />} />
           <Route path="/kerdeseim" element={<Kerdeseim />} />
-          <Route path="/utankovetes" element={<Utankoveses />} />
+          <Route element={<UtankovetesGate />}>
+            <Route path="/utankovetes" element={<Utankoveses />} />
+          </Route>
         </Route>
       </Route>
+      </Route>
+      <Route element={<RoleGate role="gyt" />}>
       <Route element={<AppLayout navItems={gytNavItems} userName="Judit" role="gyt" />}>
         <Route path="/gyt/ugyfelek" element={<GytUgyfelek />} />
         <Route path="/gyt/naptar" element={<GytNaptar />} />
@@ -236,16 +290,21 @@ function AppRoutes() {
           <Route path="/gyt/checklist" element={<GytChecklist />} />
         </Route>
       </Route>
+      </Route>
+      <Route element={<RoleGate role="sales" />}>
       <Route element={<AppLayout navItems={salesNavItems} userName="Eszter" role="sales" />}>
         <Route path="/sales/hivasaim" element={<SalesHivasaim />} />
         <Route path="/sales/hozzarendeles" element={<SalesHozzarendeles />} />
         <Route path="/sales/uzenetek" element={<SalesUzenetek />} />
       </Route>
+      </Route>
+      <Route element={<RoleGate role="admin" />}>
       <Route element={<AppLayout navItems={adminNavItems} userName="Anna" role="admin" />}>
         <Route path="/admin/munkatarsak" element={<AdminMunkatarsak />} />
         <Route path="/admin/blog" element={<AdminBlog />} />
         <Route path="/admin/anyagok" element={<AdminAnyagok />} />
         <Route path="/admin/gyorsitosav" element={<AdminGyorsitosav />} />
+      </Route>
       </Route>
       </Routes>
     </>

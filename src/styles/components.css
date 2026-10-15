@@ -354,7 +354,8 @@ html[data-theme='dark'] .app-topbar {
 }
 
 /* --- testimonial --- */
-.testimonial-fyb .stars { color: var(--lime); letter-spacing: 0.1em; }
+.testimonial-fyb .stars { color: #B08900; letter-spacing: 0.1em; } /* világos módban a lime fehéren 1,3:1 — aranyra cserélve (3,3:1) */
+html[data-theme='dark'] .testimonial-fyb .stars { color: var(--lime); }
 .testimonial-fyb .avatar {
   width: 2.75rem;
   height: 2.75rem;
@@ -557,6 +558,10 @@ html[data-theme='dark'] .app-topbar {
    "Form-elemek márkaszínezése" pontja). */
 .workbook-th-bad { color: var(--z1) !important; }
 .workbook-th-good { color: var(--z6) !important; }
+/* világos módban a neon piros/zöld fejléc-szöveg 2,2–3,7:1 kontrasztot adna a
+   fehér kártyán — itt mélyebb árnyalat (≥5:1); sötét módban marad a neon */
+html:not([data-theme='dark']) .workbook-th-bad { color: #B3262F !important; }
+html:not([data-theme='dark']) .workbook-th-good { color: #0A7A4A !important; }
 .workbook-td-bad, .workbook-td-good { background-color: transparent !important; }
 /* Marci kérésére (2026.09.19., 4. kör: "mobilon sötét módban legyen
    kontrasztosabb a beviteli mező háttere és a betűk is") — a beviteli mező
@@ -808,13 +813,15 @@ html[data-theme='dark'] .signature-for-light { display: none; }
 /* --- belépés/regisztráció fül-váltó --- */
 .auth-tabs {
   display: inline-flex;
+  max-width: 100%;
   background-color: var(--color-bg-alt);
   border-radius: var(--radius-pill);
   padding: 0.25rem;
   gap: 0.25rem;
 }
 .auth-tab {
-  padding: 0.55rem 1.5rem;
+  min-width: 0;
+  padding: 0.55rem clamp(0.75rem, 4.5vw, 1.5rem);
   border-radius: var(--radius-pill);
   border: none;
   background: transparent;
@@ -1355,9 +1362,7 @@ html[data-theme='dark'] .signature-for-light { display: none; }
 .app-page-title {
   font-size: 1.4rem;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere; /* keskeny képernyőn tördelődjön, ne vágja le a címet ("…") */
 }
 @media (min-width: 992px) {
   .app-page-title {
@@ -1610,7 +1615,7 @@ html[data-theme='dark'] .modal-backdrop-fyb {
     /* 6. oszlop: a kuka-ikon, mindig a sor legvégén (jobbra igazítva a saját
        oszlopában), a checkbox-tól függetlenül, külön rács-oszlopban
        (2026.08.27., 3. kör: Marci "a kuka legyen a sor legvégén" kérésére) */
-    grid-template-columns: 9rem 11rem 9rem 8rem 3rem 1fr;
+    grid-template-columns: 9rem 11rem 9rem 8rem 4.5rem 1fr;
     align-items: center;
     column-gap: 0.75rem;
   }
@@ -1621,7 +1626,9 @@ html[data-theme='dark'] .modal-backdrop-fyb {
      egyenlő arányban osztaná a helyet, ami a keskeny "ügyfél" oszlopot
      (név+dátum) túlságosan összenyomná; itt a checkbox+kuka egy közös,
      fix szélességű utolsó oszlopban van, belső flex-lyel a végekre tolva */
-  grid-template-columns: 1fr 8rem 5rem;
+  /* a GYT és a művelet oszlop keskenyebb (5,5 / 4,5 rem), hogy 320 px-en is jusson hely
+     az ügyfél nevének; a név-oszlop minmax(0,1fr), így sosem nyomódik 0-ra */
+  grid-template-columns: minmax(0, 1fr) 5.5rem 4.5rem;
   align-items: center;
   column-gap: 0.35rem;
 }
@@ -2875,7 +2882,7 @@ html[data-theme='dark'] .bodychart-img {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  color: #fff;
+  color: var(--navy); /* a ✓/✕ jel kontrasztja a neon-zöld/piros/borostyán háttéren (fehérrel 2,2:1 volt) */
   font-size: 1.1rem;
   font-weight: 800;
 }
@@ -3624,6 +3631,13 @@ html[data-theme='dark'] .bodychart-img {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* a legkeskenyebb (<360px) telefonon a hosszabb gyakorlat-név ne csonkuljon "…"-ra,
+   hanem törjön két sorba */
+@media (max-width: 359px) {
+  .checklist-daily-header-level {
+    white-space: normal;
+  }
+}
 .checklist-daily-header-unit {
   color: var(--pale-gray);
   font-size: 0.85rem;
@@ -4194,4 +4208,25 @@ html[data-theme='dark'] .gy-stepper-node--end .icon-fyb { color: var(--navy); }
 .next-step-btn .chevron-unit--mask { background-color: var(--lime) !important; }
 @media (prefers-reduced-motion: reduce) {
   .nav-next-pill { animation: none; }
+}
+
+/* hosszú összetett szavak (pl. a mélyedukáció cikkek címeiben) ne lógjanak ki
+   oldalra keskeny képernyőn: elsődlegesen elválasztással, végszükségben törve */
+h1, h2, h3, h4, h5, h6, p, li, blockquote, figcaption {
+  overflow-wrap: break-word;
+}
+h1, h2, h3, h4 { hyphens: auto; }
+
+/* az Eredménylap mutatóinak kategória-felirata a zónaszínnel (sárga/narancs
+   stb.) világos háttéren olvashatatlan lenne — világos módban sötétítve */
+html:not([data-theme='dark']) .eredmeny-dial-category { filter: brightness(0.5); }
+html[data-theme='dark'] .eredmeny-dial-category { filter: brightness(1.25); }
+
+/* beágyazott kód-szöveg (pl. fájlnév): a Bootstrap rózsaszín alapszíne sem
+   világos, sem sötét módban nem ad elég kontrasztot — a téma színeit kapja */
+code {
+  color: var(--color-text);
+  background-color: var(--color-bg-alt);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
 }

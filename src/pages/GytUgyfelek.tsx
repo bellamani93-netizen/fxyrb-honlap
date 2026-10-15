@@ -100,6 +100,7 @@ export default function GytUgyfelek() {
           </div>
           <input
             type="search"
+            aria-label="keresés név szerint"
             className="form-control mb-3"
             style={{ maxWidth: '16rem' }}
             placeholder="keresés név szerint…"

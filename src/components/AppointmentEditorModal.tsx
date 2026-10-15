@@ -111,7 +111,7 @@ export default function AppointmentEditorModal({ mode, initial, gytOptions = [],
         <h2 className="h6 mb-3">{isEditing ? 'időpont szerkesztése' : 'új időpont létrehozása'}</h2>
 
         <div className="row g-3 mb-3">
-          <div className="col-6">
+          <div className="col-12 col-sm-6">
             <label className="form-label small fw-bold" htmlFor="appt-date">dátum</label>
             <input
               id="appt-date"
@@ -124,7 +124,7 @@ export default function AppointmentEditorModal({ mode, initial, gytOptions = [],
               }}
             />
           </div>
-          <div className="col-6">
+          <div className="col-12 col-sm-6">
             <label className="form-label small fw-bold" htmlFor="appt-hour">időpont</label>
             {mode === 'call' ? (
               <input

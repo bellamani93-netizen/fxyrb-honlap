@@ -10,6 +10,8 @@
   --lime: #D7E834;
   --lime-soft: #B8D94D;
   --lime-bright: #C6E600;
+  /* lime SZÖVEGKÉNT: világos módban a lime fehéren 1,4:1 — olíva árnyalat (5,9:1) */
+  --lime-text: #5F6B00;
 
   /* funkcionális jelzések */
   --color-success: var(--teal);
@@ -33,9 +35,17 @@
   --color-bg-alt: #EFF2F3;
   --color-surface: #FFFFFF;
   --color-text: var(--navy);
-  --color-text-muted: var(--sagegray);
-  --color-primary: var(--teal);
-  --color-primary-rgb: 0, 128, 128; /* var(--teal) rgb-változata, tint-számításhoz */
+  /* végső kontraszt-átvizsgálás (2026.10.15.): a korábbi var(--sagegray) és
+     var(--teal) szövegként csak 3,8–4,5:1 kontrasztot adott a világos
+     háttereken (az AA minimum 4,5:1) — a másodlagos szöveg és az elsődleges
+     (link/felirat) szín világos módban mélyebb árnyalatot kap; a márka
+     --sagegray/--teal tokenek változatlanok maradnak (grafikához, sötét módhoz). */
+  --color-text-muted: #4F6F6E; /* 5,2:1 az alap-háttéren */
+  --color-primary: #007373; /* 5,4:1 az alap-háttéren, 6,0:1 fehéren */
+  --color-primary-rgb: 0, 115, 115; /* a fenti rgb-változata, tint-számításhoz */
+  /* a Bootstrap alap kék linkszíne helyett a márka színe (kontraszt + egységesség) */
+  --bs-link-color-rgb: 0, 115, 115;
+  --bs-link-hover-color-rgb: 0, 86, 86;
   --color-primary-contrast: #FFFFFF;
   --color-secondary: var(--sagegray);
   --color-border: #E1E5E7;
@@ -162,11 +172,14 @@ html[data-theme='dark'] {
   --color-bg-alt: #33475F;
   --color-surface: #263A50;
   --color-text: var(--offwhite);
-  --color-text-muted: #9BB6B5; /* világosított sagegray — a sima #5E807F nem ad elég kontrasztot navy háttéren */
+  --color-text-muted: #A8C2C1; /* világosított sagegray — a sima #5E807F nem ad elég kontrasztot navy háttéren; 5,0:1 a legvilágosabb (bg-alt) felületen is */
   --color-primary: var(--mint);
   --color-primary-rgb: 95, 211, 188; /* var(--mint) rgb-változata, tint-számításhoz */
+  --bs-link-color-rgb: 95, 211, 188;
+  --bs-link-hover-color-rgb: 150, 232, 214;
   --color-primary-contrast: var(--navy);
   --color-secondary: var(--sagegray);
+  --lime-text: var(--lime);
   --color-border: #5A7592;
   --color-highlight-bg: transparent;
   --color-highlight-text: var(--lime);

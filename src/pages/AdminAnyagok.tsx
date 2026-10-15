@@ -103,6 +103,7 @@ function LeckeAdminCard({ lecke }: { lecke: Lecke }) {
           type="text"
           className="form-control form-control-sm"
           style={{ maxWidth: 280 }}
+          aria-label="új fejezet címe"
           placeholder="új fejezet címe"
           value={newFejezetTitle}
           onChange={(e) => setNewFejezetTitle(e.target.value)}
@@ -144,6 +145,7 @@ function LeckeAdminCard({ lecke }: { lecke: Lecke }) {
             type="text"
             className="form-control form-control-sm"
             style={{ maxWidth: 280 }}
+            aria-label="új kérdés szövege"
             placeholder="új kérdés szövege"
             value={newKerdesText}
             onChange={(e) => setNewKerdesText(e.target.value)}
@@ -343,6 +345,7 @@ export default function AdminAnyagok() {
               type="text"
               className="form-control"
               style={{ maxWidth: 320 }}
+              aria-label="új lecke címe"
               placeholder="pl. Fájdalomkezelés alapjai"
               value={newLeckeTitle}
               onChange={(e) => setNewLeckeTitle(e.target.value)}

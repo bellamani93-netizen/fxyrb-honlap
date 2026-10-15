@@ -37,6 +37,7 @@ export default function MelyEdukacio() {
           <input
             type="search"
             className="form-control"
+            aria-label="keresés a cikkek között"
             placeholder="keresés a cikkek között…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}

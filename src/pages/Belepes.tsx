@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
 
@@ -29,6 +29,7 @@ export default function Belepes() {
   const [tab, setTab] = useState<Tab>('login')
   const [loginEmail, setLoginEmail] = useState('')
   const [error, setError] = useState('')
+  const [forgotShown, setForgotShown] = useState(false)
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -104,7 +105,14 @@ export default function Belepes() {
                 <p className="small mb-0" style={{ color: 'var(--color-danger)' }}>{error}</p>
               )}
               <div className="text-end">
-                <a href="#" className="small" style={{ color: 'var(--color-primary)' }}>elfelejtett jelszó</a>
+                <button type="button" className="btn btn-link small p-0" onClick={() => setForgotShown((v) => !v)}>
+                  elfelejtett jelszó
+                </button>
+                {forgotShown && (
+                  <p className="small mt-2 mb-0 text-start" style={{ color: 'var(--color-text-muted)' }}>
+                    A jelszó-visszaállítás hamarosan elérhető lesz. Addig írj nekünk: <a href="mailto:info@fixyourback.hu">info@fixyourback.hu</a>.
+                  </p>
+                )}
               </div>
               <button type="submit" className="btn-fyb btn-fyb-primary w-100">bejelentkezem</button>
             </form>
@@ -125,7 +133,7 @@ export default function Belepes() {
               <div className="form-check">
                 <input className="form-check-input" type="checkbox" id="gdpr" required />
                 <label className="form-check-label small" htmlFor="gdpr" style={{ color: 'var(--color-text-muted)' }}>
-                  elfogadom az <a href="#" style={{ color: 'var(--color-primary)' }}>adatkezelési tájékoztatót</a>,
+                  elfogadom az <Link to="/adatvedelem" target="_blank">adatkezelési tájékoztatót</Link>,
                   és hozzájárulok az egészségügyi adataim GDPR szerinti kezeléséhez.
                 </label>
               </div>

@@ -25,7 +25,7 @@ import { useClients } from '../context/ClientsContext'
 import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
 import { LOGGED_IN_UF_ID } from '../data/initialClients'
 import { suggestedSequence, EXERCISES } from '../data/tornaSzintek'
-import { intensityColor, intensityGlow, useDarkMode } from '../utils/intensityColor'
+import { intensityColor, intensityGlow, intensityTextColor, useDarkMode } from '../utils/intensityColor'
 import Icon from '../components/Icon'
 
 // ÜF-oldali "checklist" (2026.09.23., Marci kérésére, 5. fázis — ld.
@@ -532,6 +532,7 @@ function CenteredSlider({
   max,
   valueText,
   valueColor,
+  textColor,
   gradient,
   glow,
   onChange,
@@ -542,6 +543,8 @@ function CenteredSlider({
   max: number
   valueText: string
   valueColor: string
+  /** a szám szövegszíne, ha eltér a csúszka kitöltésétől (olvashatóság) */
+  textColor?: string
   gradient?: [string, string]
   glow?: string
   onChange: (v: number) => void
@@ -553,13 +556,14 @@ function CenteredSlider({
     <div className="mb-2">
       <div className="d-flex align-items-baseline justify-content-between mb-1">
         <span className="small fw-bold">{label}</span>
-        <span className="fw-bold" style={{ color: valueColor, fontSize: '1.4rem', lineHeight: 1 }}>
+        <span className="fw-bold" style={{ color: textColor ?? valueColor, fontSize: '1.4rem', lineHeight: 1 }}>
           {valueText}
         </span>
       </div>
       <input
         type="range"
         className="intensity-range"
+        aria-label={label}
         min={min}
         max={max}
         value={value}
@@ -739,7 +743,7 @@ function DailyForm({
           options={DURATION_OPTIONS.map((o) => ({ value: o.hours, label: o.label }))}
           onChange={setDurationHours}
           triggerClassName="btn btn-link p-0 fw-bold"
-          triggerStyle={{ color: 'var(--lime)', textDecoration: 'none' }}
+          triggerStyle={{ color: 'var(--lime-text)', textDecoration: 'none' }}
         />
       </div>
 
@@ -754,6 +758,7 @@ function DailyForm({
         max={10}
         valueText={String(intensity)}
         valueColor={intensityColor(intensity, dark)}
+        textColor={intensityTextColor(intensity, dark)}
         glow={intensityGlow(intensity, dark)}
         onChange={setIntensity}
       />
@@ -769,6 +774,7 @@ function DailyForm({
         max={100}
         valueText={`${load}%`}
         valueColor="var(--teal)"
+        textColor="var(--color-primary)"
         gradient={['var(--teal)', 'var(--mint)']}
         onChange={handleLoadChange}
       />
@@ -839,7 +845,7 @@ function DailyForm({
                   options={SYMPTOM_OPTIONS}
                   onChange={(v) => handleWorkoutChange(i, v)}
                   triggerClassName="btn btn-link p-0 fw-bold"
-                  triggerStyle={{ color: 'var(--lime)', textDecoration: 'none' }}
+                  triggerStyle={{ color: 'var(--lime-text)', textDecoration: 'none' }}
                   renderTrigger={() => symptomSentence(option?.label ?? '', symptom)}
                 />
                 {workouts.length > 1 && (

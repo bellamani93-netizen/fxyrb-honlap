@@ -199,7 +199,7 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
         </div>
 
         <div className="row g-3 mb-3">
-          <div className="col-6">
+          <div className="col-12 col-sm-6">
             <label className="form-label small fw-bold" htmlFor="gyt-appt-date">dátum</label>
             <input
               id="gyt-appt-date"
@@ -212,7 +212,7 @@ export default function GytAppointmentModal({ initial, isEditing, clientOptions,
               }}
             />
           </div>
-          <div className="col-6">
+          <div className="col-12 col-sm-6">
             <label className="form-label small fw-bold" htmlFor="gyt-appt-hour">időpont</label>
             <input
               id="gyt-appt-hour"

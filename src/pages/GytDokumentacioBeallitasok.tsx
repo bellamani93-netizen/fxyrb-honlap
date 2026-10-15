@@ -124,6 +124,7 @@ function SectionCard({
       <form onSubmit={handleAddField} className="d-flex gap-2 flex-wrap">
         <input
           type="text"
+          aria-label="új mező neve"
           className="form-control form-control-sm"
           style={{ maxWidth: 260 }}
           placeholder="új mező neve"
@@ -280,6 +281,7 @@ export default function GytDokumentacioBeallitasok() {
             <form onSubmit={handleAddSection} className="d-flex gap-2 flex-wrap">
               <input
                 type="text"
+                aria-label="új szakasz neve"
                 className="form-control form-control-sm"
                 style={{ maxWidth: 260 }}
                 placeholder="szakasz neve"

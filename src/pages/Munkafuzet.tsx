@@ -53,6 +53,7 @@ function FeladatTable({
                   <input
                     type="text"
                     className="form-control form-control-sm workbook-input-bad"
+                    aria-label={`${feladat.oszlopBal} — ${i + 1}. sor`}
                     value={row.left}
                     readOnly={locked}
                     onChange={(e) => onRowChange(i, 'left', e.target.value)}
@@ -63,6 +64,7 @@ function FeladatTable({
                   <input
                     type="text"
                     className="form-control form-control-sm workbook-input-good"
+                    aria-label={`helyette — ${i + 1}. sor`}
                     value={row.right}
                     readOnly={locked}
                     onChange={(e) => onRowChange(i, 'right', e.target.value)}
@@ -80,6 +82,7 @@ function FeladatTable({
             <input
               type="text"
               className="form-control form-control-sm workbook-input-bad"
+              aria-label={`${feladat.oszlopBal} — ${i + 1}. sor`}
               placeholder={feladat.oszlopBal}
               value={row.left}
               readOnly={locked}
@@ -89,6 +92,7 @@ function FeladatTable({
             <input
               type="text"
               className="form-control form-control-sm workbook-input-good"
+              aria-label={`helyette — ${i + 1}. sor`}
               placeholder="új mozdulat"
               value={row.right}
               readOnly={locked}

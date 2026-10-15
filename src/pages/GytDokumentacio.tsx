@@ -66,6 +66,7 @@ export function AssessmentSection({
                 </label>
                 {editable ? (
                   <textarea
+                    aria-label={field.label || section.title}
                     className="form-control"
                     rows={2}
                     value={field.value}
@@ -130,6 +131,7 @@ function QuickButtons({ onInsert }: { onInsert: (text: string) => void }) {
       <form onSubmit={handleAdd} className="d-flex gap-2 flex-wrap">
         <input
           type="text"
+          aria-label="új gyorsgomb szövege"
           className="form-control form-control-sm"
           style={{ maxWidth: 260 }}
           placeholder="új gyorsgomb szövege"
@@ -208,6 +210,7 @@ function EntryEditor({ clientId, entry }: { clientId: string; entry: Dokumentaci
       {showEditor ? (
         <>
           <textarea
+            aria-label="dokumentáció szövege"
             className="form-control mb-3"
             rows={6}
             placeholder="dokumentáció szövege…"
@@ -289,6 +292,7 @@ function AdditionalNotesEditor({ clientId }: { clientId: string }) {
       )}
 
       <textarea
+        aria-label="új jegyzet"
         className="form-control mb-2"
         rows={5}
         placeholder="új jegyzet…"

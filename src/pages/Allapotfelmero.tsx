@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Chevron from '../components/Chevron'
 import GerincterhelesKalkulator, { type GerincterhelesEredmeny } from '../components/GerincterhelesKalkulator'
@@ -14,7 +14,7 @@ import {
   type BodyChartNezet,
 } from '../context/AllapotfelmeroContext'
 import { DURATION_OPTIONS } from '../context/ChecklistContext'
-import { intensityColor, intensityGlow, useDarkMode } from '../utils/intensityColor'
+import { intensityColor, intensityGlow, intensityTextColor, useDarkMode } from '../utils/intensityColor'
 
 // Az ÜF fiók legelső, kötelező lépése (2026.09.03., Marci kérésére, 2. fázis
 // indítása) — telefonos, egyképernyős, lapozható flow (nem görgetünk, ld.
@@ -167,8 +167,8 @@ function useAvailableHeight(): number | undefined {
   return height
 }
 
-function FieldLabel({ children }: { children: ReactNode }) {
-  return <label className="form-label fw-bold">{children}</label>
+function FieldLabel({ children, htmlFor, id }: { children: ReactNode; htmlFor?: string; id?: string }) {
+  return <label id={id} htmlFor={htmlFor} className="form-label fw-bold">{children}</label>
 }
 
 // néhány mező (a lap ELSŐDLEGES, "címszerű" kérdése) középre igazítva
@@ -191,10 +191,12 @@ function SelectField({
   options: string[]
   centered?: boolean
 }) {
+  const id = useId()
   return (
     <div className={`mb-4 ${centered ? 'allapotfelmero-field-centered' : ''}`}>
-      <FieldLabel>{label}</FieldLabel>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <select
+        id={id}
         className={`form-select ${centered ? 'allapotfelmero-field-centered-control' : ''}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -232,10 +234,12 @@ function SelectWithLeirasField({
   sajatSzovegPlaceholder?: string
   centered?: boolean
 }) {
+  const id = useId()
   return (
     <div className={`mb-4 ${centered ? 'allapotfelmero-field-centered' : ''}`}>
-      <FieldLabel>{label}</FieldLabel>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <select
+        id={id}
         className={`form-select ${centered ? 'allapotfelmero-field-centered-control' : ''}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -249,6 +253,7 @@ function SelectWithLeirasField({
       {value === LEIROM_OPTION && (
         <input
           type="text"
+          aria-label={`${label} — saját szöveg`}
           className="form-control mt-2"
           value={sajatSzoveg}
           placeholder={sajatSzovegPlaceholder ?? 'írd le szabadon'}
@@ -274,10 +279,12 @@ function TextField({
   hint?: string
   centered?: boolean
 }) {
+  const id = useId()
   return (
     <div className={`mb-4 ${centered ? 'allapotfelmero-field-centered' : ''}`}>
-      <FieldLabel>{label}</FieldLabel>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <input
+        id={id}
         type="text"
         className={`form-control ${centered ? 'allapotfelmero-field-centered-control' : ''}`}
         value={value}
@@ -322,6 +329,8 @@ function MultiSelectField({
   centered?: boolean
 }) {
   const [open, setOpen] = useState(false)
+  const labelId = useId()
+  const triggerId = useId()
   const wrapRef = useRef<HTMLDivElement>(null)
   const hasLeiras = selected.includes(LEIROM_OPTION)
   const summary = formatMultiSelect(selected, '') || (hasLeiras ? LEIROM_OPTION : '')
@@ -347,10 +356,13 @@ function MultiSelectField({
 
   return (
     <div ref={wrapRef} className={`mb-4 ${centered ? 'allapotfelmero-field-centered' : ''}`}>
-      <FieldLabel>{label}</FieldLabel>
+      <FieldLabel id={labelId}>{label}</FieldLabel>
       <div className="multiselect-wrap">
         <button
           type="button"
+          id={triggerId}
+          aria-labelledby={`${labelId} ${triggerId}`}
+          aria-expanded={open}
           className={`form-select text-start multiselect-trigger ${open ? 'is-open' : ''} ${centered ? 'allapotfelmero-field-centered-control' : ''}`}
           onClick={() => setOpen((o) => !o)}
         >
@@ -378,6 +390,7 @@ function MultiSelectField({
       {hasLeiras && (
         <input
           type="text"
+          aria-label={`${label} — saját szöveg`}
           className="form-control mt-2"
           value={sajatSzoveg}
           placeholder={sajatSzovegPlaceholder ?? 'írd le szabadon'}
@@ -394,17 +407,22 @@ function TextAreaField({
   onChange,
   placeholder,
   rows = 3,
+  ariaLabel,
 }: {
   label?: string
   value: string
   onChange: (v: string) => void
   placeholder?: string
   rows?: number
+  ariaLabel?: string
 }) {
+  const id = useId()
   return (
     <div className="mb-3">
-      {label && <FieldLabel>{label}</FieldLabel>}
+      {label && <FieldLabel htmlFor={id}>{label}</FieldLabel>}
       <textarea
+        id={id}
+        aria-label={label ? undefined : ariaLabel}
         className="form-control"
         rows={rows}
         value={value}
@@ -427,6 +445,7 @@ function IntensityRange({ value, onChange }: { value: number; onChange: (v: numb
   return (
     <input
       type="range"
+      aria-label="intenzitás (0–10)"
       className="intensity-range"
       min={0}
       max={10}
@@ -850,7 +869,7 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
                korábban a "intenzitás" felirattal egy sorban, jobbra
                igazítva volt). */}
             <div className="text-center mb-1">
-              <span className="fw-bold" style={{ color: intensityColor(adatok.intenzitas, dark), fontSize: '1.75rem', lineHeight: 1 }}>{adatok.intenzitas}</span>
+              <span className="fw-bold" style={{ color: intensityTextColor(adatok.intenzitas, dark), fontSize: '1.75rem', lineHeight: 1 }}>{adatok.intenzitas}</span>
             </div>
             <IntensityRange value={adatok.intenzitas} onChange={(v) => setAdatok({ intenzitas: v })} />
             <div className="d-flex justify-content-between small" style={{ color: 'var(--color-text-muted)' }}>
@@ -949,7 +968,7 @@ function StepContent({ step, onNext }: { step: number; onNext: () => void }) {
         </>
       )
     case 8:
-      return <TextAreaField value={adatok.szemelyesCel} onChange={(v) => setAdatok({ szemelyesCel: v })} placeholder="mit szeretnél elérni a programmal?" />
+      return <TextAreaField ariaLabel="személyes célod" value={adatok.szemelyesCel} onChange={(v) => setAdatok({ szemelyesCel: v })} placeholder="mit szeretnél elérni a programmal?" />
     default:
       // a kalkulátor (9.) lapot az Allapotfelmero() felső szintű render-je
       // saját magától kezeli (`isCalculatorStep` ág), StepContent-et arra a
