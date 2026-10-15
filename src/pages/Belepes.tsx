@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
+import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
 
 type Tab = 'login' | 'register'
 type Role = 'ugyfel' | 'gyt' | 'sales' | 'admin'
@@ -14,7 +15,9 @@ const TEST_ACCOUNTS: Record<string, Session> = {
 }
 
 const ROLE_PATH: Record<Role, string> = {
-  ugyfel: '/gyakorlatok',
+  // alapértelmezett megnyitás: a checklist (Marci kérésére); aki még nem töltötte
+  // ki az állapotfelmérőt, azt a kapu (UgyfelGate) automatikusan oda irányítja
+  ugyfel: '/checklist',
   gyt: '/gyt/ugyfelek',
   sales: '/sales/hivasaim',
   admin: '/admin/munkatarsak',
@@ -22,6 +25,7 @@ const ROLE_PATH: Record<Role, string> = {
 
 export default function Belepes() {
   const navigate = useNavigate()
+  const { reset: resetAllapotfelmero } = useAllapotfelmero()
   const [tab, setTab] = useState<Tab>('login')
   const [loginEmail, setLoginEmail] = useState('')
   const [error, setError] = useState('')
@@ -49,6 +53,8 @@ export default function Belepes() {
     const name = (form.elements.namedItem('reg-name') as HTMLInputElement).value.trim() || 'új ügyfél'
     const newSession: Session = { name, role: 'ugyfel' }
     localStorage.setItem('fyb-session', JSON.stringify(newSession))
+    // új ügyfél: tiszta lappal indul (nincs korábbi állapotfelmérés)
+    resetAllapotfelmero()
     navigate(ROLE_PATH.ugyfel)
   }
 

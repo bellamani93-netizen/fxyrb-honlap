@@ -31,22 +31,28 @@ export type NavItem = {
 // fér hozzá a munkafüzethez" — ld. OktatoanyagContext.tsx `allChecksCompleted`).
 function buildUfNavItems(felmeresKesz: boolean, oktatoanyagKesz: boolean, unseenReplies: number, utankovetesben: boolean): NavItem[] {
   return [
-    { to: '/allapotfelmero', label: 'állapotfelmérő', icon: '/icons/ikon_villanykorte.svg' },
-    { to: '/gyakorlatok', label: 'gyakorlatok', icon: '/icons/ikon_torna.svg', locked: !felmeresKesz },
-    { to: '/konzultacioim', label: 'konzultációk', icon: '/icons/ikon_naptar.svg', locked: !felmeresKesz },
-    // "checklist" feloldva (2026.09.23., Marci kérésére, 5. fázis) —
-    // ugyanazzal a gatinggel, mint "gyakorlatok"/"konzultációk" (állapot-
-    // felmérő kitöltéséig zárolt), ld. Checklist.tsx/ChecklistContext.tsx.
+    // A menüsor sorrendje (Marci diktálása): checklist, oktatóanyag, munkafüzet,
+    // konzultációk, gyakorlatok, állapotfelmérő, kérdéseim, utánkövetés (+ a
+    // sorból kimaradt eredményeim a végén). Aki már kitöltötte az
+    // állapotfelmérőt, minden belépés után a checklistre érkezik (Belepes.tsx).
+    // Az állapotfelmérő kitöltéséig a többi menüpont zárolt (ld. App.tsx
+    // UgyfelGate, ami a tényleges útvonal-tiltást adja); a "munkafüzet"
+    // EMELLETT azt is megköveteli, hogy mindkét lecke tudáscheck-je teljesítve
+    // legyen (ld. OktatoanyagContext.tsx `allChecksCompleted`).
     { to: '/checklist', label: 'checklist', icon: '/icons/ikon_checklist.svg', locked: !felmeresKesz },
-    { to: '/munkafuzet', label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: !felmeresKesz || !oktatoanyagKesz },
     { to: '/oktatoanyag', label: 'oktatóanyag', icon: '/icons/ikon_tanulas.svg', locked: !felmeresKesz },
-    { to: '/eredmenyeim', label: 'eredményeim', icon: '/icons/ikon_csillag.svg', locked: !felmeresKesz },
-    // "utánkövetés": csak a 10 hetet lezárt, 14 hetes utánkövetésben lévő ÜF-nek
-    // nyílik meg (a GYT állítja be) — heti csoportos míting jelentkezés
-    { to: '/utankovetes', label: 'utánkövetés', icon: '/icons/ikon_szintek.svg', locked: !felmeresKesz || !utankovetesben },
-    // "kérdéseim" feloldva: szabad szöveges kérdés a saját GYT-nek; a pötty a
-    // még nem látott válaszok száma (ld. KerdesekContext.tsx)
+    { to: '/munkafuzet', label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: !felmeresKesz || !oktatoanyagKesz },
+    { to: '/konzultacioim', label: 'konzultációk', icon: '/icons/ikon_naptar.svg', locked: !felmeresKesz },
+    { to: '/gyakorlatok', label: 'gyakorlatok', icon: '/icons/ikon_torna.svg', locked: !felmeresKesz },
+    { to: '/allapotfelmero', label: 'állapotfelmérő', icon: '/icons/ikon_villanykorte.svg' },
+    // "kérdéseim": szabad szöveges kérdés a saját GYT-nek; a pötty a még nem
+    // látott válaszok száma. Az utánkövetés megnyílásakor (10 hét lezárva) új
+    // kérdés már nem tehető fel, a korábbiak olvashatók maradnak.
     { to: '/kerdeseim', label: 'kérdéseim', icon: '/icons/ikon_csengo.svg', locked: !felmeresKesz, badge: unseenReplies || undefined },
+    // "utánkövetés": csak a 10 hetet lezárt, 14 hetes utánkövetésben lévő
+    // ÜF-nek nyílik meg (a GYT állítja be) — heti csoportos míting jelentkezés
+    { to: '/utankovetes', label: 'utánkövetés', icon: '/icons/ikon_szintek.svg', locked: !felmeresKesz || !utankovetesben },
+    { to: '/eredmenyeim', label: 'eredményeim', icon: '/icons/ikon_csillag.svg', locked: !felmeresKesz },
   ]
 }
 

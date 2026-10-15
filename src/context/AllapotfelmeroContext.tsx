@@ -122,6 +122,22 @@ export const DEFAULT_ALLAPOTFELMERO_ADATOK: AllapotfelmeroAdatok = {
   kitoltesDatuma: null,
 }
 
+const RESULTS_KEY = 'fyb-allapotfelmero-eredmenyek'
+
+// A beküldött állapotfelmérések (és ebből a "már kitöltötte" állapot) a
+// böngészőben megmaradnak (2026.10.15., Marci kérésére: aki már egyszer
+// kitöltötte az állapotfelmérőt, annak minden következő belépés a
+// checklistre érkezik) — a folyamatban lévő piszkozat továbbra is csak
+// munkamenet-szintű.
+function loadResults(): AllapotfelmeroAdatok[] {
+  try {
+    const raw = localStorage.getItem(RESULTS_KEY)
+    return raw ? (JSON.parse(raw) as AllapotfelmeroAdatok[]) : []
+  } catch {
+    return []
+  }
+}
+
 type AllapotfelmeroContextValue = {
   completed: boolean
   adatok: AllapotfelmeroAdatok
@@ -133,6 +149,8 @@ type AllapotfelmeroContextValue = {
    * `adatok` piszkozatból (ld. `complete()` jegyzete). */
   eredmenyek: AllapotfelmeroAdatok[]
   complete: () => void
+  /** új ügyfél (regisztráció) esetén: a korábbi kitöltések és a piszkozat törlése */
+  reset: () => void
   /** új jelölés indítása egy ponttal (koppintás VAGY egy húzás kezdete). */
   addBodyChartStroke: (meret: BodyChartMeret, point: BodyChartPont) => void
   /** a LEGUTOLSÓ jelöléshez ad hozzá egy pontot (húzás közben, pointermove-onként) —
@@ -152,9 +170,17 @@ export function useAllapotfelmero() {
 }
 
 export function AllapotfelmeroProvider({ children }: { children: ReactNode }) {
-  const [completed, setCompleted] = useState(false)
+  const [completed, setCompleted] = useState(() => loadResults().length > 0)
   const [adatok, setAdatokState] = useState<AllapotfelmeroAdatok>(DEFAULT_ALLAPOTFELMERO_ADATOK)
-  const [eredmenyek, setEredmenyek] = useState<AllapotfelmeroAdatok[]>([])
+  const [eredmenyek, setEredmenyek] = useState<AllapotfelmeroAdatok[]>(loadResults)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(RESULTS_KEY, JSON.stringify(eredmenyek))
+    } catch {
+      // a munkamenet memóriában tovább működik
+    }
+  }, [eredmenyek])
   // HIBAJAVÍTÁS (2026.09.16.): a `complete()`-nek a LEGFRISSEBB `adatok`-ra
   // van szüksége, de EGY MÁSIK setState (`setEredmenyek`) hívást NEM szabad
   // a `setAdatokState`-nek átadott FRISSÍTŐ FÜGGVÉNY BELSEJÉBŐL indítani —
@@ -219,9 +245,15 @@ export function AllapotfelmeroProvider({ children }: { children: ReactNode }) {
     setCompleted(true)
   }, [])
 
+  const reset = useCallback(() => {
+    setEredmenyek([])
+    setAdatokState(DEFAULT_ALLAPOTFELMERO_ADATOK)
+    setCompleted(false)
+  }, [])
+
   return (
     <AllapotfelmeroContext.Provider
-      value={{ completed, adatok, setAdatok, eredmenyek, complete, addBodyChartStroke, extendLastBodyChartStroke, undoLastBodyChartStroke }}
+      value={{ completed, adatok, setAdatok, eredmenyek, complete, reset, addBodyChartStroke, extendLastBodyChartStroke, undoLastBodyChartStroke }}
     >
       {children}
     </AllapotfelmeroContext.Provider>

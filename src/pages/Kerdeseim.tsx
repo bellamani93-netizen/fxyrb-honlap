@@ -14,6 +14,8 @@ export default function Kerdeseim() {
   const mine = kerdesek.filter((k) => k.clientId === LOGGED_IN_UF_ID)
   const pending = countPendingQuestions(kerdesek, LOGGED_IN_UF_ID)
   const limitReached = pending >= MAX_PENDING_QUESTIONS
+  // az utánkövetés megnyílásával (10 hét lezárva) új kérdés már nem tehető fel
+  const followUp = clients.find((c) => c.id === LOGGED_IN_UF_ID)?.programPhase === 'utankovetes'
   const hasGyt = !!clients.find((c) => c.id === LOGGED_IN_UF_ID)?.assignedGytId
 
   // az oldal megnyitásakor még olvasatlan válaszok azonosítói — ezek kapnak
@@ -43,6 +45,15 @@ export default function Kerdeseim() {
           <h1 className="app-page-title mb-0">kérdéseim</h1>
         </div>
 
+        {followUp ? (
+          <div className="card-fyb mb-4">
+            <h2 className="h5 mb-2">az együttműködés lezárult</h2>
+            <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>
+              Az utánkövetési időszakban új kérdést már nem tehetsz fel itt. A kérdéseidet a heti csoportos mítingen
+              (utánkövetés menü) beszélheted meg. A korábbi kérdéseid és a válaszok lent olvashatók maradnak.
+            </p>
+          </div>
+        ) : (
         <div className="card-fyb card-fyb-accent mb-4">
           <h2 className="h5 mb-1">kérdezz a gyógytornászodtól</h2>
           <p className="small mb-3" style={{ color: 'var(--color-text-muted)' }}>
@@ -69,6 +80,7 @@ export default function Kerdeseim() {
             <button type="submit" className="btn-fyb btn-fyb-highlight mt-3" disabled={!text.trim() || limitReached}>kérdés küldése</button>
           </form>
         </div>
+        )}
 
         <h2 className="h6 mb-3">eddigi kérdéseid ({mine.length})</h2>
         {mine.length === 0 && (
