@@ -4159,3 +4159,10 @@ html[data-theme='dark'] .gy-stepper-node--end .icon-fyb { color: var(--navy); }
   background-color: var(--color-border);
 }
 .utk-capacity span.is-taken { background-color: var(--lime); }
+
+/* a menü alsó csoportját (beállítások, utánkövetés) elválasztó vonal */
+.app-sidebar-divider {
+  height: 1px;
+  margin: 0.6rem 0.25rem;
+  background-color: var(--color-border);
+}

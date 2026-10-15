@@ -52,48 +52,32 @@ import { UtankovetesProvider } from './context/UtankovetesContext'
 import { LOGGED_IN_GYT_ID } from './data/colleagues'
 import { getSelectedClientId } from './data/initialClients'
 
+// A GYT menüsor sorrendje (Marci kérésére): felül a gyakran használt,
+// ügyfélhez kötött funkciók, alul (elválasztó vonal után) az ügyféltől
+// független beállítások és az utánkövetés.
+// - "kérdések": az ügyfelek szabad szöveges kérdései, hozzászólásban
+//   megválaszolhatók; a pötty a még meg nem nyitott kérdések száma (közös
+//   beérkező, ezért NEM a GytClientGate alá kerül).
+// - "munkafüzet", "checklist": CSAK olvasható nézet az ÜF adatairól; az
+//   "oktatóanyag" és az "eredmények" még zárolt helyőrző.
+// - "utánkövetés": a 10 hetet végigjárt, 14 hetes utánkövetésben lévő
+//   ügyfelek heti csoportos mítingje (idő, Meet link, férőhelyek).
+// - "dokumentáció beállításai": közös (nem ügyfelenkénti) sablon, ezért
+//   szintén a GytClientGate-en kívül él.
 function buildGytNavItems(newClientsCount: number, unseenQuestions: number): NavItem[] {
   return [
     { to: '/gyt/ugyfelek', label: 'ügyfeleim', icon: '/icons/ikon_kezdolap.svg', badge: newClientsCount || undefined },
-    // "kérdések" feloldva: az ügyfelek szabad szöveges kérdései, hozzászólásban
-    // megválaszolhatók; a pötty a még meg nem nyitott kérdések száma. Nem
-    // ügyfélhez kötött (közös beérkező), ezért NEM a GytClientGate alá kerül.
     { to: '/gyt/kerdesek', label: 'kérdések', icon: '/icons/ikon_csengo.svg', badge: unseenQuestions || undefined },
     { to: '/gyt/videokiosztas', label: 'videókiosztás', icon: '/icons/ikon_video.svg' },
-    // "utánkövetés": a 10 hetet végigjárt, 14 hetes utánkövetésben lévő
-    // ügyfelek heti csoportos mítingje (idő, Google Meet link, férőhelyek).
-    // Nem egyetlen ügyfélhez kötött, ezért NEM a GytClientGate alá kerül.
-    { to: '/gyt/utankovetes', label: 'utánkövetés', icon: '/icons/ikon_szintek.svg' },
     { to: '/gyt/naptar', label: 'naptár', icon: '/icons/ikon_naptar.svg' },
-    // korábban zárolt helyőrző volt ("állapotfelmérő") — Marci kérésére
-    // (2026.09.10.: "az eredménylap üf-hez rendelve legyen látható a gyt
-    // fiókban is: állapotfelmérők menüpont alatt") feloldva, többes számra
-    // átnevezve, és a többi AKTÍV menüpont mellé (nem a zárolt helyőrzők
-    // közé) átsorolva.
     { to: '/gyt/allapotfelmerok', label: 'állapotfelmérők', icon: '/icons/ikon_kerdoiv.svg' },
-    // "dokumentáció" feloldva (2026.09.21., Marci kérésére, 4. fázis) —
-    // ügyfélhez ÉS alkalomhoz kötött szöveges dokumentáció, gyorsgombokkal,
-    // időkorlátos szerkeszthetőséggel és záró-alkalom utáni archiválással,
-    // ld. GytDokumentacio.tsx/DokumentacioContext.tsx.
     { to: '/gyt/dokumentacio', label: 'dokumentáció', icon: '/icons/ikon_munkafuzet.svg' },
-    // "dokumentáció beállításai" (2026.09.21., Marci kérésére) — a GYT itt
-    // szabja személyre az 1. alkalom "állapotfelmérés folytatása"
-    // szakaszait/mezőit, közös (nem ügyfelenkénti) sablonként, ld.
-    // GytDokumentacioBeallitasok.tsx/DokumentacioContext.tsx
-    // `assessmentTemplate`. Nem ügyfélhez kötött, ezért NEM a
-    // GytClientGate alá kerül (ld. lent a Route-fában).
-    { to: '/gyt/dokumentacio-beallitasok', label: 'dokumentáció beállításai', icon: '/icons/ikon_beallitasok.svg' },
-    // "munkafüzet" feloldva (2026.09.18., Marci kérésére, 3. fázis) — a GYT
-    // itt CSAK OLVASHATÓ nézetben látja az ÜF válaszait, ld. GytMunkafuzet.tsx.
-    // Az "oktatóanyag" NEM oldódik fel a GYT oldalán — Marci kifejezetten
-    // csak a munkafüzet-hozzáférést kérte.
     { to: '/gyt/munkafuzet', label: 'munkafüzet', icon: '/icons/ikon_tanulas.svg' },
-    // "checklist" feloldva (2026.09.23., Marci kérésére, 5. fázis) — a GYT
-    // itt CSAK OLVASHATÓ nézetben látja az ÜF napi checklist-diagramjait,
-    // szintenként választva, ld. GytChecklist.tsx/ChecklistContext.tsx.
     { to: '/gyt/checklist', label: 'checklist', icon: '/icons/ikon_checklist.svg' },
     { label: 'oktatóanyag', icon: '/icons/ikon_villanykorte.svg', locked: true },
     { label: 'eredmények', icon: '/icons/ikon_csillag.svg', locked: true },
+    { to: '/gyt/utankovetes', label: 'utánkövetés', icon: '/icons/ikon_szintek.svg', separatorBefore: true },
+    { to: '/gyt/dokumentacio-beallitasok', label: 'dokumentáció beállításai', icon: '/icons/ikon_beallitasok.svg' },
   ]
 }
 
