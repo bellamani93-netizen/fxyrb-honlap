@@ -4081,3 +4081,50 @@ html[data-theme='dark'] .bodychart-img {
 }
 html[data-theme='dark'] .gy-stepper-node--end { background-color: var(--lime); color: var(--navy); }
 html[data-theme='dark'] .gy-stepper-node--end .icon-fyb { color: var(--navy); }
+
+/* --- kérdések (ÜF "kérdéseim" + GYT "kérdések") --- */
+.kerdes-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+.kerdes-new {
+  display: inline-block;
+  padding: 0.05rem 0.55rem;
+  border-radius: 999px;
+  background-color: var(--lime);
+  color: var(--navy);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.kerdes-card-new { border-left: 4px solid var(--lime); }
+.kerdes-pending { background-color: rgba(214, 235, 80, 0.35); color: var(--color-text); }
+.kerdes-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.kerdes-replies {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-left: 1rem;
+  border-left: 3px solid var(--color-border);
+}
+.kerdes-reply {
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-alt);
+}

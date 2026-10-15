@@ -6,6 +6,8 @@ import { getAdminView, setAdminView } from '../hooks/useAdminEditGuard'
 import { withBase } from '../lib/assetUrl'
 import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
 import { useOktatoanyag } from '../context/OktatoanyagContext'
+import { countUnseenReplies, useKerdesek } from '../context/KerdesekContext'
+import { LOGGED_IN_UF_ID } from '../data/initialClients'
 
 export type NavItem = {
   to?: string
@@ -26,7 +28,7 @@ export type NavItem = {
 // zárolt); a "munkafüzet" EMELLETT azt is megköveteli, hogy mindkét lecke
 // tudáscheck-je teljesítve legyen (Marci kérése: "ha ezek megvannak, akkor
 // fér hozzá a munkafüzethez" — ld. OktatoanyagContext.tsx `allChecksCompleted`).
-function buildUfNavItems(felmeresKesz: boolean, oktatoanyagKesz: boolean): NavItem[] {
+function buildUfNavItems(felmeresKesz: boolean, oktatoanyagKesz: boolean, unseenReplies: number): NavItem[] {
   return [
     { to: '/allapotfelmero', label: 'állapotfelmérő', icon: '/icons/ikon_villanykorte.svg' },
     { to: '/gyakorlatok', label: 'gyakorlatok', icon: '/icons/ikon_torna.svg', locked: !felmeresKesz },
@@ -38,7 +40,9 @@ function buildUfNavItems(felmeresKesz: boolean, oktatoanyagKesz: boolean): NavIt
     { to: '/munkafuzet', label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: !felmeresKesz || !oktatoanyagKesz },
     { to: '/oktatoanyag', label: 'oktatóanyag', icon: '/icons/ikon_tanulas.svg', locked: !felmeresKesz },
     { to: '/eredmenyeim', label: 'eredményeim', icon: '/icons/ikon_csillag.svg', locked: !felmeresKesz },
-    { label: 'kérdéseim', icon: '/icons/ikon_csengo.svg', locked: true },
+    // "kérdéseim" feloldva: szabad szöveges kérdés a saját GYT-nek; a pötty a
+    // még nem látott válaszok száma (ld. KerdesekContext.tsx)
+    { to: '/kerdeseim', label: 'kérdéseim', icon: '/icons/ikon_csengo.svg', locked: !felmeresKesz, badge: unseenReplies || undefined },
   ]
 }
 
@@ -48,7 +52,7 @@ type AppLayoutProps = {
   role?: 'ugyfel' | 'gyt' | 'sales' | 'admin'
 }
 
-function sessionName(role: 'ugyfel' | 'gyt' | 'sales' | 'admin' | undefined, fallback: string): string {
+export function sessionName(role: 'ugyfel' | 'gyt' | 'sales' | 'admin' | undefined, fallback: string): string {
   if (!role) return fallback
   // ha az admin épp egy kolléga nevében néz egy GYT/SALES oldalt, a köszöntés
   // is az Ő nevét mutassa — pontosan azt kell látnia, amit a kolléga is látna
@@ -71,7 +75,8 @@ export default function AppLayout({ navItems, userName = 'Péter', role }: AppLa
   const [open, setOpen] = useState(false)
   const { completed: felmeresKesz } = useAllapotfelmero()
   const { allChecksCompleted } = useOktatoanyag()
-  const items = navItems ?? buildUfNavItems(felmeresKesz, allChecksCompleted)
+  const { kerdesek } = useKerdesek()
+  const items = navItems ?? buildUfNavItems(felmeresKesz, allChecksCompleted, countUnseenReplies(kerdesek, LOGGED_IN_UF_ID))
   const displayName = sessionName(role, userName)
   const adminView = (role === 'gyt' || role === 'sales') ? getAdminView() : null
   const isAdminImpersonating = !!adminView && adminView.role === role

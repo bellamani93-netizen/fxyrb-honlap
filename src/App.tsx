@@ -43,10 +43,13 @@ import { WorkbookProvider } from './context/WorkbookContext'
 import { DokumentacioProvider } from './context/DokumentacioContext'
 import { ChecklistProvider } from './context/ChecklistContext'
 import { AllapotfelmeroProvider, useAllapotfelmero } from './context/AllapotfelmeroContext'
+import { KerdesekProvider, countUnseenQuestions, useKerdesek } from './context/KerdesekContext'
+import Kerdeseim from './pages/Kerdeseim'
+import GytKerdesek from './pages/GytKerdesek'
 import { LOGGED_IN_GYT_ID } from './data/colleagues'
 import { getSelectedClientId } from './data/initialClients'
 
-function buildGytNavItems(newClientsCount: number): NavItem[] {
+function buildGytNavItems(newClientsCount: number, unseenQuestions: number): NavItem[] {
   return [
     { to: '/gyt/ugyfelek', label: 'ügyfeleim', icon: '/icons/ikon_kezdolap.svg', badge: newClientsCount || undefined },
     { to: '/gyt/videokiosztas', label: 'videókiosztás', icon: '/icons/ikon_video.svg' },
@@ -80,7 +83,10 @@ function buildGytNavItems(newClientsCount: number): NavItem[] {
     { to: '/gyt/checklist', label: 'checklist', icon: '/icons/ikon_checklist.svg' },
     { label: 'oktatóanyag', icon: '/icons/ikon_villanykorte.svg', locked: true },
     { label: 'eredmények', icon: '/icons/ikon_csillag.svg', locked: true },
-    { label: 'kérdések', icon: '/icons/ikon_csengo.svg', locked: true },
+    // "kérdések" feloldva: az ügyfelek szabad szöveges kérdései, hozzászólásban
+    // megválaszolhatók; a pötty a még meg nem nyitott kérdések száma. Nem
+    // ügyfélhez kötött (közös beérkező), ezért NEM a GytClientGate alá kerül.
+    { to: '/gyt/kerdesek', label: 'kérdések', icon: '/icons/ikon_csengo.svg', badge: unseenQuestions || undefined },
   ]
 }
 
@@ -110,6 +116,7 @@ const adminNavItems: NavItem[] = [
 export default function App() {
   return (
     <GyorsitosavProvider>
+    <KerdesekProvider>
     <ClientsProvider>
       <CalendarProvider>
         {/* a SalesDataProvider korábban csak a /sales/* útvonalak alatt
@@ -139,6 +146,7 @@ export default function App() {
         </SalesDataProvider>
       </CalendarProvider>
     </ClientsProvider>
+    </KerdesekProvider>
     </GyorsitosavProvider>
   )
 }
@@ -183,7 +191,9 @@ function GytClientGate() {
 function AppRoutes() {
   const { clients } = useClients()
   const newClientsCount = clients.filter((c) => c.assignedGytId === LOGGED_IN_GYT_ID && c.isNew).length
-  const gytNavItems = buildGytNavItems(newClientsCount)
+  const { kerdesek } = useKerdesek()
+  const ownClientIds = new Set(clients.filter((c) => c.assignedGytId === LOGGED_IN_GYT_ID).map((c) => c.id))
+  const gytNavItems = buildGytNavItems(newClientsCount, countUnseenQuestions(kerdesek, ownClientIds))
   const { salesCalls } = useSalesData()
   const newSalesCallsCount = salesCalls.filter((c) => c.isNew).length
   const salesNavItems = buildSalesNavItems(newSalesCallsCount)
@@ -213,11 +223,13 @@ function AppRoutes() {
           <Route path="/oktatoanyag" element={<Oktatoanyag />} />
           <Route path="/munkafuzet" element={<Munkafuzet />} />
           <Route path="/eredmenyeim" element={<Eredmenyeim />} />
+          <Route path="/kerdeseim" element={<Kerdeseim />} />
         </Route>
       </Route>
       <Route element={<AppLayout navItems={gytNavItems} userName="Judit" role="gyt" />}>
         <Route path="/gyt/ugyfelek" element={<GytUgyfelek />} />
         <Route path="/gyt/naptar" element={<GytNaptar />} />
+        <Route path="/gyt/kerdesek" element={<GytKerdesek />} />
         <Route path="/gyt/dokumentacio-beallitasok" element={<GytDokumentacioBeallitasok />} />
         <Route element={<GytClientGate />}>
           <Route path="/gyt/videokiosztas" element={<GytVideokiosztas />} />
