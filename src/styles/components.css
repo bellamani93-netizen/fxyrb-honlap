@@ -4159,3 +4159,39 @@ html[data-theme='dark'] .gy-stepper-node--end .icon-fyb { color: var(--navy); }
   background-color: var(--color-border);
 }
 .utk-capacity span.is-taken { background-color: var(--lime); }
+
+/* --- ÜF kezdő útvonal: "következő lépés" jelölés (menü + sárga sáv) --- */
+.app-sidebar-link.is-next {
+  background-color: rgba(214, 235, 80, 0.4);
+  box-shadow: inset 0 0 0 2px var(--lime);
+}
+.nav-next-pill {
+  flex: 0 0 auto;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  background-color: var(--lime);
+  border: 2px solid var(--navy);
+  animation: next-pulse 1.8s ease-in-out infinite;
+}
+@keyframes next-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(214, 235, 80, 0.7); }
+  50% { box-shadow: 0 0 0 0.35rem rgba(214, 235, 80, 0); }
+}
+.next-step-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-card);
+  background-color: var(--lime);
+  color: var(--navy);
+}
+.next-step-btn { background-color: var(--navy); color: #fff; }
+.next-step-btn .chevron-unit--mask { background-color: var(--lime) !important; }
+@media (prefers-reduced-motion: reduce) {
+  .nav-next-pill { animation: none; }
+}

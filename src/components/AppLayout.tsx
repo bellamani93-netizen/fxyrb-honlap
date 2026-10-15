@@ -7,6 +7,7 @@ import { withBase } from '../lib/assetUrl'
 import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
 import { useOktatoanyag } from '../context/OktatoanyagContext'
 import { useClients } from '../context/ClientsContext'
+import { useNextStep } from '../hooks/useNextStep'
 import { countUnseenReplies, useKerdesek } from '../context/KerdesekContext'
 import { LOGGED_IN_UF_ID } from '../data/initialClients'
 
@@ -17,6 +18,8 @@ export type NavItem = {
   locked?: boolean
   /** kis lime pötty a menüponton, benne egy számmal (pl. új ügyfelek száma). */
   badge?: number
+  /** a kezdő útvonal soron lévő lépése: sárga "következő" jelölés (ld. useNextStep) */
+  next?: boolean
 }
 
 // az "állapotfelmérő" a fiók LEGELSŐ, kötelező pontja (2026.09.03., Marci
@@ -29,8 +32,8 @@ export type NavItem = {
 // zárolt); a "munkafüzet" EMELLETT azt is megköveteli, hogy mindkét lecke
 // tudáscheck-je teljesítve legyen (Marci kérése: "ha ezek megvannak, akkor
 // fér hozzá a munkafüzethez" — ld. OktatoanyagContext.tsx `allChecksCompleted`).
-function buildUfNavItems(felmeresKesz: boolean, oktatoanyagKesz: boolean, unseenReplies: number, utankovetesben: boolean): NavItem[] {
-  return [
+function buildUfNavItems(felmeresKesz: boolean, oktatoanyagKesz: boolean, unseenReplies: number, utankovetesben: boolean, nextTo: string | undefined): NavItem[] {
+  const items: NavItem[] = [
     // A menüsor sorrendje (Marci diktálása): checklist, oktatóanyag, munkafüzet,
     // konzultációk, gyakorlatok, állapotfelmérő, kérdéseim, utánkövetés (+ a
     // sorból kimaradt eredményeim a végén). Aki már kitöltötte az
@@ -54,6 +57,7 @@ function buildUfNavItems(felmeresKesz: boolean, oktatoanyagKesz: boolean, unseen
     { to: '/utankovetes', label: 'utánkövetés', icon: '/icons/ikon_szintek.svg', locked: !felmeresKesz || !utankovetesben },
     { to: '/eredmenyeim', label: 'eredményeim', icon: '/icons/ikon_csillag.svg', locked: !felmeresKesz },
   ]
+  return items.map((it) => (it.to && it.to === nextTo ? { ...it, next: true } : it))
 }
 
 type AppLayoutProps = {
@@ -86,8 +90,9 @@ export default function AppLayout({ navItems, userName = 'Péter', role }: AppLa
   const { completed: felmeresKesz } = useAllapotfelmero()
   const { allChecksCompleted } = useOktatoanyag()
   const { kerdesek } = useKerdesek()
+  const nextStep = useNextStep()
   const { clients } = useClients()
-  const items = navItems ?? buildUfNavItems(felmeresKesz, allChecksCompleted, countUnseenReplies(kerdesek, LOGGED_IN_UF_ID), clients.find((c) => c.id === LOGGED_IN_UF_ID)?.programPhase === 'utankovetes')
+  const items = navItems ?? buildUfNavItems(felmeresKesz, allChecksCompleted, countUnseenReplies(kerdesek, LOGGED_IN_UF_ID), clients.find((c) => c.id === LOGGED_IN_UF_ID)?.programPhase === 'utankovetes', nextStep?.to)
   const displayName = sessionName(role, userName)
   const adminView = (role === 'gyt' || role === 'sales') ? getAdminView() : null
   const isAdminImpersonating = !!adminView && adminView.role === role
@@ -144,9 +149,10 @@ export default function AppLayout({ navItems, userName = 'Péter', role }: AppLa
                 <Icon src="/icons/ikon_lakat.svg" style={{ width: '1em', height: '1em' }} />
               </span>
             ) : (
-              <NavLink key={item.label} to={item.to ?? '/'} className="app-sidebar-link" onClick={() => setOpen(false)}>
+              <NavLink key={item.label} to={item.to ?? '/'} className={`app-sidebar-link ${item.next ? 'is-next' : ''}`} onClick={() => setOpen(false)}>
                 <Icon src={item.icon} />
                 <span className="flex-grow-1">{item.label}</span>
+                {item.next && <span className="nav-next-pill" role="img" aria-label="következő lépés" title="következő lépés" />}
                 {!!item.badge && <span className="nav-badge-dot">{item.badge}</span>}
               </NavLink>
             )

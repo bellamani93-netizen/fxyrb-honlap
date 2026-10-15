@@ -216,7 +216,7 @@ function AppRoutes() {
           <Route path="/konzultacioim" element={<UgyfelKonzultaciok />} />
           <Route path="/oktatoanyag" element={<Oktatoanyag />} />
           <Route path="/munkafuzet" element={<Munkafuzet />} />
-          <Route path="/eredmenyeim" element={<Eredmenyeim />} />
+          <Route path="/eredmenyeim" element={<Eredmenyeim onboarding />} />
           <Route path="/kerdeseim" element={<Kerdeseim />} />
           <Route path="/utankovetes" element={<Utankoveses />} />
         </Route>

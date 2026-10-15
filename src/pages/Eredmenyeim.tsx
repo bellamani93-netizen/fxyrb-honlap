@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
+import NextStepBanner from '../components/NextStepBanner'
 import ToggleSwitch from '../components/ToggleSwitch'
 import type { GerincterhelesReszlet } from '../components/GerincterhelesKalkulator'
 import { withBase } from '../lib/assetUrl'
@@ -481,6 +482,7 @@ export default function Eredmenyeim({
   displayName,
   showPrint = false,
   embedded = false,
+  onboarding = false,
 }: {
   /** GYT-oldali megjelenítéskor (ld. GytAllapotfelmerok.tsx) a kiválasztott
    * ÜGYFÉL neve — mivel nincs backend, minden más mező (Tünet, mutatók stb.)
@@ -507,6 +509,8 @@ export default function Eredmenyeim({
    * `/eredmenyeim`) `embedded` marad `false`, ott ez a fejléc az EGYETLEN
    * sticky fejléc, helyesen. */
   embedded?: boolean
+  /** az ÜF saját oldalán: a "következő lépés" sárga sáv megjelenítése (2026.10.15., Marci kérésére) */
+  onboarding?: boolean
 }) {
   const { eredmenyek } = useAllapotfelmero()
   // Marci kérésére (2026.09.16.: "Újabb kitöltés nem a jelenlegi eredménylapot
@@ -564,6 +568,7 @@ export default function Eredmenyeim({
   return (
     <section className="py-3 py-lg-3">
       <div className="container-fluid eredmeny-page-container">
+        {onboarding && <NextStepBanner />}
         {/* Fejléc-összegzés (2026.09.09., asztalra; 2026.09.10-től MINDEN
            képernyőméreten ez jelenik meg, a korábbi, csak mobilra szánt
            "eredményeim" cím + külön Alapadatok-doboz helyett — Marci
