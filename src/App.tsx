@@ -7,6 +7,7 @@ import MelyEdukacio from './pages/MelyEdukacio'
 import MelyEdukacioCikk from './pages/MelyEdukacioCikk'
 import MiniKurzus from './pages/MiniKurzus'
 import Idopontfoglalas from './pages/Idopontfoglalas'
+import JogiOldal from './pages/JogiOldal'
 import Belepes from './pages/Belepes'
 import Allapotfelmero from './pages/Allapotfelmero'
 import Gyakorlatok from './pages/Gyakorlatok'
@@ -192,6 +193,9 @@ function AppRoutes() {
         <Route path="/gyorsitosav" element={<MiniKurzus />} />
         <Route path="/idopontfoglalas" element={<Idopontfoglalas />} />
         <Route path="/belepes" element={<Belepes />} />
+        <Route path="/aszf" element={<JogiOldal title="ÁSZF" />} />
+        <Route path="/adatvedelem" element={<JogiOldal title="Adatvédelmi tájékoztató" />} />
+        <Route path="/cookie" element={<JogiOldal title="Cookie-tájékoztató" />} />
       </Route>
       <Route element={<AppLayout role="ugyfel" />}>
         <Route path="/allapotfelmero" element={<Allapotfelmero />} />

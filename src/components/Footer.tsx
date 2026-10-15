@@ -38,8 +38,13 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="d-flex justify-content-between align-items-center mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
           <span className="small text-white-50">© {new Date().getFullYear()} Fix Your Back</span>
+          <ul className="list-unstyled d-flex flex-wrap justify-content-end gap-3 mb-0 small">
+            <li><Link to="/aszf">ÁSZF</Link></li>
+            <li><Link to="/adatvedelem">Adatvédelmi tájékoztató</Link></li>
+            <li><Link to="/cookie">cookie</Link></li>
+          </ul>
         </div>
       </div>
     </footer>
