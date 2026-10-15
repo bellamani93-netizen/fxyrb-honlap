@@ -55,7 +55,7 @@ function RegisterForm() {
         onChange={(e) => setEmail(e.target.value)}
         style={{ minWidth: '14rem', flex: 1 }}
       />
-      <button type="submit" className="btn-fyb btn-fyb-highlight btn-fyb-lg text-nowrap">
+      <button type="submit" className="btn-fyb btn-fyb-highlight btn-fyb-lg gy-register-btn">
         regisztrálok, mehet az 1. videó
         <Chevron direction="right" color="var(--navy)" />
       </button>
@@ -137,7 +137,7 @@ function CountdownBar() {
           <div className="fw-bold">Szia, {nameFromEmail(progress.email)}!</div>
           <div className="small" style={{ color: 'var(--color-text-muted)' }}>{done} / {total} videó kész</div>
         </div>
-        <div className="d-flex flex-column align-items-end">{status}</div>
+        <div className="d-flex flex-column align-items-start align-items-sm-end">{status}</div>
       </div>
       <div className="gy-progress mt-3" aria-hidden="true">
         <span style={{ width: `${(done / total) * 100}%` }} />

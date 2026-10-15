@@ -3949,3 +3949,12 @@ html[data-theme='dark'] .bodychart-img {
   .gy-confetti { display: none; }
   .gy-celebrate-badge { animation: none; }
 }
+
+/* regisztrációs gomb: mobilon teljes szélességű és törhető szövegű, hogy ne lógjon ki a kártyából */
+.gy-register-btn {
+  width: 100%;
+  white-space: normal;
+}
+@media (min-width: 576px) {
+  .gy-register-btn { width: auto; white-space: nowrap; }
+}
