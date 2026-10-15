@@ -46,6 +46,9 @@ import { AllapotfelmeroProvider, useAllapotfelmero } from './context/Allapotfelm
 import { KerdesekProvider, countUnseenQuestions, useKerdesek } from './context/KerdesekContext'
 import Kerdeseim from './pages/Kerdeseim'
 import GytKerdesek from './pages/GytKerdesek'
+import GytUtankoveses from './pages/GytUtankoveses'
+import Utankoveses from './pages/Utankoveses'
+import { UtankovetesProvider } from './context/UtankovetesContext'
 import { LOGGED_IN_GYT_ID } from './data/colleagues'
 import { getSelectedClientId } from './data/initialClients'
 
@@ -57,6 +60,10 @@ function buildGytNavItems(newClientsCount: number, unseenQuestions: number): Nav
     // ügyfélhez kötött (közös beérkező), ezért NEM a GytClientGate alá kerül.
     { to: '/gyt/kerdesek', label: 'kérdések', icon: '/icons/ikon_csengo.svg', badge: unseenQuestions || undefined },
     { to: '/gyt/videokiosztas', label: 'videókiosztás', icon: '/icons/ikon_video.svg' },
+    // "utánkövetés": a 10 hetet végigjárt, 14 hetes utánkövetésben lévő
+    // ügyfelek heti csoportos mítingje (idő, Google Meet link, férőhelyek).
+    // Nem egyetlen ügyfélhez kötött, ezért NEM a GytClientGate alá kerül.
+    { to: '/gyt/utankovetes', label: 'utánkövetés', icon: '/icons/ikon_szintek.svg' },
     { to: '/gyt/naptar', label: 'naptár', icon: '/icons/ikon_naptar.svg' },
     // korábban zárolt helyőrző volt ("állapotfelmérő") — Marci kérésére
     // (2026.09.10.: "az eredménylap üf-hez rendelve legyen látható a gyt
@@ -117,6 +124,7 @@ export default function App() {
   return (
     <GyorsitosavProvider>
     <KerdesekProvider>
+    <UtankovetesProvider>
     <ClientsProvider>
       <CalendarProvider>
         {/* a SalesDataProvider korábban csak a /sales/* útvonalak alatt
@@ -146,6 +154,7 @@ export default function App() {
         </SalesDataProvider>
       </CalendarProvider>
     </ClientsProvider>
+    </UtankovetesProvider>
     </KerdesekProvider>
     </GyorsitosavProvider>
   )
@@ -224,12 +233,14 @@ function AppRoutes() {
           <Route path="/munkafuzet" element={<Munkafuzet />} />
           <Route path="/eredmenyeim" element={<Eredmenyeim />} />
           <Route path="/kerdeseim" element={<Kerdeseim />} />
+          <Route path="/utankovetes" element={<Utankoveses />} />
         </Route>
       </Route>
       <Route element={<AppLayout navItems={gytNavItems} userName="Judit" role="gyt" />}>
         <Route path="/gyt/ugyfelek" element={<GytUgyfelek />} />
         <Route path="/gyt/naptar" element={<GytNaptar />} />
         <Route path="/gyt/kerdesek" element={<GytKerdesek />} />
+        <Route path="/gyt/utankovetes" element={<GytUtankoveses />} />
         <Route path="/gyt/dokumentacio-beallitasok" element={<GytDokumentacioBeallitasok />} />
         <Route element={<GytClientGate />}>
           <Route path="/gyt/videokiosztas" element={<GytVideokiosztas />} />

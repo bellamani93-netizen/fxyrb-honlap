@@ -1,0 +1,160 @@
+import { useState } from 'react'
+import { useClients } from '../context/ClientsContext'
+import {
+  DEFAULT_CAPACITY,
+  formatMeetingTime,
+  isGoogleMeetLink,
+  isMeetingPast,
+  useUtankovetes,
+  type Meeting,
+} from '../context/UtankovetesContext'
+import { LOGGED_IN_GYT_ID } from '../data/colleagues'
+
+function MeetingForm({ meeting }: { meeting: Meeting | undefined }) {
+  const { saveMeeting, newMeeting } = useUtankovetes()
+  const [startsAt, setStartsAt] = useState(meeting?.startsAt ?? '')
+  const [meetLink, setMeetLink] = useState(meeting?.meetLink ?? '')
+  const [capacity, setCapacity] = useState(meeting?.capacity ?? DEFAULT_CAPACITY)
+  const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+
+  function validate(): { startsAt: string; meetLink: string; capacity: number } | null {
+    if (!startsAt) return setError('Add meg a míting időpontját.'), null
+    if (!isGoogleMeetLink(meetLink)) return setError('Google Meet linket adj meg (https://meet.google.com/…).'), null
+    if (!Number.isFinite(capacity) || capacity < 1) return setError('A létszám legalább 1 legyen.'), null
+    setError(null)
+    return { startsAt, meetLink: meetLink.trim(), capacity: Math.round(capacity) }
+  }
+
+  function handleSave(e: React.FormEvent) {
+    e.preventDefault()
+    const v = validate()
+    if (!v) return
+    saveMeeting(LOGGED_IN_GYT_ID, v)
+    setSaved(true)
+  }
+
+  function handleNew() {
+    const v = validate()
+    if (!v) return
+    if (meeting && !window.confirm('Új heti mítinget írsz ki: a jelenlegi lezárul, a jelentkezések újraindulnak. Folytatod?')) return
+    newMeeting(LOGGED_IN_GYT_ID, v)
+    setSaved(true)
+  }
+
+  return (
+    <form onSubmit={handleSave}>
+      <div className="row g-3">
+        <div className="col-12 col-md-6">
+          <label className="form-label small fw-bold" htmlFor="mit-ido">a míting időpontja</label>
+          <input id="mit-ido" type="datetime-local" className="form-control" value={startsAt} onChange={(e) => { setStartsAt(e.target.value); setSaved(false) }} />
+        </div>
+        <div className="col-12 col-md-6">
+          <label className="form-label small fw-bold" htmlFor="mit-cap">férőhelyek száma</label>
+          <input id="mit-cap" type="number" min={1} className="form-control" value={capacity} onChange={(e) => { setCapacity(Number(e.target.value)); setSaved(false) }} />
+        </div>
+        <div className="col-12">
+          <label className="form-label small fw-bold" htmlFor="mit-link">Google Meet link</label>
+          <input id="mit-link" type="url" className="form-control" placeholder="https://meet.google.com/abc-defg-hij" value={meetLink} onChange={(e) => { setMeetLink(e.target.value); setSaved(false) }} />
+        </div>
+      </div>
+      {error && <div className="small mt-2" style={{ color: 'var(--bs-danger, #c0392b)' }}>{error}</div>}
+      <div className="d-flex flex-wrap gap-2 mt-3 align-items-center">
+        <button type="submit" className="btn-fyb btn-fyb-highlight">{meeting ? 'módosítások mentése' : 'míting kiírása'}</button>
+        {meeting && (
+          <button type="button" className="btn-fyb btn-fyb-outline" onClick={handleNew}>új heti míting kiírása</button>
+        )}
+        {saved && <span className="small" style={{ color: 'var(--color-primary)' }}>elmentve</span>}
+      </div>
+    </form>
+  )
+}
+
+// GYT "utánkövetés": a 10 hetet már végigjárt, a 14 hetes utánkövetésben lévő
+// ügyfelek heti csoportos mítingje — a GYT itt írja ki az időpontot, a Google
+// Meet linket és a férőhelyek számát; az ügyfelek jelentkezését is itt látja.
+export default function GytUtankoveses() {
+  const { clients, updateClient } = useClients()
+  const { currentMeeting, signups, removeSignup } = useUtankovetes()
+  const [toAdd, setToAdd] = useState('')
+
+  const own = clients.filter((c) => c.assignedGytId === LOGGED_IN_GYT_ID)
+  const followUp = own.filter((c) => c.programPhase === 'utankovetes')
+  const candidates = own.filter((c) => !c.programPhase)
+  const nameOf = new Map(clients.map((c) => [c.id, c.name]))
+  const meeting = currentMeeting(LOGGED_IN_GYT_ID)
+  const list = meeting ? signups.filter((s) => s.meetingId === meeting.id) : []
+
+  return (
+    <section className="py-3 py-lg-5">
+      <div className="container-fluid" style={{ maxWidth: 900 }}>
+        <div className="app-page-header mb-3 mobile-sticky-header">
+          <h1 className="app-page-title mb-0">utánkövetés</h1>
+        </div>
+        <p className="small mb-4" style={{ color: 'var(--color-text-muted)' }}>
+          Azok az ügyfeleid, akik már végigértek a 10 héten, a következő 14 hétben heti csoportos mítingen vehetnek részt.
+          Te adod meg az időpontot, a Google Meet linket és a férőhelyek számát; a jelentkezés érkezési sorrendben telik be.
+        </p>
+
+        <div className="card-fyb card-fyb-accent mb-4">
+          <h2 className="h5 mb-3">heti míting</h2>
+          <MeetingForm meeting={meeting} />
+          {meeting && isMeetingPast(meeting.startsAt) && (
+            <p className="small mt-3 mb-0" style={{ color: 'var(--color-text-muted)' }}>
+              Ez a míting már lezajlott ({formatMeetingTime(meeting.startsAt)}) — a jelentkezés lezárt. Írd ki a következő heti mítinget.
+            </p>
+          )}
+        </div>
+
+        {meeting && (
+          <div className="card-fyb mb-4">
+            <h2 className="h6 mb-1">jelentkezők ({list.length}/{meeting.capacity})</h2>
+            <p className="small mb-3" style={{ color: 'var(--color-text-muted)' }}>{formatMeetingTime(meeting.startsAt)}</p>
+            {list.length === 0 && <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>Még nincs jelentkező.</p>}
+            <div className="d-flex flex-column gap-2">
+              {list.map((s, i) => (
+                <div key={s.id} className="utk-signup">
+                  <span className="utk-signup-n">{i + 1}</span>
+                  <div className="flex-grow-1">
+                    <div className="fw-bold">{nameOf.get(s.clientId) ?? 'ügyfél'}</div>
+                    <p className="mb-0">{s.text}</p>
+                  </div>
+                  <button type="button" className="btn-fyb btn-fyb-ghost text-nowrap" style={{ padding: '0.2rem 0.7rem', fontSize: '0.8rem' }} onClick={() => removeSignup(s.id)}>törlés</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="card-fyb">
+          <h2 className="h6 mb-3">utánkövetésben lévő ügyfeleid ({followUp.length})</h2>
+          {followUp.length === 0 && <p style={{ color: 'var(--color-text-muted)' }}>Még nincs ügyfeled az utánkövetésben.</p>}
+          <div className="d-flex flex-column gap-2 mb-3">
+            {followUp.map((c) => (
+              <div key={c.id} className="d-flex align-items-center gap-2 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <span className="fw-bold flex-grow-1">{c.name}</span>
+                <button type="button" className="btn-fyb btn-fyb-ghost" style={{ padding: '0.2rem 0.7rem', fontSize: '0.8rem' }} onClick={() => updateClient(c.id, { programPhase: undefined })}>kivétel</button>
+              </div>
+            ))}
+          </div>
+          <div className="d-flex flex-wrap gap-2">
+            <select className="form-select" style={{ maxWidth: 280 }} value={toAdd} onChange={(e) => setToAdd(e.target.value)} aria-label="ügyfél kiválasztása">
+              <option value="">ügyfél kiválasztása…</option>
+              {candidates.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="btn-fyb btn-fyb-outline"
+              disabled={!toAdd}
+              onClick={() => { updateClient(toAdd, { programPhase: 'utankovetes' }); setToAdd('') }}
+            >
+              10 hét lezárva: utánkövetésbe
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}

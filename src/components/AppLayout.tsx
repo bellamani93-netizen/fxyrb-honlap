@@ -6,6 +6,7 @@ import { getAdminView, setAdminView } from '../hooks/useAdminEditGuard'
 import { withBase } from '../lib/assetUrl'
 import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
 import { useOktatoanyag } from '../context/OktatoanyagContext'
+import { useClients } from '../context/ClientsContext'
 import { countUnseenReplies, useKerdesek } from '../context/KerdesekContext'
 import { LOGGED_IN_UF_ID } from '../data/initialClients'
 
@@ -28,7 +29,7 @@ export type NavItem = {
 // zárolt); a "munkafüzet" EMELLETT azt is megköveteli, hogy mindkét lecke
 // tudáscheck-je teljesítve legyen (Marci kérése: "ha ezek megvannak, akkor
 // fér hozzá a munkafüzethez" — ld. OktatoanyagContext.tsx `allChecksCompleted`).
-function buildUfNavItems(felmeresKesz: boolean, oktatoanyagKesz: boolean, unseenReplies: number): NavItem[] {
+function buildUfNavItems(felmeresKesz: boolean, oktatoanyagKesz: boolean, unseenReplies: number, utankovetesben: boolean): NavItem[] {
   return [
     { to: '/allapotfelmero', label: 'állapotfelmérő', icon: '/icons/ikon_villanykorte.svg' },
     { to: '/gyakorlatok', label: 'gyakorlatok', icon: '/icons/ikon_torna.svg', locked: !felmeresKesz },
@@ -40,6 +41,9 @@ function buildUfNavItems(felmeresKesz: boolean, oktatoanyagKesz: boolean, unseen
     { to: '/munkafuzet', label: 'munkafüzet', icon: '/icons/ikon_munkafuzet.svg', locked: !felmeresKesz || !oktatoanyagKesz },
     { to: '/oktatoanyag', label: 'oktatóanyag', icon: '/icons/ikon_tanulas.svg', locked: !felmeresKesz },
     { to: '/eredmenyeim', label: 'eredményeim', icon: '/icons/ikon_csillag.svg', locked: !felmeresKesz },
+    // "utánkövetés": csak a 10 hetet lezárt, 14 hetes utánkövetésben lévő ÜF-nek
+    // nyílik meg (a GYT állítja be) — heti csoportos míting jelentkezés
+    { to: '/utankovetes', label: 'utánkövetés', icon: '/icons/ikon_szintek.svg', locked: !felmeresKesz || !utankovetesben },
     // "kérdéseim" feloldva: szabad szöveges kérdés a saját GYT-nek; a pötty a
     // még nem látott válaszok száma (ld. KerdesekContext.tsx)
     { to: '/kerdeseim', label: 'kérdéseim', icon: '/icons/ikon_csengo.svg', locked: !felmeresKesz, badge: unseenReplies || undefined },
@@ -76,7 +80,8 @@ export default function AppLayout({ navItems, userName = 'Péter', role }: AppLa
   const { completed: felmeresKesz } = useAllapotfelmero()
   const { allChecksCompleted } = useOktatoanyag()
   const { kerdesek } = useKerdesek()
-  const items = navItems ?? buildUfNavItems(felmeresKesz, allChecksCompleted, countUnseenReplies(kerdesek, LOGGED_IN_UF_ID))
+  const { clients } = useClients()
+  const items = navItems ?? buildUfNavItems(felmeresKesz, allChecksCompleted, countUnseenReplies(kerdesek, LOGGED_IN_UF_ID), clients.find((c) => c.id === LOGGED_IN_UF_ID)?.programPhase === 'utankovetes')
   const displayName = sessionName(role, userName)
   const adminView = (role === 'gyt' || role === 'sales') ? getAdminView() : null
   const isAdminImpersonating = !!adminView && adminView.role === role
