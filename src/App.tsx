@@ -52,14 +52,14 @@ import { UtankovetesProvider } from './context/UtankovetesContext'
 import { LOGGED_IN_GYT_ID } from './data/colleagues'
 import { getSelectedClientId } from './data/initialClients'
 
-// A GYT menüsor sorrendje (Marci kérésére): felül a gyakran használt,
-// ügyfélhez kötött funkciók, alul (elválasztó vonal után) az ügyféltől
-// független beállítások és az utánkövetés.
+// A GYT menüsor sorrendje (Marci pontos diktálása): ügyfeleim, dokumentáció,
+// videókiosztás, munkafüzet, checklist, kérdések, naptár, utánkövetés,
+// dokumentáció beállításai, utána a többi (állapotfelmérők, és a még zárolt
+// oktatóanyag/eredmények helyőrzők).
 // - "kérdések": az ügyfelek szabad szöveges kérdései, hozzászólásban
 //   megválaszolhatók; a pötty a még meg nem nyitott kérdések száma (közös
 //   beérkező, ezért NEM a GytClientGate alá kerül).
-// - "munkafüzet", "checklist": CSAK olvasható nézet az ÜF adatairól; az
-//   "oktatóanyag" és az "eredmények" még zárolt helyőrző.
+// - "munkafüzet", "checklist": CSAK olvasható nézet az ÜF adatairól.
 // - "utánkövetés": a 10 hetet végigjárt, 14 hetes utánkövetésben lévő
 //   ügyfelek heti csoportos mítingje (idő, Meet link, férőhelyek).
 // - "dokumentáció beállításai": közös (nem ügyfelenkénti) sablon, ezért
@@ -67,17 +67,17 @@ import { getSelectedClientId } from './data/initialClients'
 function buildGytNavItems(newClientsCount: number, unseenQuestions: number): NavItem[] {
   return [
     { to: '/gyt/ugyfelek', label: 'ügyfeleim', icon: '/icons/ikon_kezdolap.svg', badge: newClientsCount || undefined },
-    { to: '/gyt/kerdesek', label: 'kérdések', icon: '/icons/ikon_csengo.svg', badge: unseenQuestions || undefined },
-    { to: '/gyt/videokiosztas', label: 'videókiosztás', icon: '/icons/ikon_video.svg' },
-    { to: '/gyt/naptar', label: 'naptár', icon: '/icons/ikon_naptar.svg' },
-    { to: '/gyt/allapotfelmerok', label: 'állapotfelmérők', icon: '/icons/ikon_kerdoiv.svg' },
     { to: '/gyt/dokumentacio', label: 'dokumentáció', icon: '/icons/ikon_munkafuzet.svg' },
+    { to: '/gyt/videokiosztas', label: 'videókiosztás', icon: '/icons/ikon_video.svg' },
     { to: '/gyt/munkafuzet', label: 'munkafüzet', icon: '/icons/ikon_tanulas.svg' },
     { to: '/gyt/checklist', label: 'checklist', icon: '/icons/ikon_checklist.svg' },
+    { to: '/gyt/kerdesek', label: 'kérdések', icon: '/icons/ikon_csengo.svg', badge: unseenQuestions || undefined },
+    { to: '/gyt/naptar', label: 'naptár', icon: '/icons/ikon_naptar.svg' },
+    { to: '/gyt/utankovetes', label: 'utánkövetés', icon: '/icons/ikon_szintek.svg' },
+    { to: '/gyt/dokumentacio-beallitasok', label: 'dokumentáció beállításai', icon: '/icons/ikon_beallitasok.svg' },
+    { to: '/gyt/allapotfelmerok', label: 'állapotfelmérők', icon: '/icons/ikon_kerdoiv.svg' },
     { label: 'oktatóanyag', icon: '/icons/ikon_villanykorte.svg', locked: true },
     { label: 'eredmények', icon: '/icons/ikon_csillag.svg', locked: true },
-    { to: '/gyt/utankovetes', label: 'utánkövetés', icon: '/icons/ikon_szintek.svg', separatorBefore: true },
-    { to: '/gyt/dokumentacio-beallitasok', label: 'dokumentáció beállításai', icon: '/icons/ikon_beallitasok.svg' },
   ]
 }
 

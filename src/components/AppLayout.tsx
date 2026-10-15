@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
 import Icon from './Icon'
@@ -17,8 +17,6 @@ export type NavItem = {
   locked?: boolean
   /** kis lime pötty a menüponton, benne egy számmal (pl. új ügyfelek száma). */
   badge?: number
-  /** vékony elválasztó vonal a menüpont fölött (a menü alsó csoportjának kezdete) */
-  separatorBefore?: boolean
 }
 
 // az "állapotfelmérő" a fiók LEGELSŐ, kötelező pontja (2026.09.03., Marci
@@ -132,24 +130,21 @@ export default function AppLayout({ navItems, userName = 'Péter', role }: AppLa
         </div>
 
         <nav className="app-sidebar-nav">
-          {items.map((item) => (
-            <Fragment key={item.label}>
-              {item.separatorBefore && <div className="app-sidebar-divider" role="separator" />}
-              {item.locked ? (
-              <span className="app-sidebar-link is-locked">
+          {items.map((item) =>
+            item.locked ? (
+              <span key={item.label} className="app-sidebar-link is-locked">
                 <Icon src={item.icon} />
                 <span className="flex-grow-1">{item.label}</span>
                 <Icon src="/icons/ikon_lakat.svg" style={{ width: '1em', height: '1em' }} />
               </span>
             ) : (
-              <NavLink to={item.to ?? '/'} className="app-sidebar-link" onClick={() => setOpen(false)}>
+              <NavLink key={item.label} to={item.to ?? '/'} className="app-sidebar-link" onClick={() => setOpen(false)}>
                 <Icon src={item.icon} />
                 <span className="flex-grow-1">{item.label}</span>
                 {!!item.badge && <span className="nav-badge-dot">{item.badge}</span>}
               </NavLink>
-              )}
-            </Fragment>
-          ))}
+            )
+          )}
         </nav>
 
         <div className="app-sidebar-bottom">
