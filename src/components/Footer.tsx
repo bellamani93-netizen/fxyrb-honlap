@@ -13,7 +13,7 @@ export default function Footer() {
           <div className="col-md-4">
             <img src={withBase("/images/logo-dark-bg.png")} alt="Fix Your Back" className="brand-logo-img mb-2" />
             <p className="text-white-50 small mb-0">
-              gerincbarát gyógytorna program — szakértő útmutatással, saját tempódban
+              győzd le a derékfájást hosszú távra
             </p>
           </div>
 
@@ -30,8 +30,10 @@ export default function Footer() {
           <div className="col-md-4">
             <div className="fw-bold mb-2">kapcsolat</div>
             <ul className="list-unstyled d-flex flex-column gap-2 small">
-              <li>hello@fixyourback.hu</li>
-              <li>Bella Márton, gyógytornász</li>
+              <li>email: <a href="mailto:info@fixyourback.hu">info@fixyourback.hu</a></li>
+              <li><a href="https://www.instagram.com/bellamarton_official/" target="_blank" rel="noreferrer">instagram</a></li>
+              <li><a href="https://www.facebook.com/profile.php?id=100089450116040" target="_blank" rel="noreferrer">facebook</a></li>
+              <li><a href="https://www.facebook.com/groups/784800570255595" target="_blank" rel="noreferrer">edukációs facebook csoport</a></li>
             </ul>
           </div>
         </div>
