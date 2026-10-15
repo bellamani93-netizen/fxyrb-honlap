@@ -232,7 +232,7 @@ function CurrentVideo({ video, index, total }: { video: GyVideo; index: number; 
               </div>
             ))}
             <button type="submit" className="btn-fyb btn-fyb-highlight" disabled={!canSubmit}>
-              komment elküldése
+              válasz küldése
               <Chevron direction="right" color="var(--navy)" />
             </button>
           </form>
