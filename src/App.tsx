@@ -46,6 +46,7 @@ import { AllapotfelmeroProvider, useAllapotfelmero } from './context/Allapotfelm
 import { KerdesekProvider, countUnseenQuestions, useKerdesek } from './context/KerdesekContext'
 import Kerdeseim from './pages/Kerdeseim'
 import GytKerdesek from './pages/GytKerdesek'
+import GytOktatoanyag from './pages/GytOktatoanyag'
 import GytUtankoveses from './pages/GytUtankoveses'
 import Utankoveses from './pages/Utankoveses'
 import { UtankovetesProvider } from './context/UtankovetesContext'
@@ -54,8 +55,8 @@ import { getSelectedClientId } from './data/initialClients'
 
 // A GYT menüsor sorrendje (Marci pontos diktálása): ügyfeleim, dokumentáció,
 // videókiosztás, munkafüzet, checklist, kérdések, naptár, utánkövetés,
-// dokumentáció beállításai, utána a többi (állapotfelmérők, és a még zárolt
-// oktatóanyag/eredmények helyőrzők).
+// dokumentáció beállításai, utána a többi (állapotfelmérők, oktatóanyag — az
+// összes videó csak olvasható listája —, és a még zárolt eredmények helyőrző).
 // - "kérdések": az ügyfelek szabad szöveges kérdései, hozzászólásban
 //   megválaszolhatók; a pötty a még meg nem nyitott kérdések száma (közös
 //   beérkező, ezért NEM a GytClientGate alá kerül).
@@ -76,7 +77,7 @@ function buildGytNavItems(newClientsCount: number, unseenQuestions: number): Nav
     { to: '/gyt/utankovetes', label: 'utánkövetés', icon: '/icons/ikon_szintek.svg' },
     { to: '/gyt/dokumentacio-beallitasok', label: 'dokumentáció beállításai', icon: '/icons/ikon_beallitasok.svg' },
     { to: '/gyt/allapotfelmerok', label: 'állapotfelmérők', icon: '/icons/ikon_kerdoiv.svg' },
-    { label: 'oktatóanyag', icon: '/icons/ikon_villanykorte.svg', locked: true },
+    { to: '/gyt/oktatoanyag', label: 'oktatóanyag', icon: '/icons/ikon_villanykorte.svg' },
     { label: 'eredmények', icon: '/icons/ikon_csillag.svg', locked: true },
   ]
 }
@@ -224,6 +225,7 @@ function AppRoutes() {
         <Route path="/gyt/ugyfelek" element={<GytUgyfelek />} />
         <Route path="/gyt/naptar" element={<GytNaptar />} />
         <Route path="/gyt/kerdesek" element={<GytKerdesek />} />
+        <Route path="/gyt/oktatoanyag" element={<GytOktatoanyag />} />
         <Route path="/gyt/utankovetes" element={<GytUtankoveses />} />
         <Route path="/gyt/dokumentacio-beallitasok" element={<GytDokumentacioBeallitasok />} />
         <Route element={<GytClientGate />}>
