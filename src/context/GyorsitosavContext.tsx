@@ -232,3 +232,13 @@ export function formatDeadline(hours: number): string {
   if (hours >= 24 && hours % 24 === 0) return `${hours / 24} nap`
   return `${hours} óra`
 }
+
+/** "2 nap 3 óra 12 perc" — az eltelt idő szöveges, kerekített formája */
+export function formatElapsed(ms: number): string {
+  const totalMin = Math.max(0, Math.floor(ms / 60000))
+  if (totalMin < 1) return 'kevesebb mint 1 perc'
+  const d = Math.floor(totalMin / 1440)
+  const h = Math.floor((totalMin % 1440) / 60)
+  const m = totalMin % 60
+  return [d ? `${d} nap` : '', h ? `${h} óra` : '', m ? `${m} perc` : ''].filter(Boolean).join(' ')
+}

@@ -6,6 +6,7 @@ import Home from './pages/Home'
 import MelyEdukacio from './pages/MelyEdukacio'
 import MelyEdukacioCikk from './pages/MelyEdukacioCikk'
 import Gyorsitosav from './pages/Gyorsitosav'
+import GyorsitosavKesz from './pages/GyorsitosavKesz'
 import AdminGyorsitosav from './pages/AdminGyorsitosav'
 import Idopontfoglalas from './pages/Idopontfoglalas'
 import JogiOldal from './pages/JogiOldal'
@@ -196,6 +197,7 @@ function AppRoutes() {
         <Route path="/melyedukacio" element={<MelyEdukacio />} />
         <Route path="/melyedukacio/:id" element={<MelyEdukacioCikk />} />
         <Route path="/gyorsitosav" element={<Gyorsitosav />} />
+        <Route path="/gyorsitosav/kesz" element={<GyorsitosavKesz />} />
         <Route path="/idopontfoglalas" element={<Idopontfoglalas />} />
         <Route path="/belepes" element={<Belepes />} />
         <Route path="/aszf" element={<JogiOldal title="ÁSZF" />} />

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Chevron from '../components/Chevron'
 import Icon from '../components/Icon'
@@ -243,60 +243,27 @@ function CurrentVideo({ video, index, total }: { video: GyVideo; index: number; 
       {completed && (
         <>
           <CommentSection videoId={video.id} ownEmail={progress.email} />
-          {!isLast && (
-            <div className="mt-4">
+          <div className="mt-4">
+            {isLast ? (
+              <Link to="/gyorsitosav/kesz" className="btn-fyb btn-fyb-highlight btn-fyb-lg">
+                tovább
+                <Chevron direction="right" color="var(--navy)" />
+              </Link>
+            ) : (
               <button type="button" className="btn-fyb btn-fyb-highlight btn-fyb-lg" onClick={() => advance(video.id)}>
                 tovább a következő videóra
                 <Chevron direction="right" color="var(--navy)" />
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
     </div>
   )
 }
 
-function Completion() {
-  const { config, progress } = useGyorsitosav()
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }, [])
-
-  if (!progress) return null
-
-  return (
-    <div ref={ref} className="card-fyb gy-complete text-center">
-      <h2 className="h4 mb-2">végigértél a gyorsítósávon!</h2>
-      {progress.giftEarned && (
-        <div className="gy-gift-card justify-content-center mb-3">
-          <Icon src="/icons/ikon_csillag.svg" />
-          <div className="text-start">
-            <div className="fw-bold">az ajándékod: {config.gift.title}</div>
-            {config.gift.description && <p className="mb-1 small">{config.gift.description}</p>}
-            {config.gift.downloadUrl ? (
-              <a className="btn-fyb btn-fyb-primary mt-1" href={config.gift.downloadUrl} target="_blank" rel="noreferrer" download>letöltés</a>
-            ) : (
-              <span className="small" style={{ color: 'var(--color-text-muted)' }}>a letöltési link hamarosan elérhető lesz.</span>
-            )}
-          </div>
-        </div>
-      )}
-      <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>
-        Az ingyenes konzultáció időpontfoglalója vár rád.
-      </p>
-      <Link to="/idopontfoglalas" className="btn-fyb btn-fyb-highlight btn-fyb-lg">
-        tovább az időpontfoglalóra
-        <Chevron direction="right" color="var(--navy)" />
-      </Link>
-    </div>
-  )
-}
-
 function Course() {
-  const { config, currentIndex, finished } = useGyorsitosav()
+  const { config, currentIndex } = useGyorsitosav()
   const total = config.videos.length
   const index = Math.min(currentIndex, total - 1)
   const video = config.videos[index]
@@ -314,7 +281,6 @@ function Course() {
       <CountdownBar />
       <div className="d-flex flex-column gap-4">
         <CurrentVideo video={video} index={index} total={total} />
-        {finished && <Completion />}
       </div>
     </>
   )
