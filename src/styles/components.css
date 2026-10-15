@@ -3829,3 +3829,10 @@ html[data-theme='dark'] .bodychart-img {
   font-size: 0.9rem;
   pointer-events: none;
 }
+.video-embed-fyb video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+}

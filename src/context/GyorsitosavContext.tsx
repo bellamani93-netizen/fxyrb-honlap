@@ -14,11 +14,15 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 // a valódi, több résztvevős nyilvántartás a backenddel érkezik majd).
 
 export type GyQuestion = { id: string; text: string }
-export type GyVideo = { id: string; title: string; url: string; questions: GyQuestion[] }
+/** a videófájl maga a `lib/videoStore`-ban él (kulcsa a `GyVideo.id`); itt csak a
+ * feltöltés ténye (`videoName` ≠ null) és a megjelenítéshez a fájlnév/méret van */
+export type GyVideo = { id: string; title: string; videoName: string | null; videoSize: number | null; questions: GyQuestion[] }
 export type GyGift = { enabled: boolean; title: string; description: string; downloadUrl: string }
 export type GyConfig = { videos: GyVideo[]; deadlineHours: number; gift: GyGift }
 
 export type GyAnswer = { questionId: string; question: string; text: string }
+/** a kommentszekció egy bejegyzése (egy tudáscheck-válasz) */
+export type GyComment = { id: string; videoId: string; email: string; question: string; text: string; at: number }
 export type GyProgress = {
   email: string
   registeredAt: number
@@ -26,12 +30,16 @@ export type GyProgress = {
   watched: string[]
   /** videó-azonosító → a beküldött tudáscheck-válaszok (kommentek) */
   completed: Record<string, { answers: GyAnswer[]; at: number }>
+  /** azok a videók, amelyek után a résztvevő már továbblépett — a folyamatban
+   * mindig csak az első, még nem továbblépett videó látszik */
+  advanced: string[]
   finishedAt: number | null
   giftEarned: boolean
 }
 
 const CONFIG_KEY = 'fyb-gyorsitosav-config'
 const PROGRESS_KEY = 'fyb-gyorsitosav-progress'
+const COMMENTS_KEY = 'fyb-gyorsitosav-comments'
 
 function defaultQuestions(): GyQuestion[] {
   return [
@@ -44,10 +52,10 @@ export const DEFAULT_CONFIG: GyConfig = {
   deadlineHours: 72,
   gift: { enabled: true, title: 'ingyenes letölthető anyag', description: '', downloadUrl: '' },
   videos: [
-    { id: 'v1', title: '1. miért fáj a derekad — a valódi ok', url: '', questions: defaultQuestions() },
-    { id: 'v2', title: '2. a 3 mozdulat, amit naponta rosszul csinálsz', url: '', questions: defaultQuestions() },
-    { id: 'v3', title: '3. a HÁTrendben módszer logikája', url: '', questions: defaultQuestions() },
-    { id: 'v4', title: '4. mi történik, ha elkezded — és mi, ha nem', url: '', questions: defaultQuestions() },
+    { id: 'v1', title: '1. miért fáj a derekad — a valódi ok', videoName: null, videoSize: null, questions: defaultQuestions() },
+    { id: 'v2', title: '2. a 3 mozdulat, amit naponta rosszul csinálsz', videoName: null, videoSize: null, questions: defaultQuestions() },
+    { id: 'v3', title: '3. a HÁTrendben módszer logikája', videoName: null, videoSize: null, questions: defaultQuestions() },
+    { id: 'v4', title: '4. mi történik, ha elkezded — és mi, ha nem', videoName: null, videoSize: null, questions: defaultQuestions() },
   ],
 }
 
@@ -58,6 +66,19 @@ function load<T>(key: string, fallback: T): T {
   } catch {
     return fallback
   }
+}
+
+function loadConfig(): GyConfig {
+  const c = load<GyConfig>(CONFIG_KEY, DEFAULT_CONFIG)
+  return {
+    ...c,
+    videos: c.videos.map((v) => ({ ...v, videoName: v.videoName ?? null, videoSize: v.videoSize ?? null })),
+  }
+}
+
+function loadProgress(): GyProgress | null {
+  const p = load<GyProgress | null>(PROGRESS_KEY, null)
+  return p ? { ...p, advanced: p.advanced ?? [] } : null
 }
 
 function save(key: string, value: unknown) {
@@ -77,8 +98,14 @@ type GyorsitosavContextValue = {
   register: (email: string) => void
   markWatched: (videoId: string) => void
   submitAnswers: (video: GyVideo, answers: GyAnswer[]) => void
+  /** továbblépés a következő videóra (a komment elküldése után) */
+  advance: (videoId: string) => void
   resetProgress: () => void
-  /** az első még nem teljesített videó indexe; `config.videos.length`, ha mind kész */
+  comments: GyComment[]
+  removeComment: (id: string) => void
+  clearComments: (videoId: string) => void
+  /** az első még nem továbblépett videó indexe (ez az egyetlen látható videó);
+   * `config.videos.length`, ha a konfiguráció üres */
   currentIndex: number
   finished: boolean
 }
@@ -92,17 +119,20 @@ export function useGyorsitosav() {
 }
 
 export function GyorsitosavProvider({ children }: { children: ReactNode }) {
-  const [config, setConfig] = useState<GyConfig>(() => load(CONFIG_KEY, DEFAULT_CONFIG))
-  const [progress, setProgress] = useState<GyProgress | null>(() => load<GyProgress | null>(PROGRESS_KEY, null))
+  const [config, setConfig] = useState<GyConfig>(loadConfig)
+  const [progress, setProgress] = useState<GyProgress | null>(loadProgress)
+  const [comments, setComments] = useState<GyComment[]>(() => load<GyComment[]>(COMMENTS_KEY, []))
 
   useEffect(() => save(CONFIG_KEY, config), [config])
   useEffect(() => save(PROGRESS_KEY, progress), [progress])
+  useEffect(() => save(COMMENTS_KEY, comments), [comments])
 
   // másik böngészőfülön (pl. az admin szerkesztőben) végzett módosítás átvétele
   useEffect(() => {
     function onStorage(e: StorageEvent) {
-      if (e.key === CONFIG_KEY) setConfig(load(CONFIG_KEY, DEFAULT_CONFIG))
-      if (e.key === PROGRESS_KEY) setProgress(load<GyProgress | null>(PROGRESS_KEY, null))
+      if (e.key === CONFIG_KEY) setConfig(loadConfig())
+      if (e.key === PROGRESS_KEY) setProgress(loadProgress())
+      if (e.key === COMMENTS_KEY) setComments(load<GyComment[]>(COMMENTS_KEY, []))
     }
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
@@ -112,7 +142,7 @@ export function GyorsitosavProvider({ children }: { children: ReactNode }) {
   const resetConfig = useCallback(() => setConfig(DEFAULT_CONFIG), [])
 
   const register = useCallback((email: string) => {
-    setProgress({ email, registeredAt: Date.now(), watched: [], completed: {}, finishedAt: null, giftEarned: false })
+    setProgress({ email, registeredAt: Date.now(), watched: [], completed: {}, advanced: [], finishedAt: null, giftEarned: false })
   }, [])
 
   const markWatched = useCallback((videoId: string) => {
@@ -121,6 +151,11 @@ export function GyorsitosavProvider({ children }: { children: ReactNode }) {
 
   const submitAnswers = useCallback(
     (video: GyVideo, answers: GyAnswer[]) => {
+      const at = Date.now()
+      setComments((prev) => [
+        ...answers.map((a, i) => ({ id: `c-${at}-${i}`, videoId: video.id, email: progress?.email ?? '', question: a.question, text: a.text, at })),
+        ...prev,
+      ])
       setProgress((p) => {
         if (!p) return p
         const completed = { ...p.completed, [video.id]: { answers, at: Date.now() } }
@@ -131,12 +166,19 @@ export function GyorsitosavProvider({ children }: { children: ReactNode }) {
         return { ...p, completed, finishedAt: now, giftEarned: config.gift.enabled && inTime }
       })
     },
-    [config],
+    [config, progress?.email],
   )
+
+  const advance = useCallback((videoId: string) => {
+    setProgress((p) => (p && !p.advanced.includes(videoId) ? { ...p, advanced: [...p.advanced, videoId] } : p))
+  }, [])
+
+  const removeComment = useCallback((id: string) => setComments((prev) => prev.filter((c) => c.id !== id)), [])
+  const clearComments = useCallback((videoId: string) => setComments((prev) => prev.filter((c) => c.videoId !== videoId)), [])
 
   const resetProgress = useCallback(() => setProgress(null), [])
 
-  const currentIndex = progress ? config.videos.findIndex((v) => !progress.completed[v.id]) : 0
+  const currentIndex = progress ? config.videos.findIndex((v) => !progress.advanced.includes(v.id)) : 0
   const finished = !!progress && progress.finishedAt !== null
 
   return (
@@ -149,7 +191,11 @@ export function GyorsitosavProvider({ children }: { children: ReactNode }) {
         register,
         markWatched,
         submitAnswers,
+        advance,
         resetProgress,
+        comments,
+        removeComment,
+        clearComments,
         currentIndex: currentIndex === -1 ? config.videos.length : currentIndex,
         finished,
       }}

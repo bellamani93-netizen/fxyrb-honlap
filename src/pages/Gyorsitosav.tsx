@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Chevron from '../components/Chevron'
 import Icon from '../components/Icon'
-import YouTubePlayer from '../components/YouTubePlayer'
-import { youtubeId } from '../data/reviews'
+import GyVideoPlayer from '../components/GyVideoPlayer'
 import {
   formatDeadline,
   formatDuration,
   useGyorsitosav,
   useNow,
   type GyAnswer,
+  type GyComment,
   type GyVideo,
 } from '../context/GyorsitosavContext'
 
@@ -96,11 +96,6 @@ function Landing() {
         <RegisterForm />
       </div>
 
-      <ul className="gy-steps-list list-unstyled mt-4 mb-0">
-        {config.videos.map((v) => (
-          <li key={v.id} className="mb-1">{v.title}</li>
-        ))}
-      </ul>
     </>
   )
 }
@@ -152,17 +147,39 @@ function CountdownBar() {
   )
 }
 
-function VideoStep({ video, index, state }: { video: GyVideo; index: number; state: 'done' | 'current' | 'locked' }) {
-  const { progress, markWatched, submitAnswers } = useGyorsitosav()
-  const [apiFailed, setApiFailed] = useState(false)
-  const [rewatch, setRewatch] = useState(false)
+/** a megadott e-mail rövidített, nem teljesen kiírt formája másoknak */
+function maskedName(email: string): string {
+  const n = nameFromEmail(email)
+  return n.length > 2 ? `${n.slice(0, 2)}…` : n
+}
+
+function CommentSection({ videoId, ownEmail }: { videoId: string; ownEmail: string }) {
+  const { comments } = useGyorsitosav()
+  const list = comments.filter((c) => c.videoId === videoId)
+  if (list.length === 0) return null
+  const ordered: GyComment[] = [...list.filter((c) => c.email === ownEmail), ...list.filter((c) => c.email !== ownEmail)]
+  return (
+    <div className="mt-4">
+      <h3 className="h6 mb-3">kommentek ({list.length})</h3>
+      <div className="d-flex flex-column gap-3">
+        {ordered.map((c) => (
+          <Comment key={c.id} name={c.email === ownEmail ? nameFromEmail(c.email) : maskedName(c.email)} question={c.question} text={c.text} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** a folyamat egyetlen látható videója: lejátszó → (végignézés után) tudáscheck
+ * és kommentszekció → (komment után) tovább a következő videóra */
+function CurrentVideo({ video, index, total }: { video: GyVideo; index: number; total: number }) {
+  const { progress, markWatched, submitAnswers, advance } = useGyorsitosav()
   const [answers, setAnswers] = useState<Record<string, string>>({})
   if (!progress) return null
 
-  const id = youtubeId(video.url)
   const watched = progress.watched.includes(video.id)
-  const completed = progress.completed[video.id]
-  const name = nameFromEmail(progress.email)
+  const completed = !!progress.completed[video.id]
+  const isLast = index === total - 1
   const canSubmit = video.questions.every((q) => (answers[q.id] ?? '').trim().length >= MIN_ANSWER_LENGTH)
 
   function handleSubmit(e: React.FormEvent) {
@@ -172,86 +189,70 @@ function VideoStep({ video, index, state }: { video: GyVideo; index: number; sta
     submitAnswers(video, list)
   }
 
-  if (state === 'locked') {
-    return (
-      <div className="card-fyb gy-step gy-step--locked">
-        <Icon src="/icons/ikon_lakat.svg" />
-        <span className="fw-bold">{video.title}</span>
-        <span className="small ms-auto" style={{ color: 'var(--color-text-muted)' }}>az előző videó tudáscheck-je után nyílik</span>
-      </div>
-    )
-  }
-
   return (
-    <div className="card-fyb gy-step-card">
+    <div className="card-fyb gy-step-card" key={video.id}>
       <div className="d-flex align-items-center gap-2 mb-3">
-        <span className="gy-step-badge">{state === 'done' ? '✓' : index + 1}</span>
+        <span className="gy-step-badge">{index + 1}</span>
         <h2 className="h6 mb-0">{video.title}</h2>
-        {state === 'done' && id && (
-          <button type="button" className="btn-fyb btn-fyb-ghost ms-auto" style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem' }} onClick={() => setRewatch((r) => !r)}>
-            {rewatch ? 'videó elrejtése' : 'újranézem'}
-          </button>
-        )}
       </div>
 
-      {state === 'current' && (
+      {video.videoName ? (
+        <GyVideoPlayer videoId={video.id} title={video.title} onEnded={() => markWatched(video.id)} />
+      ) : (
+        <div className="gy-video-placeholder">
+          <Icon src="/icons/ikon_video.svg" style={{ width: '2.5rem', height: '2.5rem' }} />
+          <span>a videó hamarosan felkerül</span>
+        </div>
+      )}
+
+      {!watched && !video.videoName && (
+        <div className="mt-3">
+          <button type="button" className="btn-fyb btn-fyb-outline" onClick={() => markWatched(video.id)}>megnéztem a videót</button>
+        </div>
+      )}
+      {!watched && video.videoName && (
+        <p className="small mt-3 mb-0" style={{ color: 'var(--color-text-muted)' }}>
+          a videó végigjátszása után jelennek meg a kérdések.
+        </p>
+      )}
+
+      {watched && !completed && (
         <>
-          {id ? (
-            <YouTubePlayer videoId={id} title={video.title} onEnded={() => markWatched(video.id)} onApiFailed={() => setApiFailed(true)} />
-          ) : (
-            <div className="gy-video-placeholder">
-              <Icon src="/icons/ikon_video.svg" style={{ width: '2.5rem', height: '2.5rem' }} />
-              <span>a videó hamarosan felkerül</span>
-            </div>
-          )}
-
-          {!watched && (!id || apiFailed) && (
-            <div className="mt-3">
-              <button type="button" className="btn-fyb btn-fyb-outline" onClick={() => markWatched(video.id)}>megnéztem a videót</button>
-            </div>
-          )}
-          {!watched && id && !apiFailed && (
-            <p className="small mt-3 mb-0" style={{ color: 'var(--color-text-muted)' }}>
-              a videó végigjátszása után jelenik meg a tudáscheck.
-            </p>
-          )}
-
-          {watched && (
-            <form className="mt-4" onSubmit={handleSubmit}>
-              <h3 className="h6 mb-3">tudáscheck</h3>
-              {video.questions.map((q) => (
-                <div key={q.id} className="mb-3">
-                  <label className="form-label small fw-bold" htmlFor={`${video.id}-${q.id}`}>{q.text}</label>
-                  <textarea
-                    id={`${video.id}-${q.id}`}
-                    className="form-control"
-                    rows={2}
-                    value={answers[q.id] ?? ''}
-                    onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
-                  />
-                </div>
-              ))}
-              <button type="submit" className="btn-fyb btn-fyb-highlight" disabled={!canSubmit}>
-                komment elküldése és tovább
-                <Chevron direction="right" color="var(--navy)" />
-              </button>
-            </form>
-          )}
+          <form className="mt-4" onSubmit={handleSubmit}>
+            <h3 className="h6 mb-3">tudáscheck</h3>
+            {video.questions.map((q) => (
+              <div key={q.id} className="mb-3">
+                <label className="form-label small fw-bold" htmlFor={`${video.id}-${q.id}`}>{q.text}</label>
+                <textarea
+                  id={`${video.id}-${q.id}`}
+                  className="form-control"
+                  rows={2}
+                  value={answers[q.id] ?? ''}
+                  onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                />
+              </div>
+            ))}
+            <button type="submit" className="btn-fyb btn-fyb-highlight" disabled={!canSubmit}>
+              komment elküldése
+              <Chevron direction="right" color="var(--navy)" />
+            </button>
+          </form>
+          <CommentSection videoId={video.id} ownEmail={progress.email} />
         </>
       )}
 
-      {state === 'done' && rewatch && id && (
-        <div className="video-embed-fyb mb-3">
-          <iframe src={`https://www.youtube-nocookie.com/embed/${id}`} title={video.title} loading="lazy" allowFullScreen />
-        </div>
-      )}
-
-      {state === 'done' && completed && (
-        <div className="d-flex flex-column gap-3">
-          {completed.answers.map((a) => (
-            <Comment key={a.questionId} name={name} question={a.question} text={a.text} />
-          ))}
-        </div>
+      {completed && (
+        <>
+          <CommentSection videoId={video.id} ownEmail={progress.email} />
+          {!isLast && (
+            <div className="mt-4">
+              <button type="button" className="btn-fyb btn-fyb-highlight btn-fyb-lg" onClick={() => advance(video.id)}>
+                tovább a következő videóra
+                <Chevron direction="right" color="var(--navy)" />
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -311,16 +312,16 @@ function Completion() {
 }
 
 function Course() {
-  const { config, progress, currentIndex, finished } = useGyorsitosav()
+  const { config, currentIndex, finished } = useGyorsitosav()
+  const total = config.videos.length
+  const index = Math.min(currentIndex, total - 1)
+  const video = config.videos[index]
+  if (!video) return <p>A gyorsítósáv tartalma még nincs beállítva.</p>
   return (
     <>
       <CountdownBar />
       <div className="d-flex flex-column gap-4">
-        {config.videos.map((v, i) => {
-          const done = !!progress?.completed[v.id]
-          const state = done ? 'done' : i === currentIndex ? 'current' : 'locked'
-          return <VideoStep key={v.id} video={v} index={i} state={state} />
-        })}
+        <CurrentVideo video={video} index={index} total={total} />
         {finished && <Completion />}
       </div>
     </>

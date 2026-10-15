@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { youtubeId } from '../data/reviews'
+import { useEffect, useState } from 'react'
+import { deleteVideo, getVideoUrl, saveVideo } from '../lib/videoStore'
 import { withBase } from '../lib/assetUrl'
 import {
   formatDeadline,
@@ -13,12 +13,66 @@ function newId(prefix: string) {
   return `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
 }
 
-// admin "gyorsítósáv" szerkesztő: a videók (cím, YouTube-link, tudáscheck-
+function formatSize(bytes: number): string {
+  return bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`
+}
+
+/** fájl-feltöltő gomb: natív <input type="file"> vizuálisan elrejtve, egy
+ * stílusozott <label> nyitja meg (ugyanaz a minta, mint az AdminAnyagok.tsx-ben) */
+function UploadButton({ label, onSelect, disabled }: { label: string; onSelect: (file: File) => void; disabled?: boolean }) {
+  return (
+    <label className="btn-fyb btn-fyb-outline mb-0" style={{ padding: '0.35rem 0.9rem', fontSize: '0.85rem', cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.6 : 1 }}>
+      {label}
+      <input
+        type="file"
+        accept="video/*"
+        disabled={disabled}
+        style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', border: 0 }}
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) onSelect(file)
+          e.target.value = ''
+        }}
+      />
+    </label>
+  )
+}
+
+/** a feltöltött videó lejátszható előnézete az admin kártyán */
+function AdminVideoPreview({ videoId, version }: { videoId: string; version: string }) {
+  const [url, setUrl] = useState<string | null>(null)
+  useEffect(() => {
+    let u: string | null = null
+    let cancelled = false
+    getVideoUrl(videoId).then((x) => {
+      if (cancelled) {
+        if (x) URL.revokeObjectURL(x)
+        return
+      }
+      u = x
+      setUrl(x)
+    })
+    return () => {
+      cancelled = true
+      if (u) URL.revokeObjectURL(u)
+    }
+  }, [videoId, version])
+  if (!url) return <div className="small mt-2" style={{ color: 'var(--color-text-muted)' }}>az előnézet nem érhető el ezen a böngészőn.</div>
+  return (
+    <div className="mt-2" style={{ maxWidth: 360 }}>
+      <video src={url} controls style={{ width: '100%', borderRadius: 'var(--radius-sm)', display: 'block' }} />
+    </div>
+  )
+}
+
+// admin "gyorsítósáv" szerkesztő: a videók (cím, feltöltött videófájl, tudáscheck-
 // kérdések), a visszaszámláló határideje és az ajándék. A módosítások azonnal
 // érvényesülnek és mentődnek (nincs külön "mentés" gomb), a nyilvános
 // /gyorsitosav oldal ugyanezt a Context-et olvassa.
 export default function AdminGyorsitosav() {
-  const { config, updateConfig, resetConfig, progress, resetProgress } = useGyorsitosav()
+  const { config, updateConfig, resetConfig, progress, resetProgress, comments, removeComment, clearComments } = useGyorsitosav()
+  const [uploading, setUploading] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [unit, setUnit] = useState<'ora' | 'nap'>(config.deadlineHours % 24 === 0 ? 'nap' : 'ora')
   const deadlineValue = unit === 'nap' ? config.deadlineHours / 24 : config.deadlineHours
 
@@ -56,14 +110,35 @@ export default function AdminGyorsitosav() {
     const v: GyVideo = {
       id: newId('v'),
       title: `${config.videos.length + 1}. új videó`,
-      url: '',
+      videoName: null,
+      videoSize: null,
       questions: [{ id: newId('q'), text: '' }],
     }
     updateConfig((c) => ({ ...c, videos: [...c.videos, v] }))
   }
 
+  async function handleUpload(videoId: string, file: File) {
+    setUploading(videoId)
+    setUploadError(null)
+    try {
+      await saveVideo(videoId, file)
+      patchVideo(videoId, { videoName: file.name, videoSize: file.size })
+    } catch {
+      setUploadError('A videó mentése nem sikerült (a böngésző tárhelye megtelt, vagy nem engedélyezett).')
+    } finally {
+      setUploading(null)
+    }
+  }
+
+  async function handleRemoveFile(videoId: string) {
+    await deleteVideo(videoId).catch(() => undefined)
+    patchVideo(videoId, { videoName: null, videoSize: null })
+  }
+
   function removeVideo(id: string) {
     if (!window.confirm('Biztosan törlöd ezt a videót a gyorsítósávból?')) return
+    deleteVideo(id).catch(() => undefined)
+    clearComments(id)
     updateConfig((c) => ({ ...c, videos: c.videos.filter((v) => v.id !== id) }))
   }
 
@@ -161,10 +236,14 @@ export default function AdminGyorsitosav() {
           </div>
         </div>
 
-        <h2 className="h5 mb-3">videók ({config.videos.length})</h2>
+        <h2 className="h5 mb-2">videók ({config.videos.length})</h2>
+        <p className="small mb-3" style={{ color: 'var(--color-text-muted)' }}>
+          Prototípus: a feltöltött videó ezen a böngészőn tárolódik. Élesben külső videószolgáltatóba (pl. Mux) kerül — a tárolás a <code>src/lib/videoStore.ts</code>-ben cserélhető.
+        </p>
+        {uploadError && <div className="small mb-3" style={{ color: 'var(--bs-danger, #c0392b)' }}>{uploadError}</div>}
         <div className="d-flex flex-column gap-4 mb-4">
           {config.videos.map((v, i) => {
-            const id = youtubeId(v.url)
+            const videoComments = comments.filter((c) => c.videoId === v.id)
             return (
               <div className="card-fyb" key={v.id}>
                 <div className="d-flex align-items-center gap-2 mb-3">
@@ -183,25 +262,25 @@ export default function AdminGyorsitosav() {
                     <input id={`gy-title-${v.id}`} type="text" className="form-control" value={v.title} onChange={(e) => patchVideo(v.id, { title: e.target.value })} />
                   </div>
                   <div className="col-12">
-                    <label className="form-label small fw-bold" htmlFor={`gy-url-${v.id}`}>YouTube-link</label>
-                    <input
-                      id={`gy-url-${v.id}`}
-                      type="url"
-                      className="form-control"
-                      placeholder="https://youtu.be/…"
-                      value={v.url}
-                      onChange={(e) => patchVideo(v.id, { url: e.target.value })}
-                    />
-                    <div className="small mt-1" style={{ color: v.url && !id ? 'var(--bs-danger, #c0392b)' : 'var(--color-text-muted)' }}>
-                      {!v.url && 'amíg nincs link, a látogató helyőrzőt lát és kézzel jelölheti megnézettnek.'}
-                      {v.url && !id && 'ez a link nem ismerhető fel YouTube-linkként.'}
-                      {id && 'érvényes link.'}
+                    <div className="form-label small fw-bold">videófájl</div>
+                    <div className="d-flex flex-wrap align-items-center gap-2">
+                      <UploadButton
+                        label={v.videoName ? 'videó cseréje' : 'videó feltöltése'}
+                        disabled={uploading === v.id}
+                        onSelect={(f) => handleUpload(v.id, f)}
+                      />
+                      {v.videoName && (
+                        <button type="button" className="btn-fyb btn-fyb-ghost" style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }} onClick={() => handleRemoveFile(v.id)}>videó törlése</button>
+                      )}
+                      <span className="small" style={{ color: 'var(--color-text-muted)' }}>
+                        {uploading === v.id
+                          ? 'feltöltés…'
+                          : v.videoName
+                            ? `${v.videoName}${v.videoSize ? ` · ${formatSize(v.videoSize)}` : ''}`
+                            : 'még nincs videó: a látogató helyőrzőt lát, és kézzel jelölheti megnézettnek.'}
+                      </span>
                     </div>
-                    {id && (
-                      <div className="video-embed-fyb mt-2" style={{ maxWidth: 360 }}>
-                        <iframe src={`https://www.youtube-nocookie.com/embed/${id}`} title={`${v.title} — előnézet`} loading="lazy" allowFullScreen />
-                      </div>
-                    )}
+                    {v.videoName && <AdminVideoPreview videoId={v.id} version={`${v.videoName}-${v.videoSize}`} />}
                   </div>
 
                   <div className="col-12">
@@ -225,6 +304,24 @@ export default function AdminGyorsitosav() {
                     {v.questions.length === 0 && (
                       <div className="small mt-1" style={{ color: 'var(--color-text-muted)' }}>kérdés nélkül a videó megnézése után azonnal a következő videó nyílik.</div>
                     )}
+                  </div>
+
+                  <div className="col-12">
+                    <details>
+                      <summary className="small fw-bold" style={{ cursor: 'pointer' }}>kommentek ({videoComments.length})</summary>
+                      <div className="d-flex flex-column gap-2 mt-2">
+                        {videoComments.length === 0 && <span className="small" style={{ color: 'var(--color-text-muted)' }}>még nincs komment.</span>}
+                        {videoComments.map((c) => (
+                          <div key={c.id} className="d-flex gap-2 align-items-start small">
+                            <div className="flex-grow-1">
+                              <span className="fw-bold">{c.email}</span> · {c.question}
+                              <div>{c.text}</div>
+                            </div>
+                            <button type="button" className="btn-fyb btn-fyb-ghost text-nowrap" style={{ padding: '0.15rem 0.6rem', fontSize: '0.8rem' }} onClick={() => removeComment(c.id)}>törlés</button>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                   </div>
                 </div>
               </div>
