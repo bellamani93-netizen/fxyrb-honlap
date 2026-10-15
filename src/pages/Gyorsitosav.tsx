@@ -300,6 +300,14 @@ function Course() {
   const total = config.videos.length
   const index = Math.min(currentIndex, total - 1)
   const video = config.videos[index]
+  const videoId = video?.id
+
+  // a következő videóra lépéskor az oldal tetejére ugrik (különben a hosszú
+  // előző lépés görgetési pozíciója maradna meg)
+  useEffect(() => {
+    window.scrollTo({ top: 0 })
+  }, [videoId])
+
   if (!video) return <p>A gyorsítósáv tartalma még nincs beállítva.</p>
   return (
     <>
