@@ -86,9 +86,9 @@ function Landing() {
           text: `Ha ${deadline} alatt végigérsz, ajándékot kapsz: ${config.gift.title}.`,
         }
       : {
-          icon: '/icons/ikon_naptar.svg',
-          title: 'a végén ingyenes konzultáció',
-          text: 'Ha végigértél, tovább léphetsz az ingyenes konzultáció időpontfoglalójához.',
+          icon: '/icons/ikon_checklist.svg',
+          title: 'látod, hol tartasz',
+          text: 'A haladásod végig követhető: mindig tudod, hány lépés van még hátra.',
         },
   ]
 
@@ -144,10 +144,10 @@ function Landing() {
             ))}
             <li className="gy-stepper-item gy-stepper-item--end">
               <span className="gy-stepper-node gy-stepper-node--end">
-                <Icon src={gift ? '/icons/ikon_csillag.svg' : '/icons/ikon_naptar.svg'} />
+                <Icon src={gift ? '/icons/ikon_csillag.svg' : '/icons/ikon_pipa_vastag.svg'} />
               </span>
-              <span className="gy-stepper-label">{gift ? 'ajándék' : 'konzultáció'}</span>
-              <span className="gy-stepper-sub">{gift ? 'és az időpontfoglaló' : 'időpontfoglaló'}</span>
+              <span className="gy-stepper-label">{gift ? 'ajándék' : 'kész'}</span>
+              <span className="gy-stepper-sub">{gift ? `ha ${deadline} alatt végzel` : 'végigértél'}</span>
             </li>
           </ol>
 
