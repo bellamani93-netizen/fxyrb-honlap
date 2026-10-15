@@ -72,9 +72,9 @@ function Landing() {
   return (
     <>
       <p className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
-        {n} videó, amit a saját tempódban tudsz feldolgozni. Minden videó után van egy rövid tudáscheck: a válaszaidat
-        kommentként láthatod a videó alatt, és ezután jön a következő videó. Ha végigértél, tovább léphetsz az ingyenes
-        konzultáció időpontfoglalójához.
+        {n} videó, amit saját tempódban tudsz feldolgozni
+        {config.gift.enabled ? `, de ha ${formatDeadline(config.deadlineHours)} alatt megnézed, akkor egy ajándékot is kapsz` : ''}
+        . A videók után rövid tudás-check kitöltésével tudsz továbblépni.
       </p>
 
       {config.gift.enabled && (
