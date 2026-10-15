@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useClients } from '../context/ClientsContext'
-import { formatQuestionTime, useKerdesek } from '../context/KerdesekContext'
+import { MAX_PENDING_QUESTIONS, countPendingQuestions, formatQuestionTime, useKerdesek } from '../context/KerdesekContext'
 import { LOGGED_IN_UF_ID } from '../data/initialClients'
 
 // ÜF "kérdéseim": szabad szöveges kérdés a saját gyógytornásznak, alatta a
@@ -12,6 +12,8 @@ export default function Kerdeseim() {
   const { clients } = useClients()
   const [text, setText] = useState('')
   const mine = kerdesek.filter((k) => k.clientId === LOGGED_IN_UF_ID)
+  const pending = countPendingQuestions(kerdesek, LOGGED_IN_UF_ID)
+  const limitReached = pending >= MAX_PENDING_QUESTIONS
   const hasGyt = !!clients.find((c) => c.id === LOGGED_IN_UF_ID)?.assignedGytId
 
   // az oldal megnyitásakor még olvasatlan válaszok azonosítói — ezek kapnak
@@ -30,9 +32,8 @@ export default function Kerdeseim() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const trimmed = text.trim()
-    if (!trimmed) return
-    askQuestion(LOGGED_IN_UF_ID, trimmed)
-    setText('')
+    if (!trimmed || limitReached) return
+    if (askQuestion(LOGGED_IN_UF_ID, trimmed)) setText('')
   }
 
   return (
@@ -45,7 +46,7 @@ export default function Kerdeseim() {
         <div className="card-fyb card-fyb-accent mb-4">
           <h2 className="h5 mb-1">kérdezz a gyógytornászodtól</h2>
           <p className="small mb-3" style={{ color: 'var(--color-text-muted)' }}>
-            Írd le szabadon a kérdésedet — a gyógytornászod látja, és hozzászólásban válaszol rá.
+            Írd le szabadon a kérdésedet — a gyógytornászod látja, és hozzászólásban válaszol rá. Egyszerre legfeljebb {MAX_PENDING_QUESTIONS} kérdésed várhat válaszra.
             {!hasGyt && ' (A kérdésed akkor jut el hozzá, amint hozzád rendeltünk egy gyógytornászt.)'}
           </p>
           <form onSubmit={handleSubmit}>
@@ -54,11 +55,18 @@ export default function Kerdeseim() {
               id="uj-kerdes"
               className="form-control"
               rows={4}
-              placeholder="pl. fájhat a gyakorlat közben a hátam, ha kicsit húz?"
+              placeholder={limitReached ? 'a gyógytornászod még nem válaszolt az előző kérdéseidre' : 'pl. fájhat a gyakorlat közben a hátam, ha kicsit húz?'}
               value={text}
+              disabled={limitReached}
               onChange={(e) => setText(e.target.value)}
             />
-            <button type="submit" className="btn-fyb btn-fyb-highlight mt-3" disabled={!text.trim()}>kérdés küldése</button>
+            {limitReached && (
+              <p className="small mt-2 mb-0" style={{ color: 'var(--color-text-muted)' }}>
+                Egyszerre legfeljebb {MAX_PENDING_QUESTIONS} megválaszolatlan kérdésed lehet. Új kérdést akkor tehetsz fel,
+                ha a gyógytornászod már válaszolt az addigiakra.
+              </p>
+            )}
+            <button type="submit" className="btn-fyb btn-fyb-highlight mt-3" disabled={!text.trim() || limitReached}>kérdés küldése</button>
           </form>
         </div>
 

@@ -32,6 +32,9 @@ export type Kerdes = {
 
 const KEY = 'fyb-kerdesek'
 
+/** egyszerre legfeljebb ennyi még megválaszolatlan kérdése lehet egy ügyfélnek */
+export const MAX_PENDING_QUESTIONS = 2
+
 function load(): Kerdes[] {
   try {
     const raw = localStorage.getItem(KEY)
@@ -43,8 +46,8 @@ function load(): Kerdes[] {
 
 type KerdesekContextValue = {
   kerdesek: Kerdes[]
-  /** új kérdés az ügyféltől */
-  askQuestion: (clientId: string, text: string) => void
+  /** új kérdés az ügyféltől; false, ha már van {MAX_PENDING_QUESTIONS} megválaszolatlan kérdése */
+  askQuestion: (clientId: string, text: string) => boolean
   /** hozzászólás-válasz a GYT-től */
   replyToQuestion: (questionId: string, text: string, authorName: string) => void
   markSeenByGyt: (questionId: string) => void
@@ -79,9 +82,11 @@ export function KerdesekProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const askQuestion = useCallback((clientId: string, text: string) => {
+    if (countPendingQuestions(kerdesek, clientId) >= MAX_PENDING_QUESTIONS) return false
     const at = Date.now()
     setKerdesek((prev) => [{ id: `k-${at}`, clientId, text, at, seenByGyt: false, replies: [] }, ...prev])
-  }, [])
+    return true
+  }, [kerdesek])
 
   const replyToQuestion = useCallback((questionId: string, text: string, authorName: string) => {
     const at = Date.now()
@@ -113,6 +118,11 @@ export function KerdesekProvider({ children }: { children: ReactNode }) {
       {children}
     </KerdesekContext.Provider>
   )
+}
+
+/** az ügyfél még megválaszolatlan kérdéseinek száma */
+export function countPendingQuestions(kerdesek: Kerdes[], clientId: string): number {
+  return kerdesek.filter((k) => k.clientId === clientId && k.replies.length === 0).length
 }
 
 /** az ÜF még nem látott válaszainak száma (menüpötty) */
