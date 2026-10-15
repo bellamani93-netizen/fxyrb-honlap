@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Chevron from '../components/Chevron'
 import Icon from '../components/Icon'
 import GyVideoPlayer from '../components/GyVideoPlayer'
@@ -13,7 +13,6 @@ import {
   type GyVideo,
 } from '../context/GyorsitosavContext'
 
-const REDIRECT_SECONDS = 8
 const MIN_ANSWER_LENGTH = 3
 
 function nameFromEmail(email: string): string {
@@ -74,8 +73,8 @@ function Landing() {
     <>
       <p className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
         {n} videó, amit a saját tempódban tudsz feldolgozni. Minden videó után van egy rövid tudáscheck: a válaszaidat
-        kommentként láthatod a videó alatt, és ezután jön a következő videó. Ha végigértél, egyenesen az ingyenes
-        konzultáció időpontfoglalójához jutsz.
+        kommentként láthatod a videó alatt, és ezután jön a következő videó. Ha végigértél, tovább léphetsz az ingyenes
+        konzultáció időpontfoglalójához.
       </p>
 
       {config.gift.enabled && (
@@ -260,27 +259,11 @@ function CurrentVideo({ video, index, total }: { video: GyVideo; index: number; 
 
 function Completion() {
   const { config, progress } = useGyorsitosav()
-  const navigate = useNavigate()
-  const [left, setLeft] = useState(REDIRECT_SECONDS)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [])
-
-  // csak közvetlenül a befejezés után irányítunk át automatikusan (nem minden
-  // későbbi látogatáskor), hogy az ajándék később is elérhető maradjon
-  const justFinished = useMemo(() => !!progress?.finishedAt && Date.now() - progress.finishedAt < 15000, [progress?.finishedAt])
-
-  useEffect(() => {
-    if (!justFinished) return
-    if (left <= 0) {
-      navigate('/idopontfoglalas')
-      return
-    }
-    const t = setTimeout(() => setLeft((s) => s - 1), 1000)
-    return () => clearTimeout(t)
-  }, [justFinished, left, navigate])
 
   if (!progress) return null
 
@@ -302,11 +285,12 @@ function Completion() {
         </div>
       )}
       <p className="mb-3" style={{ color: 'var(--color-text-muted)' }}>
-        {justFinished
-          ? `${left} másodperc múlva átirányítunk az ingyenes konzultáció időpontfoglalójához.`
-          : 'Az ingyenes konzultáció időpontfoglalója is vár rád.'}
+        Az ingyenes konzultáció időpontfoglalója vár rád.
       </p>
-      <Link to="/idopontfoglalas" className="btn-fyb btn-fyb-highlight btn-fyb-lg">ugrás az időpontfoglalóhoz</Link>
+      <Link to="/idopontfoglalas" className="btn-fyb btn-fyb-highlight btn-fyb-lg">
+        tovább az időpontfoglalóra
+        <Chevron direction="right" color="var(--navy)" />
+      </Link>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 //
 // Menete: e-mailes regisztráció → az 1. videó → végignézés után tudáscheck
 // (kérdések, a válaszok kommentként jelennek meg a videó alatt) → következő
-// videó ... → a legutolsó után automatikus átirányítás az időpontfoglalóra.
+// videó ... → a legutolsó után "tovább az időpontfoglalóra" gomb.
 // A regisztrációtól visszaszámláló fut: ha a résztvevő a beállított határidőn
 // belül végigér, ajándékot kap (pl. letölthető anyag).
 //
