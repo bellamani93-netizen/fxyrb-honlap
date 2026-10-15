@@ -52,6 +52,10 @@ import { getSelectedClientId } from './data/initialClients'
 function buildGytNavItems(newClientsCount: number, unseenQuestions: number): NavItem[] {
   return [
     { to: '/gyt/ugyfelek', label: 'ügyfeleim', icon: '/icons/ikon_kezdolap.svg', badge: newClientsCount || undefined },
+    // "kérdések" feloldva: az ügyfelek szabad szöveges kérdései, hozzászólásban
+    // megválaszolhatók; a pötty a még meg nem nyitott kérdések száma. Nem
+    // ügyfélhez kötött (közös beérkező), ezért NEM a GytClientGate alá kerül.
+    { to: '/gyt/kerdesek', label: 'kérdések', icon: '/icons/ikon_csengo.svg', badge: unseenQuestions || undefined },
     { to: '/gyt/videokiosztas', label: 'videókiosztás', icon: '/icons/ikon_video.svg' },
     { to: '/gyt/naptar', label: 'naptár', icon: '/icons/ikon_naptar.svg' },
     // korábban zárolt helyőrző volt ("állapotfelmérő") — Marci kérésére
@@ -83,10 +87,6 @@ function buildGytNavItems(newClientsCount: number, unseenQuestions: number): Nav
     { to: '/gyt/checklist', label: 'checklist', icon: '/icons/ikon_checklist.svg' },
     { label: 'oktatóanyag', icon: '/icons/ikon_villanykorte.svg', locked: true },
     { label: 'eredmények', icon: '/icons/ikon_csillag.svg', locked: true },
-    // "kérdések" feloldva: az ügyfelek szabad szöveges kérdései, hozzászólásban
-    // megválaszolhatók; a pötty a még meg nem nyitott kérdések száma. Nem
-    // ügyfélhez kötött (közös beérkező), ezért NEM a GytClientGate alá kerül.
-    { to: '/gyt/kerdesek', label: 'kérdések', icon: '/icons/ikon_csengo.svg', badge: unseenQuestions || undefined },
   ]
 }
 
