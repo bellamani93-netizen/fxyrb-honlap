@@ -159,7 +159,7 @@ export default function Home() {
         <div className="container text-center" style={{ maxWidth: 560 }}>
           <h2 className="h3 mb-3">készen állsz az első lépésre?</h2>
           <p className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
-            nézd meg a 4 videós gyorsítósávot — pár perc alatt megérted, mi okozza a fájdalmad, és mit tehetsz ellene.
+            nézd meg a 4 lépéses gyorsítósávot — pár perc alatt megérted, mi okozza a fájdalmad, és mit tehetsz ellene.
           </p>
           <Link to="/gyorsitosav" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow">gyorsítósáv</Link>
         </div>

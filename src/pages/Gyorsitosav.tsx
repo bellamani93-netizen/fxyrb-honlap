@@ -34,7 +34,7 @@ function Comment({ name, question, text }: { name: string; question: string; tex
 }
 
 function RegisterForm() {
-  const { register, config } = useGyorsitosav()
+  const { register } = useGyorsitosav()
   const [email, setEmail] = useState('')
 
   function handleSubmit(e: React.FormEvent) {
@@ -44,7 +44,7 @@ function RegisterForm() {
   }
 
   return (
-    <form className="d-flex flex-wrap gap-2" onSubmit={handleSubmit}>
+    <form className="d-flex flex-column gap-3" onSubmit={handleSubmit}>
       <input
         type="email"
         className="form-control"
@@ -53,15 +53,11 @@ function RegisterForm() {
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        style={{ minWidth: '14rem', flex: 1 }}
       />
-      <button type="submit" className="btn-fyb btn-fyb-highlight btn-fyb-lg gy-register-btn">
-        regisztrálok, mehet az 1. videó
+      <button type="submit" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow gy-register-btn">
+        regisztrálok, mehet az 1. lépés
         <Chevron direction="right" color="var(--navy)" />
       </button>
-      <span className="w-100 small" style={{ color: 'var(--color-text-muted)' }}>
-        {config.videos.length} videó, mindegyik után rövid tudáscheck. Csak az e-mail címedre van szükségünk.
-      </span>
     </form>
   )
 }
@@ -69,32 +65,107 @@ function RegisterForm() {
 function Landing() {
   const { config } = useGyorsitosav()
   const n = config.videos.length
+  const gift = config.gift.enabled
+  const deadline = formatDeadline(config.deadlineHours)
+
+  const features = [
+    {
+      icon: '/icons/ikon_tanulas.svg',
+      title: 'saját tempóban',
+      text: 'Egyszerre egy videót látsz, és akkor haladsz tovább, amikor készen állsz rá.',
+    },
+    {
+      icon: '/icons/ikon_villanykorte.svg',
+      title: 'tudás-check minden lépésnél',
+      text: 'Rövid kérdésekre válaszolsz, így nem lepörgeted, hanem tényleg megérted, amit látsz.',
+    },
+    gift
+      ? {
+          icon: '/icons/ikon_csillag.svg',
+          title: 'ajándék a gyors haladóknak',
+          text: `Ha ${deadline} alatt végigérsz, ajándékot kapsz: ${config.gift.title}.`,
+        }
+      : {
+          icon: '/icons/ikon_naptar.svg',
+          title: 'a végén ingyenes konzultáció',
+          text: 'Ha végigértél, tovább léphetsz az ingyenes konzultáció időpontfoglalójához.',
+        },
+  ]
+
   return (
     <>
-      <p className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
-        {n} videó, amit saját tempódban tudsz feldolgozni
-        {config.gift.enabled ? `, de ha ${formatDeadline(config.deadlineHours)} alatt megnézed, akkor egy ajándékot is kapsz` : ''}
-        . A videók után rövid tudás-check kitöltésével tudsz továbblépni.
-      </p>
+      <section className="gy-hero">
+        <div className="container">
+          <div className="row align-items-center gy-4">
+            <div className="col-lg-7">
+              <span className="eyebrow-fyb">gyorsítósáv <Chevron double /></span>
+              <h1 className="display-5 gy-hero-title">
+                {n} lépéses <span className="gy-accent">gyorsítósáv</span>
+              </h1>
+              <p className="lead gy-hero-lead">
+                {n} videó, amit saját tempódban tudsz feldolgozni
+                {gift ? `, de ha ${deadline} alatt megnézed, akkor egy ajándékot is kapsz` : ''}
+                . A videók után rövid tudás-check kitöltésével tudsz továbblépni.
+              </p>
+              {gift && (
+                <div className="gy-gift-pill">
+                  <Icon src="/icons/ikon_csillag.svg" />
+                  <span>ajándék, ha {deadline} alatt végigérsz: <strong>{config.gift.title}</strong></span>
+                </div>
+              )}
+            </div>
 
-      {config.gift.enabled && (
-        <div className="card-fyb gy-gift-card mb-4">
-          <Icon src="/icons/ikon_csillag.svg" />
-          <div>
-            <div className="fw-bold">ajándék, ha gyorsan végigérsz</div>
-            <p className="mb-0 small" style={{ color: 'var(--color-text-muted)' }}>
-              Ha a regisztrációtól számított {formatDeadline(config.deadlineHours)} alatt végigmész mind a {n} videón,
-              ajándékot kapsz: {config.gift.title}.
-            </p>
+            <div className="col-lg-5">
+              <div className="newsletter-fyb gy-register-panel">
+                <div className="newsletter-icon-badge gy-register-badge mb-3">
+                  <Icon src="/icons/ikon_video.svg" />
+                </div>
+                <h2 className="h4 mb-2">indulj el most</h2>
+                <p className="mb-4 text-white-50">Csak az e-mail címedre van szükségünk — utána rögtön jön az 1. lépés.</p>
+                <RegisterForm />
+              </div>
+            </div>
           </div>
         </div>
-      )}
+      </section>
 
-      <div className="card-fyb">
-        <h2 className="h5 mb-3">regisztráció</h2>
-        <RegisterForm />
-      </div>
+      <section className="py-5">
+        <div className="container">
+          <span className="eyebrow-fyb">így működik <Chevron double /></span>
+          <h2 className="mb-5">lépésről lépésre</h2>
 
+          <ol className="gy-stepper list-unstyled">
+            {Array.from({ length: n }, (_, i) => (
+              <li className="gy-stepper-item" key={i}>
+                <span className="gy-stepper-node">{i + 1}</span>
+                <span className="gy-stepper-label">{i + 1}. lépés</span>
+                <span className="gy-stepper-sub">videó + tudás-check</span>
+              </li>
+            ))}
+            <li className="gy-stepper-item gy-stepper-item--end">
+              <span className="gy-stepper-node gy-stepper-node--end">
+                <Icon src={gift ? '/icons/ikon_csillag.svg' : '/icons/ikon_naptar.svg'} />
+              </span>
+              <span className="gy-stepper-label">{gift ? 'ajándék' : 'konzultáció'}</span>
+              <span className="gy-stepper-sub">{gift ? 'és az időpontfoglaló' : 'időpontfoglaló'}</span>
+            </li>
+          </ol>
+
+          <div className="row gy-4 mt-4">
+            {features.map((f) => (
+              <div className="col-md-4" key={f.title}>
+                <div className="card-fyb card-fyb-hover h-100 text-center">
+                  <div className="process-step-icon-badge mx-auto mb-3">
+                    <Icon src={f.icon} />
+                  </div>
+                  <h3 className="h6">{f.title}</h3>
+                  <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>{f.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </>
   )
 }
@@ -288,12 +359,13 @@ function Course() {
 
 export default function Gyorsitosav() {
   const { config, progress } = useGyorsitosav()
+  if (!progress) return <Landing />
   return (
     <section className="py-5">
       <div className="container" style={{ maxWidth: 860 }}>
         <span className="eyebrow-fyb">gyorsítósáv <Chevron double /></span>
-        <h1 className="mb-3">{config.videos.length} videós gyorsítósáv</h1>
-        {progress ? <Course /> : <Landing />}
+        <h1 className="mb-3">{config.videos.length} lépéses gyorsítósáv</h1>
+        <Course />
       </div>
     </section>
   )

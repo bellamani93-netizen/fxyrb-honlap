@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 
-// A "gyorsítósáv" (4 videós, regisztrációhoz kötött belépő-sor) közös állapota.
+// A "gyorsítósáv" (4 lépéses, regisztrációhoz kötött belépő-sor) közös állapota.
 //
 // Menete: e-mailes regisztráció → az 1. videó → végignézés után tudáscheck
 // (kérdések, a válaszok kommentként jelennek meg a videó alatt) → következő
