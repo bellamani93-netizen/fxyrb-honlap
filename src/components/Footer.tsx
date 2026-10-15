@@ -1,10 +1,7 @@
 import { Link } from 'react-router-dom'
 import { withBase } from '../lib/assetUrl'
-import { useMiniKurzusModal } from '../context/MiniKurzusModalContext'
 
 export default function Footer() {
-  const { open: openMiniKurzusModal } = useMiniKurzusModal()
-
   return (
     <footer className="site-footer">
       <div className="footer-chevron-strip" />
@@ -22,7 +19,7 @@ export default function Footer() {
             <ul className="list-unstyled d-flex flex-column gap-2 small">
               <li><Link to="/">főoldal</Link></li>
               <li><Link to="/melyedukacio">mélyedukáció</Link></li>
-              <li><button type="button" className="footer-link-btn" onClick={openMiniKurzusModal}>gyorsítósáv</button></li>
+              <li><Link to="/gyorsitosav">gyorsítósáv</Link></li>
               <li><Link to="/idopontfoglalas">időpontfoglalás</Link></li>
             </ul>
           </div>

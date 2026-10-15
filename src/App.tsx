@@ -5,7 +5,8 @@ import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 import MelyEdukacio from './pages/MelyEdukacio'
 import MelyEdukacioCikk from './pages/MelyEdukacioCikk'
-import MiniKurzus from './pages/MiniKurzus'
+import Gyorsitosav from './pages/Gyorsitosav'
+import AdminGyorsitosav from './pages/AdminGyorsitosav'
 import Idopontfoglalas from './pages/Idopontfoglalas'
 import JogiOldal from './pages/JogiOldal'
 import Belepes from './pages/Belepes'
@@ -35,6 +36,7 @@ import { CalendarProvider } from './context/CalendarContext'
 import { ClientsProvider, useClients } from './context/ClientsContext'
 import { BlogProvider } from './context/BlogContext'
 import { MaterialsProvider } from './context/MaterialsContext'
+import { GyorsitosavProvider } from './context/GyorsitosavContext'
 import { OktatoanyagProvider } from './context/OktatoanyagContext'
 import { WorkbookProvider } from './context/WorkbookContext'
 import { DokumentacioProvider } from './context/DokumentacioContext'
@@ -100,11 +102,13 @@ const adminNavItems: NavItem[] = [
   // oldalsávelem: anyagok kezelése") — videók feltöltése a videókiosztás
   // meglévő kódjaihoz, ill. teljesen új, egyedi kódú/című videó létrehozása.
   { to: '/admin/anyagok', label: 'anyagok kezelése', icon: '/icons/ikon_video.svg' },
+  { to: '/admin/gyorsitosav', label: 'gyorsítósáv', icon: '/icons/ikon_szintek.svg' },
   { label: 'statisztikák', icon: '/icons/ikon_csillag.svg', locked: true },
 ]
 
 export default function App() {
   return (
+    <GyorsitosavProvider>
     <ClientsProvider>
       <CalendarProvider>
         {/* a SalesDataProvider korábban csak a /sales/* útvonalak alatt
@@ -134,6 +138,7 @@ export default function App() {
         </SalesDataProvider>
       </CalendarProvider>
     </ClientsProvider>
+    </GyorsitosavProvider>
   )
 }
 
@@ -190,7 +195,7 @@ function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/melyedukacio" element={<MelyEdukacio />} />
         <Route path="/melyedukacio/:id" element={<MelyEdukacioCikk />} />
-        <Route path="/gyorsitosav" element={<MiniKurzus />} />
+        <Route path="/gyorsitosav" element={<Gyorsitosav />} />
         <Route path="/idopontfoglalas" element={<Idopontfoglalas />} />
         <Route path="/belepes" element={<Belepes />} />
         <Route path="/aszf" element={<JogiOldal title="ÁSZF" />} />
@@ -229,6 +234,7 @@ function AppRoutes() {
         <Route path="/admin/munkatarsak" element={<AdminMunkatarsak />} />
         <Route path="/admin/blog" element={<AdminBlog />} />
         <Route path="/admin/anyagok" element={<AdminAnyagok />} />
+        <Route path="/admin/gyorsitosav" element={<AdminGyorsitosav />} />
       </Route>
       </Routes>
     </>

@@ -1,9 +1,9 @@
 import { Fragment } from 'react'
+import { Link } from 'react-router-dom'
 import Chevron from '../components/Chevron'
 import Icon from '../components/Icon'
 import { withBase } from '../lib/assetUrl'
 import { GoogleReviewsCarousel } from '../components/ReviewCarousels'
-import { useMiniKurzusModal } from '../context/MiniKurzusModalContext'
 
 const helpCards = [
   {
@@ -51,8 +51,6 @@ const stepNumberPaths = [
 ]
 
 export default function Home() {
-  const { open: openMiniKurzusModal } = useMiniKurzusModal()
-
   return (
     <>
       {/* HERO */}
@@ -69,7 +67,7 @@ export default function Home() {
                 legprecízebben hatni. Ebben segítünk.
               </p>
               <div className="d-flex flex-wrap gap-3">
-                <button type="button" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow" onClick={openMiniKurzusModal}>gyorsítósáv</button>
+                <Link to="/gyorsitosav" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow">gyorsítósáv</Link>
               </div>
             </div>
             <div className="col-lg-5 align-self-end">
@@ -163,7 +161,7 @@ export default function Home() {
           <p className="mb-4" style={{ color: 'var(--color-text-muted)' }}>
             nézd meg a 4 videós gyorsítósávot — pár perc alatt megérted, mi okozza a fájdalmad, és mit tehetsz ellene.
           </p>
-          <button type="button" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow" onClick={openMiniKurzusModal}>gyorsítósáv</button>
+          <Link to="/gyorsitosav" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow">gyorsítósáv</Link>
         </div>
       </section>
 
