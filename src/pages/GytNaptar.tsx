@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { BUSINESS_HOURS, addDays, formatISODate, getMondayOf } from '../data/calendarData'
 import { useClients } from '../context/ClientsContext'
 import { LOGGED_IN_GYT_ID } from '../data/colleagues'
@@ -23,6 +24,7 @@ const OWN_LIST = [{ id: OWN_ID, name: 'Kollé Gábor' }]
 type SubView = 'mai' | 'naptar'
 
 export default function GytNaptar() {
+  const navigate = useNavigate()
   const {
     today,
     getBooking,
@@ -103,6 +105,11 @@ export default function GytNaptar() {
 
   function handleSlotClick(dateISO: string, hour: number) {
     const raw = getBooking(OWN_ID, dateISO, hour)
+    // a heti csoportos utánkövetés-míting az "utánkövetés" menüben szerkeszthető
+    if (raw?.type === 'utankovetes') {
+      navigate('/gyt/utankovetes')
+      return
+    }
     // egy overlay-ben LÉTREHOZOTT bejegyzés (akár "szabad", "terv", akár
     // "konzultáció") mindig egyenesen a teljes szerkesztőben nyílik meg —
     // a korábbi, "terv"-re kattintva megjelenő 2-gombos köztes popup
@@ -161,8 +168,8 @@ export default function GytNaptar() {
   }
 
   const todaysConsultations = BUSINESS_HOURS.map((hour) => ({ hour, meta: getBookingMeta(OWN_ID, todayISO, hour) }))
-    .filter((entry): entry is { hour: number; meta: typeof entry.meta & { name: string } } => (entry.meta.kind === 'terv' || entry.meta.kind === 'konzultacio') && !!entry.meta.name)
-    .map(({ hour, meta }) => ({ hour, minute: meta.minute ?? 0, name: meta.name, alkalom: meta.alkalom, meetLink: meta.meetLink }))
+    .filter((entry): entry is { hour: number; meta: typeof entry.meta & { name: string } } => (entry.meta.kind === 'terv' || entry.meta.kind === 'konzultacio' || entry.meta.kind === 'utankovetes') && !!entry.meta.name)
+    .map(({ hour, meta }) => ({ hour, minute: meta.minute ?? 0, name: meta.name, alkalom: meta.alkalom, meetLink: meta.meetLink, group: meta.kind === 'utankovetes' }))
 
   return (
     <section className="py-3 py-lg-5">
@@ -218,7 +225,7 @@ export default function GytNaptar() {
                     <div key={c.hour} className="consultation-row-grid py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
                       <span className="fw-bold">{c.hour}:{String(c.minute).padStart(2, '0')}</span>
                       <span>{c.name}</span>
-                      <span style={{ color: 'var(--color-text-muted)' }}>{c.alkalom ?? '—'}</span>
+                      <span style={{ color: 'var(--color-text-muted)' }}>{c.group ? 'csoportos' : (c.alkalom ?? '—')}</span>
                       {c.meetLink ? (
                         <a href={`https://${c.meetLink}`} target="_blank" rel="noreferrer" className="small text-truncate" style={{ color: 'var(--color-primary)' }}>
                           {c.meetLink}
@@ -236,7 +243,7 @@ export default function GytNaptar() {
                 <div className="d-lg-none">
                   {todaysConsultations.map((c) => (
                     <div key={c.hour} className="d-flex align-items-start gap-2 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                      <span className="fw-bold" style={{ minWidth: '1.5rem', color: 'var(--color-text-muted)' }}>{c.alkalom ?? '—'}.</span>
+                      <span className="fw-bold" style={{ minWidth: '1.5rem', color: 'var(--color-text-muted)' }}>{c.group ? 'csop.' : `${c.alkalom ?? '—'}.`}</span>
                       <span className="fw-bold" style={{ minWidth: '3.5rem' }}>{c.hour}:{String(c.minute).padStart(2, '0')}</span>
                       <span className="flex-grow-1" style={{ minWidth: 0 }}>
                         <span className="d-block text-truncate">{c.name}</span>
@@ -280,6 +287,9 @@ export default function GytNaptar() {
                 if (meta.kind === 'szabad') {
                   return { solid: 'var(--pale-gray)', tint: 'var(--pale-gray)', textSolid: 'var(--navy)', textTint: 'var(--navy)' }
                 }
+                if (meta.kind === 'utankovetes') {
+                  return { solid: 'var(--navy)', tint: 'var(--navy)', textSolid: '#fff', textTint: '#fff' }
+                }
                 if (meta.kind === 'terv') {
                   const c = 'rgba(var(--mint-rgb), 0.35)'
                   return { solid: c, tint: c, textSolid: 'var(--navy)', textTint: 'var(--navy)' }
@@ -310,7 +320,7 @@ export default function GytNaptar() {
               dateISO: editingSlot.dateISO,
               hour: editingSlot.hour,
               minute: editingMeta?.minute,
-              type: editingMeta?.kind ?? undefined,
+              type: editingMeta?.kind && editingMeta.kind !== 'utankovetes' ? editingMeta.kind : undefined,
               clientId: editingMeta?.clientId,
               meetLink: editingMeta?.meetLink,
               alkalom: editingMeta?.alkalom,

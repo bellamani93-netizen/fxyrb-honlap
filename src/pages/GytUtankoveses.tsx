@@ -1,44 +1,90 @@
 import { useState } from 'react'
 import { useClients } from '../context/ClientsContext'
+import { useCalendar } from '../context/CalendarContext'
+import { BUSINESS_HOURS, generateMeetLink } from '../data/calendarData'
 import {
   DEFAULT_CAPACITY,
   formatMeetingTime,
-  isGoogleMeetLink,
   isMeetingPast,
   useUtankovetes,
   type Meeting,
 } from '../context/UtankovetesContext'
 import { LOGGED_IN_GYT_ID } from '../data/colleagues'
 
+function splitStart(startsAt: string): { dateISO: string; hour: number; minute: number } {
+  const [dateISO, time = '00:00'] = startsAt.split('T')
+  const [h, m] = time.split(':').map(Number)
+  return { dateISO, hour: h, minute: m || 0 }
+}
+
+/** a Google Meet linket a rendszer hozza létre a míting kiírásakor (a naptár
+ * eddigi megoldásával azonos, helyettesítő link-generálással) */
+function createMeetLink(seed: string): string {
+  return `https://${generateMeetLink(seed)}`
+}
+
+const CAL_LABEL = 'Utánkövetés — csoportos míting'
+
 function MeetingForm({ meeting }: { meeting: Meeting | undefined }) {
   const { saveMeeting, newMeeting } = useUtankovetes()
+  const { setBooking, removeBooking, getBookingMeta } = useCalendar()
   const [startsAt, setStartsAt] = useState(meeting?.startsAt ?? '')
-  const [meetLink, setMeetLink] = useState(meeting?.meetLink ?? '')
   const [capacity, setCapacity] = useState(meeting?.capacity ?? DEFAULT_CAPACITY)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
-  function validate(): { startsAt: string; meetLink: string; capacity: number } | null {
+  // ellenőrzés + a naptár-ütközés vizsgálata (a saját, korábbi helyét nem
+  // számítjuk ütközésnek, mert az módosításkor felszabadul)
+  function validate(ownSlotStartsAt: string | undefined): { startsAt: string; capacity: number } | null {
     if (!startsAt) return setError('Add meg a míting időpontját.'), null
-    if (!isGoogleMeetLink(meetLink)) return setError('Google Meet linket adj meg (https://meet.google.com/…).'), null
     if (!Number.isFinite(capacity) || capacity < 1) return setError('A létszám legalább 1 legyen.'), null
+    const { dateISO, hour } = splitStart(startsAt)
+    if (!BUSINESS_HOURS.includes(hour)) {
+      return setError('A naptár 6:00 és 21:00 között kezeli az időpontokat — válassz ebben a sávban.'), null
+    }
+    const own = ownSlotStartsAt ? splitStart(ownSlotStartsAt) : null
+    const isOwnSlot = own && own.dateISO === dateISO && own.hour === hour
+    const meta = getBookingMeta(LOGGED_IN_GYT_ID, dateISO, hour)
+    if (!isOwnSlot && meta.kind && meta.kind !== 'szabad') {
+      return setError(`Ebben az órában már van bejegyzés a naptáradban${meta.name ? ` (${meta.name})` : ''}.`), null
+    }
     setError(null)
-    return { startsAt, meetLink: meetLink.trim(), capacity: Math.round(capacity) }
+    return { startsAt, capacity: Math.round(capacity) }
+  }
+
+  function writeToCalendar(m: { startsAt: string; meetLink: string }) {
+    const { dateISO, hour, minute } = splitStart(m.startsAt)
+    setBooking(LOGGED_IN_GYT_ID, dateISO, hour, {
+      type: 'utankovetes',
+      name: CAL_LABEL,
+      meetLink: m.meetLink.replace(/^https?:\/\//, ''),
+      minute: minute || undefined,
+    })
   }
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    const v = validate()
+    const v = validate(meeting?.startsAt)
     if (!v) return
-    saveMeeting(LOGGED_IN_GYT_ID, v)
+    const meetLink = meeting?.meetLink ?? createMeetLink(`${LOGGED_IN_GYT_ID}-${v.startsAt}-${Date.now()}`)
+    // módosításnál a régi naptár-hely felszabadul, ha az időpont megváltozott
+    if (meeting && meeting.startsAt !== v.startsAt) {
+      const old = splitStart(meeting.startsAt)
+      removeBooking(LOGGED_IN_GYT_ID, old.dateISO, old.hour)
+    }
+    saveMeeting(LOGGED_IN_GYT_ID, { ...v, meetLink })
+    writeToCalendar({ startsAt: v.startsAt, meetLink })
     setSaved(true)
   }
 
   function handleNew() {
-    const v = validate()
+    // új heti mítingnél a korábbi a naptárban marad (lezajlott esemény), ezért a saját hely nem "szabadul fel"
+    const v = validate(undefined)
     if (!v) return
-    if (meeting && !window.confirm('Új heti mítinget írsz ki: a jelenlegi lezárul, a jelentkezések újraindulnak. Folytatod?')) return
-    newMeeting(LOGGED_IN_GYT_ID, v)
+    if (meeting && !window.confirm('Új heti mítinget írsz ki: a jelenlegi lezárul, a jelentkezések újraindulnak, és új Google Meet link készül. Folytatod?')) return
+    const meetLink = createMeetLink(`${LOGGED_IN_GYT_ID}-${v.startsAt}-${Date.now()}`)
+    newMeeting(LOGGED_IN_GYT_ID, { ...v, meetLink })
+    writeToCalendar({ startsAt: v.startsAt, meetLink })
     setSaved(true)
   }
 
@@ -54,17 +100,24 @@ function MeetingForm({ meeting }: { meeting: Meeting | undefined }) {
           <input id="mit-cap" type="number" min={1} className="form-control" value={capacity} onChange={(e) => { setCapacity(Number(e.target.value)); setSaved(false) }} />
         </div>
         <div className="col-12">
-          <label className="form-label small fw-bold" htmlFor="mit-link">Google Meet link</label>
-          <input id="mit-link" type="url" className="form-control" placeholder="https://meet.google.com/abc-defg-hij" value={meetLink} onChange={(e) => { setMeetLink(e.target.value); setSaved(false) }} />
+          <div className="form-label small fw-bold">Google Meet link</div>
+          {meeting ? (
+            <a href={meeting.meetLink} target="_blank" rel="noreferrer" className="text-break">{meeting.meetLink}</a>
+          ) : (
+            <span className="small" style={{ color: 'var(--color-text-muted)' }}>a link automatikusan létrejön, amikor kiírod a mítinget.</span>
+          )}
         </div>
       </div>
+      <p className="small mt-3 mb-0" style={{ color: 'var(--color-text-muted)' }}>
+        A míting automatikusan bekerül a naptáradba, és ha ma van, a „mai konzultációk” között is megjelenik.
+      </p>
       {error && <div className="small mt-2" style={{ color: 'var(--bs-danger, #c0392b)' }}>{error}</div>}
       <div className="d-flex flex-wrap gap-2 mt-3 align-items-center">
         <button type="submit" className="btn-fyb btn-fyb-highlight">{meeting ? 'módosítások mentése' : 'míting kiírása'}</button>
         {meeting && (
           <button type="button" className="btn-fyb btn-fyb-outline" onClick={handleNew}>új heti míting kiírása</button>
         )}
-        {saved && <span className="small" style={{ color: 'var(--color-primary)' }}>elmentve</span>}
+        {saved && <span className="small" style={{ color: 'var(--color-primary)' }}>elmentve, a naptárba bekerült</span>}
       </div>
     </form>
   )

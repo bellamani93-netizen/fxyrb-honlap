@@ -8,7 +8,10 @@ import { useClients } from './ClientsContext'
 // foglalás innentől TÉNYLEGESEN megjelenik a GYT saját "naptár" oldalán is,
 // és fordítva — mindkét oldal ugyanezt az EGY állapotot olvassa/írja.
 
-export type BookingType = 'szabad' | 'terv' | 'konzultacio'
+// 'utankovetes': a GYT heti csoportos utánkövetés-mítingje (ld.
+// UtankovetesContext.tsx) — nem egyetlen ügyfél konzultációja, ezért nem számít
+// bele az alkalom-számozásba és az ügyfél saját konzultációi közé sem.
+export type BookingType = 'szabad' | 'terv' | 'konzultacio' | 'utankovetes'
 // a `minute` csak a GYT-oldali pontos időpont-megjelenítéshez kell (ld.
 // GytAppointmentModal — 2026.09.01., Marci kérésére: "óra:perc pontosan
 // választható legyen") — a naptár-RÁCS maga változatlanul 1 órás sávokban
