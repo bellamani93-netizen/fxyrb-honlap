@@ -15,6 +15,7 @@ import {
 } from '../context/AllapotfelmeroContext'
 import { DURATION_OPTIONS } from '../context/ChecklistContext'
 import { intensityColor, intensityGlow, intensityTextColor, useDarkMode } from '../utils/intensityColor'
+import { revealPanel } from '../utils/revealMenu'
 
 // Az ÜF fiók legelső, kötelező lépése (2026.09.03., Marci kérésére, 2. fázis
 // indítása) — telefonos, egyképernyős, lapozható flow (nem görgetünk, ld.
@@ -369,7 +370,7 @@ function MultiSelectField({
           {summary || <span style={{ color: 'var(--color-text-muted)' }}>válassz</span>}
         </button>
         {open && (
-          <div className="multiselect-panel">
+          <div className="multiselect-panel" ref={revealPanel}>
             {[...options, LEIROM_OPTION].map((opt) => {
               const active = selected.includes(opt)
               return (

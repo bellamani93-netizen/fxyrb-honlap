@@ -2608,6 +2608,7 @@ html[data-theme='dark'] .bodychart-img {
   position: relative;
 }
 .multiselect-trigger {
+  scroll-margin-top: 6rem; /* a fix fejléc alá se csússzon */
   width: 100%;
   cursor: pointer;
 }
