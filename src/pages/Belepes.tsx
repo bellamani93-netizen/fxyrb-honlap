@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { useAllapotfelmero } from '../context/AllapotfelmeroContext'
+import { recordLegalAcceptance } from '../lib/legal'
 
 type Tab = 'login' | 'register'
 type Role = 'ugyfel' | 'gyt' | 'sales' | 'admin'
@@ -54,6 +55,8 @@ export default function Belepes() {
     const name = (form.elements.namedItem('reg-name') as HTMLInputElement).value.trim() || 'új ügyfél'
     const newSession: Session = { name, role: 'ugyfel' }
     localStorage.setItem('fyb-session', JSON.stringify(newSession))
+    // az ÁSZF elfogadásának időpontja és változata (élesben a fiókhoz mentve)
+    recordLegalAcceptance()
     // új ügyfél: tiszta lappal indul (nincs korábbi állapotfelmérés)
     resetAllapotfelmero()
     navigate(ROLE_PATH.ugyfel)
@@ -131,12 +134,16 @@ export default function Belepes() {
                 <input id="reg-password" type="password" className="form-control" placeholder="••••••••" required />
               </div>
               <div className="form-check">
-                <input className="form-check-input" type="checkbox" id="gdpr" required />
-                <label className="form-check-label small" htmlFor="gdpr" style={{ color: 'var(--color-text-muted)' }}>
-                  elfogadom az <Link to="/adatvedelem" target="_blank">adatkezelési tájékoztatót</Link>,
-                  és hozzájárulok az egészségügyi adataim GDPR szerinti kezeléséhez.
+                <input className="form-check-input" type="checkbox" id="aszf-accept" required />
+                <label className="form-check-label small" htmlFor="aszf-accept" style={{ color: 'var(--color-text-muted)' }}>
+                  Elfogadom az <Link to="/aszf" target="_blank">Általános Szerződési Feltételeket</Link>.
                 </label>
               </div>
+              <p className="small mb-0" style={{ color: 'var(--color-text-muted)' }}>
+                A regisztrációval kijelented, hogy megismerted az <Link to="/adatvedelem" target="_blank">Adatkezelési tájékoztatót</Link>.
+                Az állapotfelmérőben és a program során megadott egészségügyi adataidat a gyógytorna-ellátáshoz,
+                az egészségügyi dokumentáció szabályai szerint kezeljük.
+              </p>
               <button type="submit" className="btn-fyb btn-fyb-primary w-100">regisztrálok</button>
             </form>
           )}

@@ -1,3 +1,5 @@
+import { ConsentPlaceholder } from './CookieConsentBanner'
+import { setCookieConsent, useCookieConsent } from '../lib/legal'
 import Carousel from './Carousel'
 import { googleReviews, videoReviews, youtubeId } from '../data/reviews'
 
@@ -25,12 +27,14 @@ export function GoogleReviewsCarousel() {
  * sem, a szakasz nem jelenik meg. */
 export function VideoReviewsCarousel() {
   const items = videoReviews.map((v) => ({ ...v, id: youtubeId(v.url) })).filter((v): v is typeof v & { id: string } => v.id !== null)
+  const consent = useCookieConsent()
   if (items.length === 0) return null
   return (
     <Carousel label="videós értékelések">
       {items.map((v, i) => (
         <div className="card-fyb h-100 p-2" key={`${v.id}-${i}`}>
           <div className="video-embed-fyb">
+            {consent?.functional ? (
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${v.id}`}
               title={v.caption ?? 'videós értékelés'}
@@ -38,6 +42,9 @@ export function VideoReviewsCarousel() {
               allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
+            ) : (
+              <ConsentPlaceholder label="A videó (YouTube)" service="YouTube" onEnable={() => setCookieConsent({ functional: true, measurement: consent?.measurement ?? false })} />
+            )}
           </div>
           {v.caption && <p className="small text-center mt-2 mb-1" style={{ color: 'var(--color-text-muted)' }}>{v.caption}</p>}
         </div>

@@ -36,11 +36,15 @@ function Comment({ name, question, text }: { name: string; question: string; tex
 function RegisterForm() {
   const { register } = useGyorsitosav()
   const [email, setEmail] = useState('')
+  const [newsletter, setNewsletter] = useState(false)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const trimmed = email.trim()
-    if (trimmed) register(trimmed)
+    if (!trimmed) return
+    // külön, önkéntes hírlevél-hozzájárulás (élesben a ListaMesterbe kerül)
+    if (newsletter) localStorage.setItem('fyb-newsletter-optin', JSON.stringify({ email: trimmed, at: new Date().toISOString(), source: 'gyorsitosav' }))
+    register(trimmed)
   }
 
   return (
@@ -54,6 +58,16 @@ function RegisterForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
+      <div className="form-check consent-check-fyb">
+        <input className="form-check-input" type="checkbox" id="gy-newsletter" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} />
+        <label className="form-check-label small" htmlFor="gy-newsletter">
+          A Derekas Levelekre (hírlevél) is feliratkozom. (nem kötelező)
+        </label>
+      </div>
+      <p className="small mb-0 text-white-50">
+        Az e-mail-címedre a gyorsítósávval kapcsolatos üzeneteket küldünk.{' '}
+        <Link to="/adatvedelem#4-9-gyorsitosav" style={{ color: 'var(--mint)' }}>Adatkezelés</Link>
+      </p>
       <button type="submit" className="btn-fyb btn-fyb-highlight btn-fyb-lg btn-fyb-glow gy-register-btn">
         regisztrálok, mehet az 1. lépés
         <Chevron direction="right" color="var(--navy)" />
@@ -302,6 +316,10 @@ function CurrentVideo({ video, index, total }: { video: GyVideo; index: number; 
                 />
               </div>
             ))}
+            <p className="small" style={{ color: 'var(--color-text-muted)' }}>
+              A válaszod kommentként a gyorsítósáv többi résztvevője számára is megjelenik, az e-mail-címed rövidített
+              formájával. Kérjük, ne írj bele egészségügyi részleteket vagy olyan adatot, amiből azonosítható vagy.
+            </p>
             <button type="submit" className="btn-fyb btn-fyb-highlight" disabled={!canSubmit}>
               válasz küldése
               <Chevron direction="right" color="var(--navy)" />

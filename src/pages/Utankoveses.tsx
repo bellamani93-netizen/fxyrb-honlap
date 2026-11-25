@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useClients } from '../context/ClientsContext'
 import {
   MAX_SENTENCES,
@@ -112,6 +113,18 @@ export default function Utankoveses() {
                   <div className="d-flex justify-content-between small mt-1" style={{ color: sentences > MAX_SENTENCES ? 'var(--bs-danger, #c0392b)' : 'var(--color-text-muted)' }}>
                     <span>{sentences > MAX_SENTENCES ? `legfeljebb ${MAX_SENTENCES} mondat lehet` : `${sentences}/${MAX_SENTENCES} mondat`}</span>
                     <span>{text.length}/{MAX_SIGNUP_CHARS}</span>
+                  </div>
+                  <p className="small mt-3 mb-2" style={{ color: 'var(--color-text-muted)' }}>
+                    A neved és ez a szöveg a mítingre jelentkező többi résztvevő számára is látható, a hívásban pedig
+                    a többiek látnak és hallanak. Kérjük, ne írj ide részletes egészségügyi adatot; a hívásról felvétel nem készíthető.
+                  </p>
+                  <div className="form-check">
+                    <input className="form-check-input" type="checkbox" id="utk-consent" required />
+                    <label className="form-check-label small" htmlFor="utk-consent">
+                      Hozzájárulok, hogy a jelentkezésem és a hívásban elmondottak (egészségemre vonatkozó információkat is
+                      beleértve) a csoport többi résztvevője számára megismerhetők legyenek.{' '}
+                      <Link to="/adatvedelem#4-6-csoportos-utankovetes" target="_blank">Adatkezelés</Link>
+                    </label>
                   </div>
                   {error && <div className="small mt-2" style={{ color: 'var(--bs-danger, #c0392b)' }}>{error}</div>}
                   <button type="submit" className="btn-fyb btn-fyb-highlight mt-3" disabled={!textOk}>jelentkezem</button>

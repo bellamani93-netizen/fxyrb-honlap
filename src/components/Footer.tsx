@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { withBase } from '../lib/assetUrl'
+import { openCookieSettings } from '../lib/legal'
 
 export default function Footer() {
   return (
@@ -36,11 +37,12 @@ export default function Footer() {
         </div>
 
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <span className="small text-white-50">© {new Date().getFullYear()} Fix Your Back</span>
+          <span className="small text-white-50">© {new Date().getFullYear()} FixYourBack Kft. · <Link to="/aszf#2-a-szolgaltato-adatai-impresszum">impresszum</Link></span>
           <ul className="list-unstyled d-flex flex-wrap justify-content-end gap-3 mb-0 small">
             <li><Link to="/aszf">ÁSZF</Link></li>
-            <li><Link to="/adatvedelem">Adatvédelmi tájékoztató</Link></li>
+            <li><Link to="/adatvedelem">Adatkezelési tájékoztató</Link></li>
             <li><Link to="/cookie">cookie</Link></li>
+            <li><button type="button" className="footer-link-button" onClick={openCookieSettings}>sütibeállítások</button></li>
           </ul>
         </div>
       </div>

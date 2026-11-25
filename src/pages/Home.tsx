@@ -202,6 +202,14 @@ export default function Home() {
                       onChange={(e) => setNewsletterEmail(e.target.value)}
                     />
                     <button type="submit" className="btn-fyb btn-fyb-highlight text-nowrap">feliratkozom</button>
+                    <div className="form-check consent-check-fyb w-100 mt-1">
+                      <input className="form-check-input" type="checkbox" id="newsletter-consent" required />
+                      <label className="form-check-label small" htmlFor="newsletter-consent">
+                        Hozzájárulok, hogy a FixYourBack Kft. a Derekas Leveleket (ismeretterjesztő és ajánlatot is
+                        tartalmazó e-maileket) küldjön nekem. Bármikor leiratkozhatok.{' '}
+                        <Link to="/adatvedelem#4-10-hirlevel-marketing-celu-kapcsolattartas">Adatkezelés</Link>
+                      </label>
+                    </div>
                   </form>
                 )}
               </div>

@@ -1,10 +1,14 @@
+import { Link } from 'react-router-dom'
 import Chevron from '../components/Chevron'
+import { ConsentPlaceholder } from '../components/CookieConsentBanner'
+import { setCookieConsent, useCookieConsent } from '../lib/legal'
 import Icon from '../components/Icon'
 import { GoogleReviewsCarousel, VideoReviewsCarousel } from '../components/ReviewCarousels'
 import { withBase } from '../lib/assetUrl'
 import { videoReviews } from '../data/reviews'
 
 export default function Idopontfoglalas() {
+  const consent = useCookieConsent()
   return (
     <>
       <section className="py-5">
@@ -69,14 +73,23 @@ export default function Idopontfoglalas() {
 
       <section className="py-5">
         <div className="container">
-          <h2 className="h3 mb-4">válassz időpontot</h2>
+          <h2 className="h3 mb-3">válassz időpontot</h2>
+          <p className="small mb-4" style={{ color: 'var(--color-text-muted)', maxWidth: 760 }}>
+            A foglaláskor megadott adataidat (köztük a panaszaidra vonatkozó válaszaidat) a konzultáció elbírálásához
+            és lebonyolításához kezeljük; az egészségügyi válaszaid kezeléséhez a foglalóban kifejezett hozzájárulásodat
+            kérjük. Részletek: <Link to="/adatvedelem#4-8-idopontfoglalas-az-ingyenes-konzultaciora-calendly">Adatkezelési tájékoztató 4.8. pont</Link>.
+          </p>
           <div className="card-fyb" style={{ minHeight: 560 }}>
+            {!consent?.functional ? (
+              <ConsentPlaceholder label="Az időpontfoglaló (Calendly)" service="Calendly" minHeight={500} onEnable={() => setCookieConsent({ functional: true, measurement: consent?.measurement ?? false })} />
+            ) : (
             <div className="d-flex flex-column align-items-center justify-content-center h-100 text-center py-5"
                  style={{ color: 'var(--color-text-muted)', minHeight: 500 }}>
               <Icon src="/icons/ikon_naptar.svg" className="mb-3" style={{ width: '3rem', height: '3rem' }} />
               <p className="mb-1 fw-bold" style={{ color: 'var(--color-text)' }}>Calendly-beágyazás helye</p>
               <p className="small mb-0">élesben itt jelenik meg az időpontfoglaló widget</p>
             </div>
+            )}
           </div>
         </div>
       </section>

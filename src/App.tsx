@@ -2,6 +2,7 @@ import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom'
 import Layout from './components/Layout'
 import AppLayout, { type NavItem } from './components/AppLayout'
 import ScrollToTop from './components/ScrollToTop'
+import CookieConsentBanner from './components/CookieConsentBanner'
 import Home from './pages/Home'
 import MelyEdukacio from './pages/MelyEdukacio'
 import MelyEdukacioCikk from './pages/MelyEdukacioCikk'
@@ -242,6 +243,7 @@ function AppRoutes() {
   return (
     <>
       <ScrollToTop />
+      <CookieConsentBanner />
       <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
@@ -251,9 +253,9 @@ function AppRoutes() {
         <Route path="/gyorsitosav/kesz" element={<GyorsitosavKesz />} />
         <Route path="/idopontfoglalas" element={<Idopontfoglalas />} />
         <Route path="/belepes" element={<Belepes />} />
-        <Route path="/aszf" element={<JogiOldal title="ÁSZF" />} />
-        <Route path="/adatvedelem" element={<JogiOldal title="Adatvédelmi tájékoztató" />} />
-        <Route path="/cookie" element={<JogiOldal title="Cookie-tájékoztató" />} />
+        <Route path="/aszf" element={<JogiOldal doc="aszf" />} />
+        <Route path="/adatvedelem" element={<JogiOldal doc="adatvedelem" />} />
+        <Route path="/cookie" element={<JogiOldal doc="cookie" />} />
       </Route>
       <Route element={<RoleGate role="ugyfel" />}>
       <Route element={<AppLayout role="ugyfel" />}>
